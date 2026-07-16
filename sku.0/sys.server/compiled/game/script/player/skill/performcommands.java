@@ -197,6 +197,15 @@ public class performcommands extends script.base_script
         }
         return SCRIPT_CONTINUE;
     }
+    public int cmdPerformanceMidiEvent(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        int encodedEvent = utils.stringToInt(params);
+        if (encodedEvent != -1)
+        {
+            performance.handleMidiEvent(self, encodedEvent);
+        }
+        return SCRIPT_CONTINUE;
+    }
     public int cmdBandFlourish(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
         java.util.StringTokenizer st = new java.util.StringTokenizer(params);

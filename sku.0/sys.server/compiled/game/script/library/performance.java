@@ -83,6 +83,18 @@ public class performance extends script.base_script
     public static final String VAR_SELECT_MUSIC_BAND = "performance.band_command";
     public static final String VAR_PERFORM_MOOD = "performance.old_mood";
     public static final String VAR_PERFORM_BUFF_TARGET = "performance.buff_target";
+    public static final String VAR_PERFORM_MIDI_ACTIVE = "performance.midi.active";
+    public static final String VAR_PERFORM_MIDI_RATE_SECOND = "performance.midi.rate_second";
+    public static final String VAR_PERFORM_MIDI_RATE_COUNT = "performance.midi.rate_count";
+    public static final int MIDI_MESSAGE_SIGNATURE = 0x40000000;
+    public static final int MIDI_MESSAGE_SIGNATURE_MASK = 0x7fe00000;
+    public static final int MIDI_EVENT_SESSION_START = 1;
+    public static final int MIDI_EVENT_NOTE_ON = 2;
+    public static final int MIDI_EVENT_NOTE_OFF = 3;
+    public static final int MIDI_EVENT_ALL_NOTES_OFF = 4;
+    public static final int MIDI_EVENT_SUSTAIN = 5;
+    public static final int MIDI_EVENT_SESSION_STOP = 6;
+    public static final int MIDI_MAX_EVENTS_PER_SECOND = 192;
     public static final String VAR_HEALING_XP_WOUND = "performance.healing_xp.wound";
     public static final String VAR_HEALING_XP_DAMAGE = "performance.healing_xp.damage";
     public static final String VAR_HEALING_XP_BUFF = "performance.healing_xp.buff";
@@ -821,8 +833,85 @@ public class performance extends script.base_script
         params.put("sequence", 0);
         messageTo(actor, "OnPulse", params, PERFORMANCE_HEARTBEAT_TIME, false);
     }
+    public static int encodeMidiEvent(int eventType, int channel, int note, int value) throws InterruptedException
+    {
+        return MIDI_MESSAGE_SIGNATURE | ((eventType & 0x7) << 18) | ((channel & 0xf) << 14) | ((note & 0x7f) << 7) | (value & 0x7f);
+    }
+    public static void stopMidiPerformance(obj_id actor, boolean relayStop) throws InterruptedException
+    {
+        if (utils.hasScriptVar(actor, VAR_PERFORM_MIDI_ACTIVE) && relayStop)
+        {
+            sendMusicFlourish(actor, encodeMidiEvent(MIDI_EVENT_SESSION_STOP, 0, 0, 0));
+        }
+        utils.removeScriptVar(actor, VAR_PERFORM_MIDI_ACTIVE);
+        utils.removeScriptVar(actor, VAR_PERFORM_MIDI_RATE_SECOND);
+        utils.removeScriptVar(actor, VAR_PERFORM_MIDI_RATE_COUNT);
+    }
+    public static void handleMidiEvent(obj_id actor, int encodedEvent) throws InterruptedException
+    {
+        if (!isIdValid(actor) || !exists(actor) || (encodedEvent & MIDI_MESSAGE_SIGNATURE_MASK) != MIDI_MESSAGE_SIGNATURE)
+        {
+            return;
+        }
+        if (!hasScript(actor, MUSIC_HEARTBEAT_SCRIPT) || getPerformanceType(actor) <= 0)
+        {
+            stopMidiPerformance(actor, false);
+            return;
+        }
+
+        int eventType = (encodedEvent >> 18) & 0x7;
+        int eventValue = encodedEvent & 0x7f;
+        if (eventType == MIDI_EVENT_SESSION_START)
+        {
+            int instrumentId = getInstrumentAudioId(actor);
+            if (instrumentId < 1 || instrumentId > 14 || eventValue != instrumentId)
+            {
+                return;
+            }
+            utils.setScriptVar(actor, VAR_PERFORM_MIDI_ACTIVE, instrumentId);
+            utils.setScriptVar(actor, VAR_PERFORM_MIDI_RATE_SECOND, getGameTime());
+            utils.setScriptVar(actor, VAR_PERFORM_MIDI_RATE_COUNT, 0);
+            sendMusicFlourish(actor, encodedEvent);
+            return;
+        }
+        if (!utils.hasScriptVar(actor, VAR_PERFORM_MIDI_ACTIVE))
+        {
+            return;
+        }
+
+        int currentSecond = getGameTime();
+        int rateSecond = utils.getIntScriptVar(actor, VAR_PERFORM_MIDI_RATE_SECOND);
+        int rateCount = utils.getIntScriptVar(actor, VAR_PERFORM_MIDI_RATE_COUNT);
+        if (currentSecond != rateSecond)
+        {
+            rateSecond = currentSecond;
+            rateCount = 0;
+            utils.setScriptVar(actor, VAR_PERFORM_MIDI_RATE_SECOND, rateSecond);
+        }
+        if (rateCount >= MIDI_MAX_EVENTS_PER_SECOND)
+        {
+            return;
+        }
+
+        boolean validEvent = eventType == MIDI_EVENT_NOTE_OFF ||
+            eventType == MIDI_EVENT_ALL_NOTES_OFF ||
+            eventType == MIDI_EVENT_SUSTAIN ||
+            eventType == MIDI_EVENT_SESSION_STOP ||
+            (eventType == MIDI_EVENT_NOTE_ON && eventValue > 0);
+        if (!validEvent)
+        {
+            return;
+        }
+        utils.setScriptVar(actor, VAR_PERFORM_MIDI_RATE_COUNT, rateCount + 1);
+        sendMusicFlourish(actor, encodedEvent);
+        if (eventType == MIDI_EVENT_SESSION_STOP)
+        {
+            stopMidiPerformance(actor, false);
+        }
+    }
     public static void stopPlaying(obj_id actor) throws InterruptedException
     {
+        stopMidiPerformance(actor, true);
         makeOthersStopListening(actor);
         int type = getPerformanceType(actor);
         if (type != 0)

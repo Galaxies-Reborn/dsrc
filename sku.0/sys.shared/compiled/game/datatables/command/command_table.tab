@@ -694,6 +694,7 @@ forceOfWill		normal	cmdForceOfWill				01. Mai	forceOfWill	0	0	0	0	0	0	0	0	1	0	0	
 freeCts		immediate	cmdFreeCts						1	0	0	0	1	0	0	1	0	0	0	0	0	1	1	0	0	0	0	0	0	0	0	1																																										none									0										
 freezePlayer		immediate	cmdFreezePlayer	failAdmin				admin																				1	1		0	1																																								gm.cmd		required	0				0		40	csr	0										
 g		immediate			groupChat																							1	1		0	1																																										none					0				0										
+performanceMidiEvent		immediate	cmdPerformanceMidiEvent				0	unskilled																				1	1		0	1				0								0																	0	0	0	0								player.skill.performcommands		none		0		performance	0				0										0
 gallop		immediate	gallop				01. Mai		1	0	1	1	1	0	1	1	1	0	0	0	0	0	0	0	1	1	0			0	0	1	1		1	0	0	1	1	1	1	0	1	1	1	1	1	1	0	0									1	1														optional		3			0				0										
 gallopStop		immediate	gallopStop				01. Mai		1	0	1	1	1	0	1	1	1	0	0	0	0	0	0	0	1	1	0			0	0	1	1		1	0	0	1	1	1	1	0	1	1	1	1	1	1	0	0									1	1														optional		3			0				0										
 gc		immediate			groupChat																							1	1		0	1												1																														none					0				0										
