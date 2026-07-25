@@ -22037,6 +22037,15 @@ public class base_class
         return _getAccountNumLots(getLongWithNull(player));
     }
     /**
+     * Find out the maximum number of lots a player may use.
+     * @return       The number of lots has available to them.
+     */
+    private static native int _getMaxHousingLots();
+    public static int getMaxHousingLots()
+    {
+        return _getMaxHousingLots();
+    }
+    /**
      * Find out what game features this player has purchased
      * @param player The player (creature object)
      * @return       A 32bit bit-vector indicating the game features this player has purchased.
@@ -22232,6 +22241,16 @@ public class base_class
     {
         return _getPlayerStationId(getLongWithNull(player));
     }
+
+    /**
+     * Returns the account username of a player. Only valid while the player is
+     * online, which is why the result is normally cached to an ObjVar on login
+     * rather than being read directly. Prefer a cached lookup where one exists.
+     *
+     * @param player the player's Network ID
+     * @return the account username of the player
+     */
+    public static native String _getPlayerUsernameDoNotUse(long player);
 
     /**
     * Returns info on how long a player has been playing the game.
