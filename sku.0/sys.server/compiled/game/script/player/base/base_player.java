@@ -470,31 +470,20 @@ public class base_player extends script.base_script
         recomputeCommandSeries(self);
         return SCRIPT_CONTINUE;
     }
-    public void grantLevelSpecificRewards(obj_id player, int newCombatLevel) throws InterruptedException{
-        if(hasObjVar(player, "level.reward." + newCombatLevel)) return;
-        obj_id inv = utils.getInventoryContainer(player);
-        switch(newCombatLevel){
-            case 20:
-                // create the Level 20 reward Flash Speeder (stella)
-                createLevelReward("Flash Speeder deed", "object/tangible/deed/vehicle_deed/speederbike_flash_deed.iff", newCombatLevel, player);
-                break;
-            case 70:
-                createLevelReward("Lava Flea deed", "object/tangible/veteran_reward/mount_lava_flea.iff", newCombatLevel, player);
-                // create the Level 70 reward Lava Flea (stella)
-                break;
+    public void retirePostNgeAutomaticRewardState(obj_id player) throws InterruptedException
+    {
+        if (hasObjVar(player, "level.reward"))
+        {
+            removeObjVar(player, "level.reward");
         }
     }
-    public void createLevelReward(String name, String template, int level, obj_id player) throws InterruptedException{
-        String playerName = getName(player);
-        obj_id reward = createObjectInInventoryAllowOverload(template, player);
-        if(isIdValid(reward)){
-            setObjVar(player, "level.reward." + level, true);
-            sendSystemMessage(player, "A " + name + " has been placed in your inventory.", null);
-            CustomerServiceLog("LevelItemRewards", "Player " + playerName + " (" + player + ") has been awarded the " + name + " for reaching Level " + level + ".");
-        }
-        else{
-            CustomerServiceLog("LevelItemRewards", "Unable to create " + name + " reward for Player " + playerName + " (" + player + ")");
-        }
+    public void grantLevelSpecificRewards(obj_id player, int newCombatLevel) throws InterruptedException
+    {
+        // Link-compatible no-op: Publish 14.1 has no combat-level rewards.
+    }
+    public void createLevelReward(String name, String template, int level, obj_id player) throws InterruptedException
+    {
+        // Link-compatible no-op for queued or retained later-era callers.
     }
     public int updateGCWStanding(obj_id self, dictionary params) throws InterruptedException
     {
@@ -868,7 +857,7 @@ public class base_player extends script.base_script
         expertise.cacheExpertiseProcReacList(self);
         proc.buildCurrentProcList(self);
         proc.buildCurrentReacList(self);
-        givePublishGift(self);
+        retirePostNgeAutomaticRewardState(self);
         sendSmugglerSystemBootstrap(self);
         recomputeCommandSeries(self);
         trial.bumpSession(self, "displayDefensiveMods");
@@ -12725,82 +12714,8 @@ public class base_player extends script.base_script
     }
     public void givePublishGift(obj_id self) throws InterruptedException
     {
-        final String OBJVAR_PUBLISH_GIFT = "publish_gift";
-        final String GIFT_DATATABLE = "datatables/veteran_rewards/publish_gift.iff";
-        int currentBD = getCurrentBirthDate();
-        int playerBD = getPlayerBirthDate(self);
-        if (playerBD < 0)
-        {
-            return;
-        }
-        if ((currentBD - playerBD) < 10)
-        {
-            return;
-        }
-        if (isInTutorialArea(self))
-        {
-            return;
-        }
-        int old_publish = -1;
-        if (hasObjVar(self, OBJVAR_PUBLISH_GIFT))
-        {
-            old_publish = getIntObjVar(self, OBJVAR_PUBLISH_GIFT);
-        }
-        int[] publish_numbers = dataTableGetIntColumn(GIFT_DATATABLE, "PUBLISH");
-        if (publish_numbers == null || publish_numbers.length == 0)
-        {
-            return;
-        }
-        int last_publish = -1;
-        Vector gifts = new Vector();
-        for (int i = 0; i < publish_numbers.length; i++)
-        {
-            if (publish_numbers[i] > last_publish)
-            {
-                last_publish = publish_numbers[i];
-                gifts = new Vector();
-                gifts.addElement(dataTableGetString(GIFT_DATATABLE, i, "ITEM"));
-            }
-            else if (publish_numbers[i] == last_publish)
-            {
-                gifts.addElement(dataTableGetString(GIFT_DATATABLE, i, "ITEM"));
-            }
-        }
-        if (gifts == null || gifts.size() == 0)
-        {
-            return;
-        }
-        if (old_publish >= last_publish)
-        {
-            return;
-        }
-        obj_id inv = utils.getInventoryContainer(self);
-        Vector objects = new Vector();
-        boolean noGift = false;
-        for (Object gift : gifts) {
-            String item = (String) gift;
-            if (item.equals("none")) {
-                noGift = true;
-                continue;
-            }
-            obj_id new_gift = static_item.createNewItemFunction(item, inv);
-            if (isIdValid(new_gift)) {
-                objects.addElement(new_gift);
-                CustomerServiceLog("grantGift", "%TU has received the gift(s) for Publish " + last_publish + ". Item given was " + item + ". Item OID was " + new_gift, self);
-            }
-        }
-        obj_id[] object_array = utils.toStaticObjIdArray(objects);
-        if ((object_array == null || object_array.length == 0))
-        {
-            if (noGift)
-            {
-                setObjVar(self, OBJVAR_PUBLISH_GIFT, last_publish);
-            }
-            return;
-        }
-        sendSystemMessage(self, new string_id("base_player", "received_gift"));
-        setObjVar(self, OBJVAR_PUBLISH_GIFT, last_publish);
-        showLootBox(self, object_array);
+        // Link-compatible no-op: this table starts at Publish 27. Existing
+        // items and retained expansion content remain usable and transferable.
     }
     public void respecNewEntertainerSkills(obj_id self) throws InterruptedException
     {
