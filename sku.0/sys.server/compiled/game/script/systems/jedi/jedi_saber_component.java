@@ -33,63 +33,28 @@ public class jedi_saber_component extends script.base_script
     {
         if (!static_item.isStaticItem(self))
         {
-            int level = -1;
-            obj_id inv = getContainedBy(self);
-            LOG("jedi", "Crystal created in - " + inv);
-            if (inv != null)
-            {
-                if (isIdValid(inv))
-                {
-                    obj_id target = getContainedBy(inv);
-                    LOG("jedi", "    Inventory contained by - " + target);
-                    if (isIdValid(target))
-                    {
-                        final String mobType = getCreatureName(target);
-                        LOG("jedi", "    Mob type = " + mobType);
-                        level = getLevel(target);
-                        LOG("jedi", "    level = " + level);
-                    }
-                }
-                if (level == -1)
-                {
-                    level = rand(1, 50);
-                }
-                jedi.initializeCrystal(self, level);
-            }
-            else 
-            {
-                dictionary data = new dictionary();
-                data.put("attempts", 0);
-                messageTo(self, "setCrystalLevel", data, 0.5f, false);
-            }
+            // Legacy crystal creators assign the crystal's authored item level
+            // immediately after createObject returns. Defer initialization so
+            // that item metadata, rather than the receiving player's removed
+            // NGE combat level, is authoritative.
+            dictionary data = new dictionary();
+            data.put("attempts", 0);
+            messageTo(self, "setCrystalLevel", data, 0.5f, false);
         }
         return SCRIPT_CONTINUE;
     }
     public int setCrystalLevel(obj_id self, dictionary params) throws InterruptedException
     {
+        if (static_item.isStaticItem(self))
+        {
+            return SCRIPT_CONTINUE;
+        }
         int attempts = params.getInt("attempts");
-        int level = -1;
         obj_id inv = getContainedBy(self);
         LOG("jedi", "Crystal created in - " + inv);
-        if (inv != null)
+        if (isIdValid(inv))
         {
-            if (isIdValid(inv))
-            {
-                obj_id target = getContainedBy(inv);
-                LOG("jedi", "    Inventory contained by - " + target);
-                if (isIdValid(target))
-                {
-                    final String mobType = getCreatureName(target);
-                    LOG("jedi", "    Mob type = " + mobType);
-                    level = getLevel(target);
-                    LOG("jedi", "    level = " + level);
-                }
-            }
-            if (level == -1)
-            {
-                level = rand(1, 50);
-            }
-            jedi.initializeCrystal(self, level);
+            initializePrecuCrystal(self);
         }
         else 
         {
@@ -101,10 +66,21 @@ public class jedi_saber_component extends script.base_script
             }
             else 
             {
-                jedi.initializeCrystal(self, rand(1, 50));
+                initializePrecuCrystal(self);
             }
         }
         return SCRIPT_CONTINUE;
+    }
+    public void initializePrecuCrystal(obj_id self) throws InterruptedException
+    {
+        int crystalLevel = rand(1, 50);
+        String levelObjVar = jedi.VAR_CRYSTAL_STATS + "." + jedi.VAR_LEVEL;
+        if (hasObjVar(self, levelObjVar))
+        {
+            crystalLevel = getIntObjVar(self, levelObjVar);
+        }
+        LOG("jedi", "Crystal item level = " + crystalLevel);
+        jedi.initializeCrystal(self, crystalLevel);
     }
     public int OnDestroy(obj_id self) throws InterruptedException
     {
