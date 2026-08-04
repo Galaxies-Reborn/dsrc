@@ -1202,8 +1202,8 @@ public class pet_control_device extends script.base_script
                     {
                         datastorage += getIntObjVar(self, "module_data.bomb_level_bonus");
                     }
-                    int minDamage = datastorage * pet_lib.DETONATION_DROID_MIN_DAMAGE;
-                    int maxDamage = datastorage * pet_lib.DETONATION_DROID_MAX_DAMAGE;
+                    int minDamage = datastorage * pet_lib.getDetonationDroidMinDamage();
+                    int maxDamage = datastorage * pet_lib.getDetonationDroidMaxDamage();
                     attribs[idx] = " " + datastorage + " (" + minDamage + " - " + maxDamage + ")";
                     idx++;
                     if (idx >= names.length)

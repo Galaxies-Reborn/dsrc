@@ -170,6 +170,14 @@ public class pet_lib extends script.base_script
     public static final int ACTION_WOUND = 4;
     public static final int MIND_WOUND = 5;
     public static final String FAMILAR_DATA_DATATABLE = "datatables/pet/non_combat_familiar.iff";
+    public static int getDetonationDroidMinDamage() throws InterruptedException
+    {
+        return DETONATION_DROID_MIN_DAMAGE;
+    }
+    public static int getDetonationDroidMaxDamage() throws InterruptedException
+    {
+        return DETONATION_DROID_MAX_DAMAGE;
+    }
     public static void petFollow(obj_id pet, obj_id master) throws InterruptedException
     {
         final float collisionRadius = getObjectCollisionRadius(pet) * 2.0f;
