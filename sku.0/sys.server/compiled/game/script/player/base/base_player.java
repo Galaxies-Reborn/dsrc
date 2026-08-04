@@ -1621,34 +1621,9 @@ public class base_player extends script.base_script
         {
             revokeSkill(self, "demo_combat");
         }
-        boolean needsPrerequisites = true;
-        int attempts = 0;
-        while (needsPrerequisites && attempts < 100)
-        {
-            ++attempts;
-            needsPrerequisites = false;
-            String[] skillList = getSkillListingForPlayer(self);
-            if (skillList != null)
-            {
-                int i = 0;
-                for (i = 0; i < skillList.length; ++i)
-                {
-                    String[] prereqs = getSkillPrerequisiteSkills(skillList[i]);
-                    if (prereqs != null)
-                    {
-                        int j = 0;
-                        for (j = 0; j < prereqs.length; ++j)
-                        {
-                            if (!hasSkill(self, prereqs[j]))
-                            {
-                                grantSkill(self, prereqs[j]);
-                                needsPrerequisites = true;
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        // Publish 14.1 prerequisites are paid skill-box progression gates.
+        // Login must not synthesize missing boxes around trainers, XP, credits,
+        // skill points, or the authoritative skill.purchaseSkill path.
         if (hasObjVar(self, player_structure.VAR_RESIDENCE_BUILDING))
         {
             setHouseId(self, getObjIdObjVar(self, player_structure.VAR_RESIDENCE_BUILDING));
