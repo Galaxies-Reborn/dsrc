@@ -151,8 +151,8 @@ public class pet_lib extends script.base_script
     public static final String DROID_RANGED_WEAPON = "object/weapon/ranged/vehicle/droid_weapon.iff";
     public static final int COMBAT_MODULE_PROTECT_LVL = 500;
     public static final int DEFENSE_MODULE_PROTECT_LVL = 1000;
-    public static final int DETONATION_DROID_MIN_DAMAGE = 65;
-    public static final int DETONATION_DROID_MAX_DAMAGE = 97;
+    public static final int DETONATION_DROID_MIN_DAMAGE = 150;
+    public static final int DETONATION_DROID_MAX_DAMAGE = 200;
     public static final String OBJVAR_PET_PATROL_POINTS = "pet.patrolPoints";
     public static final String DROID_HARVEST_ARRAY = "droid.toHarvest";
     public static final String[] MOUNTABILITY_STATUS_CODES = 
