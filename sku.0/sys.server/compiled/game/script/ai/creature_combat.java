@@ -605,6 +605,7 @@ public class creature_combat extends script.systems.combat.combat_base
     public void attack(obj_id target) throws InterruptedException
     {
         final obj_id self = getSelf();
+        final boolean precuProfiledAttacker = hasObjVar(self, "precu.combatProfile");
         String DEFAULT_ATTACK = combat.getAttackName(self);
         String currentActionString = null;
         String forcedActionString = getStringObjVar(self, "ai.combat.forcedAction");
@@ -629,7 +630,7 @@ public class creature_combat extends script.systems.combat.combat_base
         {
             currentActionString = forcedActionString;
         }
-        else if (pendingActionString != null)
+        else if (pendingActionString != null && !precuProfiledAttacker)
         {
             if (getGameTime() - pendingActionTime < 2)
             {
@@ -644,16 +645,26 @@ public class creature_combat extends script.systems.combat.combat_base
         }
         else 
         {
-            pendingActionString = aiGetCombatAction(self);
-            if (pendingActionString != null)
+            if (precuProfiledAttacker)
             {
-                currentActionString = pendingActionString;
-                setObjVar(self, "ai.combat.pendingAction", pendingActionString);
-                setObjVar(self, "ai.combat.pendingActionTime", getGameTime());
+                removeObjVar(self, "ai.combat.pendingAction");
+                removeObjVar(self, "ai.combat.pendingActionTime");
+                pendingActionString = null;
+                currentActionString = DEFAULT_ATTACK;
             }
             else 
             {
-                currentActionString = DEFAULT_ATTACK;
+                pendingActionString = aiGetCombatAction(self);
+                if (pendingActionString != null)
+                {
+                    currentActionString = pendingActionString;
+                    setObjVar(self, "ai.combat.pendingAction", pendingActionString);
+                    setObjVar(self, "ai.combat.pendingActionTime", getGameTime());
+                }
+                else
+                {
+                    currentActionString = DEFAULT_ATTACK;
+                }
             }
         }
         clog("attack() post-check currentActionString: " + currentActionString + " pendingActionString: " + pendingActionString);
