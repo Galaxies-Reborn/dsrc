@@ -71,7 +71,7 @@ public class trap_base extends script.base_script
             if (item == menu_info_types.ITEM_USE)
             {
                 int skillMod = getSkillStatMod(player, "trapping");
-                if (skillMod <= 0)
+                if (skillMod <= 0 || !hasSkill(player, "outdoors_scout_novice"))
                 {
                     string_id trapNoSkill = new string_id("trap/trap", "trap_no_skill");
                     sendSystemMessage(player, trapNoSkill);
