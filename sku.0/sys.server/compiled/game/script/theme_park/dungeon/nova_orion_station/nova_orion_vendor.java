@@ -91,22 +91,13 @@ public class nova_orion_vendor extends script.base_script
     public int showInventorySUI(obj_id self, dictionary params) throws InterruptedException
     {
         obj_id player = params.getObjId("player");
-        int profession = utils.getPlayerProfession(player);
         if (!hasObjVar(self, VENDOR_CONTAINER_LIST_OBJVAR))
         {
             sendSystemMessage(player, new string_id("set_bonus", "vendor_not_qualified"));
             return SCRIPT_CONTINUE;
         }
         obj_id[] containerList = getObjIdArrayObjVar(self, VENDOR_CONTAINER_LIST_OBJVAR);
-        obj_id container = null;
-        if (isIdValid(containerList[profession]) && exists(containerList[profession]))
-        {
-            container = containerList[profession];
-        }
-        else 
-        {
-            container = containerList[0];
-        }
+        obj_id container = containerList[utils.NO_PROFESSION];
         if (!isIdValid(container) || !exists(container))
         {
             sendSystemMessage(player, new string_id("set_bonus", "vendor_not_qualified"));
@@ -119,7 +110,7 @@ public class nova_orion_vendor extends script.base_script
     {
         obj_id player = params.getObjId("player");
         obj_id[] containerList = getObjIdArrayObjVar(self, VENDOR_CONTAINER_LIST_OBJVAR);
-        obj_id container = containerList[0];
+        obj_id container = containerList[utils.NO_PROFESSION];
         if (!isIdValid(container) || !exists(container))
         {
             sendSystemMessage(player, new string_id("set_bonus", "vendor_not_qualified"));

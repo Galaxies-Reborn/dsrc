@@ -47,6 +47,7 @@ public class utils extends script.base_script
     //public static final string_id SID_HOURS = new string_id("spam", "hours");
     //public static final string_id SID_DAYS = new string_id("spam", "days");
     public static final string_id SID_OUT_OF_RANGE = new string_id("spam", "out_of_range");
+    public static final int NO_PROFESSION = 0;
     public static final int COMMANDO = 1;
     public static final int SMUGGLER = 2;
     public static final int MEDIC = 3;
@@ -6322,7 +6323,11 @@ public class utils extends script.base_script
         {
             return ENTERTAINER;
         }
-        return TRADER;
+        if (isProfession(player, TRADER))
+        {
+            return TRADER;
+        }
+        return NO_PROFESSION;
     }
     public static byte[] packObject(Object o) throws InterruptedException
     {
