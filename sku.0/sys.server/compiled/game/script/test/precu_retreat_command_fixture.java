@@ -1,0 +1,729 @@
+package script.test;
+
+import script.location;
+import script.obj_id;
+import script.library.group;
+import script.library.movement;
+import script.library.skill;
+
+/**
+ * Identity-bound reversible acceptance fixture for Publish 14.1 retreat.
+ * Two real clients own group formation, command submission, and dissolution.
+ */
+public class precu_retreat_command_fixture extends script.base_script
+{
+    private static final long LEADER_OID = 44003778L;
+    private static final int LEADER_STATION_ID = 91001;
+    private static final long MEMBER_OID = 207005062L;
+    private static final int MEMBER_STATION_ID = 1391050504;
+    private static final int EXPECTED_GROUP_SIZE = 2;
+    private static final int EXPECTED_BASE_COST = 82;
+    private static final float EXPECTED_MOVEMENT = 1.822f;
+    private static final float EXPECTED_ACCELERATION = 1.822f;
+    private static final String ROOT = "precu.retreatFixture";
+    private static final String LIFECYCLE = ROOT + ".lifecycle";
+    private static final String PEER = ROOT + ".peer";
+    private static final String PREPARED = ROOT + ".prepared";
+    private static final String PROTOCOL = ROOT + ".protocol";
+    private static final String ORIGINAL_LOCATION = ROOT + ".originalLocation";
+    private static final String ORIGINAL_POSTURE = ROOT + ".originalPosture";
+    private static final String ORIGINAL_LOCOMOTION = ROOT + ".originalLocomotion";
+    private static final String ORIGINAL_ATTRIBUTES = ROOT + ".originalAttributes";
+    private static final String ORIGINAL_MAXIMUM = ROOT + ".originalMaximum";
+    private static final String ORIGINAL_REGEN = ROOT + ".originalRegen";
+    private static final String ORIGINAL_MOVEMENT = ROOT + ".originalMovement";
+    private static final String ORIGINAL_ACCELERATION =
+        ROOT + ".originalAcceleration";
+    private static final String ORIGINAL_STATES = ROOT + ".originalStates";
+    private static final String ORIGINAL_SKILLS = ROOT + ".originalSkills";
+    private static final String GROUPED = ROOT + ".grouped";
+    private static final String COMMAND_OBSERVED = ROOT + ".commandObserved";
+    private static final String EXPIRED_OBSERVED = ROOT + ".expiredObserved";
+    private static final String UNGROUPED = ROOT + ".ungrouped";
+    private static final String PASSED = ROOT + ".passed";
+    private static final String[] SKILLS =
+    {
+        "outdoors_squadleader",
+        "outdoors_squadleader_novice",
+        "outdoors_squadleader_support_01",
+        "outdoors_squadleader_support_02",
+        "outdoors_squadleader_support_03",
+        "outdoors_squadleader_movement_01",
+        "outdoors_squadleader_movement_02"
+    };
+    private static final int[] ATTRIBUTES =
+    {
+        HEALTH, STRENGTH, ACTION, QUICKNESS, MIND, FOCUS
+    };
+    private static final int[] PRIMARY_ATTRIBUTES =
+    {
+        HEALTH, ACTION, MIND
+    };
+    private static final int[] STATES = {};
+    private static final String[] OWNED_SUFFIXES =
+    {
+        ".lifecycle", ".peer", ".prepared", ".protocol",
+        ".originalLocation", ".originalPosture", ".originalLocomotion",
+        ".originalAttributes", ".originalMaximum", ".originalRegen",
+        ".originalMovement", ".originalAcceleration",
+        ".originalStates", ".originalSkills", ".grouped",
+        ".commandObserved", ".expiredObserved", ".ungrouped", ".passed",
+        ".outcome",
+        ".handlerEntered", ".handlerCalls", ".groupSize",
+        ".groupBurstRunMod", ".baseCost", ".adjustedBaseCost",
+        ".actionCost", ".mindCost", ".actionBefore", ".actionAfter",
+        ".mindBefore", ".mindAfter", ".membersApplied",
+        ".leaderHasEffect", ".memberHasEffect", ".memberMovementAfter",
+        ".memberAccelAfter", ".baseAcceleration", ".expiresAt",
+        ".movementActive", ".accelActive", ".expiredAt",
+        ".movementAfterExpiry", ".accelAfterExpiry", ".completedAt"
+    };
+    private static final String USAGE =
+        "usage: inspect|recover|prepare|observeGrouped|observeCommand|" +
+        "observeExpired|" +
+        "observeUngrouped|status|cleanup 44003778 207005062 <lifecycle>";
+
+    public String executeFixture(String params) throws InterruptedException
+    {
+        String[] args = params == null
+            ? new String[0]
+            : params.trim().split("[ ]+");
+        if (args.length != 4 || !isValidLifecycle(args[3]))
+        {
+            return USAGE;
+        }
+        long leaderValue;
+        long memberValue;
+        try
+        {
+            leaderValue = Long.parseLong(args[1]);
+            memberValue = Long.parseLong(args[2]);
+        }
+        catch (NumberFormatException exception)
+        {
+            return "error=invalidOid";
+        }
+        if (leaderValue != LEADER_OID || memberValue != MEMBER_OID)
+        {
+            return "error=identityNotAllowed";
+        }
+        obj_id leader = obj_id.getObjId(leaderValue);
+        obj_id member = obj_id.getObjId(memberValue);
+        String validation = validatePlayer(leader, LEADER_STATION_ID, "leader");
+        if (validation != null)
+        {
+            return validation;
+        }
+        validation = validatePlayer(member, MEMBER_STATION_ID, "member");
+        if (validation != null)
+        {
+            return validation;
+        }
+
+        String action = args[0];
+        String lifecycle = args[3];
+        if (action.equalsIgnoreCase("inspect"))
+        {
+            return "action=inspect leaderRoot=" + hasObjVar(leader, ROOT) +
+                " memberRoot=" + hasObjVar(member, ROOT) + " " +
+                buildStatus(leader, member);
+        }
+        if (action.equalsIgnoreCase("recover"))
+        {
+            return recover(leader, member);
+        }
+        if (action.equalsIgnoreCase("prepare"))
+        {
+            return prepare(leader, member, lifecycle);
+        }
+        if (action.equalsIgnoreCase("observeGrouped"))
+        {
+            return observeGrouped(leader, member, lifecycle);
+        }
+        if (action.equalsIgnoreCase("observeCommand"))
+        {
+            return observeCommand(leader, member, lifecycle);
+        }
+        if (action.equalsIgnoreCase("observeExpired"))
+        {
+            return observeExpired(leader, member, lifecycle);
+        }
+        if (action.equalsIgnoreCase("observeUngrouped"))
+        {
+            return observeUngrouped(leader, member, lifecycle);
+        }
+        if (action.equalsIgnoreCase("status"))
+        {
+            validation = validateOwnership(leader, member, lifecycle, false);
+            return validation == null
+                ? "action=status " + buildStatus(leader, member)
+                : validation;
+        }
+        if (action.equalsIgnoreCase("cleanup"))
+        {
+            return cleanup(leader, member, lifecycle);
+        }
+        return USAGE;
+    }
+
+    private String prepare(obj_id leader, obj_id member, String lifecycle)
+        throws InterruptedException
+    {
+        String ownership = validateOwnership(leader, member, lifecycle, true);
+        if (ownership == null)
+        {
+            return "action=prepare resumed=true " + buildStatus(leader, member);
+        }
+        if (!"fixtureAbsent".equals(ownership))
+        {
+            return ownership;
+        }
+        if (isIdValid(getGroupObject(leader)) ||
+            isIdValid(getGroupObject(member)))
+        {
+            return "error=fixtureRequiresUngroupedPlayers";
+        }
+        snapshot(leader, member, lifecycle, true);
+        snapshot(member, leader, lifecycle, false);
+        boolean leaderPrepared =
+            preparePlayer(leader, 3500.0f, -4800.0f, true);
+        boolean memberPrepared =
+            preparePlayer(member, 3502.0f, -4800.0f, false);
+        boolean prepared = leaderPrepared && memberPrepared;
+        if (!prepared)
+        {
+            String diagnostic = buildPreparationDiagnostic(leader, member,
+                leaderPrepared, memberPrepared);
+            boolean restored = restorePair(leader, member);
+            return "error=fixtureSetupFailed restored=" + restored + " " +
+                diagnostic;
+        }
+        setFlagPair(leader, member, GROUPED, false);
+        setFlagPair(leader, member, COMMAND_OBSERVED, false);
+        setFlagPair(leader, member, EXPIRED_OBSERVED, false);
+        setFlagPair(leader, member, UNGROUPED, false);
+        setFlagPair(leader, member, PASSED, false);
+        return "action=prepare resumed=false " + buildStatus(leader, member);
+    }
+
+    private boolean preparePlayer(obj_id player, float x, float z,
+        boolean leader) throws InterruptedException
+    {
+        stopCombat(player);
+        setCombatTarget(player, obj_id.NULL_ID);
+        location destination = new location(
+            x, getHeightAtLocation(x, z), z, "tatooine", null);
+        setLocation(player, destination);
+        setPostureClientImmediate(player, POSTURE_UPRIGHT);
+        for (int attribute : PRIMARY_ATTRIBUTES)
+        {
+            setRegenRate(player, attribute, 0.0f);
+        }
+        setAccelPercent(player, 1.0f);
+        if (leader)
+        {
+            setAttrib(player, ACTION, getMaxAttrib(player, ACTION));
+            setAttrib(player, MIND, getMaxAttrib(player, MIND));
+        }
+        boolean skills = !leader || grantSkills(player);
+        location observed = getLocation(player);
+        return skills &&
+            observed != null && "tatooine".equals(observed.area) &&
+            !isIdValid(observed.cell) &&
+            Math.abs(observed.x - x) < 0.1f &&
+            Math.abs(observed.z - z) < 0.1f &&
+            getPosture(player) == POSTURE_UPRIGHT &&
+            Math.abs(getMovementPercent(player) - 1.0f) < 0.001f &&
+            Math.abs(getAccelPercent(player) - 1.0f) < 0.001f &&
+            (!leader || (hasSkill(player, SKILLS[4]) &&
+                hasCommand(player, "retreat")));
+    }
+
+    private String observeGrouped(obj_id leader, obj_id member,
+        String lifecycle) throws InterruptedException
+    {
+        String ownership = validateOwnership(leader, member, lifecycle, false);
+        if (ownership != null)
+        {
+            return ownership;
+        }
+        obj_id groupId = getGroupObject(leader);
+        boolean passed = isIdValid(groupId) &&
+            group.inSameGroup(leader, member) &&
+            leader.equals(getGroupLeaderId(groupId)) &&
+            getGroupSize(groupId) == EXPECTED_GROUP_SIZE;
+        setFlagPair(leader, member, GROUPED, passed);
+        return "action=observeGrouped passed=" + passed + " " +
+            buildStatus(leader, member);
+    }
+
+    private String observeCommand(obj_id leader, obj_id member,
+        String lifecycle) throws InterruptedException
+    {
+        String ownership = validateOwnership(leader, member, lifecycle, false);
+        if (ownership != null)
+        {
+            return ownership;
+        }
+        int expectedActionCost = calculateExpectedCost(
+            getAttrib(leader, QUICKNESS), EXPECTED_BASE_COST);
+        int expectedMindCost = calculateExpectedCost(
+            getAttrib(leader, FOCUS), EXPECTED_BASE_COST);
+        int[] originalLeader = getIntArrayObjVar(leader, ORIGINAL_ATTRIBUTES);
+        int[] originalMember = getIntArrayObjVar(member, ORIGINAL_ATTRIBUTES);
+        int actionBefore = readInt(leader, ROOT + ".actionBefore");
+        int mindBefore = readInt(leader, ROOT + ".mindBefore");
+        boolean passed = readFlag(leader, GROUPED) &&
+            "passed".equals(readString(leader, ROOT + ".outcome")) &&
+            readInt(leader, ROOT + ".handlerEntered") == 1 &&
+            readInt(leader, ROOT + ".handlerCalls") == 1 &&
+            readInt(leader, ROOT + ".groupSize") == EXPECTED_GROUP_SIZE &&
+            Math.abs(getFloatObjVar(leader,
+                ROOT + ".groupBurstRunMod") - 25.0f) < 0.001f &&
+            readInt(leader, ROOT + ".baseCost") == 75 &&
+            readInt(leader, ROOT + ".adjustedBaseCost") == EXPECTED_BASE_COST &&
+            readInt(leader, ROOT + ".actionCost") == expectedActionCost &&
+            readInt(leader, ROOT + ".mindCost") == expectedMindCost &&
+            readInt(leader, ROOT + ".membersApplied") == 1 &&
+            readInt(leader, ROOT + ".leaderHasEffect") == 0 &&
+            readInt(leader, ROOT + ".memberHasEffect") == 1 &&
+            actionBefore > expectedActionCost &&
+            mindBefore > expectedMindCost &&
+            readInt(leader, ROOT + ".actionAfter") ==
+                actionBefore - expectedActionCost &&
+            readInt(leader, ROOT + ".mindAfter") ==
+                mindBefore - expectedMindCost &&
+            getAttrib(leader, HEALTH) == originalLeader[0] &&
+            getAttrib(leader, ACTION) == actionBefore - expectedActionCost &&
+            getAttrib(leader, MIND) == mindBefore - expectedMindCost &&
+            getAttrib(member, HEALTH) == originalMember[0] &&
+            getAttrib(member, ACTION) == originalMember[2] &&
+            getAttrib(member, MIND) == originalMember[4] &&
+            hasObjVar(member, "precu.retreatEffect.expiresAt") &&
+            Math.abs(getMovementPercent(member) - EXPECTED_MOVEMENT) < 0.001f &&
+            Math.abs(getAccelPercent(member) - EXPECTED_ACCELERATION) < 0.001f &&
+            Math.abs(getFloatObjVar(member, ROOT + ".movementActive") -
+                EXPECTED_MOVEMENT) < 0.001f &&
+            Math.abs(getFloatObjVar(member, ROOT + ".accelActive") -
+                EXPECTED_ACCELERATION) < 0.001f;
+        setFlagPair(leader, member, COMMAND_OBSERVED, passed);
+        return "action=observeCommand passed=" + passed + " " +
+            buildStatus(leader, member);
+    }
+
+    private String observeExpired(obj_id leader, obj_id member,
+        String lifecycle) throws InterruptedException
+    {
+        String ownership = validateOwnership(leader, member, lifecycle, false);
+        if (ownership != null)
+        {
+            return ownership;
+        }
+        boolean passed = readFlag(leader, COMMAND_OBSERVED) &&
+            !hasObjVar(member, "precu.retreatEffect.expiresAt") &&
+            "expired".equals(readString(member, ROOT + ".outcome")) &&
+            readInt(member, ROOT + ".expiredAt") > 0 &&
+            Math.abs(getMovementPercent(member) - 1.0f) < 0.001f &&
+            Math.abs(getAccelPercent(member) - 1.0f) < 0.001f &&
+            Math.abs(getFloatObjVar(member, ROOT + ".movementAfterExpiry") -
+                1.0f) < 0.001f &&
+            Math.abs(getFloatObjVar(member, ROOT + ".accelAfterExpiry") -
+                1.0f) < 0.001f;
+        setFlagPair(leader, member, EXPIRED_OBSERVED, passed);
+        return "action=observeExpired passed=" + passed + " " +
+            buildStatus(leader, member);
+    }
+
+    private String observeUngrouped(obj_id leader, obj_id member,
+        String lifecycle) throws InterruptedException
+    {
+        String ownership = validateOwnership(leader, member, lifecycle, false);
+        if (ownership != null)
+        {
+            return ownership;
+        }
+        boolean ungrouped = !isIdValid(getGroupObject(leader)) &&
+            !isIdValid(getGroupObject(member));
+        setFlagPair(leader, member, UNGROUPED, ungrouped);
+        boolean passed = ungrouped && readFlag(leader, GROUPED) &&
+            readFlag(leader, COMMAND_OBSERVED) &&
+            readFlag(leader, EXPIRED_OBSERVED);
+        setFlagPair(leader, member, PASSED, passed);
+        return "action=observeUngrouped passed=" + passed + " " +
+            buildStatus(leader, member);
+    }
+
+    private String cleanup(obj_id leader, obj_id member, String lifecycle)
+        throws InterruptedException
+    {
+        if (!hasObjVar(leader, ROOT) && !hasObjVar(member, ROOT))
+        {
+            return "action=cleanup alreadyClean=true restored=true";
+        }
+        String ownership = validateOwnership(leader, member, lifecycle, false);
+        if (ownership != null)
+        {
+            return ownership;
+        }
+        if (isIdValid(getGroupObject(leader)) ||
+            isIdValid(getGroupObject(member)))
+        {
+            return "error=groupStillActiveUseRealClientDisband";
+        }
+        boolean restored = restorePair(leader, member);
+        return restored
+            ? "action=cleanup alreadyClean=false restored=true"
+            : "error=cleanupRestoreFailed";
+    }
+
+    private String recover(obj_id leader, obj_id member)
+        throws InterruptedException
+    {
+        if (!hasObjVar(leader, ROOT) && !hasObjVar(member, ROOT))
+        {
+            return "action=recover alreadyClean=true restored=true";
+        }
+        if (isIdValid(getGroupObject(leader)) ||
+            isIdValid(getGroupObject(member)))
+        {
+            return "error=recoveryRequiresUngroupedPlayers";
+        }
+        if (!hasCompleteSnapshot(leader) || !hasCompleteSnapshot(member))
+        {
+            if (!hasPreparedState(leader, 3500.0f) &&
+                !hasPreparedState(member, 3502.0f))
+            {
+                clearFixtureVariables(leader);
+                clearFixtureVariables(member);
+                boolean purged = !hasObjVar(leader, ROOT) &&
+                    !hasObjVar(member, ROOT);
+                return purged
+                    ? "action=recover alreadyClean=false restored=true " +
+                        "purgedOrphanedMarker=true"
+                    : "error=orphanedMarkerPurgeFailed";
+            }
+            return "error=partialRecoveryNotProvablyClean";
+        }
+        boolean restored = restorePair(leader, member);
+        return "action=recover alreadyClean=false restored=" + restored;
+    }
+
+    private void snapshot(obj_id player, obj_id peer, String lifecycle,
+        boolean leader) throws InterruptedException
+    {
+        setObjVar(player, LIFECYCLE, lifecycle);
+        setObjVar(player, PEER, peer);
+        setObjVar(player, PREPARED, 1);
+        setObjVar(player, PROTOCOL, 1);
+        setObjVar(player, ORIGINAL_LOCATION, getLocation(player));
+        setObjVar(player, ORIGINAL_POSTURE, getPosture(player));
+        setObjVar(player, ORIGINAL_LOCOMOTION, getLocomotion(player));
+        int[] attributes = new int[ATTRIBUTES.length];
+        for (int index = 0; index < ATTRIBUTES.length; ++index)
+        {
+            attributes[index] = getAttrib(player, ATTRIBUTES[index]);
+        }
+        setObjVar(player, ORIGINAL_ATTRIBUTES, attributes);
+        int[] maximum = new int[ATTRIBUTES.length];
+        for (int index = 0; index < ATTRIBUTES.length; ++index)
+        {
+            maximum[index] = getMaxAttrib(player, ATTRIBUTES[index]);
+        }
+        setObjVar(player, ORIGINAL_MAXIMUM, maximum);
+        float[] regen = new float[PRIMARY_ATTRIBUTES.length];
+        for (int index = 0; index < PRIMARY_ATTRIBUTES.length; ++index)
+        {
+            regen[index] = getRegenRate(player, PRIMARY_ATTRIBUTES[index]);
+        }
+        setObjVar(player, ORIGINAL_REGEN, regen);
+        setObjVar(player, ORIGINAL_MOVEMENT, getMovementPercent(player));
+        setObjVar(player, ORIGINAL_ACCELERATION, getAccelPercent(player));
+        int[] states = new int[STATES.length];
+        for (int index = 0; index < STATES.length; ++index)
+        {
+            states[index] = getState(player, STATES[index]);
+        }
+        setObjVar(player, ORIGINAL_STATES, states);
+        int[] skills = new int[SKILLS.length];
+        for (int index = 0; index < SKILLS.length; ++index)
+        {
+            skills[index] = leader && hasSkill(player, SKILLS[index]) ? 1 : 0;
+        }
+        setObjVar(player, ORIGINAL_SKILLS, skills);
+    }
+
+    private boolean restorePair(obj_id leader, obj_id member)
+        throws InterruptedException
+    {
+        if (!hasCompleteSnapshot(leader) || !hasCompleteSnapshot(member))
+        {
+            return false;
+        }
+        boolean restored = restorePlayer(leader, true) &&
+            restorePlayer(member, false);
+        if (!restored)
+        {
+            return false;
+        }
+        clearFixtureVariables(leader);
+        clearFixtureVariables(member);
+        return !hasObjVar(leader, ROOT) && !hasObjVar(member, ROOT);
+    }
+
+    private void clearFixtureVariables(obj_id player)
+        throws InterruptedException
+    {
+        for (String suffix : OWNED_SUFFIXES)
+        {
+            String path = ROOT + suffix;
+            if (hasObjVar(player, path))
+            {
+                removeObjVar(player, path);
+            }
+        }
+        if (hasObjVar(player, ROOT))
+        {
+            removeObjVar(player, ROOT);
+        }
+    }
+
+    private boolean restorePlayer(obj_id player, boolean leader)
+        throws InterruptedException
+    {
+        if (hasObjVar(player, "precu.retreatEffect.expiresAt"))
+        {
+            if (movement.hasMovementModifier(player, "retreat"))
+            {
+                movement.removeMovementModifier(player, "retreat");
+            }
+            removeObjVar(player, "precu.retreatEffect");
+        }
+        if (leader)
+        {
+            int[] originalSkills = getIntArrayObjVar(player, ORIGINAL_SKILLS);
+            for (int index = SKILLS.length - 1; index >= 0; --index)
+            {
+                if (originalSkills[index] == 0 && hasSkill(player, SKILLS[index]))
+                {
+                    revokeSkill(player, SKILLS[index]);
+                }
+            }
+        }
+        int[] attributes = getIntArrayObjVar(player, ORIGINAL_ATTRIBUTES);
+        setAttrib(player, HEALTH, attributes[0]);
+        setAttrib(player, ACTION, attributes[2]);
+        setAttrib(player, MIND, attributes[4]);
+        float[] regen = getFloatArrayObjVar(player, ORIGINAL_REGEN);
+        for (int index = 0; index < PRIMARY_ATTRIBUTES.length; ++index)
+        {
+            setRegenRate(player, PRIMARY_ATTRIBUTES[index], regen[index]);
+        }
+        setMovementPercent(player, getFloatObjVar(player, ORIGINAL_MOVEMENT));
+        setAccelPercent(player,
+            getFloatObjVar(player, ORIGINAL_ACCELERATION));
+        if (hasObjVar(player, ORIGINAL_STATES))
+        {
+            int[] states = getIntArrayObjVar(player, ORIGINAL_STATES);
+            for (int index = 0; index < STATES.length; ++index)
+            {
+                setState(player, STATES[index], states[index] == 1);
+            }
+        }
+        boolean moved = setLocation(player,
+            getLocationObjVar(player, ORIGINAL_LOCATION));
+        boolean posture = setPostureClientImmediate(player,
+            getIntObjVar(player, ORIGINAL_POSTURE));
+        boolean locomotion = setLocomotion(player,
+            getIntObjVar(player, ORIGINAL_LOCOMOTION));
+        return moved && posture && locomotion;
+    }
+
+    private boolean grantSkills(obj_id player) throws InterruptedException
+    {
+        for (String skillName : SKILLS)
+        {
+            if (!hasSkill(player, skillName) &&
+                !skill.grantSkillToPlayer(player, skillName))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean hasPreparedState(obj_id player, float preparedX)
+        throws InterruptedException
+    {
+        location current = getLocation(player);
+        boolean preparedLocation = current != null &&
+            "tatooine".equals(current.area) && !isIdValid(current.cell) &&
+            Math.abs(current.x - preparedX) < 0.1f &&
+            Math.abs(current.z + 4800.0f) < 0.1f;
+        return preparedLocation;
+    }
+
+    private String buildPreparationDiagnostic(obj_id leader, obj_id member,
+        boolean leaderPrepared, boolean memberPrepared)
+        throws InterruptedException
+    {
+        location leaderLocation = getLocation(leader);
+        location memberLocation = getLocation(member);
+        return "leaderPrepared=" + leaderPrepared +
+            " memberPrepared=" + memberPrepared +
+            " leaderX=" + leaderLocation.x +
+            " leaderZ=" + leaderLocation.z +
+            " memberX=" + memberLocation.x +
+            " memberZ=" + memberLocation.z +
+            " leaderPosture=" + getPosture(leader) +
+            " leaderLocomotion=" + getLocomotion(leader) +
+            " memberPosture=" + getPosture(member) +
+            " memberLocomotion=" + getLocomotion(member) +
+            " leaderHealth=" + getAttrib(leader, HEALTH) +
+            " leaderAction=" + getAttrib(leader, ACTION) +
+            " leaderMind=" + getAttrib(leader, MIND) +
+            " memberHealth=" + getAttrib(member, HEALTH) +
+            " memberAction=" + getAttrib(member, ACTION) +
+            " memberMind=" + getAttrib(member, MIND) +
+            " leaderMovement=" + getMovementPercent(leader) +
+            " leaderAcceleration=" + getAccelPercent(leader) +
+            " memberMovement=" + getMovementPercent(member) +
+            " memberAcceleration=" + getAccelPercent(member) +
+            " rootSkill=" + hasSkill(leader, SKILLS[0]) +
+            " noviceSkill=" + hasSkill(leader, SKILLS[1]) +
+            " supportOneSkill=" + hasSkill(leader, SKILLS[2]) +
+            " supportTwoSkill=" + hasSkill(leader, SKILLS[3]) +
+            " supportThreeSkill=" + hasSkill(leader, SKILLS[4]) +
+            " retreatCommand=" + hasCommand(leader, "retreat");
+    }
+
+    private int calculateExpectedCost(int governingAttribute, int baseCost)
+    {
+        int adjusted = (int)(baseCost -
+            ((governingAttribute - 300) / 1200.0f) * baseCost);
+        return Math.max(0, adjusted);
+    }
+
+    private boolean hasCompleteSnapshot(obj_id player)
+        throws InterruptedException
+    {
+        return hasObjVar(player, LIFECYCLE) && hasObjVar(player, PEER) &&
+            hasObjVar(player, PREPARED) && hasObjVar(player, PROTOCOL) &&
+            hasObjVar(player, ORIGINAL_LOCATION) &&
+            hasObjVar(player, ORIGINAL_POSTURE) &&
+            hasObjVar(player, ORIGINAL_LOCOMOTION) &&
+            hasObjVar(player, ORIGINAL_ATTRIBUTES) &&
+            hasObjVar(player, ORIGINAL_MAXIMUM) &&
+            hasObjVar(player, ORIGINAL_REGEN) &&
+            hasObjVar(player, ORIGINAL_MOVEMENT) &&
+            hasObjVar(player, ORIGINAL_ACCELERATION) &&
+            hasObjVar(player, ORIGINAL_SKILLS);
+    }
+
+    private String validateOwnership(obj_id leader, obj_id member,
+        String lifecycle, boolean allowAbsent) throws InterruptedException
+    {
+        boolean leaderRoot = hasObjVar(leader, ROOT);
+        boolean memberRoot = hasObjVar(member, ROOT);
+        if (!leaderRoot && !memberRoot)
+        {
+            return allowAbsent ? "fixtureAbsent" : "error=fixtureAbsent";
+        }
+        if (!leaderRoot || !memberRoot || !hasCompleteSnapshot(leader) ||
+            !hasCompleteSnapshot(member))
+        {
+            return "error=fixturePartial";
+        }
+        if (!lifecycle.equals(getStringObjVar(leader, LIFECYCLE)) ||
+            !lifecycle.equals(getStringObjVar(member, LIFECYCLE)) ||
+            !member.equals(getObjIdObjVar(leader, PEER)) ||
+            !leader.equals(getObjIdObjVar(member, PEER)))
+        {
+            return "error=fixtureOwnershipMismatch";
+        }
+        return null;
+    }
+
+    private String validatePlayer(obj_id player, int stationId, String role)
+        throws InterruptedException
+    {
+        if (player == null || player == obj_id.NULL_ID || !player.isLoaded())
+        {
+            return "error=" + role + "NotLoaded";
+        }
+        if (!player.isAuthoritative() || !isPlayer(player) ||
+            getPlayerStationId(player) != stationId)
+        {
+            return "error=" + role + "NotAuthoritative";
+        }
+        return null;
+    }
+
+    private void setFlagPair(obj_id leader, obj_id member, String key,
+        boolean value) throws InterruptedException
+    {
+        setObjVar(leader, key, value ? 1 : 0);
+        setObjVar(member, key, value ? 1 : 0);
+    }
+
+    private boolean readFlag(obj_id player, String key)
+        throws InterruptedException
+    {
+        return readInt(player, key) == 1;
+    }
+
+    private int readInt(obj_id player, String key) throws InterruptedException
+    {
+        return hasObjVar(player, key) ? getIntObjVar(player, key) : 0;
+    }
+
+    private String readString(obj_id player, String key)
+        throws InterruptedException
+    {
+        return hasObjVar(player, key) ? getStringObjVar(player, key) : "";
+    }
+
+    private boolean isValidLifecycle(String lifecycle)
+    {
+        return lifecycle != null && lifecycle.matches("[A-Za-z0-9_-]{8,64}");
+    }
+
+    private String buildStatus(obj_id leader, obj_id member)
+        throws InterruptedException
+    {
+        obj_id groupId = getGroupObject(leader);
+        return "leader=" + leader + " member=" + member +
+            " grouped=" + group.inSameGroup(leader, member) +
+            " leaderOwnsGroup=" + (isIdValid(groupId) &&
+                leader.equals(getGroupLeaderId(groupId))) +
+            " groupSize=" + (isIdValid(groupId) ? getGroupSize(groupId) : 0) +
+            " leaderPosture=" + getPosture(leader) +
+            " memberPosture=" + getPosture(member) +
+            " leaderHealth=" + getAttrib(leader, HEALTH) +
+            " leaderAction=" + getAttrib(leader, ACTION) +
+            " leaderMind=" + getAttrib(leader, MIND) +
+            " leaderStrength=" + getAttrib(leader, STRENGTH) +
+            " leaderQuickness=" + getAttrib(leader, QUICKNESS) +
+            " leaderFocus=" + getAttrib(leader, FOCUS) +
+            " memberHealth=" + getAttrib(member, HEALTH) +
+            " memberAction=" + getAttrib(member, ACTION) +
+            " memberMind=" + getAttrib(member, MIND) +
+            " leaderMovement=" + getMovementPercent(leader) +
+            " leaderAcceleration=" + getAccelPercent(leader) +
+            " memberMovement=" + getMovementPercent(member) +
+            " memberAcceleration=" + getAccelPercent(member) +
+            " retreatSkill=" + hasSkill(leader, SKILLS[4]) +
+            " retreatCommand=" + hasCommand(leader, "retreat") +
+            " outcome=" + readString(leader, ROOT + ".outcome") +
+            " memberOutcome=" + readString(member, ROOT + ".outcome") +
+            " handlerCalls=" + readInt(leader, ROOT + ".handlerCalls") +
+            " adjustedBaseCost=" + readInt(leader, ROOT + ".adjustedBaseCost") +
+            " actionCost=" + readInt(leader, ROOT + ".actionCost") +
+            " mindCost=" + readInt(leader, ROOT + ".mindCost") +
+            " membersApplied=" + readInt(leader, ROOT + ".membersApplied") +
+            " groupedObserved=" + readFlag(leader, GROUPED) +
+            " commandObserved=" + readFlag(leader, COMMAND_OBSERVED) +
+            " expiredObserved=" + readFlag(leader, EXPIRED_OBSERVED) +
+            " ungroupedObserved=" + readFlag(leader, UNGROUPED) +
+            " lifecyclePassed=" + readFlag(leader, PASSED);
+    }
+}

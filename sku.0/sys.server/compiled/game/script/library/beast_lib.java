@@ -323,6 +323,55 @@ public class beast_lib extends script.base_script
             LOG("beast_lib", text);
         }
     }
+    public static boolean isPostNgeBeastMasterPlayerRuntimeRetired() throws InterruptedException
+    {
+        return true;
+    }
+    public static boolean isRetiredPostNgeBeastMasterPlayer(obj_id player) throws InterruptedException
+    {
+        return isPostNgeBeastMasterPlayerRuntimeRetired() &&
+            isIdValid(player) && isPlayer(player);
+    }
+    public static boolean isRetiredPostNgeBeastMasterPlayerAction(obj_id player, String actionName) throws InterruptedException
+    {
+        return isRetiredPostNgeBeastMasterPlayer(player) &&
+            actionName != null && actionName.startsWith("bm_");
+    }
+    public static void retirePostNgeBeastMasterPlayerState(obj_id player) throws InterruptedException
+    {
+        if (!isRetiredPostNgeBeastMasterPlayer(player))
+        {
+            return;
+        }
+        obj_id activeBeast = callable.getCallable(player, callable.CALLABLE_TYPE_COMBAT_PET);
+        if (isValidBeast(activeBeast) && isBeast(activeBeast))
+        {
+            obj_id bcd = getBeastBCD(activeBeast);
+            if (isValidBCD(bcd))
+            {
+                utils.setScriptVar(player, "beast.no_store_message", true);
+                storeBeast(bcd);
+            }
+            else
+            {
+                destroyObject(activeBeast);
+                setBeastOnPlayer(player, null);
+                setBeastmasterPet(player, null);
+            }
+        }
+        utils.removeScriptVar(player, "beast.no_store_message");
+        removeAttentionPenaltyDebuff(player);
+        int playerBuff = buff.getBuffOnTargetFromGroup(player, "bm_player_buff");
+        if (playerBuff != 0)
+        {
+            buff.removeBuff(player, playerBuff);
+        }
+        setBeastmasterPet(player, null);
+        if (hasScript(player, "player.player_beastmaster"))
+        {
+            detachScript(player, "player.player_beastmaster");
+        }
+    }
     public static boolean isBeast(obj_id beast) throws InterruptedException
     {
         if (!isIdValid(beast) || !exists(beast))
@@ -334,6 +383,10 @@ public class beast_lib extends script.base_script
     public static boolean isBeastMaster(obj_id player) throws InterruptedException
     {
         if (!isIdValid(player))
+        {
+            return false;
+        }
+        if (isRetiredPostNgeBeastMasterPlayer(player))
         {
             return false;
         }
@@ -443,6 +496,10 @@ public class beast_lib extends script.base_script
     public static obj_id getBeastOnPlayer(obj_id player) throws InterruptedException
     {
         if (!isIdValid(player))
+        {
+            return null;
+        }
+        if (isRetiredPostNgeBeastMasterPlayer(player))
         {
             return null;
         }
@@ -1388,6 +1445,10 @@ public class beast_lib extends script.base_script
     }
     public static obj_id createBCDFromEgg(obj_id player, obj_id egg) throws InterruptedException
     {
+        if (isRetiredPostNgeBeastMasterPlayer(player))
+        {
+            return obj_id.NULL_ID;
+        }
         if (!isIdValid(player))
         {
             blog("BCD could not be made because the player is invalid.");
@@ -1529,6 +1590,10 @@ public class beast_lib extends script.base_script
         if (!isIdValid(player))
         {
             blog("createBeastFromBCD: Beast could not be made because the player is invalid.");
+            return null;
+        }
+        if (isRetiredPostNgeBeastMasterPlayer(player))
+        {
             return null;
         }
         if (!isBeastMaster(player))
@@ -3222,6 +3287,11 @@ public class beast_lib extends script.base_script
     }
     public static void verifyAndUpdateCalledBeastStats(obj_id player) throws InterruptedException
     {
+        if (isRetiredPostNgeBeastMasterPlayer(player))
+        {
+            retirePostNgeBeastMasterPlayerState(player);
+            return;
+        }
         obj_id beast = getBeastOnPlayer(player);
         if (!isIdValid(beast) || !exists(beast))
         {
@@ -3421,6 +3491,10 @@ public class beast_lib extends script.base_script
     }
     public static obj_id generateTypeThreeEnzyme(obj_id player, obj_id target, float enzymePurity, float enzymeMutagen, String trait) throws InterruptedException
     {
+        if (isRetiredPostNgeBeastMasterPlayer(player))
+        {
+            return obj_id.NULL_ID;
+        }
         if (!isIdValid(target))
         {
             obj_id newEnzyme = createObjectInInventoryAllowOverload("object/tangible/loot/beast/enzyme_3.iff", player);
@@ -3472,6 +3546,10 @@ public class beast_lib extends script.base_script
     }
     public static int getEnzymeExtractionReturnCode(obj_id player, obj_id creatureCorpse) throws InterruptedException
     {
+        if (isRetiredPostNgeBeastMasterPlayer(player))
+        {
+            return ENZ_ERROR_NOT_BEAST_MASTER;
+        }
         if (!isBeastMaster(player))
         {
             return ENZ_ERROR_NOT_BEAST_MASTER;
@@ -3875,6 +3953,10 @@ public class beast_lib extends script.base_script
         dict.put("names", names);
         dict.put("attribs", attribs);
         dict.put("idx", idx);
+        if (isRetiredPostNgeBeastMasterPlayer(player))
+        {
+            return dict;
+        }
         if (!buff.hasBuff(player, "bm_creature_knowledge") || !ai_lib.isMonster(creature) || !utils.hasScriptVar(player, "creature_knowledge.species"))
         {
             return dict;
@@ -4633,6 +4715,10 @@ public class beast_lib extends script.base_script
     }
     public static int useBeastInjector(obj_id player, obj_id injector, obj_id beast, String beastFamily, String[] injectorFamilies, int mark) throws InterruptedException
     {
+        if (isRetiredPostNgeBeastMasterPlayer(player))
+        {
+            return INJECTOR_RETURN_BAD_DATA;
+        }
         if (!exists(player) || !exists(injector) || !exists(beast))
         {
             return INJECTOR_RETURN_BAD_DATA;
@@ -4698,6 +4784,10 @@ public class beast_lib extends script.base_script
     }
     public static obj_id createHolopetCubeFromEgg(obj_id player, obj_id egg) throws InterruptedException
     {
+        if (isRetiredPostNgeBeastMasterPlayer(player))
+        {
+            return obj_id.NULL_ID;
+        }
         int beastHashType = getIntObjVar(egg, beast_lib.OBJVAR_BEAST_TYPE);
         String beastType = incubator.convertHashTypeToString(beastHashType);
         if (beastType != null && beastType.length() > 0)
@@ -4716,6 +4806,10 @@ public class beast_lib extends script.base_script
     }
     public static obj_id createBeastHolopet(obj_id player, obj_id source, String beastType) throws InterruptedException
     {
+        if (isRetiredPostNgeBeastMasterPlayer(player))
+        {
+            return obj_id.NULL_ID;
+        }
         obj_id playerInv = utils.getInventoryContainer(player);
         if (isIdValid(playerInv))
         {

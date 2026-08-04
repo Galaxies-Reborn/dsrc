@@ -15,15 +15,7 @@ public class npe_main_bartender extends script.base_script
     }
     public boolean npe_main_bartender_condition_onPointerQuest(obj_id player, obj_id npc) throws InterruptedException
     {
-        String pTemplate = getSkillTemplate(player);
-        if (pTemplate.contains("trader"))
-        {
-            return true;
-        }
-        else 
-        {
-            return false;
-        }
+        return false;
     }
     public boolean npe_main_bartender_condition_completedAssignment(obj_id player, obj_id npc) throws InterruptedException
     {
@@ -43,17 +35,6 @@ public class npe_main_bartender extends script.base_script
     }
     public boolean npe_main_bartender_condition_ifBHPointed(obj_id player, obj_id npc) throws InterruptedException
     {
-        String pTemplate = getSkillTemplate(player);
-        if (pTemplate.contains("bounty_hunter"))
-        {
-            if (groundquests.isQuestActive(player, "npe_pointer_artisan"))
-            {
-                if (!hasObjVar(player, "npe.finishedTemplate"))
-                {
-                    return true;
-                }
-            }
-        }
         return false;
     }
     public void npe_main_bartender_action_facePlayer(obj_id player, obj_id npc) throws InterruptedException

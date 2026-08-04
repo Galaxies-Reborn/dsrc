@@ -6,7 +6,8 @@
 weaponEffect = "bolt"
 weaponEffectIndex = 34
 
-@class tangible_object_template 3
+@class tangible_object_template 8
+certificationsRequired = ["startleshot1"]
 
 @class object_template 3
 

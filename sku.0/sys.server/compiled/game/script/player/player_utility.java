@@ -45,6 +45,80 @@ public class player_utility extends script.base_script
     public static final string_id SID_DNA_TOO_FAR = new string_id("beast", "dna_too_far");
     public static final string_id SID_DNA_NOT_IN_TUTORIAL = new string_id("beast", "dna_not_in_tutorial");
     public static final string_id SID_NOT_IN_CITY = new string_id("player/player_utility", "forage_not_in_city");
+    public static final String PRECU_SCOUT_FORAGE =
+        "precu.scoutForage";
+    public static final float PRECU_SCOUT_FORAGE_DELAY = 8.5f;
+    public static final int PRECU_SCOUT_FORAGE_BASE_ACTION = 50;
+    public static final int PRECU_SCOUT_FORAGE_AREA_SIZE = 10;
+    public static final int PRECU_SCOUT_FORAGE_AREA_USES = 3;
+    public static final int PRECU_SCOUT_FORAGE_AREA_EXPIRE = 1800;
+    public static final int PRECU_SCOUT_FORAGE_AREA_LIMIT = 120;
+    public static final String[] PRECU_SCOUT_FORAGE_FOOD =
+    {
+        "object/tangible/food/foraged/foraged_fruit_s3.iff",
+        "object/tangible/food/foraged/edible_jar_berries.iff",
+        "object/tangible/food/foraged/edible_jar_bugs.iff",
+        "object/tangible/food/foraged/foraged_vegetable_s4.iff",
+        "object/tangible/food/foraged/foraged_vegetable_s3.iff",
+        "object/tangible/food/foraged/edible_jar_fungus.iff",
+        "object/tangible/food/foraged/edible_jar_funk.iff",
+        "object/tangible/food/foraged/foraged_fruit_s4.iff",
+        "object/tangible/food/foraged/edible_jar_livers.iff",
+        "object/tangible/food/foraged/foraged_fruit_s1.iff",
+        "object/tangible/food/foraged/foraged_vegetable_s2.iff",
+        "object/tangible/food/foraged/foraged_fruit_s5.iff",
+        "object/tangible/food/foraged/foraged_vegetable_s5.iff",
+        "object/tangible/food/foraged/foraged_fruit_s2.iff"
+    };
+    public static final int[] PRECU_SCOUT_FORAGE_FOOD_WEIGHT =
+    {
+        700000, 700000, 700000, 800000, 800000, 700000, 700000,
+        700000, 700000, 700000, 700000, 700000, 700000, 700000
+    };
+    public static final String[] PRECU_SCOUT_FORAGE_BAIT =
+    {
+        "object/tangible/fishing/bait/bait_chum.iff",
+        "object/tangible/fishing/bait/bait_grub.iff",
+        "object/tangible/fishing/bait/bait_insect.iff",
+        "object/tangible/fishing/bait/bait_worm.iff"
+    };
+    public static final String PRECU_MEDICAL_FORAGE =
+        "precu.medicalForage";
+    public static final String PRECU_MEDICAL_FORAGE_FIXTURE =
+        "precu.medicalForageCommandFixture";
+    public static final float PRECU_MEDICAL_FORAGE_DELAY = 8.5f;
+    public static final int PRECU_MEDICAL_FORAGE_BASE_ACTION = 50;
+    public static final int PRECU_MEDICAL_FORAGE_AREA_SIZE = 10;
+    public static final int PRECU_MEDICAL_FORAGE_AREA_USES = 3;
+    public static final int PRECU_MEDICAL_FORAGE_AREA_EXPIRE = 1800;
+    public static final int PRECU_MEDICAL_FORAGE_AREA_LIMIT = 120;
+    public static final String[] PRECU_MEDICAL_FORAGE_COMPONENTS =
+    {
+        "object/tangible/component/chemistry/biologic_effect_controller.iff",
+        "object/tangible/component/chemistry/dispersal_mechanism.iff",
+        "object/tangible/component/chemistry/infection_amplifier.iff",
+        "object/tangible/component/chemistry/liquid_delivery_suspension.iff",
+        "object/tangible/component/chemistry/release_mechanism_duration.iff",
+        "object/tangible/component/chemistry/resilience_compound.iff",
+        "object/tangible/component/chemistry/solid_delivery_shell.iff",
+        "object/tangible/medicine/instant_stimpack/stimpack_a.iff"
+    };
+    public static final String[] PRECU_MEDICAL_FORAGE_FOOD =
+    {
+        "object/tangible/food/foraged/edible_jar_berries.iff",
+        "object/tangible/food/foraged/edible_jar_bugs.iff",
+        "object/tangible/food/foraged/edible_jar_fungus.iff",
+        "object/tangible/food/foraged/edible_jar_livers.iff",
+        "object/tangible/food/foraged/foraged_fruit_s1.iff",
+        "object/tangible/food/foraged/foraged_fruit_s2.iff",
+        "object/tangible/food/foraged/foraged_fruit_s3.iff",
+        "object/tangible/food/foraged/foraged_fruit_s4.iff",
+        "object/tangible/food/foraged/foraged_fruit_s5.iff",
+        "object/tangible/food/foraged/foraged_vegetable_s2.iff",
+        "object/tangible/food/foraged/foraged_vegetable_s3.iff",
+        "object/tangible/food/foraged/foraged_vegetable_s4.iff",
+        "object/tangible/food/foraged/foraged_vegetable_s5.iff"
+    };
     public static final string_id SID_PATROL_POINT_ENTERTAINED = new string_id("gcw", "the_patrol_point_entertained");
     public static final String VAR_VERSION_BASE = "ver";
     public static final String TBL_PLAYER_VERSION = "datatables/player/version.iff";
@@ -61,14 +135,14 @@ public class player_utility extends script.base_script
     {
         if (utils.checkConfigFlag("GameServer", "jediTestResources"))
         {
-            if (hasSkill(self, "class_bountyhunter_phase4_novice"))
+            if (hasSkill(self, "combat_bountyhunter_master"))
             {
                 createNewBHResources(self);
             }
         }
         if (utils.checkConfigFlag("GameServer", "jediTestBuffs"))
         {
-            if (hasSkill(self, "class_bountyhunter_phase4_novice"))
+            if (hasSkill(self, "combat_bountyhunter_master"))
             {
                 createBuffs(self);
             }
@@ -509,6 +583,10 @@ public class player_utility extends script.base_script
     }
     public int bm_collect_dna(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (incubator.isRetiredPostNgeBeastMasterCreationPlayer(self))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!beast_lib.isBeastMaster(self))
         {
             sendSystemMessage(self, SID_DNA_ONLY_BEAST_MASTER);
@@ -612,77 +690,1008 @@ public class player_utility extends script.base_script
     }
     public int forage(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
-        location curLoc = getLocation(self);
-        if (isIdValid(curLoc.cell))
+        if (!isIdValid(self) || !isPlayer(self) || isDead(self) ||
+            isIncapacitated(self) ||
+            !hasSkill(self, "outdoors_scout_camp_01"))
         {
-            string_id notIndoors = new string_id("player/player_utility", "forage_not_indoors");
-            sendSystemMessage(self, notIndoors);
-            return SCRIPT_OVERRIDE;
+            return SCRIPT_CONTINUE;
         }
-        else if (isIdValid(getStandingOn(self)))
+        if (utils.hasScriptVar(self, PRECU_SCOUT_FORAGE + ".pending") ||
+            utils.hasScriptVar(self, PRECU_MEDICAL_FORAGE + ".pending"))
         {
-            string_id onlyInWorld = new string_id("player/player_utility", "forage_on_ground");
-            sendSystemMessage(self, onlyInWorld);
-            return SCRIPT_OVERRIDE;
+            sendSystemMessage(
+                self,
+                new string_id("skl_use", "sys_forage_already"));
+            return SCRIPT_CONTINUE;
         }
-        else if (locations.isInCity(curLoc))
+        if (isIdValid(getMountId(self)))
         {
-            sendSystemMessage(self, SID_NOT_IN_CITY);
-            return SCRIPT_OVERRIDE;
+            sendSystemMessage(
+                self,
+                new string_id("error_message", "survey_on_mount"));
+            return SCRIPT_CONTINUE;
         }
-        if (utils.hasScriptVar(self, "forage.lastLocation"))
+        location start = getLocation(self);
+        if (start == null || isIdValid(start.cell))
         {
-            location lastLoc = utils.getLocationScriptVar(self, "forage.lastLocation");
-            if (!lastLoc.area.equals(curLoc.area))
-            {
-                utils.removeScriptVarTree(self, "forage");
-            }
-            else 
-            {
-                float distance = getDistance(lastLoc, curLoc);
-                if (isIdValid(lastLoc.cell))
-                {
-                    distance = 5.0f;
-                }
-                if (distance < 5.0f)
-                {
-                    string_id tooClose = new string_id("player/player_utility", "forage_too_close");
-                    sendSystemMessage(self, tooClose);
-                    return SCRIPT_OVERRIDE;
-                }
-                if (utils.hasScriptVar(self, "forage.listOfAlreadyForagedLocs"))
-                {
-                    location[] oldListOfLocs = utils.getLocationArrayScriptVar(self, "forage.listOfAlreadyForagedLocs");
-                    if (oldListOfLocs.length > 20)
-                    {
-                        utils.removeScriptVar(self, "forage.listOfAlreadyForagedLocs");
-                    }
-                    for (location oldListOfLoc : oldListOfLocs) {
-                        if (isIdValid(oldListOfLoc.cell)) {
-                            distance = 5.0f;
-                        } else {
-                            distance = getDistance(curLoc, oldListOfLoc);
-                        }
-                        if (distance < 5.0f) {
-                            string_id tooClose = new string_id("player/player_utility", "forage_already_done_here");
-                            sendSystemMessage(self, tooClose);
-                            return SCRIPT_OVERRIDE;
-                        }
-                    }
-                }
-            }
+            sendSystemMessage(
+                self,
+                new string_id("skl_use", "sys_forage_inside"));
+            return SCRIPT_CONTINUE;
         }
+
+        int actionCost = getPrecuScoutForageActionCost(self);
+        if (getAttrib(self, ACTION) <= actionCost ||
+            !drainAttributes(self, actionCost, 0))
+        {
+            sendSystemMessage(
+                self,
+                new string_id("skl_use", "sys_forage_attrib"));
+            return SCRIPT_CONTINUE;
+        }
+
+        utils.setScriptVar(self, PRECU_SCOUT_FORAGE + ".pending", 1);
+        utils.setScriptVar(self, PRECU_SCOUT_FORAGE + ".start", start);
+        utils.setScriptVar(
+            self,
+            PRECU_SCOUT_FORAGE + ".startedAt",
+            getGameTime());
+        sendSystemMessage(
+            self,
+            new string_id("skl_use", "sys_forage_start"));
         doAnimationAction(self, "forage");
-        messageTo(self, "handlerForPlayerForaging", null, 2.0f, false);
+        messageTo(
+            self,
+            "handlerForPlayerForaging",
+            null,
+            PRECU_SCOUT_FORAGE_DELAY,
+            false);
         return SCRIPT_CONTINUE;
     }
     public int handlerForPlayerForaging(obj_id self, dictionary params) throws InterruptedException
     {
-        if (!loot.playerForaging(self))
+        if (!utils.hasScriptVar(self, PRECU_SCOUT_FORAGE + ".pending") ||
+            !utils.hasScriptVar(self, PRECU_SCOUT_FORAGE + ".start"))
         {
-            CustomerServiceLog("foraging", "Foraging failed for Player: " + self + " " + getName(self));
+            return SCRIPT_CONTINUE;
+        }
+        location start = utils.getLocationScriptVar(
+            self,
+            PRECU_SCOUT_FORAGE + ".start");
+        utils.removeScriptVar(self, PRECU_SCOUT_FORAGE + ".pending");
+        utils.removeScriptVar(self, PRECU_SCOUT_FORAGE + ".start");
+        utils.removeScriptVar(self, PRECU_SCOUT_FORAGE + ".startedAt");
+
+        location current = getLocation(self);
+        if (!isSamePrecuMedicalForagePosition(start, current))
+        {
+            sendSystemMessage(
+                self,
+                new string_id("skl_use", "sys_forage_movefail"));
+            return SCRIPT_CONTINUE;
+        }
+        if (getState(self, STATE_COMBAT) > 0)
+        {
+            sendSystemMessage(
+                self,
+                new string_id("skl_use", "sys_forage_combatfail"));
+            return SCRIPT_CONTINUE;
+        }
+        if (!reservePrecuScoutForageArea(self, start))
+        {
+            sendSystemMessage(
+                self,
+                new string_id("skl_use", "sys_forage_empty"));
+            return SCRIPT_CONTINUE;
+        }
+
+        int skillMod = getSkillStatMod(self, "foraging");
+        int chance = Math.min(100, (int)(15 + (skillMod * 0.8f)));
+        if (rand(0, 80) > chance)
+        {
+            sendSystemMessage(
+                self,
+                new string_id("skl_use", "sys_forage_fail"));
+            return SCRIPT_CONTINUE;
+        }
+
+        obj_id inventory = utils.getInventoryContainer(self);
+        if (!isIdValid(inventory) || getVolumeFree(inventory) <= 0)
+        {
+            sendSystemMessage(
+                self,
+                new string_id("skl_use", "sys_forage_noroom"));
+            return SCRIPT_CONTINUE;
+        }
+        int itemCount = 1;
+        if (hasSkill(self, "outdoors_scout_camp_03") &&
+            rand(0, 5) == 1)
+        {
+            ++itemCount;
+        }
+        if (hasSkill(self, "outdoors_scout_master") &&
+            rand(0, 5) == 1)
+        {
+            ++itemCount;
+        }
+        itemCount = Math.min(itemCount, getVolumeFree(inventory));
+        int created = 0;
+        for (int index = 0; index < itemCount; ++index)
+        {
+            int rewardRoll = rand(0, 200);
+            obj_id reward;
+            if (rewardRoll < 160)
+            {
+                reward = givePrecuScoutForageFood(inventory);
+            }
+            else if (rewardRoll < 200)
+            {
+                reward = givePrecuScoutForageBait(inventory);
+            }
+            else
+            {
+                reward = givePrecuScoutForageMap(self, inventory);
+            }
+            if (isIdValid(reward))
+            {
+                ++created;
+            }
+        }
+        sendSystemMessage(
+            self,
+            new string_id(
+                "skl_use",
+                created > 0 ? "sys_forage_success" : "sys_forage_fail"));
+        if (created == 0)
+        {
+            CustomerServiceLog(
+                "foraging",
+                "PRE-CU Scout forage produced no authored reward for " +
+                    self + " " + getName(self));
         }
         return SCRIPT_CONTINUE;
+    }
+    private int getPrecuScoutForageActionCost(obj_id player)
+        throws InterruptedException
+    {
+        float cost = PRECU_SCOUT_FORAGE_BASE_ACTION;
+        cost -=
+            ((getAttrib(player, QUICKNESS) - 300.0f) / 1200.0f) *
+            cost;
+        return Math.max(0, (int)cost);
+    }
+    private boolean reservePrecuScoutForageArea(
+        obj_id player,
+        location position)
+        throws InterruptedException
+    {
+        String locationsKey = PRECU_SCOUT_FORAGE + ".areas.locations";
+        String usesKey = PRECU_SCOUT_FORAGE + ".areas.uses";
+        String expirationsKey =
+            PRECU_SCOUT_FORAGE + ".areas.expirations";
+        location[] oldLocations = utils.hasScriptVar(player, locationsKey)
+            ? utils.getLocationArrayScriptVar(player, locationsKey)
+            : new location[0];
+        int[] oldUses = utils.hasScriptVar(player, usesKey)
+            ? utils.getIntArrayScriptVar(player, usesKey)
+            : new int[0];
+        int[] oldExpirations = utils.hasScriptVar(
+            player,
+            expirationsKey)
+            ? utils.getIntArrayScriptVar(player, expirationsKey)
+            : new int[0];
+        if (oldLocations == null || oldUses == null ||
+            oldExpirations == null ||
+            oldLocations.length != oldUses.length ||
+            oldLocations.length != oldExpirations.length)
+        {
+            oldLocations = new location[0];
+            oldUses = new int[0];
+            oldExpirations = new int[0];
+        }
+
+        int now = getGameTime();
+        int activeCount = 0;
+        for (int index = 0; index < oldLocations.length; ++index)
+        {
+            if (oldLocations[index] != null &&
+                oldExpirations[index] > now)
+            {
+                ++activeCount;
+            }
+        }
+        location[] locations = new location[activeCount];
+        int[] uses = new int[activeCount];
+        int[] expirations = new int[activeCount];
+        int write = 0;
+        for (int index = 0; index < oldLocations.length; ++index)
+        {
+            if (oldLocations[index] == null ||
+                oldExpirations[index] <= now)
+            {
+                continue;
+            }
+            locations[write] = oldLocations[index];
+            uses[write] = oldUses[index];
+            expirations[write] = oldExpirations[index];
+            ++write;
+        }
+
+        for (int index = 0; index < locations.length; ++index)
+        {
+            location area = locations[index];
+            if (area.area != null && position.area != null &&
+                area.area.equals(position.area) &&
+                Math.abs(area.x - position.x) <
+                    PRECU_SCOUT_FORAGE_AREA_SIZE &&
+                Math.abs(area.z - position.z) <
+                    PRECU_SCOUT_FORAGE_AREA_SIZE)
+            {
+                if (uses[index] >= PRECU_SCOUT_FORAGE_AREA_USES)
+                {
+                    storePrecuScoutForageAreas(
+                        player,
+                        locations,
+                        uses,
+                        expirations);
+                    return false;
+                }
+                ++uses[index];
+                storePrecuScoutForageAreas(
+                    player,
+                    locations,
+                    uses,
+                    expirations);
+                return true;
+            }
+        }
+
+        int retained = Math.min(
+            locations.length,
+            PRECU_SCOUT_FORAGE_AREA_LIMIT - 1);
+        int first = locations.length > retained
+            ? locations.length - retained
+            : 0;
+        location[] newLocations = new location[retained + 1];
+        int[] newUses = new int[retained + 1];
+        int[] newExpirations = new int[retained + 1];
+        for (int index = 0; index < retained; ++index)
+        {
+            newLocations[index] = locations[first + index];
+            newUses[index] = uses[first + index];
+            newExpirations[index] = expirations[first + index];
+        }
+        newLocations[retained] = position;
+        newUses[retained] = 1;
+        newExpirations[retained] =
+            now + PRECU_SCOUT_FORAGE_AREA_EXPIRE;
+        storePrecuScoutForageAreas(
+            player,
+            newLocations,
+            newUses,
+            newExpirations);
+        return true;
+    }
+    private void storePrecuScoutForageAreas(
+        obj_id player,
+        location[] locations,
+        int[] uses,
+        int[] expirations)
+        throws InterruptedException
+    {
+        utils.setScriptVar(
+            player,
+            PRECU_SCOUT_FORAGE + ".areas.locations",
+            locations);
+        utils.setScriptVar(
+            player,
+            PRECU_SCOUT_FORAGE + ".areas.uses",
+            uses);
+        utils.setScriptVar(
+            player,
+            PRECU_SCOUT_FORAGE + ".areas.expirations",
+            expirations);
+    }
+    private obj_id givePrecuScoutForageFood(obj_id inventory)
+        throws InterruptedException
+    {
+        int roll = rand(0, 9999999);
+        int cumulative = 0;
+        String template = PRECU_SCOUT_FORAGE_FOOD[
+            PRECU_SCOUT_FORAGE_FOOD.length - 1];
+        for (int index = 0;
+            index < PRECU_SCOUT_FORAGE_FOOD.length;
+            ++index)
+        {
+            cumulative += PRECU_SCOUT_FORAGE_FOOD_WEIGHT[index];
+            if (roll < cumulative)
+            {
+                template = PRECU_SCOUT_FORAGE_FOOD[index];
+                break;
+            }
+        }
+        return createObject(template, inventory, "");
+    }
+    private obj_id givePrecuScoutForageBait(obj_id inventory)
+        throws InterruptedException
+    {
+        String template = PRECU_SCOUT_FORAGE_BAIT[
+            rand(0, PRECU_SCOUT_FORAGE_BAIT.length - 1)];
+        return createObject(template, inventory, "");
+    }
+    private obj_id givePrecuScoutForageMap(
+        obj_id player,
+        obj_id inventory)
+        throws InterruptedException
+    {
+        String map = loot.getPlayerTreasureMapString(player);
+        if (map == null || map.equals(""))
+        {
+            map = "item_treasure_map_1_10";
+        }
+        return static_item.createNewItemFunction(map, inventory);
+    }
+    public int medicalForage(
+        obj_id self,
+        obj_id target,
+        String params,
+        float defaultTime)
+        throws InterruptedException
+    {
+        boolean fixture =
+            isIdValid(self) && hasObjVar(
+                self,
+                PRECU_MEDICAL_FORAGE_FIXTURE);
+        recordPrecuMedicalForage(self, fixture, "handlerCalls",
+            readPrecuMedicalForageInt(self, "handlerCalls") + 1);
+        recordPrecuMedicalForage(
+            self,
+            fixture,
+            "handlerEntered",
+            getGameTime());
+        recordPrecuMedicalForage(
+            self,
+            fixture,
+            "outcome",
+            "entered");
+
+        if (!isIdValid(self) || !isPlayer(self) ||
+            isDead(self) || isIncapacitated(self))
+        {
+            recordPrecuMedicalForage(
+                self,
+                fixture,
+                "outcome",
+                "playerRejected");
+            return SCRIPT_CONTINUE;
+        }
+        if (utils.hasScriptVar(
+                self,
+                PRECU_MEDICAL_FORAGE + ".pending") ||
+            utils.hasScriptVar(
+                self,
+                PRECU_SCOUT_FORAGE + ".pending"))
+        {
+            sendSystemMessage(
+                self,
+                new string_id("skl_use", "sys_forage_already"));
+            recordPrecuMedicalForage(
+                self,
+                fixture,
+                "outcome",
+                "alreadyForaging");
+            return SCRIPT_CONTINUE;
+        }
+        if (isIdValid(getMountId(self)))
+        {
+            sendSystemMessage(
+                self,
+                new string_id("error_message", "survey_on_mount"));
+            recordPrecuMedicalForage(
+                self,
+                fixture,
+                "outcome",
+                "mounted");
+            return SCRIPT_CONTINUE;
+        }
+
+        location start = getLocation(self);
+        if (start == null || isIdValid(start.cell))
+        {
+            sendSystemMessage(
+                self,
+                new string_id("skl_use", "sys_forage_inside"));
+            recordPrecuMedicalForage(
+                self,
+                fixture,
+                "outcome",
+                "inside");
+            return SCRIPT_CONTINUE;
+        }
+
+        int actionCost = getPrecuMedicalForageActionCost(self);
+        recordPrecuMedicalForage(
+            self,
+            fixture,
+            "actionBefore",
+            getAttrib(self, ACTION));
+        recordPrecuMedicalForage(
+            self,
+            fixture,
+            "actionCost",
+            actionCost);
+        if (getAttrib(self, ACTION) <= actionCost ||
+            !drainAttributes(self, actionCost, 0))
+        {
+            sendSystemMessage(
+                self,
+                new string_id("skl_use", "sys_forage_attrib"));
+            recordPrecuMedicalForage(
+                self,
+                fixture,
+                "outcome",
+                "insufficientAction");
+            return SCRIPT_CONTINUE;
+        }
+
+        utils.setScriptVar(
+            self,
+            PRECU_MEDICAL_FORAGE + ".pending",
+            1);
+        utils.setScriptVar(
+            self,
+            PRECU_MEDICAL_FORAGE + ".start",
+            start);
+        utils.setScriptVar(
+            self,
+            PRECU_MEDICAL_FORAGE + ".startedAt",
+            getGameTime());
+        recordPrecuMedicalForage(
+            self,
+            fixture,
+            "actionAfter",
+            getAttrib(self, ACTION));
+        recordPrecuMedicalForage(
+            self,
+            fixture,
+            "outcome",
+            "searching");
+
+        sendSystemMessage(
+            self,
+            new string_id("skl_use", "sys_forage_start"));
+        doAnimationAction(self, "forage");
+        messageTo(
+            self,
+            "handlerForPrecuMedicalForaging",
+            null,
+            PRECU_MEDICAL_FORAGE_DELAY,
+            false);
+        return SCRIPT_CONTINUE;
+    }
+    public int failForage(
+        obj_id self,
+        obj_id target,
+        String params,
+        float defaultTime)
+        throws InterruptedException
+    {
+        boolean fixture =
+            isIdValid(self) && hasObjVar(
+                self,
+                PRECU_MEDICAL_FORAGE_FIXTURE);
+        recordPrecuMedicalForage(
+            self,
+            fixture,
+            "outcome",
+            "commandFailed");
+        return SCRIPT_CONTINUE;
+    }
+    public int handlerForPrecuMedicalForaging(
+        obj_id self,
+        dictionary params)
+        throws InterruptedException
+    {
+        if (!utils.hasScriptVar(
+                self,
+                PRECU_MEDICAL_FORAGE + ".pending") ||
+            !utils.hasScriptVar(
+                self,
+                PRECU_MEDICAL_FORAGE + ".start"))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        boolean fixture =
+            hasObjVar(self, PRECU_MEDICAL_FORAGE_FIXTURE);
+        location start = utils.getLocationScriptVar(
+            self,
+            PRECU_MEDICAL_FORAGE + ".start");
+        int startedAt = utils.hasScriptVar(
+            self,
+            PRECU_MEDICAL_FORAGE + ".startedAt")
+            ? utils.getIntScriptVar(
+                self,
+                PRECU_MEDICAL_FORAGE + ".startedAt")
+            : 0;
+        utils.removeScriptVar(
+            self,
+            PRECU_MEDICAL_FORAGE + ".pending");
+        utils.removeScriptVar(
+            self,
+            PRECU_MEDICAL_FORAGE + ".start");
+        utils.removeScriptVar(
+            self,
+            PRECU_MEDICAL_FORAGE + ".startedAt");
+        recordPrecuMedicalForage(
+            self,
+            fixture,
+            "finishedAt",
+            getGameTime());
+        recordPrecuMedicalForage(
+            self,
+            fixture,
+            "elapsed",
+            Math.max(0, getGameTime() - startedAt));
+
+        location current = getLocation(self);
+        if (!isSamePrecuMedicalForagePosition(start, current))
+        {
+            sendSystemMessage(
+                self,
+                new string_id("skl_use", "sys_forage_movefail"));
+            recordPrecuMedicalForage(
+                self,
+                fixture,
+                "outcome",
+                "moved");
+            return SCRIPT_CONTINUE;
+        }
+        if (getState(self, STATE_COMBAT) > 0)
+        {
+            sendSystemMessage(
+                self,
+                new string_id("skl_use", "sys_forage_combatfail"));
+            recordPrecuMedicalForage(
+                self,
+                fixture,
+                "outcome",
+                "combat");
+            return SCRIPT_CONTINUE;
+        }
+        if (!reservePrecuMedicalForageArea(self, start))
+        {
+            sendSystemMessage(
+                self,
+                new string_id("skl_use", "sys_forage_empty"));
+            recordPrecuMedicalForage(
+                self,
+                fixture,
+                "outcome",
+                "depleted");
+            return SCRIPT_CONTINUE;
+        }
+
+        int skillMod = getSkillStatMod(self, "medical_foraging");
+        int chance = Math.min(100, (int)(15 + (skillMod * 0.6f)));
+        int successRoll = fixture &&
+            hasObjVar(
+                self,
+                PRECU_MEDICAL_FORAGE_FIXTURE +
+                    ".forceSuccessRoll")
+            ? getIntObjVar(
+                self,
+                PRECU_MEDICAL_FORAGE_FIXTURE +
+                    ".forceSuccessRoll")
+            : rand(0, 80);
+        recordPrecuMedicalForage(
+            self,
+            fixture,
+            "skillMod",
+            skillMod);
+        recordPrecuMedicalForage(
+            self,
+            fixture,
+            "chance",
+            chance);
+        recordPrecuMedicalForage(
+            self,
+            fixture,
+            "successRoll",
+            successRoll);
+        if (successRoll > chance)
+        {
+            sendSystemMessage(
+                self,
+                new string_id("skl_use", "sys_forage_fail"));
+            recordPrecuMedicalForage(
+                self,
+                fixture,
+                "outcome",
+                "nothing");
+            return SCRIPT_CONTINUE;
+        }
+
+        obj_id inventory = utils.getInventoryContainer(self);
+        if (!isIdValid(inventory) || getVolumeFree(inventory) <= 0)
+        {
+            sendSystemMessage(
+                self,
+                new string_id("skl_use", "sys_forage_noroom"));
+            recordPrecuMedicalForage(
+                self,
+                fixture,
+                "outcome",
+                "inventoryFull");
+            return SCRIPT_CONTINUE;
+        }
+
+        int rewardRoll = fixture &&
+            hasObjVar(
+                self,
+                PRECU_MEDICAL_FORAGE_FIXTURE +
+                    ".forceRewardRoll")
+            ? getIntObjVar(
+                self,
+                PRECU_MEDICAL_FORAGE_FIXTURE +
+                    ".forceRewardRoll")
+            : rand(0, 200);
+        recordPrecuMedicalForage(
+            self,
+            fixture,
+            "rewardRoll",
+            rewardRoll);
+        obj_id reward = null;
+        String rewardType = "none";
+        if (rewardRoll < 40)
+        {
+            rewardType = "food";
+            reward = givePrecuMedicalForageFood(
+                self,
+                inventory,
+                fixture);
+        }
+        else if (rewardRoll < 110)
+        {
+            rewardType = "resource";
+            reward = givePrecuMedicalForageResource(
+                self,
+                inventory,
+                start);
+        }
+        else
+        {
+            rewardType = "component";
+            int level =
+                rewardRoll < 170 ? 1 :
+                rewardRoll < 200 ? 60 : 200;
+            reward = givePrecuMedicalForageComponent(
+                self,
+                inventory,
+                level,
+                fixture);
+        }
+
+        if (!isIdValid(reward))
+        {
+            sendSystemMessage(
+                self,
+                new string_id("skl_use", "sys_forage_fail"));
+            recordPrecuMedicalForage(
+                self,
+                fixture,
+                "outcome",
+                "rewardFailed");
+            return SCRIPT_CONTINUE;
+        }
+        sendSystemMessage(
+            self,
+            new string_id("skl_use", "sys_forage_success"));
+        recordPrecuMedicalForage(
+            self,
+            fixture,
+            "rewardType",
+            rewardType);
+        recordPrecuMedicalForage(
+            self,
+            fixture,
+            "rewardOid",
+            reward.toString());
+        recordPrecuMedicalForage(
+            self,
+            fixture,
+            "rewardTemplate",
+            getTemplateName(reward));
+        recordPrecuMedicalForage(
+            self,
+            fixture,
+            "outcome",
+            "rewarded");
+        return SCRIPT_CONTINUE;
+    }
+    private int getPrecuMedicalForageActionCost(obj_id player)
+        throws InterruptedException
+    {
+        float cost = PRECU_MEDICAL_FORAGE_BASE_ACTION;
+        cost -=
+            ((getAttrib(player, QUICKNESS) - 300.0f) / 1200.0f) *
+            cost;
+        return Math.max(0, (int)cost);
+    }
+    private boolean isSamePrecuMedicalForagePosition(
+        location start,
+        location current)
+    {
+        if (start == null || current == null ||
+            start.area == null || current.area == null ||
+            !start.area.equals(current.area))
+        {
+            return false;
+        }
+        return
+            Math.abs(start.x - current.x) <= 2.0f &&
+            Math.abs(start.z - current.z) <= 2.0f;
+    }
+    private boolean reservePrecuMedicalForageArea(
+        obj_id player,
+        location position)
+        throws InterruptedException
+    {
+        String locationsKey =
+            PRECU_MEDICAL_FORAGE + ".areas.locations";
+        String usesKey =
+            PRECU_MEDICAL_FORAGE + ".areas.uses";
+        String expirationsKey =
+            PRECU_MEDICAL_FORAGE + ".areas.expirations";
+        location[] oldLocations = utils.hasScriptVar(
+            player,
+            locationsKey)
+            ? utils.getLocationArrayScriptVar(player, locationsKey)
+            : new location[0];
+        int[] oldUses = utils.hasScriptVar(player, usesKey)
+            ? utils.getIntArrayScriptVar(player, usesKey)
+            : new int[0];
+        int[] oldExpirations = utils.hasScriptVar(
+            player,
+            expirationsKey)
+            ? utils.getIntArrayScriptVar(player, expirationsKey)
+            : new int[0];
+        if (oldLocations == null || oldUses == null ||
+            oldExpirations == null ||
+            oldLocations.length != oldUses.length ||
+            oldLocations.length != oldExpirations.length)
+        {
+            oldLocations = new location[0];
+            oldUses = new int[0];
+            oldExpirations = new int[0];
+        }
+
+        int now = getGameTime();
+        int activeCount = 0;
+        for (int index = 0; index < oldLocations.length; ++index)
+        {
+            if (oldLocations[index] != null &&
+                oldExpirations[index] > now)
+            {
+                ++activeCount;
+            }
+        }
+        location[] locations = new location[activeCount];
+        int[] uses = new int[activeCount];
+        int[] expirations = new int[activeCount];
+        int write = 0;
+        for (int index = 0; index < oldLocations.length; ++index)
+        {
+            if (oldLocations[index] == null ||
+                oldExpirations[index] <= now)
+            {
+                continue;
+            }
+            locations[write] = oldLocations[index];
+            uses[write] = oldUses[index];
+            expirations[write] = oldExpirations[index];
+            ++write;
+        }
+
+        for (int index = 0; index < locations.length; ++index)
+        {
+            location area = locations[index];
+            if (area.area != null && position.area != null &&
+                area.area.equals(position.area) &&
+                Math.abs(area.x - position.x) <
+                    PRECU_MEDICAL_FORAGE_AREA_SIZE &&
+                Math.abs(area.z - position.z) <
+                    PRECU_MEDICAL_FORAGE_AREA_SIZE)
+            {
+                if (uses[index] >= PRECU_MEDICAL_FORAGE_AREA_USES)
+                {
+                    storePrecuMedicalForageAreas(
+                        player,
+                        locations,
+                        uses,
+                        expirations);
+                    return false;
+                }
+                ++uses[index];
+                storePrecuMedicalForageAreas(
+                    player,
+                    locations,
+                    uses,
+                    expirations);
+                return true;
+            }
+        }
+
+        int retained = Math.min(
+            locations.length,
+            PRECU_MEDICAL_FORAGE_AREA_LIMIT - 1);
+        int first =
+            locations.length > retained
+                ? locations.length - retained
+                : 0;
+        location[] newLocations = new location[retained + 1];
+        int[] newUses = new int[retained + 1];
+        int[] newExpirations = new int[retained + 1];
+        for (int index = 0; index < retained; ++index)
+        {
+            newLocations[index] = locations[first + index];
+            newUses[index] = uses[first + index];
+            newExpirations[index] = expirations[first + index];
+        }
+        newLocations[retained] = position;
+        newUses[retained] = 1;
+        newExpirations[retained] =
+            now + PRECU_MEDICAL_FORAGE_AREA_EXPIRE;
+        storePrecuMedicalForageAreas(
+            player,
+            newLocations,
+            newUses,
+            newExpirations);
+        return true;
+    }
+    private void storePrecuMedicalForageAreas(
+        obj_id player,
+        location[] locations,
+        int[] uses,
+        int[] expirations)
+        throws InterruptedException
+    {
+        utils.setScriptVar(
+            player,
+            PRECU_MEDICAL_FORAGE + ".areas.locations",
+            locations);
+        utils.setScriptVar(
+            player,
+            PRECU_MEDICAL_FORAGE + ".areas.uses",
+            uses);
+        utils.setScriptVar(
+            player,
+            PRECU_MEDICAL_FORAGE + ".areas.expirations",
+            expirations);
+    }
+    private obj_id givePrecuMedicalForageFood(
+        obj_id player,
+        obj_id inventory,
+        boolean fixture)
+        throws InterruptedException
+    {
+        int index = fixture &&
+            hasObjVar(
+                player,
+                PRECU_MEDICAL_FORAGE_FIXTURE +
+                    ".forceFoodIndex")
+            ? getIntObjVar(
+                player,
+                PRECU_MEDICAL_FORAGE_FIXTURE +
+                    ".forceFoodIndex")
+            : rand(0, PRECU_MEDICAL_FORAGE_FOOD.length - 1);
+        index = Math.max(
+            0,
+            Math.min(PRECU_MEDICAL_FORAGE_FOOD.length - 1, index));
+        return createObject(
+            PRECU_MEDICAL_FORAGE_FOOD[index],
+            inventory,
+            "");
+    }
+    private obj_id givePrecuMedicalForageResource(
+        obj_id player,
+        obj_id inventory,
+        location position)
+        throws InterruptedException
+    {
+        obj_id[] resources = resource.createRandom(
+            "flora_resources",
+            rand(10, 40),
+            position,
+            inventory,
+            player,
+            1);
+        return resources != null && resources.length > 0
+            ? resources[0]
+            : null;
+    }
+    private obj_id givePrecuMedicalForageComponent(
+        obj_id player,
+        obj_id inventory,
+        int level,
+        boolean fixture)
+        throws InterruptedException
+    {
+        int index = fixture &&
+            hasObjVar(
+                player,
+                PRECU_MEDICAL_FORAGE_FIXTURE +
+                    ".forceComponentIndex")
+            ? getIntObjVar(
+                player,
+                PRECU_MEDICAL_FORAGE_FIXTURE +
+                    ".forceComponentIndex")
+            : rand(
+                0,
+                PRECU_MEDICAL_FORAGE_COMPONENTS.length - 1);
+        index = Math.max(
+            0,
+            Math.min(
+                PRECU_MEDICAL_FORAGE_COMPONENTS.length - 1,
+                index));
+        obj_id item = createObject(
+            PRECU_MEDICAL_FORAGE_COMPONENTS[index],
+            inventory,
+            "");
+        if (!isIdValid(item))
+        {
+            return null;
+        }
+        boolean randomized =
+            index == PRECU_MEDICAL_FORAGE_COMPONENTS.length - 1
+                ? loot.randomizeMedicine(item, level)
+                : loot.randomizeComponent(item, level, player);
+        if (!randomized)
+        {
+            destroyObject(item);
+            return null;
+        }
+        return item;
+    }
+    private int readPrecuMedicalForageInt(
+        obj_id player,
+        String field)
+        throws InterruptedException
+    {
+        String key =
+            PRECU_MEDICAL_FORAGE_FIXTURE + "." + field;
+        return hasObjVar(player, key)
+            ? getIntObjVar(player, key)
+            : 0;
+    }
+    private void recordPrecuMedicalForage(
+        obj_id player,
+        boolean fixture,
+        String field,
+        int value)
+        throws InterruptedException
+    {
+        if (fixture)
+        {
+            setObjVar(
+                player,
+                PRECU_MEDICAL_FORAGE_FIXTURE + "." + field,
+                value);
+        }
+    }
+    private void recordPrecuMedicalForage(
+        obj_id player,
+        boolean fixture,
+        String field,
+        String value)
+        throws InterruptedException
+    {
+        if (fixture)
+        {
+            setObjVar(
+                player,
+                PRECU_MEDICAL_FORAGE_FIXTURE + "." + field,
+                value);
+        }
     }
     public int removeAppearanceItemEffect(obj_id self, dictionary params) throws InterruptedException
     {

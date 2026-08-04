@@ -56,6 +56,20 @@ public class cloninglib extends script.base_script
     public static final int CLONE_COST_BASE = 1000;
     public static final int CLONE_DAMAGE_LOW = 2;
     public static final int CLONE_DAMAGE_HIGH = 10;
+    public static final int PRECU_CLONE_WOUND_AMOUNT = 100;
+    public static final float PRECU_INSURED_DECAY = 0.01f;
+    public static final float PRECU_UNINSURED_DECAY = 0.05f;
+    public static final String PRECU_DECAY_REPORT_ROOT =
+        "decayReport";
+    public static final String PRECU_DECAY_REPORT_SUI =
+        PRECU_DECAY_REPORT_ROOT + ".sui";
+    public static final String PRECU_DECAY_REPORT_TITLE =
+        "DECAY REPORT";
+    public static final String PRECU_DECAY_REPORT_PROMPT =
+        "The following report summarizes the status of your items " +
+        "after the decay event.";
+    public static final String PRECU_DECAY_REPORT_HEADER =
+        "\\#00FF00DECAYED ITEMS";
     public static final float DEFAULT_REPAIR_RATIO = 10.0f;
     public static dictionary getCloningAreas(String planet, String area) throws InterruptedException
     {
@@ -643,6 +657,138 @@ public class cloninglib extends script.base_script
                 pclib.damageAndDecayItem(obj_id, percent);
             }
         }
+    }
+    public static void applyPrecuClonePenalties(
+        obj_id player,
+        boolean registeredFacility,
+        boolean decayItems) throws InterruptedException
+    {
+        if (!isIdValid(player) || !isPlayer(player))
+        {
+            return;
+        }
+        if (!registeredFacility)
+        {
+            addWound(player, HEALTH, PRECU_CLONE_WOUND_AMOUNT);
+            addWound(player, ACTION, PRECU_CLONE_WOUND_AMOUNT);
+            addWound(player, MIND, PRECU_CLONE_WOUND_AMOUNT);
+            addShockWound(player, PRECU_CLONE_WOUND_AMOUNT);
+        }
+        if (decayItems)
+        {
+            applyPrecuCloneItemDecay(player);
+        }
+    }
+    public static void applyPrecuCloneItemDecay(obj_id player)
+        throws InterruptedException
+    {
+        if (!isIdValid(player) || !isPlayer(player))
+        {
+            return;
+        }
+        obj_id[] items = getInventoryAndEquipment(player);
+        if (items == null || items.length == 0)
+        {
+            return;
+        }
+        Vector decayedItems = new Vector();
+        decayedItems.setSize(0);
+        for (obj_id item : items)
+        {
+            if (!isDamagedOnClone(player, item))
+            {
+                continue;
+            }
+            if (isInsured(item))
+            {
+                pclib.damageAndDecayItem(item, PRECU_INSURED_DECAY);
+                setInsured(item, false);
+            }
+            else
+            {
+                pclib.damageAndDecayItem(item, PRECU_UNINSURED_DECAY);
+            }
+            decayedItems = utils.addElement(decayedItems, item);
+        }
+        if (decayedItems.size() > 0)
+        {
+            showPrecuCloneDecayReport(player, decayedItems);
+        }
+    }
+    public static int showPrecuCloneDecayReport(
+        obj_id player,
+        Vector decayedItems) throws InterruptedException
+    {
+        if (!isIdValid(player) || !isPlayer(player) ||
+            decayedItems == null || decayedItems.size() == 0)
+        {
+            return -1;
+        }
+        if (utils.hasScriptVar(player, PRECU_DECAY_REPORT_SUI))
+        {
+            forceCloseSUIPage(
+                utils.getIntScriptVar(
+                    player,
+                    PRECU_DECAY_REPORT_SUI));
+        }
+        utils.removeScriptVarTree(player, PRECU_DECAY_REPORT_ROOT);
+
+        int pid =
+            createSUIPage(
+                sui.SUI_LISTBOX,
+                player,
+                player,
+                "handleDecayReport");
+        if (pid < 0)
+        {
+            return -1;
+        }
+        setSUIProperty(
+            pid,
+            sui.LISTBOX_TITLE,
+            sui.PROP_TEXT,
+            PRECU_DECAY_REPORT_TITLE);
+        setSUIProperty(
+            pid,
+            sui.LISTBOX_PROMPT,
+            sui.PROP_TEXT,
+            PRECU_DECAY_REPORT_PROMPT);
+        sui.listboxButtonSetup(pid, sui.OK_ONLY);
+        clearSUIDataSource(pid, sui.LISTBOX_DATASOURCE);
+        addSUIDataItem(pid, sui.LISTBOX_DATASOURCE, "header");
+        setSUIProperty(
+            pid,
+            sui.LISTBOX_DATASOURCE + ".header",
+            sui.PROP_TEXT,
+            PRECU_DECAY_REPORT_HEADER);
+        for (int index = 0; index < decayedItems.size(); ++index)
+        {
+            obj_id item = (obj_id)decayedItems.get(index);
+            if (!isIdValid(item))
+            {
+                continue;
+            }
+            int maxHitpoints = getMaxHitpoints(item);
+            int hitpoints = getHitpoints(item);
+            int conditionPercent =
+                maxHitpoints > 0
+                    ? (int)(100.0f * hitpoints / maxHitpoints)
+                    : 0;
+            String rowName = "item" + index;
+            String line =
+                " - " + getEncodedName(item) +
+                " (@" + conditionPercent + "%)";
+            addSUIDataItem(pid, sui.LISTBOX_DATASOURCE, rowName);
+            setSUIProperty(
+                pid,
+                sui.LISTBOX_DATASOURCE + "." + rowName,
+                sui.PROP_TEXT,
+                line);
+        }
+        showSUIPage(pid);
+        flushSUIPage(pid);
+        utils.setScriptVar(player, PRECU_DECAY_REPORT_SUI, pid);
+        return pid;
     }
     public static obj_id[] getAllRepairItems(obj_id player) throws InterruptedException
     {

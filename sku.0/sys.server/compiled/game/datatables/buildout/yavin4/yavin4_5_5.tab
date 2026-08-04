@@ -11,7 +11,7 @@ i	i	h	i	f	f	f	f	f	f	f	s	p
 -2121483750	-1476694885	object/cell/cell.iff	8	0	0	0	1	0	0	0		$|
 -673167155	-1476694885	object/cell/cell.iff	9	0	0	0	1	0	0	0		$|
 -1280125447	-1476694885	object/cell/cell.iff	10	0	0	0	1	0	0	0		$|
--1547871246	-1280125447	object/tangible/gcw/battlefield_terminal.iff	10	1.53493	-20.75	35.7557	0.0107962	0	0.999942	0	systems.gcw.battlefield_terminal	battlefield.terminalName|4|battlefield2_imperial_ne|battlefield.terminal_faction|0|2|battlefield.terminal_maximum_captures|0|1|battlefield.terminal_mitigation|0|2|gcw.static_base.icon_object|6|26751480|$|
+-1547871246	-1280125447	object/tangible/gcw/battlefield_terminal.iff	10	1.53493	-20.75	35.7557	0.0107962	0	0.999942	0		battlefield.terminalName|4|battlefield2_imperial_ne|battlefield.terminal_faction|0|2|battlefield.terminal_maximum_captures|0|1|battlefield.terminal_mitigation|0|2|gcw.static_base.icon_object|6|26751480|$|
 -1326195522	0	object/building/military/military_rebel_tactical_center.iff	0	1156	82	210	-0.703845	0	0.710353	0		portalProperty.crc|0|655023661|$|
 -2129364150	-1326195522	object/cell/cell.iff	1	0	0	0	1	0	0	0		$|
 -51266391	-1326195522	object/cell/cell.iff	2	0	0	0	1	0	0	0		$|
@@ -23,8 +23,8 @@ i	i	h	i	f	f	f	f	f	f	f	s	p
 -1668539421	-1326195522	object/cell/cell.iff	8	0	0	0	1	0	0	0		$|
 -1712303211	-1326195522	object/cell/cell.iff	9	0	0	0	1	0	0	0		$|
 -473997565	-1326195522	object/cell/cell.iff	10	0	0	0	1	0	0	0		$|
--1548350117	-473997565	object/tangible/gcw/battlefield_terminal.iff	10	1.49617	-20.75	35.7707	0.000796629	0	1	0	systems.gcw.battlefield_terminal	battlefield.terminalName|4|battlefield2_rebel_se|battlefield.terminal_faction|0|1|battlefield.terminal_maximum_captures|0|1|battlefield.terminal_mitigation|0|2|gcw.static_base.icon_object|6|26751479|$|
--1271973283	0	object/tangible/space/content_infrastructure/generic_egg_small.iff	0	1015	68.6894	425	1	0	0	0	systems.gcw.pvp_battlefield	battlefield.terminalCount|0|5|battlefieldName|4|battlefield2|$|
+-1548350117	-473997565	object/tangible/gcw/battlefield_terminal.iff	10	1.49617	-20.75	35.7707	0.000796629	0	1	0		battlefield.terminalName|4|battlefield2_rebel_se|battlefield.terminal_faction|0|1|battlefield.terminal_maximum_captures|0|1|battlefield.terminal_mitigation|0|2|gcw.static_base.icon_object|6|26751479|$|
+-1271973283	0	object/tangible/space/content_infrastructure/generic_egg_small.iff	0	1015	68.6894	425	1	0	0	0		battlefield.terminalCount|0|5|battlefieldName|4|battlefield2|$|
 -992562882	0	object/building/military/military_rebel_field_hospital.iff	0	1015.1	84	36.9653	0.999978	0	-0.00659283	0		portalProperty.crc|0|1682376097|$|
 -1529957295	-992562882	object/cell/cell.iff	1	0	0	0	1	0	0	0		$|
 -1549069608	-992562882	object/cell/cell.iff	2	0	0	0	1	0	0	0		$|
@@ -46,7 +46,7 @@ i	i	h	i	f	f	f	f	f	f	f	s	p
 -1423647569	-619896954	object/cell/cell.iff	8	0	0	0	1	0	0	0		$|
 -166453985	-619896954	object/cell/cell.iff	9	0	0	0	1	0	0	0		$|
 -1709003841	-619896954	object/cell/cell.iff	10	0	0	0	1	0	0	0		$|
--1736063099	-1709003841	object/tangible/gcw/battlefield_terminal.iff	10	1.4575	-20.75	35.7631	0.000796417	0	1	0	systems.gcw.battlefield_terminal	battlefield.terminalName|4|battlefield2_rebel_sw|battlefield.terminal_faction|0|1|battlefield.terminal_maximum_captures|0|1|battlefield.terminal_mitigation|0|2|gcw.static_base.icon_object|6|26751478|$|
+-1736063099	-1709003841	object/tangible/gcw/battlefield_terminal.iff	10	1.4575	-20.75	35.7631	0.000796417	0	1	0		battlefield.terminalName|4|battlefield2_rebel_sw|battlefield.terminal_faction|0|1|battlefield.terminal_maximum_captures|0|1|battlefield.terminal_mitigation|0|2|gcw.static_base.icon_object|6|26751478|$|
 -592598283	0	object/building/military/military_rebel_field_hospital.iff	0	1015.1	84	36.9653	0.999978	0	-0.00659283	0		portalProperty.crc|0|1682376097|$|
 -1305554868	-592598283	object/cell/cell.iff	1	0	0	0	1	0	0	0		$|
 -1732834925	-592598283	object/cell/cell.iff	2	0	0	0	1	0	0	0		$|
@@ -68,7 +68,7 @@ i	i	h	i	f	f	f	f	f	f	f	s	p
 -593587785	-394162422	object/cell/cell.iff	8	0	0	0	1	0	0	0		$|
 -1094712888	-394162422	object/cell/cell.iff	9	0	0	0	1	0	0	0		$|
 -1642364729	-394162422	object/cell/cell.iff	10	0	0	0	1	0	0	0		$|
--872825422	-1642364729	object/tangible/gcw/battlefield_terminal.iff	10	1.47647	-20.75	35.7694	0.000796482	0	1	0	systems.gcw.battlefield_terminal	battlefield.terminalName|4|battlefield2_imperial_nw|battlefield.terminal_faction|0|2|battlefield.terminal_maximum_captures|0|1|battlefield.terminal_mitigation|0|2|gcw.static_base.icon_object|6|26751481|$|
+-872825422	-1642364729	object/tangible/gcw/battlefield_terminal.iff	10	1.47647	-20.75	35.7694	0.000796482	0	1	0		battlefield.terminalName|4|battlefield2_imperial_nw|battlefield.terminal_faction|0|2|battlefield.terminal_maximum_captures|0|1|battlefield.terminal_mitigation|0|2|gcw.static_base.icon_object|6|26751481|$|
 -49108000	0	object/building/kashyyyk/thm_kash_rodian_bannerpole_s01.iff	0	0	195	0	1	0	0	0		$|
 -5810004	0	object/building/military/military_imperial_field_hospital.iff	0	1015.16	68	811.874	-0.00420352	0	0.999991	0		portalProperty.crc|0|1682376097|$|
 -89716666	-5810004	object/cell/cell.iff	1	0	0	0	1	0	0	0		$|
@@ -83,7 +83,7 @@ i	i	h	i	f	f	f	f	f	f	f	s	p
 -782248797	0	object/building/military/gcw_battlefield_base.iff	0	1015.11	66	426.007	1	0	0	0		portalProperty.crc|0|-151658131|$|
 -2057880312	-782248797	object/cell/cell.iff	1	0	0	0	1	0	0	0		$|
 -708295485	-782248797	object/cell/cell.iff	2	0	0	0	1	0	0	0		$|
--1927436424	-708295485	object/tangible/gcw/battlefield_terminal.iff	2	0.0182495	1	0.481232	0.000796385	0	1	0	systems.gcw.battlefield_terminal	battlefield.terminalName|4|battlefield2_neutral_center|battlefield.terminal_faction|0|0|battlefield.terminal_maximum_captures|0|5|battlefield.terminal_mitigation|0|5|$|
+-1927436424	-708295485	object/tangible/gcw/battlefield_terminal.iff	2	0.0182495	1	0.481232	0.000796385	0	1	0		battlefield.terminalName|4|battlefield2_neutral_center|battlefield.terminal_faction|0|0|battlefield.terminal_maximum_captures|0|5|battlefield.terminal_mitigation|0|5|$|
 -1276353842	-782248797	object/cell/cell.iff	3	0	0	0	1	0	0	0		$|
 -221545583	-782248797	object/cell/cell.iff	4	0	0	0	1	0	0	0		$|
 -1696281700	-782248797	object/cell/cell.iff	5	0	0	0	1	0	0	0		$|

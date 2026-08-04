@@ -10,6 +10,10 @@ public class click_combat_token extends script.base_script
     public click_combat_token()
     {
     }
+    private static boolean isNgeCombatRespecTokenEnabled()
+    {
+        return false;
+    }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
         if (!hasObjVar(self, "foundOwner"))
@@ -36,6 +40,10 @@ public class click_combat_token extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (!isNgeCombatRespecTokenEnabled())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (canManipulate(player, self, true, true, 15, true))
         {
             if (utils.isNestedWithinAPlayer(self))
@@ -55,6 +63,10 @@ public class click_combat_token extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (!isNgeCombatRespecTokenEnabled())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (hasObjVar(player, "npcRespec.inProgress"))
         {
             sendSystemMessage(player, new string_id("spam", "cant_use_respec_device"));

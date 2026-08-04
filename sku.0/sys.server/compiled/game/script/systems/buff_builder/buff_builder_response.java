@@ -17,6 +17,11 @@ public class buff_builder_response extends script.base_script
     public static final float BUFF_BUILDER_RANGE = 8.0f;
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        if (buff.isPostNgeBuffProgressionRetired())
+        {
+            buff.retirePostNgeBuffProgression(self);
+            return SCRIPT_CONTINUE;
+        }
         if (hasScript(self, SCRIPT_BUFF_BUILDER_RESPONSE))
         {
             detachScript(self, SCRIPT_BUFF_BUILDER_RESPONSE);
@@ -25,6 +30,11 @@ public class buff_builder_response extends script.base_script
     }
     public int OnLogin(obj_id self) throws InterruptedException
     {
+        if (buff.isPostNgeBuffProgressionRetired())
+        {
+            buff.retirePostNgeBuffProgression(self);
+            return SCRIPT_CONTINUE;
+        }
         if (hasScript(self, SCRIPT_BUFF_BUILDER_RESPONSE))
         {
             detachScript(self, SCRIPT_BUFF_BUILDER_RESPONSE);
@@ -33,6 +43,11 @@ public class buff_builder_response extends script.base_script
     }
     public int OnImmediateLogout(obj_id self) throws InterruptedException
     {
+        if (buff.isPostNgeBuffProgressionRetired())
+        {
+            buff.retirePostNgeBuffProgression(self);
+            return SCRIPT_CONTINUE;
+        }
         if (hasScript(self, SCRIPT_BUFF_BUILDER_RESPONSE))
         {
             detachScript(self, SCRIPT_BUFF_BUILDER_RESPONSE);
@@ -41,6 +56,12 @@ public class buff_builder_response extends script.base_script
     }
     public int OnBuffBuilderValidate(obj_id self, obj_id bufferId, obj_id recipientId, int startingTime, int bufferRequiredCredits, int recipientPaidCredits, boolean accepted, String[] buffComponentKeys, int[] buffComponentValues) throws InterruptedException
     {
+        if (buff.isPostNgeBuffProgressionRetired())
+        {
+            buff.retirePostNgeBuffProgression(self);
+            buff.retirePostNgeBuffProgression(recipientId);
+            return SCRIPT_CONTINUE;
+        }
         if (!accepted)
         {
             detachScript(self, SCRIPT_BUFF_BUILDER_RESPONSE);
@@ -57,6 +78,12 @@ public class buff_builder_response extends script.base_script
     }
     public int OnBuffBuilderCompleted(obj_id self, obj_id bufferId, obj_id recipientId, int startingTime, int bufferRequiredCredits, int recipientPaidCredits, boolean accepted, String[] buffComponentKeys, int[] buffComponentValues) throws InterruptedException
     {
+        if (buff.isPostNgeBuffProgressionRetired())
+        {
+            buff.retirePostNgeBuffProgression(self);
+            buff.retirePostNgeBuffProgression(recipientId);
+            return SCRIPT_CONTINUE;
+        }
         if (bufferRequiredCredits > 0 && !money.pay(recipientId, bufferId, bufferRequiredCredits, "", null))
         {
             sendSystemMessage(recipientId, new string_id("spam", "buildabuff_nsf_buffee"));
@@ -135,6 +162,11 @@ public class buff_builder_response extends script.base_script
     }
     public int OnBuffBuilderCanceled(obj_id self) throws InterruptedException
     {
+        if (buff.isPostNgeBuffProgressionRetired())
+        {
+            buff.retirePostNgeBuffProgression(self);
+            return SCRIPT_CONTINUE;
+        }
         detachScript(self, SCRIPT_BUFF_BUILDER_RESPONSE);
         return SCRIPT_CONTINUE;
     }

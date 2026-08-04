@@ -9,6 +9,11 @@ import script.obj_id;
 
 public class newbie_skipped extends script.theme_park.newbie_tutorial.tutorial_base
 {
+    public static final String STARTING_LOCATION_SELECTION_OPEN = "newbie.startingLocationSelectionOpen";
+    public static final String STARTING_LOCATION_TRANSFER_PENDING = "newbie.startingLocationTransferPending";
+    public static final String STARTING_LOCATION_TRANSFER_NAME = "newbie.startingLocationTransferName";
+    public static final String STARTING_LOCATION_TRANSFER_POLLS = "newbie.startingLocationTransferPolls";
+    public static final int STARTING_LOCATION_TRANSFER_MAX_POLLS = 30;
     public newbie_skipped()
     {
     }
@@ -67,8 +72,11 @@ public class newbie_skipped extends script.theme_park.newbie_tutorial.tutorial_b
         }
         removeObjVar(self, "newbie");
         removeObjVar(self, "skipTutorial");
+        utils.removeScriptVar(self, STARTING_LOCATION_SELECTION_OPEN);
+        removeObjVar(self, STARTING_LOCATION_TRANSFER_PENDING);
+        removeObjVar(self, STARTING_LOCATION_TRANSFER_NAME);
+        removeObjVar(self, STARTING_LOCATION_TRANSFER_POLLS);
         removeObjVar(self, "banking_bankid");
-        grantAllNoviceSkills(self);
         return SCRIPT_CONTINUE;
     }
     public int xferFailed(obj_id self, dictionary params) throws InterruptedException
@@ -93,18 +101,60 @@ public class newbie_skipped extends script.theme_park.newbie_tutorial.tutorial_b
     }
     public int newbieRequestStartingLocations(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
-        newbieTutorialSendStartingLocationsToPlayer(self, null);
+        if ("tutorial".equals(getLocation(self).area) && utils.hasScriptVar(self, STARTING_LOCATION_SELECTION_OPEN) && !hasObjVar(self, STARTING_LOCATION_TRANSFER_PENDING))
+        {
+            // The travel terminal is the sole authority that opens this gate.
+            sendThoseStartLocs(self);
+        }
         return SCRIPT_CONTINUE;
     }
     public int newbieSelectStartingLocation(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
-        sendToStartLocation(self, params);
+        if (hasObjVar(self, STARTING_LOCATION_TRANSFER_PENDING) || !utils.hasScriptVar(self, STARTING_LOCATION_SELECTION_OPEN))
+        {
+            newbieTutorialSendStartingLocationSelectionResult(self, params, false);
+            return SCRIPT_CONTINUE;
+        }
+        utils.removeScriptVar(self, STARTING_LOCATION_SELECTION_OPEN);
+        if (!sendToStartLocation(self, params))
+        {
+            utils.setScriptVar(self, STARTING_LOCATION_SELECTION_OPEN, true);
+            return SCRIPT_CONTINUE;
+        }
+        setObjVar(self, STARTING_LOCATION_TRANSFER_PENDING, true);
+        setObjVar(self, STARTING_LOCATION_TRANSFER_NAME, params);
+        setObjVar(self, STARTING_LOCATION_TRANSFER_POLLS, 0);
+        messageTo(self, "handleEndTutorial", null, 1.0f, false);
         return SCRIPT_CONTINUE;
     }
     public int handleEndTutorial(obj_id self, dictionary params) throws InterruptedException
     {
-        newbieTutorialEnableHudElement(self, "all", true, 0.0f);
-        detachScript(self, "theme_park.newbie_tutorial.newbie_skipped");
+        if (!hasObjVar(self, STARTING_LOCATION_TRANSFER_PENDING))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        location loc = getLocation(self);
+        if (!loc.area.equals("tutorial"))
+        {
+            removeObjVar(self, "newbie.startSkippedTutorial");
+            newbieTutorialEnableHudElement(self, "all", true, 0.0f);
+            detachScript(self, "theme_park.newbie_tutorial.newbie_skipped");
+            return SCRIPT_CONTINUE;
+        }
+        int polls = getIntObjVar(self, STARTING_LOCATION_TRANSFER_POLLS);
+        if (polls >= STARTING_LOCATION_TRANSFER_MAX_POLLS)
+        {
+            String selection = getStringObjVar(self, STARTING_LOCATION_TRANSFER_NAME);
+            removeObjVar(self, STARTING_LOCATION_TRANSFER_PENDING);
+            removeObjVar(self, STARTING_LOCATION_TRANSFER_NAME);
+            removeObjVar(self, STARTING_LOCATION_TRANSFER_POLLS);
+            utils.setScriptVar(self, STARTING_LOCATION_SELECTION_OPEN, true);
+            newbieTutorialSendStartingLocationSelectionResult(self, selection, false);
+            sendThoseStartLocs(self);
+            return SCRIPT_CONTINUE;
+        }
+        setObjVar(self, STARTING_LOCATION_TRANSFER_POLLS, polls + 1);
+        messageTo(self, "handleEndTutorial", null, 1.0f, false);
         return SCRIPT_CONTINUE;
     }
     public int OnLogin(obj_id self) throws InterruptedException
@@ -113,8 +163,16 @@ public class newbie_skipped extends script.theme_park.newbie_tutorial.tutorial_b
         String area = loc.area;
         if (!area.equals("tutorial"))
         {
+            removeObjVar(self, "newbie.startSkippedTutorial");
             newbieTutorialEnableHudElement(self, "all", true, 0.0f);
             detachScript(self, "theme_park.newbie_tutorial.newbie_skipped");
+        }
+        else if (hasObjVar(self, STARTING_LOCATION_TRANSFER_PENDING))
+        {
+            utils.removeScriptVar(self, STARTING_LOCATION_SELECTION_OPEN);
+            removeObjVar(self, STARTING_LOCATION_TRANSFER_PENDING);
+            removeObjVar(self, STARTING_LOCATION_TRANSFER_NAME);
+            removeObjVar(self, STARTING_LOCATION_TRANSFER_POLLS);
         }
         return SCRIPT_CONTINUE;
     }

@@ -80,7 +80,7 @@ public class echo_base_launch extends script.base_script
     }
     public boolean echo_base_launch_condition_isNotCorrectLevel(obj_id player, obj_id npc) throws InterruptedException
     {
-        return getLevel(player) < township.MIN_LEVEL;
+        return script.library.skill.getPrecuEncounterDifficulty(player) < township.MIN_LEVEL;
     }
     public void echo_base_launch_action_launchRebel(obj_id player, obj_id npc) throws InterruptedException
     {

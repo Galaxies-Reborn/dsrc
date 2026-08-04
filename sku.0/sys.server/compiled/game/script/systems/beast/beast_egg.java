@@ -38,6 +38,10 @@ public class beast_egg extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return SCRIPT_CONTINUE;
+        }
         obj_id egg = self;
         if (isDead(player) || isIncapacitated(player))
         {
@@ -67,6 +71,10 @@ public class beast_egg extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         sendDirtyObjectMenuNotification(self);
         if (isDead(player) || isIncapacitated(player))
         {
@@ -262,6 +270,10 @@ public class beast_egg extends script.base_script
             return SCRIPT_CONTINUE;
         }
         obj_id player = sui.getPlayerId(params);
+        if (incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return SCRIPT_CONTINUE;
+        }
         obj_id egg = self;
         incubator.stampEggAsMount(egg, player);
         return SCRIPT_CONTINUE;
@@ -274,6 +286,10 @@ public class beast_egg extends script.base_script
             return SCRIPT_CONTINUE;
         }
         obj_id player = sui.getPlayerId(params);
+        if (incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (isIdValid(player))
         {
             obj_id holopetCube = beast_lib.createHolopetCubeFromEgg(player, self);

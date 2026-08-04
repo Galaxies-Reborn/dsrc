@@ -8,6 +8,7 @@ import java.util.Vector;
 
 public class player_pvp extends script.base_script
 {
+    public static final String SCRIPT_NAME = "systems.gcw.player_pvp";
     public player_pvp()
     {
     }
@@ -62,6 +63,16 @@ public class player_pvp extends script.base_script
     };
     public static final String COLOR_REBELS = "\\" + colors_hex.COLOR_REBELS;
     public static final String COLOR_IMPERIALS = "\\" + colors_hex.COLOR_IMPERIALS;
+    private void retirePostNgeQueuedBattlefieldPlayer(obj_id self) throws InterruptedException
+    {
+        buff.removeBuff(self, "battlefield_communication_run");
+        buff.removeBuff(self, "battlefield_radar_invisibility");
+        utils.removeScriptVarTree(self, "battlefield");
+        if (hasScript(self, SCRIPT_NAME))
+        {
+            detachScript(self, SCRIPT_NAME);
+        }
+    }
     public void blog(obj_id controller, String text) throws InterruptedException
     {
         String battlefieldName = "none";
@@ -114,6 +125,11 @@ public class player_pvp extends script.base_script
     }
     public int OnSpeaking(obj_id self, String text) throws InterruptedException
     {
+        if (gcw.isPostNgeQueuedBattlefieldRetired())
+        {
+            retirePostNgeQueuedBattlefieldPlayer(self);
+            return SCRIPT_CONTINUE;
+        }
         if (!isGod(self))
         {
             return SCRIPT_CONTINUE;
@@ -166,8 +182,21 @@ public class player_pvp extends script.base_script
         }
         return SCRIPT_CONTINUE;
     }
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        if (gcw.isPostNgeQueuedBattlefieldRetired())
+        {
+            retirePostNgeQueuedBattlefieldPlayer(self);
+        }
+        return SCRIPT_CONTINUE;
+    }
     public int OnLogin(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeQueuedBattlefieldRetired())
+        {
+            retirePostNgeQueuedBattlefieldPlayer(self);
+            return SCRIPT_CONTINUE;
+        }
         cleanupOldSystemObjVar(self);
         gcw.clearCreditForKills(self);
         return SCRIPT_CONTINUE;
@@ -183,10 +212,17 @@ public class player_pvp extends script.base_script
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeQueuedBattlefieldRetired())
+        {
+            retirePostNgeQueuedBattlefieldPlayer(self);
+        }
         return SCRIPT_CONTINUE;
     }
     public int OnDetach(obj_id self) throws InterruptedException
     {
+        buff.removeBuff(self, "battlefield_communication_run");
+        buff.removeBuff(self, "battlefield_radar_invisibility");
+        utils.removeScriptVarTree(self, "battlefield");
         return SCRIPT_CONTINUE;
     }
     public int OnAddedToGroup(obj_id self, obj_id groupId) throws InterruptedException
@@ -209,16 +245,31 @@ public class player_pvp extends script.base_script
     }
     public int cmdBattlefield(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (gcw.isPostNgeQueuedBattlefieldRetired())
+        {
+            retirePostNgeQueuedBattlefieldPlayer(self);
+            return SCRIPT_CONTINUE;
+        }
         battlefieldCommandSui(self);
         return SCRIPT_CONTINUE;
     }
     public int displayBattlefieldSui(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeQueuedBattlefieldRetired())
+        {
+            retirePostNgeQueuedBattlefieldPlayer(self);
+            return SCRIPT_CONTINUE;
+        }
         battlefieldCommandSui(self);
         return SCRIPT_CONTINUE;
     }
     public void battlefieldCommandSui(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeQueuedBattlefieldRetired())
+        {
+            retirePostNgeQueuedBattlefieldPlayer(self);
+            return;
+        }
         if (!isIdValid(self))
         {
             return;

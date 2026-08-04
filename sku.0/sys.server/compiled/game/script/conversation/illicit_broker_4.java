@@ -15,7 +15,7 @@ public class illicit_broker_4 extends script.base_script
     }
     public boolean illicit_broker_4_condition_isNonSmuggler(obj_id player, obj_id npc) throws InterruptedException
     {
-        if (utils.getPlayerProfession(player) != utils.SMUGGLER)
+        if (!utils.isProfession(player, utils.SMUGGLER))
         {
             return true;
         }

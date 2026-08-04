@@ -36,7 +36,7 @@ public class craft_tailor_droid extends script.base_script
         {
             return SCRIPT_CONTINUE;
         }
-        if (!hasSkill(giver, "class_domestics_phase4_master"))
+        if (!hasSkill(giver, "crafting_tailor_master"))
         {
             CustomerServiceLog("DUNGEON_DeathWatchBunker", "*Mandalorian Armor: Player %TU was not a crafting tailor master, so erroring out.");
             string_id master_tailor = new string_id(MSGS, "master_tailor_required");

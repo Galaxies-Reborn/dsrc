@@ -36,11 +36,11 @@ public class outbreak_defense_stephon_sprocketfire_beta extends script.base_scri
     }
     public boolean outbreak_defense_stephon_sprocketfire_beta_condition_levelTooHigh(obj_id player, obj_id npc) throws InterruptedException
     {
-        return getLevel(player) >= 40;
+        return script.library.skill.getPrecuEncounterDifficulty(player) >= 40;
     }
     public boolean outbreak_defense_stephon_sprocketfire_beta_condition_levelTooLow(obj_id player, obj_id npc) throws InterruptedException
     {
-        return getLevel(player) < 15;
+        return script.library.skill.getPrecuEncounterDifficulty(player) < 15;
     }
     public boolean outbreak_defense_stephon_sprocketfire_beta_condition_noAntiVirus(obj_id player, obj_id npc) throws InterruptedException
     {

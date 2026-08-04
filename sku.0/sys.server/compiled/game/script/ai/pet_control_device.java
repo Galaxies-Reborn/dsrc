@@ -111,7 +111,7 @@ public class pet_control_device extends script.base_script
             }
             return SCRIPT_CONTINUE;
         }
-        if (!hasObjVar(self, beast_lib.OBJVAR_OLD_PET_IDENTIFIER) && !pet_lib.isPetType(self, pet_lib.PET_TYPE_FAMILIAR) && !pet_lib.isPetType(self, pet_lib.PET_TYPE_NPC) && !pet_lib.isPetType(self, pet_lib.PET_TYPE_DROID))
+        if (!incubator.isRetiredPostNgeBeastMasterCreationPlayer(player) && !hasObjVar(self, beast_lib.OBJVAR_OLD_PET_IDENTIFIER) && !pet_lib.isPetType(self, pet_lib.PET_TYPE_FAMILIAR) && !pet_lib.isPetType(self, pet_lib.PET_TYPE_NPC) && !pet_lib.isPetType(self, pet_lib.PET_TYPE_DROID))
         {
             if (!hasObjVar(self, "noStuff"))
             {
@@ -330,9 +330,13 @@ public class pet_control_device extends script.base_script
                 return SCRIPT_CONTINUE;
             }
             int petLevel = getLevelFromPetControlDevice(self);
-            if (getLevel(player) < petLevel - pet_lib.MAX_PET_LEVELS_ABOVE_CALLER && !pet_lib.isMountPcd(self))
+            int controlPetType = petType;
+            if (pet_lib.isMountPcd(self))
             {
-                sendSystemMessage(player, pet_lib.SID_SYS_CANT_CALL_LEVEL);
+                controlPetType = pet_lib.getPetType(petObjVar);
+            }
+            if (!isGod(player) && !pet_lib.canCallCreaturePet(player, controlPetType, petLevel))
+            {
                 return SCRIPT_CONTINUE;
             }
             if (!isSameFaction(self))
@@ -394,7 +398,7 @@ public class pet_control_device extends script.base_script
                 sendSystemMessage(self, SID_NO_VALID_MEDICINE);
             }
         }
-        else if (item == menu_info_types.SERVER_MENU1 && !hasObjVar(self, beast_lib.OBJVAR_OLD_PET_IDENTIFIER) && !pet_lib.isPetType(self, pet_lib.PET_TYPE_FAMILIAR) && !pet_lib.isPetType(self, pet_lib.PET_TYPE_NPC) && !pet_lib.isPetType(self, pet_lib.PET_TYPE_DROID))
+        else if (item == menu_info_types.SERVER_MENU1 && !incubator.isRetiredPostNgeBeastMasterCreationPlayer(player) && !hasObjVar(self, beast_lib.OBJVAR_OLD_PET_IDENTIFIER) && !pet_lib.isPetType(self, pet_lib.PET_TYPE_FAMILIAR) && !pet_lib.isPetType(self, pet_lib.PET_TYPE_NPC) && !pet_lib.isPetType(self, pet_lib.PET_TYPE_DROID))
         {
             int pid = sui.msgbox(self, player, "@" + SID_CONVERT_PROMPT, sui.YES_NO, "@" + SID_CONVERT_TITLE, "handleConvertPetSui");
         }
@@ -2142,6 +2146,10 @@ public class pet_control_device extends script.base_script
             return SCRIPT_CONTINUE;
         }
         obj_id player = sui.getPlayerId(params);
+        if (incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (incubator.convertPcdIntoPetItem(player, self))
         {
             CustomerServiceLog("BeastPetConversion: ", "Player (" + player + ") has converted Old Pcd (" + self + ")" + " we are now going to store its pet and destroy the pcd.");

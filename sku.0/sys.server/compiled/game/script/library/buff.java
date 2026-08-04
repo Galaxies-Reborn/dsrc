@@ -17,6 +17,37 @@ public class buff extends script.base_script
     public static final String BUFF_TABLE = "datatables/buff/buff.iff";
     public static final String DEBUFF_STATE_PARALYZED = "buff.state.paralyzed";
     public static final String AGGRO_TRANSFER_TO = "aggroBuffTransfer";
+    public static boolean isPostNgeBuffProgressionRetired()
+    {
+        return true;
+    }
+    public static void retirePostNgeBuffProgression(obj_id player) throws InterruptedException
+    {
+        if (!isPostNgeBuffProgressionRetired() || !isIdValid(player) || !exists(player))
+        {
+            return;
+        }
+        if (hasBuff(player, "buildabuff_inspiration"))
+        {
+            removeBuff(player, "buildabuff_inspiration");
+        }
+        if (hasBuff(player, "general_inspiration"))
+        {
+            removeBuff(player, "general_inspiration");
+        }
+        utils.removeScriptVarTree(player, "performance.buildabuff");
+        utils.removeScriptVarTree(player, "buff.xpBonus");
+        utils.removeScriptVarTree(player, "buff.xpBonusGeneral");
+        utils.removeScriptVarTree(player, "buff.general_inspiration");
+        if (hasScript(player, "systems.buff_builder.buff_builder_response"))
+        {
+            detachScript(player, "systems.buff_builder.buff_builder_response");
+        }
+        if (hasScript(player, "systems.buff_builder.buff_builder_cancel"))
+        {
+            detachScript(player, "systems.buff_builder.buff_builder_cancel");
+        }
+    }
     public static final String DOT_BLEEDING = "dot_bleeding";
     public static final String DOT_POISON = "dot_poison";
     public static final String DOT_DISEASE = "dot_disease";

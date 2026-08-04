@@ -3,6 +3,7 @@ package script.systems.beast;
 import script.*;
 import script.library.beast_lib;
 import script.library.buff;
+import script.library.incubator;
 import script.library.utils;
 
 public class beast_steroid_injector extends script.base_script
@@ -66,11 +67,19 @@ public class beast_steroid_injector extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return SCRIPT_CONTINUE;
+        }
         mi.addRootMenu(menu_info_types.ITEM_USE, SID_USE_ITEM);
         return SCRIPT_CONTINUE;
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (isDead(player) || isIncapacitated(player))
         {
             return SCRIPT_CONTINUE;
@@ -130,6 +139,10 @@ public class beast_steroid_injector extends script.base_script
     }
     public boolean addXpBuff(obj_id injector, obj_id beast) throws InterruptedException
     {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            return false;
+        }
         int buffAmount = 0;
         if (exists(injector) && hasObjVar(injector, "beastSteroidBonus"))
         {

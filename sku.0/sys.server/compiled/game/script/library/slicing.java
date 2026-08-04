@@ -95,7 +95,7 @@ public class slicing extends script.base_script
         int skillMod = getSkillStatisticModifier(player, "slice_" + query);
         if (skillMod == 0)
         {
-            if (hasSkill(player, "class_smuggler_phase1_novice"))
+            if (hasSkill(player, "combat_smuggler_novice"))
             {
                 successSlicing(player, item, 0);
                 return;

@@ -13,7 +13,6 @@ public class xp extends script.base_script
     public static final float COMBAT_GENERAL_EXCHANGE_RATE = 0.10f;
     public static final float JEDI_GENERAL_EXCHANGE_RATE = 0.18f;
     public static final float SOCIAL_ENTERTAINER_EXCHANGE_RATE = 1.0f;
-    public static final float CRAFTING_MERCHANT_EXCHANGE_RATE = 0.25f;
     public static final float SQUADLEADER_XP_RATIO = 1.0f;
     public static final float SOCIAL_COMBAT_XP_MOD = 1.0f;
     public static final String VAR_SQUADLEADER_BASE = "squadleader";
@@ -81,6 +80,7 @@ public class xp extends script.base_script
     public static final String DANCE = "dance";
     public static final String JUGGLING = "juggling";
     public static final String ENTERTAINER = "entertainer";
+    public static final String ENTERTAINER_HEALING = "entertainer_healing";
     public static final String QUEST_SOCIAL = "quest_social";
     public static final String QUEST_COMBAT = "quest_combat";
     public static final String QUEST_CRAFTING = "quest_crafting";
@@ -118,11 +118,10 @@ public class xp extends script.base_script
     public static final float COMBAT_XP_EXCHANGE = 0.10f;
     public static final float MAX_NPC_DAMAGE_PERCENT = 0.65f;
     public static final float PERCENT_DAMAGE_BAR_BASE = 0.00f;
-    public static final float GROUP_XP_BONUS = 0.35f;
-    public static final float GROUP_XP_DIVIDER = 0.6f;
+    public static final float PRECU_GROUP_XP_MULTIPLIER = 1.20f;
+    public static final int PRECU_COMBAT_XP_DIFFICULTY_CAP = 25;
+    public static final int PRECU_COMBAT_XP_PER_DIFFICULTY = 300;
     public static final int MAX_GROUP_BONUS_COUNT = 8;
-    public static final float TRADER_XP_MOD = 7.6f;
-    public static final float ENTERTAINER_XP_MOD = 3.4f;
     public static final String VAR_COMBAT_RESULTS = "combatResults";
     public static final String VAR_TOP_DAMAGE = VAR_COMBAT_RESULTS + ".top_damage";
     public static final String VAR_TOP_GROUP = VAR_COMBAT_RESULTS + ".top_group";
@@ -131,13 +130,10 @@ public class xp extends script.base_script
     public static final String HANDLER_XP_DELEGATED = "xpDelegated";
     public static final String TBL_SKILL = "datatables/skill/skills.iff";
     public static final String TBL_SPECIES_XP = "datatables/xp/species.iff";
-    public static final String TBL_PLAYER_LEVEL_XP = "datatables/player/player_level.iff";
     public static final String CREATURES_TABLE = "datatables/mob/creatures.iff";
     public static final string_id SID_INSPIRE_BONUS = new string_id("performance", "perform_inspire_xp_bonus");
     public static final string_id SID_FLYTEXT_XP = new string_id("base_player", "prose_flytext_xp");
     public static final string_id SID_FLYTEXT_XP_GROUP = new string_id("base_player", "prose_flytext_xp_group");
-    public static final int TRIAL_LEVEL_CAP = 25;
-    public static final string_id SID_FREE_TRIAL_LEVEL_CAP = new string_id("base_player", "free_trial_level_cap");
     public static int grant(obj_id target, String xp_type, int amt) throws InterruptedException
     {
         return grant(target, xp_type, amt, true, null, null, null);
@@ -249,10 +245,6 @@ public class xp extends script.base_script
             result = true;
             int current = getExperiencePoints(target, xp_type);
             delta = current - prior;
-            if (skill_template.isQualifiedForWorkingSkill(target))
-            {
-                skill_template.earnWorkingSkill(target);
-            }
             metrics.doXpRateMetrics(target, xp_type, amt);
         }
         if (isIdValid(callbackId))
@@ -305,25 +297,24 @@ public class xp extends script.base_script
     }
     public static int applyGroupXpModifier(obj_id target, int amt) throws InterruptedException
     {
-        float mod = 1.0f;
-        int modAmt = amt;
-        if (amt > 0)
+        if (amt <= 0)
         {
-            obj_id gid = getGroupObject(target);
-            int activeGroupSize = getActiveGroupSize(gid);
-            if (activeGroupSize <= 2)
-            {
-                return modAmt;
-            }
-            mod = getGroupXpModifier(target, activeGroupSize);
-            modAmt = Math.round(amt * mod);
-            modAmt = (int)(modAmt / (1 + ((activeGroupSize - 1) * GROUP_XP_DIVIDER)));
+            return amt;
         }
-        utils.setScriptVar(target, "combat.xp.groupBonus", mod);
-        return modAmt;
+        obj_id gid = getGroupObject(target);
+        if (!group.isGroupObject(gid) || getActiveGroupSize(gid) < 2)
+        {
+            return amt;
+        }
+        utils.setScriptVar(target, "combat.xp.groupBonus", PRECU_GROUP_XP_MULTIPLIER);
+        return Math.round(amt * PRECU_GROUP_XP_MULTIPLIER);
     }
     public static int applyInspirationBuffXpModifier(obj_id target, String xp_type, int amt) throws InterruptedException
     {
+        if (buff.isPostNgeBuffProgressionRetired())
+        {
+            return amt;
+        }
         if (amt > 0)
         {
             float mod = getInspirationBuffXpModifier(target, xp_type);
@@ -337,13 +328,7 @@ public class xp extends script.base_script
     }
     public static float getGroupXpModifier(obj_id target, int activeGroupSize) throws InterruptedException
     {
-        float bonusMod = 1.0f;
-        float groupXPBonus = GROUP_XP_BONUS;
-        if (activeGroupSize > 1)
-        {
-            bonusMod += groupXPBonus * activeGroupSize;
-        }
-        return bonusMod;
+        return activeGroupSize > 1 ? PRECU_GROUP_XP_MULTIPLIER : 1.0f;
     }
     public static float getSpeciesXpModifier(obj_id target, String xp_type) throws InterruptedException
     {
@@ -372,6 +357,10 @@ public class xp extends script.base_script
     }
     public static float getInspirationBuffXpModifier(obj_id target, String xp_type) throws InterruptedException
     {
+        if (buff.isPostNgeBuffProgressionRetired())
+        {
+            return 1.0f;
+        }
         float mod = 1.0f;
         if (utils.hasScriptVar(target, "buff.xpBonus.types"))
         {
@@ -401,7 +390,7 @@ public class xp extends script.base_script
     }
     public static void grantSquadLeaderXp(obj_id player, int amt) throws InterruptedException
     {
-        if (!isIdValid(player) || !player.isLoaded() || amt < 1 || !hasSkill(player, "class_officer_phase1_novice"))
+        if (!isIdValid(player) || !player.isLoaded() || amt < 1 || !hasSkill(player, "outdoors_squadleader_novice"))
         {
             return;
         }
@@ -480,37 +469,15 @@ public class xp extends script.base_script
     }
     public static int getLevelBasedXP(obj_id player, obj_id npc) throws InterruptedException
     {
-        int level = getLevel(player);
-        int levelDiff = combat.getAiLevelDiff(npc, player);
-        if (levelDiff > 0)
+        if (!isIdValid(npc) || !exists(npc) || isPlayer(npc) || isIdValid(getMaster(npc)))
         {
-            level += levelDiff;
+            return 0;
         }
-        int xp = getLevelBasedXP(level);
-        if (!isMob(npc))
+        if (hasObjVar(npc, "combat.intCombatXP"))
         {
-            xp = getIntObjVar(npc, "combat.intCombatXP");
+            return Math.max(0, getIntObjVar(npc, "combat.intCombatXP"));
         }
-        float bonus = 0.0f;
-        if (aiIsKiller(npc) || aiIsAggressive(npc) || aiIsAssist(npc))
-        {
-            bonus += 0.05f;
-        }
-        xp += (int)(xp * bonus);
-        if (levelDiff < 0)
-        {
-            float maxLevelDiff = 10.0f;
-            if (level > 20)
-            {
-                maxLevelDiff += (level - 20) / 6;
-            }
-            xp += (int)(xp * (levelDiff / maxLevelDiff));
-            if (xp < 1)
-            {
-                xp = 1;
-            }
-        }
-        return xp;
+        return getLevelBasedXP(getLevel(npc));
     }
     public static int getLevelBasedXP(int level) throws InterruptedException
     {
@@ -519,6 +486,97 @@ public class xp extends script.base_script
             level = 1;
         }
         return dataTableGetInt("datatables/mob/stat_balance.iff", level - 1, "XP");
+    }
+    public static int getPrecuWeaponCombatLevel(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !isPlayer(player))
+        {
+            return 0;
+        }
+        obj_id weapon = getCurrentWeapon(player);
+        if (!isIdValid(weapon))
+        {
+            return 0;
+        }
+        int weaponType = getWeaponType(weapon);
+        String weaponTypeName = combat.getWeaponStringType(weaponType);
+        if (weaponTypeName == null || weaponTypeName.length() == 0)
+        {
+            return 0;
+        }
+        int skillMod = getSkillStatisticModifier(player, "private_" + weaponTypeName + "_combat_difficulty");
+        if (isJedi(player) && combat.isLightsaberWeapon(weaponType))
+        {
+            skillMod += getSkillStatisticModifier(player, "private_jedi_difficulty");
+        }
+        return Math.min(PRECU_COMBAT_XP_DIFFICULTY_CAP, (skillMod / 100) + 1);
+    }
+    public static int getPrecuCombatLevel(obj_id creature) throws InterruptedException
+    {
+        if (!isIdValid(creature))
+        {
+            return 0;
+        }
+        if (isPlayer(creature))
+        {
+            return getPrecuWeaponCombatLevel(creature);
+        }
+        return Math.max(0, getLevel(creature));
+    }
+    public static int getPrecuCombatXpDifficulty(obj_id player, String xpType) throws InterruptedException
+    {
+        if (!isIdValid(player) || !isPlayer(player))
+        {
+            return 0;
+        }
+        if (xpType == null || xpType.equals("") || xpType.equals(JEDI_GENERAL))
+        {
+            return getPrecuWeaponCombatLevel(player);
+        }
+        String weaponType;
+        if (xpType.contains("onehand"))
+        {
+            weaponType = "onehandmelee";
+        }
+        else if (xpType.contains("polearm"))
+        {
+            weaponType = "polearm";
+        }
+        else if (xpType.contains("twohand"))
+        {
+            weaponType = "twohandmelee";
+        }
+        else if (xpType.contains("unarmed"))
+        {
+            weaponType = "unarmed";
+        }
+        else if (xpType.contains("carbine"))
+        {
+            weaponType = "carbine";
+        }
+        else if (xpType.contains("pistol"))
+        {
+            weaponType = "pistol";
+        }
+        else if (xpType.contains("rifle"))
+        {
+            weaponType = "rifle";
+        }
+        else
+        {
+            weaponType = "heavyweapon";
+        }
+        int skillMod = getSkillStatisticModifier(player, "private_" + weaponType + "_combat_difficulty");
+        return Math.min(PRECU_COMBAT_XP_DIFFICULTY_CAP, (skillMod / 100) + 1);
+    }
+    public static int capPrecuCombatXp(obj_id player, String xpType, int amount) throws InterruptedException
+    {
+        if (amount <= 0 || xpType == null || xpType.equals(COMBAT_GENERAL))
+        {
+            return amount;
+        }
+        int cap = getPrecuCombatXpDifficulty(player, xpType) * PRECU_COMBAT_XP_PER_DIFFICULTY;
+        return Math.min(amount, cap);
     }
     public static String getWeaponXpType(int weapon_type) throws InterruptedException
     {
@@ -1000,17 +1058,19 @@ public class xp extends script.base_script
             killList[0] = killCredit;
         }
         metrics.doKillMetrics(killCredit, target);
-        String faction = factions.getFaction(target);
-        int levelAmount = getLevel(target) * 10;
         obj_id[] allKillers = new obj_id[killers.length];
         for (int i = 0; i < killers.length; i++)
         {
             allKillers[i] = utils.stringToObjId(killers[i].getName());
         }
+        obj_id factionRecipient = getPrecuFactionKillRecipient(target, killers, killList);
+        if (isIdValid(factionRecipient) && !isPlayer(target))
+        {
+            factions.grantCombatFaction(factionRecipient, target, 1.0f);
+        }
         obj_var killerVar;
         obj_id killer;
         obj_id master;
-        obj_id gcw_gain_object;
         obj_id beast;
         dictionary params;
         obj_id beastBCD;
@@ -1037,28 +1097,10 @@ public class xp extends script.base_script
                     }
                 }
             }
-            gcw_gain_object = null;
-            if (isIdValid(master))
-            {
-                if (!utils.isObjIdInArray(allKillers, master))
-                {
-                    gcw_gain_object = master;
-                }
-            }
-            else 
-            {
-                gcw_gain_object = killer;
-            }
-            if (isIdValid(gcw_gain_object) && !hasObjVar(target, gcw.GCW_POINT_OVERRIDE))
-            {
-                gcw.grantModifiedGcwPoints(target, gcw_gain_object, false, gcw.GCW_POINT_TYPE_GROUND_PVE, getName(target));
-            }
-            int dam = killerVar.getIntData();
             checkAndUpdateHuntingMissions(killer, target);
             if (isIdValid(killer) && killer.isLoaded() && !killer.isBeingDestroyed() && killer != target)
             {
                 int xpTotal = getRawCombatXP(killer, target);
-                xpTotal = applyGroupXpModifier(killer, xpTotal);
                 if (isPlayer(killer) && beast_lib.isBeastMaster(killer))
                 {
                     beast = beast_lib.getBeastOnPlayer(killer);
@@ -1103,22 +1145,14 @@ public class xp extends script.base_script
                             grantCombatStyleXp(master, COMBAT_GENERAL, xpTotal);
                             displayXpFlyText(master, master, xpTotal);
                             displayXpMsg(master, null, xpTotal);
-                            double percentDamage = (dam / damageTally) + PERCENT_ADJUSTER;
-                            factions.grantCombatFaction(master, target, percentDamage);
                         }
                     }
                 }
                 else if (utils.isObjIdInArray(killList, killer))
                 {
-                    double percentDamage = (dam / damageTally) + PERCENT_ADJUSTER;
                     if (getDistance(killer, target) < MAX_DISTANCE)
                     {
                         grantCombatXpPerAttackType(killer, target, xpTotal);
-                        factions.grantCombatFaction(killer, target, percentDamage);
-                        if (faction != null)
-                        {
-                            factions.adjustSocialStanding(killer, faction, -levelAmount);
-                        }
                         ret = utils.addElement(ret, killerVar);
                     }
                 }
@@ -1132,6 +1166,51 @@ public class xp extends script.base_script
         obj_var[] _ret = new obj_var[ret.size()];
         ret.toArray(_ret);
         return _ret;
+    }
+    private static obj_id getPrecuFactionKillRecipient(obj_id target, obj_var[] killers, obj_id[] killList) throws InterruptedException
+    {
+        if (!isIdValid(target) || killers == null || killers.length == 0 || killList == null || killList.length == 0)
+        {
+            return obj_id.NULL_ID;
+        }
+        dictionary playerDamage = new dictionary();
+        obj_id highestDamagePlayer = obj_id.NULL_ID;
+        int highestDamage = 0;
+        for (obj_var attackerDamage : killers)
+        {
+            obj_id attacker = utils.stringToObjId(attackerDamage.getName());
+            if (!isIdValid(attacker))
+            {
+                continue;
+            }
+            obj_id player = attacker;
+            if (!isPlayer(player) && isMob(player))
+            {
+                player = getMaster(player);
+            }
+            if (!isIdValid(player) || !isPlayer(player) || !exists(player) || !player.isLoaded() || player.isBeingDestroyed())
+            {
+                continue;
+            }
+            if (!utils.isObjIdInArray(killList, attacker) && !utils.isObjIdInArray(killList, player))
+            {
+                continue;
+            }
+            float distance = getDistance(player, target);
+            if (distance < 0.0f || distance >= MAX_DISTANCE)
+            {
+                continue;
+            }
+            String playerKey = player.toString();
+            int totalDamage = playerDamage.getInt(playerKey) + Math.max(0, attackerDamage.getIntData());
+            playerDamage.put(playerKey, totalDamage);
+            if (totalDamage > highestDamage)
+            {
+                highestDamage = totalDamage;
+                highestDamagePlayer = player;
+            }
+        }
+        return highestDamagePlayer;
     }
     public static void grantCombatXpPerAttackType(obj_id player, obj_id target, int totalXp) throws InterruptedException
     {
@@ -1176,22 +1255,27 @@ public class xp extends script.base_script
             int intNewTotal = totalXp;
             if (xpType.equals(RAW_COMBAT)) {
                 intNewTotal = (int) (intNewTotal * xpPercent);
+                intNewTotal = applyGroupXpModifier(player, intNewTotal);
                 bonusCombatXp += intNewTotal;
             } else if (xpType.equals(PARTIAL_COMBAT)) {
                 intNewTotal = (int) (intNewTotal * xpPercent);
                 intNewTotal = (int) (intNewTotal * COMBAT_GENERAL_EXCHANGE_RATE);
+                intNewTotal = applyGroupXpModifier(player, intNewTotal);
                 bonusCombatXp += intNewTotal;
             } else if (xpType.equals(COMBAT_GENERAL)) {
                 int amt = (int) (intNewTotal * xpPercent);
                 if (amt < 1) {
                     amt = 1;
                 }
+                amt = applyGroupXpModifier(player, amt);
                 generalXp += amt;
             } else if (isCombatXpType(xpType)) {
                 int amt = (int) (intNewTotal * xpPercent);
                 if (amt < 1) {
                     amt = 1;
                 }
+                amt = capPrecuCombatXp(player, xpType, amt);
+                amt = applyGroupXpModifier(player, amt);
                 if (xpType.equals(COMBAT_JEDI_ONEHANDLIGHTSABER) || xpType.equals(COMBAT_JEDI_TWOHANDLIGHTSABER) || xpType.equals(COMBAT_JEDI_POLEARMLIGHTSABER) || xpType.equals(COMBAT_JEDI_FORCE_POWER) || xpType.equals(JEDI_GENERAL)) {
                     if (isJedi(player)) {
                         jediXp += amt;
@@ -1207,6 +1291,7 @@ public class xp extends script.base_script
                 if (amt < 1) {
                     amt = 1;
                 }
+                amt = applyGroupXpModifier(player, amt);
                 totalXpGranted += grantCombatStyleXp(player, xpType, amt);
             }
         }
@@ -1241,116 +1326,40 @@ public class xp extends script.base_script
     }
     public static int grantSocialStyleXp(obj_id player, String xpType, int amount) throws InterruptedException
     {
-        amount = Math.round(amount * ENTERTAINER_XP_MOD);
-        String templateXp = skill_template.getTemplateSkillXpType(player, false);
-        if (templateXp != null)
+        String directXpType = getPrecuSocialXpType(xpType);
+        if (directXpType == null)
         {
-            if (isSocialXpType(templateXp))
-            {
-                amount = grant(player, templateXp, amount, false);
-            }
-            else 
-            {
-                amount = 0;
-            }
+            return 0;
         }
-        else 
-        {
-            amount = 0;
-        }
-        return amount;
+        return grant(player, directXpType, amount, false);
     }
     public static int grantCraftingQuestXp(obj_id player, int amount) throws InterruptedException
     {
-        String templateXp = skill_template.getTemplateSkillXpType(player, false);
-        if (templateXp != null)
-        {
-            if (isCraftingXpType(templateXp))
-            {
-                amount = grant(player, templateXp, amount, false);
-            }
-            else 
-            {
-                amount = 0;
-            }
-        }
-        else 
-        {
-            amount = 0;
-        }
-        return amount;
+        return grant(player, CRAFTING_GENERAL, amount, false);
     }
     public static int grantCraftingStyleXp(obj_id player, String xpType, int amount) throws InterruptedException
     {
-        amount = Math.round(amount * TRADER_XP_MOD);
-        int merchantXP = (int)(amount * CRAFTING_MERCHANT_EXCHANGE_RATE);
-        float xpRatio = skill_template.NON_TEMPLATE_XP_RATIO;
-        if (xpType.equals(QUEST_CRAFTING))
+        String directXpType = getPrecuCraftingXpType(xpType);
+        if (directXpType == null)
         {
-            merchantXP = 0;
-            xpRatio = skill_template.QUEST_XP_RATIO;
+            return 0;
         }
-        String templateXp = skill_template.getTemplateSkillXpType(player, false);
-        if (templateXp != null)
-        {
-            if (isCraftingXpType(templateXp))
-            {
-                if (!xpType.equals(templateXp))
-                {
-                    amount = (int)(amount * xpRatio);
-                }
-                if (!templateXp.equals(MERCHANT))
-                {
-                    merchantXP = (int)(merchantXP * xpRatio);
-                }
-                amount += merchantXP;
-                amount = grant(player, templateXp, amount, false);
-            }
-            else 
-            {
-                amount = 0;
-            }
-        }
-        else 
-        {
-            amount = 0;
-        }
-        return amount;
+        return grant(player, directXpType, amount, false);
     }
     public static int grantCombatStyleXp(obj_id player, String xpType, int amount) throws InterruptedException
     {
-        float xpRatio = skill_template.NON_TEMPLATE_XP_RATIO;
-        if (xpType.equals(QUEST_COMBAT))
+        String directXpType = getPrecuCombatXpType(xpType);
+        if (directXpType == null)
         {
-            xpRatio = skill_template.QUEST_XP_RATIO;
+            return 0;
         }
-        String templateXp = skill_template.getTemplateSkillXpType(player, false);
-        if (templateXp != null)
-        {
-            if (isCombatXpType(templateXp))
-            {
-                if (!xpType.equals(templateXp))
-                {
-                    amount = (int)(amount * xpRatio);
-                }
-                amount = grant(player, templateXp, amount, false);
-            }
-            else 
-            {
-                amount = 0;
-            }
-        }
-        else 
-        {
-            amount = 0;
-        }
-        return amount;
+        return grant(player, directXpType, amount, false);
     }
     public static void displayXpMsg(obj_id player, String xpType, int amt) throws InterruptedException
     {
         if (xpType == null)
         {
-            xpType = skill_template.getTemplateSkillXpType(player, true);
+            xpType = COMBAT_GENERAL;
         }
         if (xpType == null || xpType.equals(""))
         {
@@ -1390,24 +1399,7 @@ public class xp extends script.base_script
     }
     public static void displayXpFlyText(obj_id player, obj_id target, int amount) throws InterruptedException
     {
-        if (isFreeTrialAccount(player))
-        {
-            int playerLevel = getLevel(player);
-            if (playerLevel >= TRIAL_LEVEL_CAP)
-            {
-                debugSpeakMsg(player, "I am a greater than or equal to level " + xp.TRIAL_LEVEL_CAP);
-                prose_package pp = new prose_package();
-                prose.setDI(pp, xp.TRIAL_LEVEL_CAP);
-                prose.setStringId(pp, SID_FREE_TRIAL_LEVEL_CAP);
-                sendSystemMessageProse(player, pp);
-                return;
-            }
-        }
         if (amount == 0)
-        {
-            return;
-        }
-        if (npe.hasReachedMaxTutorialLevel(player))
         {
             return;
         }
@@ -1424,7 +1416,7 @@ public class xp extends script.base_script
     public static float getGroupXpModifierPercentageOfMax(float groupMod) throws InterruptedException
     {
         float groupModPct;
-        final float maxGroupMod = GROUP_XP_BONUS * MAX_GROUP_BONUS_COUNT;
+        final float maxGroupMod = PRECU_GROUP_XP_MULTIPLIER - 1.0f;
         groupModPct = (groupMod - 1) / maxGroupMod;
         if (groupModPct > 1)
         {
@@ -1491,6 +1483,18 @@ public class xp extends script.base_script
         }
         return false;
     }
+    public static String getPrecuCombatXpType(String xpType) throws InterruptedException
+    {
+        if (xpType == null || xpType.equals(""))
+        {
+            return null;
+        }
+        if (xpType.equals(QUEST_COMBAT) || xpType.equals(QUEST_GENERAL))
+        {
+            return COMBAT_GENERAL;
+        }
+        return isCombatXpType(xpType) ? xpType : null;
+    }
     public static boolean isSocialXpType(String xpType) throws InterruptedException
     {
         switch (xpType) {
@@ -1505,6 +1509,18 @@ public class xp extends script.base_script
                 return true;
         }
         return false;
+    }
+    public static String getPrecuSocialXpType(String xpType) throws InterruptedException
+    {
+        if (xpType == null || xpType.equals(""))
+        {
+            return null;
+        }
+        if (xpType.equals(QUEST_SOCIAL) || xpType.equals(QUEST_COMBAT) || xpType.equals(QUEST_GENERAL))
+        {
+            return ENTERTAINER;
+        }
+        return isSocialXpType(xpType) ? xpType : null;
     }
     public static boolean isCraftingXpType(String xpType) throws InterruptedException
     {
@@ -1529,6 +1545,18 @@ public class xp extends script.base_script
                 return true;
         }
         return false;
+    }
+    public static String getPrecuCraftingXpType(String xpType) throws InterruptedException
+    {
+        if (xpType == null || xpType.equals(""))
+        {
+            return null;
+        }
+        if (xpType.equals(QUEST_CRAFTING) || xpType.equals(QUEST_GENERAL) || xpType.equals("crafting"))
+        {
+            return CRAFTING_GENERAL;
+        }
+        return isCraftingXpType(xpType) ? xpType : null;
     }
     public static String[] getXpTypes(obj_id self) throws InterruptedException
     {
@@ -1781,74 +1809,19 @@ public class xp extends script.base_script
     }
     public static int grantXpByTemplate(obj_id player, int amount) throws InterruptedException
     {
-        String template = getSkillTemplate(player);
-        String xpType;
-        if (!isIdValid(player) || template == null)
-        {
-            return 0;
-        }
-        if (template.startsWith("trader"))
-        {
-            grantCraftingStyleXp(player, xp.QUEST_CRAFTING, amount);
-            xpType = xp.QUEST_CRAFTING;
-        }
-        else if (template.startsWith("entertainer"))
-        {
-            grantSocialStyleXp(player, xp.QUEST_SOCIAL, amount);
-            xpType = xp.QUEST_SOCIAL;
-        }
-        else 
-        {
-            grantCombatStyleXp(player, xp.QUEST_COMBAT, amount);
-            xpType = xp.QUEST_COMBAT;
-        }
-        xp.displayXpFlyText(player, player, amount);
-        xp.displayXpMsg(player, xpType, amount);
-        return amount;
+        // Retained as a fail-closed ABI boundary for inherited NGE content.
+        // Publish 14 XP must name its XP pool explicitly.
+        return 0;
     }
     public static int grantUnmodifiedXpByTemplate(obj_id player, int amount) throws InterruptedException
     {
-        String template = getSkillTemplate(player);
-        String xpType;
-        if (!isIdValid(player) || template == null)
-        {
-            return 0;
-        }
-        if (template.startsWith("trader"))
-        {
-            xpType = xp.QUEST_CRAFTING;
-        }
-        else if (template.startsWith("entertainer"))
-        {
-            xpType = xp.QUEST_SOCIAL;
-        }
-        else 
-        {
-            xpType = xp.QUEST_COMBAT;
-        }
-        String templateXp = skill_template.getTemplateSkillXpType(player, false);
-        if (templateXp != null && amount > 0)
-        {
-            amount = grant(player, templateXp, amount, false);
-        }
-        xp.displayXpFlyText(player, player, amount);
-        xp.displayXpMsg(player, xpType, amount);
-        return amount;
+        // Retained as a fail-closed ABI boundary for inherited NGE content.
+        // Unmodified grants still require an explicit Publish 14 XP pool.
+        return 0;
     }
     public static int grantUnmodifiedXPPercentageOfLevel(obj_id player, float percentage) throws InterruptedException
     {
-        int playerLevel = getLevel(player);
-        if (playerLevel < 90)
-        {
-            int xpForCurrentLevel = dataTableGetInt(xp.TBL_PLAYER_LEVEL_XP, playerLevel - 1, "xp_required");
-            int xpForNextLevel = dataTableGetInt(xp.TBL_PLAYER_LEVEL_XP, playerLevel, "xp_required");
-            float xpGrantedFloat = (xpForNextLevel - xpForCurrentLevel) * percentage / 100;
-            int xpGranted = (int)xpGrantedFloat;
-            if (grantUnmodifiedXpByTemplate(player, xpGranted) > 0)
-            {
-                return xpGranted;
-            }
-        }
+        // Combat levels and class-template XP percentages are NGE concepts.
         return 0;
     }
     public static void applyHealingCredit(obj_id self) throws InterruptedException
@@ -1872,85 +1845,18 @@ public class xp extends script.base_script
     }
     public static void grantMissionXp(obj_id player, int missionLevel) throws InterruptedException
     {
-        if (isIdValid(player) && missionLevel > 0)
-        {
-            int xpToGrantForRealsies = getMissionXpAmount(player, missionLevel);
-            if (xpToGrantForRealsies > 0)
-            {
-                grantCombatStyleXp(player, COMBAT_GENERAL, xpToGrantForRealsies);
-                displayXpFlyText(player, player, xpToGrantForRealsies);
-                int huySaidToUseTTForTheSecondNumber = ((missions.getDailyMissionXpLimit() - missions.getPlayerDailyCount(player)) - 1);
-                prose_package pp = new prose_package();
-                prose.setStringId(pp, missions.DAILY_REWARD_XP);
-                prose.setDI(pp, xpToGrantForRealsies);
-                prose.setTT(pp, "" + huySaidToUseTTForTheSecondNumber);
-                sendSystemMessageProse(player, pp);
-            }
-        }
+        // Publish 14 terminal missions award credits. Weapon and combat_general
+        // experience come from the defeated creatures through grantCombatXp.
     }
     public static int getMissionXpAmount(obj_id player, int missionLevel) throws InterruptedException
     {
-        int xpToGrant = 0;
-        int playerLevel = getLevel(player);
-        int xpForCurrentLevel = dataTableGetInt(TBL_PLAYER_LEVEL_XP, playerLevel - 1, "xp_required");
-        int xpForNextLevel = dataTableGetInt(TBL_PLAYER_LEVEL_XP, playerLevel, "xp_required");
-        int levelDivisor = 0;
-        int levelDelta = Math.abs(missionLevel - playerLevel);
-        LOG("NewMission", "getMissionXpAmountLevelDelta: " + levelDelta);
-        if (xpForNextLevel <= 0)
-        {
-            return xpToGrant;
-        }
-        int xpForLevel = xpForNextLevel - xpForCurrentLevel;
-        if (levelDelta > 15)
-        {
-            levelDivisor += levelDelta;
-        }
-        if (xpForLevel > 0)
-        {
-            int missionXpDivisor = missions.DAILY_MISSION_XP_LOW;
-            if (playerLevel >= 70)
-            {
-                missionXpDivisor = missions.DAILY_MISSION_XP_MEDIUM;
-            }
-            if (playerLevel >= 80)
-            {
-                missionXpDivisor = missions.DAILY_MISSION_XP_HIGH;
-            }
-            missionXpDivisor += levelDivisor;
-            if (missionXpDivisor > 0)
-            {
-                xpToGrant = xpForLevel / missionXpDivisor;
-                int sanityXpAmount = xpForLevel / missions.DAILY_MISSION_XP_SANITY;
-                if (xpToGrant > sanityXpAmount)
-                {
-                    xpToGrant = sanityXpAmount;
-                }
-            }
-        }
-        return xpToGrant;
+        return 0;
     }
     public static int grantCollectionXP(obj_id player, String collectionName) throws InterruptedException
     {
-        float xpToGrant;
-        int playerLevel = getLevel(player);
-        if (playerLevel == 90)
-        {
-            return 0;
-        }
-        int xpForCurrentLevel = dataTableGetInt(TBL_PLAYER_LEVEL_XP, playerLevel - 1, "xp_required");
-        int xpForNextLevel = dataTableGetInt(TBL_PLAYER_LEVEL_XP, playerLevel, "xp_required");
-        float xpForLevel = xpForNextLevel - xpForCurrentLevel;
-        float xpModifier = dataTableGetFloat(collection.COLLECTION_REWARD_TABLE, collectionName, "xpModifier");
-        long repeatSlotValue = getCollectionSlotValue(player, collectionName + "_tracker") - 1;
-        if (repeatSlotValue > 0)
-        {
-            float repeatXpModifier = repeatCollectionXpModifier(player, repeatSlotValue);
-            xpToGrant = xpModifier * xpForLevel * repeatXpModifier;
-            return (int)xpToGrant;
-        }
-        xpToGrant = xpModifier * xpForLevel;
-        return (int)xpToGrant;
+        // Retained collection content may grant its authored non-XP rewards,
+        // but it cannot synthesize NGE profession-level XP in PRE-CU.
+        return 0;
     }
     public static int grantCollectionSpaceXP(obj_id player, String collectionName) throws InterruptedException
     {

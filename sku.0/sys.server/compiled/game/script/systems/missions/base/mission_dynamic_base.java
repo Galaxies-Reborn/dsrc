@@ -449,7 +449,7 @@ public class mission_dynamic_base extends script.systems.missions.base.mission_b
         region[] rgnCities = getRegionsWithMunicipalAtPoint(locMissionStart, regions.MUNI_TRUE);
         if (rgnCities == null)
         {
-            rgnCities = getRegionsAtPoint(locStartLocation);
+            rgnCities = getRegionsAtPoint(locMissionStart);
             if (rgnCities == null)
             {
                 return null;

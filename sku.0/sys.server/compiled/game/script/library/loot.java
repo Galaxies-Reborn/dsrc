@@ -143,7 +143,6 @@ public class loot extends script.base_script
         }
         hasLoot |= setupLootItems(target);
         hasLoot |= addCollectionLoot(target);
-        hasLoot |= addRareLoot(target);
         int niche = ai_lib.aiGetNiche(mobType);
         if (niche == NICHE_MONSTER || niche == NICHE_HERBIVORE || niche == NICHE_CARNIVORE || niche == NICHE_PREDATOR)
         {
@@ -156,7 +155,6 @@ public class loot extends script.base_script
             {
                 return false;
             }
-            hasLoot |= addBeastEnzymes(target);
         }
         return hasLoot;
     }
@@ -231,50 +229,8 @@ public class loot extends script.base_script
     }
     public static boolean addResourceLoot(obj_id target) throws InterruptedException
     {
-        if (rand(1, 100) > BASE_CHANCE_FOR_RESOURCES)
-        {
-            return false;
-        }
-        String mobType = ai_lib.getCreatureName(target);
-        int niche = ai_lib.aiGetNiche(mobType);
-        if (niche != NICHE_MONSTER && niche != NICHE_HERBIVORE && niche != NICHE_CARNIVORE && niche != NICHE_PREDATOR)
-        {
-            return false;
-        }
-        int[] hasResource = corpse.hasResource(mobType);
-        if (hasResource == null || hasResource.length == 0)
-        {
-            return false;
-        }
-        obj_id inv = utils.getInventoryContainer(target);
-        dictionary resourceData = corpse.getRandomHarvestCorpseResources(obj_id.NULL_ID, target);
-        java.util.Enumeration keys = resourceData.keys();
-        int finalAmount = 0;
-        while (keys.hasMoreElements())
-        {
-            String resourceType = (String)(keys.nextElement());
-            int amt = resourceData.getInt(resourceType);
-            if (amt <= 0)
-            {
-                continue;
-            }
-            String sceneName = getCurrentSceneName();
-            String rsrcMapTable = "datatables/creature_resource/resource_scene_map.iff";
-            String correctedPlanetName = dataTableGetString(rsrcMapTable, sceneName, 1);
-            if (correctedPlanetName == null || correctedPlanetName.equals(""))
-            {
-                correctedPlanetName = "tatooine";
-            }
-            resourceType = resourceType + "_" + correctedPlanetName;
-            int useDistMap = dataTableGetInt(rsrcMapTable, sceneName, "useDistributionMap");
-            location worldLoc = getWorldLocation(target);
-            if (useDistMap == 0)
-            {
-                worldLoc.area = correctedPlanetName;
-            }
-            finalAmount += corpse.extractCorpseResource(resourceType, amt, worldLoc, obj_id.NULL_ID, inv, 1);
-        }
-        return (finalAmount > 0);
+        LOG("harvestCorpse", "Rejected NGE creature-resource loot injection for target " + target);
+        return false;
     }
     public static int getCalculatedAttribute(int minVal, int maxVal, int creatureLevel, int minDropLevel, int maxDropLevel) throws InterruptedException
     {
@@ -1891,7 +1847,7 @@ public class loot extends script.base_script
         {
             return false;
         }
-        boolean luckyPlayer = luck.isLucky(player, 0.01f);
+        boolean luckyPlayer = false;
         int lumpAmount = rand(0, 2);
         blog("giveMeatlumpPuzzleLoot - lumpAmount: " + lumpAmount);
         if (luckyPlayer)
@@ -1979,6 +1935,14 @@ public class loot extends script.base_script
     }
     public static boolean playerForaging(obj_id player) throws InterruptedException
     {
+        LOG(
+            "foraging",
+            "Rejected retired NGE Beast Master forage loot pipeline for " +
+                player);
+        return false;
+    }
+    private static boolean retiredNgePlayerForaging(obj_id player) throws InterruptedException
+    {
         if (!isValidId(player) || !exists(player))
         {
             CustomerServiceLog("foraging", "Foraging System could not complete because player OID: " + player + " is invalid or no longer exists.");
@@ -2045,7 +2009,7 @@ public class loot extends script.base_script
             forage_blog("playerForaging: treasure_forage increased somethingMod from: " + somethingMod + " to: " + (somethingMod + treasureVal));
             somethingMod += (int)treasureVal;
         }
-        boolean isLuckyPlayer = luck.isLucky(player, 0.10f);
+        boolean isLuckyPlayer = false;
         if (isLuckyPlayer)
         {
             CustomerServiceLog("foraging", "Player: " + getName(player) + " OID: " + player + " got really lucking and is receiving bonus to avoid getting nothing during forage session.");
@@ -2222,7 +2186,7 @@ public class loot extends script.base_script
         {
             CustomerServiceLog("foraging", "Player: " + getName(player) + " OID: " + player + " rolled " + lootRoll + " and has received a WORM/THEIF ENEMY.");
             forage_blog("rareObject reward: worm");
-            int mobLevel = getLevel(player);
+            int mobLevel = skill.getPrecuEncounterDifficulty(player);
             String invis = stealth.getInvisBuff(player);
             if (invis != null)
             {
@@ -2363,7 +2327,7 @@ public class loot extends script.base_script
         {
             return null;
         }
-        int playerLvl = getLevel(player);
+        int playerLvl = skill.getPrecuEncounterDifficulty(player);
         if (playerLvl <= 0)
         {
             return null;
@@ -2529,6 +2493,10 @@ public class loot extends script.base_script
     }
     public static boolean addRareLoot(obj_id target) throws InterruptedException
     {
+        return false;
+    }
+    private static boolean retiredNgeAddRareLoot(obj_id target) throws InterruptedException
+    {
         // get the attacker who did the most damage.
         obj_id player = getObjIdObjVar(target, xp.VAR_TOP_GROUP);
 
@@ -2594,7 +2562,7 @@ public class loot extends script.base_script
         }
 
         // make sure the level range is appropriate for this attacker.
-        int playerLevel = getLevel(player);
+        int playerLevel = skill.getPrecuEncounterDifficulty(player);
         int mobLevel = getLevel(target);
         int mobMinLevel = playerLevel - levelsBelow;
         int mobMaxLevel = playerLevel + levelsAbove;

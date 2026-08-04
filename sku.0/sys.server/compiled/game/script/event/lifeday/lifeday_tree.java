@@ -21,6 +21,16 @@ public class lifeday_tree extends script.base_script
     private static final String LIFEDAY_BADGE = "lifeday_badge_11";
     private static final string_id TREE_BADGE = new string_id("spam", "tree_badge");
 
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        detachScript(self, "event.lifeday.lifeday_tree");
+        return SCRIPT_CONTINUE;
+    }
+    public int OnInitialize(obj_id self) throws InterruptedException
+    {
+        detachScript(self, "event.lifeday.lifeday_tree");
+        return SCRIPT_CONTINUE;
+    }
     private String currentYearObjVar() throws InterruptedException
     {
         return utils.XMAS_RECEIVED_IX_01;

@@ -738,7 +738,6 @@ public class group extends script.base_script
         {
             params = new dictionary();
         }
-        int missionLevel = params.getInt("intPlayerDifficulty");
         Vector targets = getPCMembersInRange(player, range);
         if (targets != null && targets.size() > 0)
         {
@@ -752,11 +751,7 @@ public class group extends script.base_script
             {
                 if (missions.isDestroyMission(objMissionData))
                 {
-                    if (targets.size() > 1)
-                    {
-                        divisor = missions.alterMissionPayoutDivisor(((obj_id)targets.get(i)), divisor, missionLevel);
-                    }
-                    missions.incrementDaily(((obj_id)targets.get(i)));
+                    divisor = 1.0f;
                     ppString = PROSE_SPLIT_COINS_MISSION;
                 }
                 int payout = amt / ((int)divisor);
@@ -778,25 +773,6 @@ public class group extends script.base_script
     }
     public static boolean distributeMissionXpToGroup(obj_id player, float range, obj_id objMissionData) throws InterruptedException
     {
-        obj_id groupObject = getGroupObject(player);
-        if (!isIdValid(groupObject))
-        {
-            return false;
-        }
-        if (!isIdValid(objMissionData))
-        {
-            return false;
-        }
-        int missionLevel = getIntObjVar(objMissionData, "intPlayerDifficulty");
-        Vector targets = getPCMembersInRange(player, range);
-        if (targets != null && targets.size() > 0)
-        {
-            for (Object target : targets) {
-                if (missions.isDestroyMission(objMissionData) && missions.canEarnDailyMissionXp(((obj_id) target))) {
-                    xp.grantMissionXp(((obj_id) target), missionLevel);
-                }
-            }
-        }
-        return (targets.size() >= getGroupSize(groupObject));
+        return false;
     }
 }

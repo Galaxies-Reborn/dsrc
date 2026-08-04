@@ -16,7 +16,8 @@
 
 @class weapon_object_template 3
 
-@class tangible_object_template 2
+@class tangible_object_template 8
+certificationsRequired = ["cert_sword_blade_ryyk"]
 
 
 @class object_template 0

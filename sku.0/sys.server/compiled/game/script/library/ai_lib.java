@@ -1400,32 +1400,32 @@ public class ai_lib extends script.base_script
     }
     public static boolean checkForSmuggler(obj_id player) throws InterruptedException
     {
-        if (!hasSkill(player, "class_smuggler_phase1_novice"))
+        if (!hasSkill(player, "combat_smuggler_novice"))
         {
             return false;
         }
         int evadeScan = 0;
-        if (hasSkill(player, "class_smuggler_phase1_novice"))
+        if (hasSkill(player, "combat_smuggler_novice"))
         {
             evadeScan += 15;
         }
-        if (hasSkill(player, "class_smuggler_phase2_03"))
+        if (hasSkill(player, "combat_smuggler_underworld_01"))
         {
             evadeScan += 15;
         }
-        if (hasSkill(player, "class_smuggler_phase2_novice"))
+        if (hasSkill(player, "combat_smuggler_underworld_02"))
         {
             evadeScan += 15;
         }
-        if (hasSkill(player, "class_smuggler_phase3_novice"))
+        if (hasSkill(player, "combat_smuggler_underworld_03"))
         {
             evadeScan += 15;
         }
-        if (hasSkill(player, "class_smuggler_phase4_novice"))
+        if (hasSkill(player, "combat_smuggler_underworld_04"))
         {
             evadeScan += 15;
         }
-        if (hasSkill(player, "class_smuggler_phase4_master"))
+        if (hasSkill(player, "combat_smuggler_master"))
         {
             evadeScan += 20;
         }

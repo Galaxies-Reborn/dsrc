@@ -10,6 +10,49 @@ public class incubator extends script.base_script
     public incubator()
     {
     }
+    public static final boolean POST_NGE_BEAST_MASTER_CREATION_PLAYER_RUNTIME_RETIRED = true;
+    public static boolean isPostNgeBeastMasterCreationPlayerRuntimeRetired() throws InterruptedException
+    {
+        return POST_NGE_BEAST_MASTER_CREATION_PLAYER_RUNTIME_RETIRED;
+    }
+    public static boolean isRetiredPostNgeBeastMasterCreationPlayer(obj_id player) throws InterruptedException
+    {
+        return isPostNgeBeastMasterCreationPlayerRuntimeRetired() &&
+            isIdValid(player) && exists(player) && isPlayer(player);
+    }
+    public static void retirePostNgeBeastMasterCreationPlayerState(obj_id player) throws InterruptedException
+    {
+        if (!isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return;
+        }
+        obj_id station = getActiveIncubator(player);
+        if (isIdValid(station) && exists(station) && getIncubatorActiveUser(station) == player)
+        {
+            stopAllSessionParticles(station);
+            removeObjVar(station, BASE_INCUBATOR_OBJVAR);
+        }
+        removeObjVar(player, BASE_INCUBATOR_OBJVAR);
+        utils.removeScriptVar(player, GUI_SCRIPT_VAR);
+    }
+    public static void retirePostNgeIncubatorStationState(obj_id station) throws InterruptedException
+    {
+        if (!isPostNgeBeastMasterCreationPlayerRuntimeRetired() || !isIdValid(station) || !exists(station))
+        {
+            return;
+        }
+        obj_id player = getIncubatorActiveUser(station);
+        if (isIdValid(player) && exists(player) && isPlayer(player))
+        {
+            if (getActiveIncubator(player) == station)
+            {
+                removeObjVar(player, BASE_INCUBATOR_OBJVAR);
+            }
+            utils.removeScriptVar(player, GUI_SCRIPT_VAR);
+        }
+        stopAllSessionParticles(station);
+        removeObjVar(station, BASE_INCUBATOR_OBJVAR);
+    }
     public static final int MAX_ADJUSTED_POINTS_PER_SESSION_DPS_ARMOR = 8;
     public static final int MAX_ADJUSTED_POINTS_PER_SESSION_ATTRIBUTES = 16;
     public static final int MAX_SESSION_SKILL_INCREMENT = 10;
@@ -602,6 +645,11 @@ public class incubator extends script.base_script
     }
     public static boolean setActiveUser(obj_id station, obj_id player) throws InterruptedException
     {
+        if (isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            retirePostNgeBeastMasterCreationPlayerState(player);
+            return false;
+        }
         if (isIdValid(player) && isIdValid(station))
         {
             if (!hasActiveUser(station))
@@ -615,6 +663,11 @@ public class incubator extends script.base_script
     }
     public static boolean setNextSessionTime(obj_id station, obj_id player) throws InterruptedException
     {
+        if (isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            retirePostNgeBeastMasterCreationPlayerState(player);
+            return false;
+        }
         if (isIdValid(player) && isIdValid(station))
         {
             int currentTime = getGameTime();
@@ -658,6 +711,11 @@ public class incubator extends script.base_script
     }
     public static boolean isSessionEligible(obj_id player) throws InterruptedException
     {
+        if (isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            retirePostNgeBeastMasterCreationPlayerState(player);
+            return false;
+        }
         if (isIdValid(player))
         {
             int currentTime = getGameTime();
@@ -686,6 +744,10 @@ public class incubator extends script.base_script
     }
     public static obj_id extractDna(obj_id player, obj_id target) throws InterruptedException
     {
+        if (isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return obj_id.NULL_ID;
+        }
         if (!isIdValid(player) || !isIdValid(target))
         {
             blog("BEAST_DNA", "invalid Ids");
@@ -1388,6 +1450,12 @@ public class incubator extends script.base_script
     }
     public static boolean startSession(obj_id station, obj_id player) throws InterruptedException
     {
+        if (isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            retirePostNgeBeastMasterCreationPlayerState(player);
+            retirePostNgeIncubatorStationState(station);
+            return false;
+        }
         if (!validateActiveUser(station, player))
         {
             sendSystemMessage(player, SID_NOT_YOUR_INCUBATOR);
@@ -1566,6 +1634,12 @@ public class incubator extends script.base_script
     }
     public static obj_id convertDnaToEgg(obj_id station, obj_id player) throws InterruptedException
     {
+        if (isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            retirePostNgeBeastMasterCreationPlayerState(player);
+            retirePostNgeIncubatorStationState(station);
+            return obj_id.NULL_ID;
+        }
         if (!validateActiveUser(station, player))
         {
             sendSystemMessage(player, SID_NOT_YOUR_INCUBATOR);
@@ -1794,6 +1868,10 @@ public class incubator extends script.base_script
     }
     public static boolean addPowerIncubator(obj_id station, obj_id player, int amount, int quality, String resourceName) throws InterruptedException
     {
+        if (isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return false;
+        }
         if (isIdValid(station) && isIdValid(player))
         {
             if (amount > 0 && quality > 0)
@@ -1814,6 +1892,10 @@ public class incubator extends script.base_script
     }
     public static boolean removeAllPowerIncubator(obj_id station, obj_id player) throws InterruptedException
     {
+        if (isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return false;
+        }
         if (isIdValid(station) && isIdValid(player))
         {
             String resourceName = getStationPowerName(station);
@@ -1924,6 +2006,10 @@ public class incubator extends script.base_script
     }
     public static boolean convertPcdIntoPetItem(obj_id player, obj_id pcd) throws InterruptedException
     {
+        if (isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return false;
+        }
         obj_id pInv = utils.getInventoryContainer(player);
         String pcdAppearance = getAppearance(pcd);
         String finalPcdAppearance = pcdAppearance;
@@ -2062,6 +2148,10 @@ public class incubator extends script.base_script
     }
     public static boolean convertDeedIntoPetItem(obj_id player, obj_id deed) throws InterruptedException
     {
+        if (isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return false;
+        }
         obj_id pInv = utils.getInventoryContainer(player);
         String deedAppearance = getAppearance(deed);
         String finalDeedAppearance = deedAppearance;
@@ -2096,6 +2186,10 @@ public class incubator extends script.base_script
     }
     public static boolean convertPetItemToDna(obj_id player, obj_id petItem) throws InterruptedException
     {
+        if (isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return false;
+        }
         if (!isValidId(player) || !exists(player))
         {
             return false;
@@ -2322,6 +2416,10 @@ public class incubator extends script.base_script
     }
     public static boolean stampEggAsMount(obj_id egg, obj_id player) throws InterruptedException
     {
+        if (isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return false;
+        }
         if (!isIdValid(egg) || !exists(egg))
         {
             return false;
@@ -2339,6 +2437,10 @@ public class incubator extends script.base_script
     }
     public static obj_id convertEggToMount(obj_id egg, obj_id player) throws InterruptedException
     {
+        if (isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return obj_id.NULL_ID;
+        }
         String mountType = getMountTemplate(egg, player);
         if (mountType == null && mountType.equals(""))
         {
@@ -2812,6 +2914,11 @@ public class incubator extends script.base_script
             obj_id player = utils.getContainingPlayer(enzyme);
             if (!isIdValid(player) || !exists(player) || !isPlayer(player))
             {
+                return;
+            }
+            if (isRetiredPostNgeBeastMasterCreationPlayer(player))
+            {
+                removeObjVar(enzyme, "collection_enzyme");
                 return;
             }
             removeObjVar(enzyme, "collection_enzyme");

@@ -79,7 +79,7 @@ public class mining_droid extends script.base_script
     }
     public boolean isDroidEngineer(obj_id player) throws InterruptedException
     {
-        return hasSkill(player, "class_engineering_phase2_novice");
+        return hasSkill(player, "crafting_droidengineer_novice");
     }
     public void activateDroid(obj_id self) throws InterruptedException
     {

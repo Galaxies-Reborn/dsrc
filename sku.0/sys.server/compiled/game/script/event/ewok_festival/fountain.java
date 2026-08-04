@@ -17,6 +17,16 @@ public class fountain extends script.base_script
     public static final string_id BERRY_GRANTED = new string_id("spam", "berry_granted");
     public static final String OBJ_BERRY_ONE = "item_event_ewok_berry_01_01";
     public static final String OBJ_BERRY_TWO = "item_event_ewok_berry_01_02";
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        detachScript(self, "event.ewok_festival.fountain");
+        return SCRIPT_CONTINUE;
+    }
+    public int OnInitialize(obj_id self) throws InterruptedException
+    {
+        detachScript(self, "event.ewok_festival.fountain");
+        return SCRIPT_CONTINUE;
+    }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
         if (utils.playerHasStaticItemInBankOrInventory(player, OBJ_BERRY_ONE))

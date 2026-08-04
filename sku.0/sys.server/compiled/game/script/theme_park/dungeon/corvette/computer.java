@@ -256,35 +256,31 @@ public class computer extends script.terminal.base.base_terminal
     public int checkForSlicing(obj_id player) throws InterruptedException
     {
         int slicability = 0;
-        if (!hasSkill(player, "class_smuggler_phase1_novice"))
+        if (!hasSkill(player, "combat_smuggler_slicing_01"))
         {
             return slicability;
         }
         else 
         {
-            if (hasSkill(player, "class_smuggler_phase1_novice"))
+            if (hasSkill(player, "combat_smuggler_slicing_01"))
             {
                 slicability = slicability + 1;
             }
-            if (hasSkill(player, "class_smuggler_phase1_master"))
+            if (hasSkill(player, "combat_smuggler_slicing_02"))
             {
                 slicability = slicability + 1;
             }
-            if (hasSkill(player, "class_smuggler_phase2_novice"))
-            {
-                slicability = slicability + 1;
-            }
-            if (hasSkill(player, "class_smuggler_phase3_novice"))
-            {
-                slicability = slicability + 1;
-            }
-            if (hasSkill(player, "class_smuggler_phase3_novice"))
-            {
-                slicability = slicability + 1;
-            }
-            if (hasSkill(player, "class_smuggler_phase4_novice"))
+            if (hasSkill(player, "combat_smuggler_slicing_03"))
             {
                 slicability = slicability + 2;
+            }
+            if (hasSkill(player, "combat_smuggler_slicing_04"))
+            {
+                slicability = slicability + 2;
+            }
+            if (hasSkill(player, "combat_smuggler_master"))
+            {
+                slicability = slicability + 1;
             }
         }
         return slicability;

@@ -73,27 +73,6 @@ public class flip_banner extends script.base_script
     }
     public void spawnBanner(obj_id self, String faction) throws InterruptedException
     {
-        String empiredayRunning = getConfigSetting("GameServer", "empireday_ceremony");
-        if (empiredayRunning != null && (empiredayRunning.equals("true") || empiredayRunning.equals("1")))
-        {
-            location here = getLocation(self);
-            String city = locations.getCityName(here);
-            if (city == null)
-            {
-                city = locations.getGuardSpawnerRegionName(here);
-            }
-            if (city != null && city.length() > 0)
-            {
-                if (city.equals("coronet"))
-                {
-                    faction = "rebel";
-                }
-                else if (city.equals("theed"))
-                {
-                    faction = "imperial";
-                }
-            }
-        }
         transform t = getTransform_o2w(self);
         if (faction.equals("rebel"))
         {

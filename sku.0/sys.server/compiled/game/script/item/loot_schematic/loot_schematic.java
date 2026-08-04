@@ -148,16 +148,12 @@ public class loot_schematic extends script.base_script
             if (hasObjVar(self, VAR_SKILL_REQ))
             {
                 String skill_req = getStringObjVar(self, VAR_SKILL_REQ);
-                if (!hasSkill(player, skill_req))
+                if (!utils.meetsProfessionRequirement(player, skill_req))
                 {
-                    String classTemplate = getSkillTemplate(player);
-                    if (!classTemplate.startsWith(skill_req))
-                    {
-                        string_id skill_id = utils.unpackString("@skl_n:" + skill_req);
-                        prose_package pp = prose.getPackage(SID_NOT_ENOUGH_SKILL, skill_id);
-                        sendSystemMessageProse(player, pp);
-                        return SCRIPT_CONTINUE;
-                    }
+                    string_id skill_id = utils.unpackString("@skl_n:" + skill_req);
+                    prose_package pp = prose.getPackage(SID_NOT_ENOUGH_SKILL, skill_id);
+                    sendSystemMessageProse(player, pp);
+                    return SCRIPT_CONTINUE;
                 }
             }
             switch (type)

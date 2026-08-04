@@ -4,7 +4,8 @@
 
 weaponEffectIndex = 19
 
-@class tangible_object_template 3
+@class tangible_object_template 8
+certificationsRequired = ["cert_pistol_republic_blaster"]
 
 @class object_template 3
 

@@ -11,6 +11,16 @@ public class jukebox_converter_prop_token extends script.base_script
     {
     }
     public static final String JUKEBOX_SCRIPT = "systems.event_perk.jukebox";
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        detachScript(self, "systems.storyteller.jukebox_converter_prop_token");
+        return SCRIPT_CONTINUE;
+    }
+    public int OnInitialize(obj_id self) throws InterruptedException
+    {
+        detachScript(self, "systems.storyteller.jukebox_converter_prop_token");
+        return SCRIPT_CONTINUE;
+    }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
         if (!utils.isNestedWithin(self, player))

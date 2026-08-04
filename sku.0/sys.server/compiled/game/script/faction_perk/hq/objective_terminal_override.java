@@ -107,7 +107,7 @@ public class objective_terminal_override extends script.faction_perk.hq.objectiv
         }
         if (item == menu_info_types.ITEM_USE)
         {
-            if (!hasSkill(player, "class_medic_phase1_novice"))
+            if (!hasSkill(player, "outdoors_bio_engineer_novice"))
             {
                 sendSystemMessage(player, ONLY_A_BIO_ENGINEER);
                 return SCRIPT_CONTINUE;
@@ -215,7 +215,27 @@ public class objective_terminal_override extends script.faction_perk.hq.objectiv
             {
                 chain = "";
             }
-            int chainlength = 8;
+            int chainlength = 3;
+            if (hasSkill(player, "outdoors_bio_engineer_master"))
+            {
+                chainlength = 8;
+            }
+            else if (hasSkill(player, "outdoors_bio_engineer_dna_harvesting_04"))
+            {
+                chainlength = 7;
+            }
+            else if (hasSkill(player, "outdoors_bio_engineer_dna_harvesting_03"))
+            {
+                chainlength = 6;
+            }
+            else if (hasSkill(player, "outdoors_bio_engineer_dna_harvesting_02"))
+            {
+                chainlength = 5;
+            }
+            else if (hasSkill(player, "outdoors_bio_engineer_dna_harvesting_01"))
+            {
+                chainlength = 4;
+            }
             for (int i = 0; i < chainlength; i++)
             {
                 chain += NUCLEOTIDES[rand(0, NUCLEOTIDES.length - 1)];
@@ -314,6 +334,7 @@ public class objective_terminal_override extends script.faction_perk.hq.objectiv
             String playerName = getName(player);
             CustomerServiceLog("faction_hq", playerName + "(" + player + "), " + "disabled Override Terminal at " + getGameTime() + ".");
             sendSystemMessage(player, SEQUENCING_COMPLETE_OVERRIDE);
+            xp.grant(player, xp.BIO_ENGINEER_DNA_HARVESTING, 1000);
             hq.disableObjective(self);
             return SCRIPT_CONTINUE;
         }

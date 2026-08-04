@@ -35,6 +35,11 @@ public class base_incubator extends script.base_script
     public static final string_id SID_NO_TRIAL_ACCOUNTS = new string_id("incubator", "no_trial_accounts");
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            incubator.retirePostNgeIncubatorStationState(self);
+            return SCRIPT_CONTINUE;
+        }
         if (utils.isInHouseCellSpace(self))
         {
             createTriggerVolume("particle", 15.0f, true);
@@ -44,6 +49,10 @@ public class base_incubator extends script.base_script
     }
     public int OnTriggerVolumeEntered(obj_id self, String volName, obj_id breecher) throws InterruptedException
     {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (isPlayer(breecher))
         {
             messageTo(self, "refreshCurrentParticle", null, 2, false);
@@ -52,6 +61,12 @@ public class base_incubator extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            incubator.retirePostNgeBeastMasterCreationPlayerState(player);
+            incubator.retirePostNgeIncubatorStationState(self);
+            return SCRIPT_CONTINUE;
+        }
         obj_id station = self;
         if (isDead(player) || isIncapacitated(player))
         {
@@ -112,6 +127,12 @@ public class base_incubator extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            incubator.retirePostNgeBeastMasterCreationPlayerState(player);
+            incubator.retirePostNgeIncubatorStationState(self);
+            return SCRIPT_OVERRIDE;
+        }
         sendDirtyObjectMenuNotification(self);
         if (isDead(player) || isIncapacitated(player))
         {
@@ -226,6 +247,11 @@ public class base_incubator extends script.base_script
     }
     public int OnDestroy(obj_id self) throws InterruptedException
     {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            incubator.retirePostNgeIncubatorStationState(self);
+            return SCRIPT_CONTINUE;
+        }
         obj_id player = incubator.getIncubatorActiveUser(self);
         dictionary params = new dictionary();
         params.put("station", self);
@@ -234,6 +260,11 @@ public class base_incubator extends script.base_script
     }
     public int OnAboutToBeTransferred(obj_id self, obj_id dest, obj_id transferer) throws InterruptedException
     {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            incubator.retirePostNgeIncubatorStationState(self);
+            return SCRIPT_CONTINUE;
+        }
         if (isSpaceScene())
         {
             return SCRIPT_OVERRIDE;
@@ -256,6 +287,11 @@ public class base_incubator extends script.base_script
     }
     public int OnTransferred(obj_id self, obj_id sourceContainer, obj_id destContainer, obj_id transferer) throws InterruptedException
     {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            incubator.retirePostNgeIncubatorStationState(self);
+            return SCRIPT_CONTINUE;
+        }
         obj_id station = self;
         if (utils.isInHouseCellSpace(station))
         {
@@ -272,6 +308,10 @@ public class base_incubator extends script.base_script
     }
     public int OnGetAttributes(obj_id self, obj_id player, String[] names, String[] attribs) throws InterruptedException
     {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         int idx = utils.getValidAttributeIndex(names);
         if (idx == -1)
         {
@@ -457,6 +497,11 @@ public class base_incubator extends script.base_script
     }
     public int OnAboutToReceiveItem(obj_id self, obj_id srcContainer, obj_id transferer, obj_id item) throws InterruptedException
     {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            incubator.retirePostNgeIncubatorStationState(self);
+            return isPlayer(transferer) ? SCRIPT_OVERRIDE : SCRIPT_CONTINUE;
+        }
         obj_id station = self;
         if (isPlayer(transferer))
         {
@@ -482,6 +527,11 @@ public class base_incubator extends script.base_script
     }
     public int OnAboutToLoseItem(obj_id self, obj_id destContainer, obj_id transferer, obj_id item) throws InterruptedException
     {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            incubator.retirePostNgeIncubatorStationState(self);
+            return SCRIPT_CONTINUE;
+        }
         obj_id station = self;
         if (!incubator.canOpenInventory(station))
         {
@@ -503,6 +553,10 @@ public class base_incubator extends script.base_script
     }
     public int OnLostItem(obj_id self, obj_id destContainer, obj_id transferer, obj_id item) throws InterruptedException
     {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         obj_id station = self;
         if (!exists(item))
         {
@@ -519,6 +573,11 @@ public class base_incubator extends script.base_script
     }
     public int handleActivateSui(obj_id self, dictionary params) throws InterruptedException
     {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            incubator.retirePostNgeIncubatorStationState(self);
+            return SCRIPT_CONTINUE;
+        }
         int bp = sui.getIntButtonPressed(params);
         if (bp == sui.BP_CANCEL)
         {
@@ -551,6 +610,11 @@ public class base_incubator extends script.base_script
     }
     public int handleCleanseSui(obj_id self, dictionary params) throws InterruptedException
     {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            incubator.retirePostNgeIncubatorStationState(self);
+            return SCRIPT_CONTINUE;
+        }
         int bp = sui.getIntButtonPressed(params);
         if (bp == sui.BP_CANCEL)
         {
@@ -579,6 +643,11 @@ public class base_incubator extends script.base_script
     }
     public int handleHomeOwnerCleanseSui(obj_id self, dictionary params) throws InterruptedException
     {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            incubator.retirePostNgeIncubatorStationState(self);
+            return SCRIPT_CONTINUE;
+        }
         int bp = sui.getIntButtonPressed(params);
         if (bp == sui.BP_CANCEL)
         {
@@ -589,11 +658,21 @@ public class base_incubator extends script.base_script
     }
     public int cleanseOldIncubator(obj_id self, dictionary params) throws InterruptedException
     {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            incubator.retirePostNgeIncubatorStationState(self);
+            return SCRIPT_CONTINUE;
+        }
         incubator.incubatorTotalCleanse(self);
         return SCRIPT_CONTINUE;
     }
     public int handlerIncubatorSessionUpdate(obj_id self, dictionary params) throws InterruptedException
     {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            incubator.retirePostNgeIncubatorStationState(self);
+            return SCRIPT_CONTINUE;
+        }
         if (params.isEmpty() || params == null)
         {
             return SCRIPT_CONTINUE;
@@ -1275,6 +1354,12 @@ public class base_incubator extends script.base_script
     }
     public int OnIncubatorCommitted(obj_id self, obj_id playerId, obj_id terminalId, obj_id slot1Id, obj_id slot2Id, obj_id slot3Id, obj_id slot4Id, int initialPointsSurvival, int initialPointsBeastialResilience, int initialPointsCunning, int initialPointsIntelligence, int initialPointsAggression, int initialPointsHuntersInstinct, int totalPointsSurvival, int totalPointsBeastialResilience, int totalPointsCunning, int totalPointsIntelligence, int totalPointsAggression, int totalPointsHuntersInstinct, int temperatureGauge, int nutrientGauge, int newCreatureColorIndex) throws InterruptedException
     {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            incubator.retirePostNgeBeastMasterCreationPlayerState(playerId);
+            incubator.retirePostNgeIncubatorStationState(self);
+            return SCRIPT_CONTINUE;
+        }
         prose_package pp = new prose_package();
         String playerName = getPlayerName(playerId);
         pp = prose.setTT(pp, playerName);
@@ -1389,6 +1474,11 @@ public class base_incubator extends script.base_script
     }
     public int refreshCurrentParticle(obj_id self, dictionary params) throws InterruptedException
     {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            incubator.stopAllSessionParticles(self);
+            return SCRIPT_CONTINUE;
+        }
         obj_id station = self;
         String labelName = incubator.getCurrentSessionParticleLabelName(station);
         String sessionParticle = incubator.getCurrentSessionParticle(station);

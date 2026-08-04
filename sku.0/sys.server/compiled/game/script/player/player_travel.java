@@ -52,6 +52,20 @@ public class player_travel extends script.base_script
         {
             removeObjVar(self, travel.VAR_TRAVEL);
         }
+        if (buff.hasBuff(self, ITV_PICKUP_BUFF))
+        {
+            buff.removeBuff(self, ITV_PICKUP_BUFF);
+        }
+        obj_id pickupCraft = utils.getObjIdScriptVar(self, "instantTravelShip.pickupCraft");
+        if (isIdValid(pickupCraft) && exists(pickupCraft))
+        {
+            destroyObject(pickupCraft);
+        }
+        utils.removeScriptVarTree(self, "instantTravelShip");
+        if (utils.hasScriptVar(self, "instantTravel"))
+        {
+            utils.removeScriptVar(self, "instantTravel");
+        }
         return SCRIPT_CONTINUE;
     }
     public int OnPurchaseTicket(obj_id self, obj_id player, String departPlanetName, String departTravelPointName, String arrivePlanetName, String arriveTravelPointName, boolean roundTrip) throws InterruptedException
@@ -108,61 +122,18 @@ public class player_travel extends script.base_script
     }
     public int OnPurchaseTicketInstantTravel(obj_id self, obj_id player, String departPlanetName, String departTravelPointName, String arrivePlanetName, String arriveTravelPointName, boolean roundTrip) throws InterruptedException
     {
-        LOG("LOG_CHANNEL", "player_travel::OnPurchaseTicketInstantTravel");
-        if (!utils.hasScriptVar(player, "instantTravel"))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        else
-        {
-            utils.removeScriptVar(player, "instantTravel");
-        }
-        obj_id terminal = utils.getObjIdScriptVar(player, travel.SCRIPT_VAR_TERMINAL);
-        if (isIdValid(terminal))
-        {
-            float distance = getDistance(self, terminal);
-            LOG("LOG_CHANNEL", "distance ->" + distance);
-            if (distance > travel.MAXIMUM_TERMINAL_DISTANCE || !exists(terminal))
-            {
-                sendSystemMessage(self, new string_id(STF_FILE, "too_far"));
-                return SCRIPT_CONTINUE;
-            }
-        }
-        obj_id playerCurrentMount = getMountId(player);
-        if (isIdValid(playerCurrentMount))
-        {
-            sendSystemMessage(player, SID_INSTANT_GO_MOUNT_NO);
-            return SCRIPT_OVERRIDE;
-        }
-        obj_id starport = travel.getStarportFromTerminal(terminal);
-        int city_id = getCityAtLocation(getLocation(starport), 0);
-        if (city.isCityBanned(self, city_id))
-        {
-            sendSystemMessage(self, SID_CANT_BUY_TICKET);
-            return SCRIPT_CONTINUE;
-        }
-        travel.instantTravel(self, departPlanetName, departTravelPointName, arrivePlanetName, arriveTravelPointName, roundTrip, starport);
-        if (buff.hasBuff(self, ITV_PICKUP_BUFF))
-        {
-            sendSystemMessage(self, SID_PICKUP_CANCEL);
-            buff.removeBuff(self, ITV_PICKUP_BUFF);
-            return SCRIPT_CONTINUE;
-        }
-        return SCRIPT_CONTINUE;
+        LOG("LOG_CHANNEL", "Ignored retired NGE instant-travel ticket dispatch for " + self);
+        return SCRIPT_OVERRIDE;
     }
     public int OnAboutToTravelToGroupPickupPoint(obj_id self) throws InterruptedException
     {
-        if (callable.hasAnyCallable(self))
-        {
-            sendSystemMessage(self, new string_id("beast", "beast_cant_travel"));
-            return SCRIPT_OVERRIDE;
-        }
-        return SCRIPT_CONTINUE;
+        LOG("LOG_CHANNEL", "Ignored retired NGE group-pickup travel request for " + self);
+        return SCRIPT_OVERRIDE;
     }
     public int OnTravelToGroupPickupPoint(obj_id self, String planetName, String travelPointName) throws InterruptedException
     {
-        travel.movePlayerToDestination(self, planetName, travelPointName, true);
-        return SCRIPT_CONTINUE;
+        LOG("LOG_CHANNEL", "Ignored retired NGE group-pickup travel dispatch for " + self);
+        return SCRIPT_OVERRIDE;
     }
     public int msgTicketPaymentFail(obj_id self, dictionary params) throws InterruptedException
     {
@@ -1024,17 +995,9 @@ public class player_travel extends script.base_script
             LOG("debug/player_travel/" + section, message);
         }
     }
-    public int doCFP(obj_id self, int itvType) throws InterruptedException {
-        if (travel.isTravelBlocked(self, false))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        if (canCallForPickup(self))
-        {
-            debugLogging("//***// commandHandler : callForPickup", "////>>>> player CAN call for pickup. Executing shuttle spawn sequence.");
-            sendSystemMessage(self, SID_CALLING_FOR_PICKUP);
-            spawnPickupCraft(self, itvType);
-        }
+    public int doCFP(obj_id self, int itvType) throws InterruptedException
+    {
+        LOG("LOG_CHANNEL", "Ignored retired NGE instant-travel pickup command for " + self);
         return SCRIPT_CONTINUE;
     }
     public int callForPickup(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
@@ -1071,138 +1034,13 @@ public class player_travel extends script.base_script
     }
     public boolean canCallForPickup(obj_id player) throws InterruptedException
     {
-        debugLogging("//***// canCallForPickup", "////>>>> ENTERED");
-        // get the setting for minimum ITV level (if its not set, make it the max player level)
-        String minLevelSetting = getConfigSetting("GameServer", "itvMinUsageLevel");
-        if(minLevelSetting == null) minLevelSetting = "0";
-
-        int minimumLevel = Integer.parseInt(minLevelSetting);
-        obj_id playerCurrentMount = getMountId(player);
-        if(getLevel(player) < minimumLevel){
-            sendSystemMessage(player, "Instant Travel vehicles may not be used until you have reached level " + minLevelSetting, null);
-            return false;
-        }
-        if (isIdValid(playerCurrentMount))
-        {
-            sendSystemMessage(player, SID_INSTANT_MOUNT_NO);
-            return false;
-        }
-        if (isIdValid(structure.getContainingBuilding(player)))
-        {
-            sendSystemMessage(player, SID_LOCATION_INDOORS);
-            return false;
-        }
-        if (isSpaceScene())
-        {
-            return false;
-        }
-        if (space_dungeon.verifyPlayerSession(player))
-        {
-            sendSystemMessage(player, SID_INVALID_PICKUP_LOC);
-            return false;
-        }
-        if (buff.hasBuff(player, ITV_PICKUP_BUFF))
-        {
-            sendSystemMessage(player, SID_PICKUP_CANCEL);
-            buff.removeBuff(player, ITV_PICKUP_BUFF);
-            return false;
-        }
-        location here = getLocation(player);
-        if (locations.isInCity(here))
-        {
-            sendSystemMessage(player, SID_NO_PICKUP_IN_TOWN);
-            return false;
-        }
-        region geoCities[] = getRegionsWithGeographicalAtPoint(here, regions.GEO_CITY);
-        if (geoCities != null && geoCities.length > 0)
-        {
-            sendSystemMessage(player, SID_INVALID_PICKUP_LOC);
-            return false;
-        }
-        region[] regionList = getRegionsWithPvPAtPoint(here, regions.PVP_REGION_TYPE_ADVANCED);
-        if (regionList != null && regionList.length > 0)
-        {
-            sendSystemMessage(player, SID_NO_PICKUP_IN_PVP);
-            return false;
-        }
-        String planet = getCurrentSceneName();
-        if (planet.startsWith("kashyyyk") || planet.equals("adventure1"))
-        {
-            sendSystemMessage(player, SID_INVALID_PICKUP_LOC);
-            return false;
-        }
-        if (combat.isInCombat(player))
-        {
-            sendSystemMessage(player, SID_IN_COMBAT);
-            return false;
-        }
-        return true;
+        LOG("LOG_CHANNEL", "Rejected retired NGE instant-travel pickup admission for " + player);
+        return false;
     }
     public boolean spawnPickupCraft(obj_id player, int type) throws InterruptedException
     {
-        if (!isIdValid(player))
-        {
-            return false;
-        }
-        location here = getLocation(player);
-        location spawnLoc = locations.getGoodLocationAroundLocation(here, 1.0f, 1.0f, 4.0f, 4.0f);
-        if (spawnLoc == null)
-        {
-            sendSystemMessage(player, SID_LOCATION_NOGOOD_FOR_PICKUP);
-            return false;
-        }
-        String pickupCraftType = "object/tangible/terminal/terminal_travel_instant_xwing.iff";
-        if (type == SHIP_TYPE_INSTANT_XWING_TIE)
-        {
-            int playerFactionID = pvpGetAlignedFaction(player);
-            if (playerFactionID == (-615855020))
-            {
-                pickupCraftType = "object/tangible/terminal/terminal_travel_instant_tie.iff";
-                spawnLoc.y += 5.0f;
-            }
-        }
-        else if (type == SHIP_TYPE_INSTANT_PRIVATEER)
-        {
-            pickupCraftType = "object/tangible/terminal/terminal_travel_instant_privateer.iff";
-        }
-        else if (type == SHIP_TYPE_INSTANT_ROYAL_SHIP)
-        {
-            pickupCraftType = "object/tangible/terminal/terminal_travel_instant_royal_ship.iff";
-        }
-        else if (type == SHIP_TYPE_INSTANT_JALOPY)
-        {
-            pickupCraftType = "object/tangible/terminal/terminal_travel_instant_jalopy.iff";
-        }
-        else if (type == SHIP_TYPE_TCG_LOCATION_SHIP)
-        {
-            pickupCraftType = "object/tangible/terminal/terminal_travel_instant_tcg_location.iff";
-            playClientEffectObj(player, "sound/g9_rigger_01.snd", player, "");
-        }
-        else if (type == SHIP_TYPE_TCG_HOME_SHIP)
-        {
-            pickupCraftType = "object/tangible/terminal/terminal_travel_instant_tcg_home.iff";
-            playClientEffectObj(player, "sound/solar_sailer_01.snd", player, "");
-        }
-        else if (type == SHIP_TYPE_SNOWSPEEDER_SHIP)
-        {
-            pickupCraftType = "object/tangible/terminal/terminal_travel_instant_snowspeeder.iff";
-            playClientEffectObj(player, "sound/veh_t47snowspeeder_decel.snd", player, "");
-        }
-        else if (type == SHIP_TYPE_TCG_SLAVE1_SHIP)
-        {
-            pickupCraftType = "object/tangible/terminal/terminal_travel_instant_slave_1.iff";
-            playClientEffectObj(player, "sound/eng_flyby_firespray.snd", player, "");
-        }
-        obj_id pickupCraft = create.object(pickupCraftType, spawnLoc);
-        if (!isIdValid(pickupCraft))
-        {
-            return false;
-        }
-        utils.setScriptVar(player, "instantTravelShip.pickupCraft", pickupCraft);
-        utils.setScriptVar(pickupCraft, "playerOwner", player);
-        messageTo(pickupCraft, "initializeInstaTravelShip", null, 1, false);
-        buff.applyBuff(player, ITV_PICKUP_BUFF);
-        return true;
+        LOG("LOG_CHANNEL", "Rejected retired NGE instant-travel craft spawn for " + player);
+        return false;
     }
     public int groupMemberLocationRequestHandler(obj_id self, dictionary params) throws InterruptedException
     {

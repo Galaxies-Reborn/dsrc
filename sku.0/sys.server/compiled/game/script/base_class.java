@@ -812,25 +812,34 @@ public class base_class
     /** id for health attribute
      * @see #getAttrib(obj_id, int) */
     public static final int HEALTH       = 0;
+    /** id for strength attribute
+     * @see #getAttrib(obj_id, int) */
+    public static final int STRENGTH     = 1;
     /** id for constitution attribute
      * @see #getAttrib(obj_id, int) */
-    public static final int CONSTITUTION = 1;
+    public static final int CONSTITUTION = 2;
     /** id for action attribute
      * @see #getAttrib(obj_id, int) */
-    public static final int ACTION       = 2;
+    public static final int ACTION       = 3;
+    /** id for quickness attribute
+     * @see #getAttrib(obj_id, int) */
+    public static final int QUICKNESS    = 4;
     /** id for stamina attribute
      * @see #getAttrib(obj_id, int) */
-    public static final int STAMINA      = 3;
+    public static final int STAMINA      = 5;
     /** id for mind attribute
      * @see #getAttrib(obj_id, int) */
-    public static final int MIND         = 4;
+    public static final int MIND         = 6;
+    /** id for focus attribute
+     * @see #getAttrib(obj_id, int) */
+    public static final int FOCUS        = 7;
     /** id for willpower attribute
      * @see #getAttrib(obj_id, int) */
-    public static final int WILLPOWER    = 5;
+    public static final int WILLPOWER    = 8;
 
-    public static final int NUM_ATTRIBUTES = 6;
+    public static final int NUM_ATTRIBUTES = 9;
     public static final int NUM_ATTRIBUTE_GROUPS = 3;
-    public static final int NUM_ATTRIBUTES_PER_GROUP = 2;
+    public static final int NUM_ATTRIBUTES_PER_GROUP = 3;
 
 
     /** error code returned by getAttrib
@@ -7802,6 +7811,24 @@ public class base_class
             return ATTRIB_ERROR;
         return max - wound;
     }
+    /**
+     * Applies persistent wound damage to one attribute.
+     * @return the wound amount actually applied, or ATTRIB_ERROR on invalid input
+     */
+    private static native int _addWound(long target, int attrib, int value);
+    public static int addWound(obj_id target, int attrib, int value)
+    {
+        return _addWound(getLongWithNull(target), attrib, value);
+    }
+    /**
+     * Heals persistent wound damage from one attribute.
+     * @return the wound amount actually healed, or ATTRIB_ERROR on invalid input
+     */
+    private static native int _healWound(long target, int attrib, int value);
+    public static int healWound(obj_id target, int attrib, int value)
+    {
+        return _healWound(getLongWithNull(target), attrib, value);
+    }
 
     /**
      * Sets an attribute of a creature.
@@ -8231,6 +8258,16 @@ public class base_class
     public static boolean drainAttributes(obj_id target, int action, int mind)
     {
         return _drainAttributes(getLongWithNull(target), action, mind);
+    }
+
+    /**
+     * Atomically drains a creature's three primary combat pools without
+     * allowing the cost itself to incapacitate the creature.
+     */
+    private static native boolean _drainCombatAttributes(long target, int health, int action, int mind);
+    public static boolean drainCombatAttributes(obj_id target, int health, int action, int mind)
+    {
+        return _drainCombatAttributes(getLongWithNull(target), health, action, mind);
     }
 
     /**
@@ -13067,6 +13104,16 @@ public class base_class
 		{
 			return __doDamageNoWeapon(getLongWithNull(attacker), getLongWithNull(defender), (hitResult.damage + hitResult.elementalDamage), hitResult.hitLocation);
 		}	// doDamage()
+
+		/**
+		 * Applies combat damage to an explicit primary HAM pool. Pool is the
+		 * compact Pre-CU ordinal: Health=0, Action=1, Mind=2.
+		 */
+		private static native boolean __doDamageNoWeaponToPool(long attacker, long defender, int damage, int hitLocation, int pool);
+		public static boolean doDamageToPool(obj_id attacker, obj_id defender, combat_engine.hit_result hitResult, int pool)
+		{
+			return __doDamageNoWeaponToPool(getLongWithNull(attacker), getLongWithNull(defender), (hitResult.damage + hitResult.elementalDamage), hitResult.hitLocation, pool);
+		}
 
 		/**
 		 * Creates a package to be sent to the client for displaying combat results.
@@ -20871,6 +20918,19 @@ public class base_class
 	public static int pvpGetCurrentGcwRank(obj_id target)
 	{
 		return _pvpGetCurrentGcwRank(getLongWithNull(target));
+	}
+
+	/**
+	 * Set the persistent Publish 14 faction rank shared by the server and client.
+	 *
+	 * @param target     the player character
+	 * @param rank       the Publish 14 faction rank, from 0 through 15
+	 * @return true when the authoritative creature rank was updated
+	 */
+	private static native boolean _pvpSetPrecuFactionRank(long target, int rank);
+	public static boolean pvpSetPrecuFactionRank(obj_id target, int rank)
+	{
+		return _pvpSetPrecuFactionRank(getLongWithNull(target), rank);
 	}
 
 	/**

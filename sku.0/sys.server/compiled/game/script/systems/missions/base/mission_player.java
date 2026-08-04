@@ -53,10 +53,12 @@ public class mission_player extends script.systems.missions.base.mission_player_
     }
     public int OnPlayerRequestMissionBoard(obj_id self, obj_id objPlayer, obj_id objMissionTerminal, obj_id[] objMissionData) throws InterruptedException
     {
-        if (objMissionData.length < 10)
+        if (objMissionData == null || objMissionData.length < 2)
         {
+            LOG("PreCuMission", "board rejected player=" + self + " terminal=" + objMissionTerminal + " reason=insufficient-mission-placeholders count=" + (objMissionData == null ? 0 : objMissionData.length));
             return SCRIPT_CONTINUE;
         }
+        int intPairedMissionDataCount = objMissionData.length - (objMissionData.length % 2);
         location locTest = getMissionLocation(self);
         if (!areMissionsAllowed(locTest))
         {
@@ -70,7 +72,7 @@ public class mission_player extends script.systems.missions.base.mission_player_
         }
         if (hasObjVar(objMissionTerminal, "intBounty"))
         {
-            if (!hasSkill(self, "class_bountyhunter_phase1_novice"))
+            if (!hasSkill(self, "combat_bountyhunter_novice"))
             {
                 string_id strSpam = new string_id("mission/mission_generic", "not_bounty_hunter_terminal");
                 sendSystemMessage(self, strSpam);
@@ -130,8 +132,8 @@ public class mission_player extends script.systems.missions.base.mission_player_
             objHq = topMost;
         }
         obj_id objMission;
-        int intLevel = 0;
-        intLevel = skill.getGroupLevel(self);
+        int intLevel = missions.getPrecuMissionGroupCombatScore(self);
+        LOG("PreCuMission", "board player=" + self + " terminal=" + objMissionTerminal + " placeholders=" + objMissionData.length + " paired=" + intPairedMissionDataCount + " combatScore=" + intLevel);
         if (hasObjVar(objMissionTerminal, "intBounty"))
         {
             debugServerConsoleMsg(self, "making bounty mission");
@@ -148,7 +150,7 @@ public class mission_player extends script.systems.missions.base.mission_player_
                 }
             }
             int intBountyDifficulty = getBountyDifficulty(objPlayer);
-            int intPlayerDifficulty = getLevel(objPlayer);
+            int intPlayerDifficulty = intLevel;
             int pvpBountyCount = 0;
             for (obj_id objMissionDatum : objMissionData) {
                 cleanMissionObject(objMissionDatum);
@@ -191,7 +193,7 @@ public class mission_player extends script.systems.missions.base.mission_player_
         }
         else if (hasObjVar(objMissionTerminal, "intScout"))
         {
-            for (int intI = 0; intI < objMissionData.length; intI = intI + 2)
+            for (int intI = 0; intI < intPairedMissionDataCount; intI = intI + 2)
             {
                 cleanMissionObject(objMissionData[intI]);
                 cleanMissionObject(objMissionData[intI + 1]);
@@ -225,7 +227,7 @@ public class mission_player extends script.systems.missions.base.mission_player_
         }
         else if (hasObjVar(objMissionTerminal, "intEntertainer"))
         {
-            for (int intI = 0; intI < objMissionData.length; intI = intI + 2)
+            for (int intI = 0; intI < intPairedMissionDataCount; intI = intI + 2)
             {
                 cleanMissionObject(objMissionData[intI]);
                 cleanMissionObject(objMissionData[intI + 1]);
@@ -259,7 +261,7 @@ public class mission_player extends script.systems.missions.base.mission_player_
         }
         else if (hasObjVar(objMissionTerminal, "intArtisan"))
         {
-            for (int intI = 0; intI < objMissionData.length; intI = intI + 2)
+            for (int intI = 0; intI < intPairedMissionDataCount; intI = intI + 2)
             {
                 cleanMissionObject(objMissionData[intI]);
                 cleanMissionObject(objMissionData[intI + 1]);
@@ -293,7 +295,7 @@ public class mission_player extends script.systems.missions.base.mission_player_
         }
         else 
         {
-            for (int intI = 0; intI < objMissionData.length; intI = intI + 2)
+            for (int intI = 0; intI < intPairedMissionDataCount; intI = intI + 2)
             {
                 cleanMissionObject(objMissionData[intI]);
                 cleanMissionObject(objMissionData[intI + 1]);
@@ -304,6 +306,7 @@ public class mission_player extends script.systems.missions.base.mission_player_
                 }
                 else 
                 {
+                    missions.applyPrecuMissionGroupReward(objTest, self);
                     setMissionStatus(objMissionData[intI], 1);
                     if (isIdValid(objHq))
                     {
@@ -322,6 +325,7 @@ public class mission_player extends script.systems.missions.base.mission_player_
                 }
                 else 
                 {
+                    missions.applyPrecuMissionGroupReward(objTest, self);
                     setMissionStatus(objMissionData[intI + 1], 1);
                     if (isIdValid(objHq))
                     {
@@ -817,7 +821,7 @@ public class mission_player extends script.systems.missions.base.mission_player_
     public int informantComm(obj_id self, dictionary params) throws InterruptedException
     {
         obj_id player = self;
-        if (!hasSkill(player, "class_bountyhunter_phase1_novice"))
+        if (!hasSkill(player, "combat_bountyhunter_novice"))
         {
             return SCRIPT_CONTINUE;
         }

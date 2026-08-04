@@ -5,7 +5,8 @@
 @class weapon_object_template 4
 weaponEffect = "rocket"
 weaponEffectIndex = 0
-@class tangible_object_template 3
+@class tangible_object_template 8
+certificationsRequired = ["cert_rocket_launcher"]
 
 @class object_template 8
 

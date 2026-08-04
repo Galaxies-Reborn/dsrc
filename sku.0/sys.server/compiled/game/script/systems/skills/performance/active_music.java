@@ -12,12 +12,6 @@ public class active_music extends script.base_script
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
-        int healingXP = getExperiencePoints(self, "entertainer_healing");
-        if (healingXP > 0)
-        {
-            grantExperiencePoints(self, "entertainer_healing", (healingXP * -1));
-            grantExperiencePoints(self, xp.ENTERTAINER, healingXP);
-        }
         groundquests.questStartMusic(self);
         performance.checkAndIncrementEntertainerMissions(self, "musician");
         setObjVar(self, performance.VAR_PERFORM_FLOURISH, false);
@@ -170,10 +164,9 @@ public class active_music extends script.base_script
             }
             else 
             {
-                if (performance.applyPerformanceActionCost(self, 1.0f))
+                if (performance.applyPerformanceLoopActionCost(self))
                 {
                     performance.performanceHeal(self, performance.PERFORMANCE_TYPE_MUSIC, 1.0f);
-                    performance.inspire(self, performance.PERFORMANCE_TYPE_MUSIC);
                     int flourishNum = getIntObjVar(self, performance.VAR_PERFORM_FLOURISH_COUNT);
                     int xpAmt = performance.calcPerformanceXp(self);
                     int entXpAmt = 0;

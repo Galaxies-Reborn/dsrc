@@ -1,5 +1,6 @@
 package script.systems.image_designer;
 
+import script.library.camping;
 import script.library.prose;
 import script.library.utils;
 import script.obj_id;
@@ -148,6 +149,16 @@ public class player_image_designer extends script.base_script
                 {
                     closestTerminal = structure;
                 }
+            }
+        }
+        if (!isIdValid(closestTerminal))
+        {
+            obj_id entertainmentCamp = camping.getCurrentAdvancedCamp(self);
+            if (isIdValid(entertainmentCamp) &&
+                camping.isInEntertainmentCamp(self, entertainmentCamp) &&
+                camping.isInEntertainmentCamp(design_target, entertainmentCamp))
+            {
+                closestTerminal = entertainmentCamp;
             }
         }
         utils.setScriptVar(design_target, VAR_IMAGE_DESIGN_CONFIRM, design_target);

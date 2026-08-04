@@ -63,13 +63,37 @@ public class skill extends script.base_script
     public static final string_id PROSE_NSF_SKILL_PTS = new string_id("base_player", "prose_nsf_skill_pts");
     public static final string_id PROSE_BAD_SPECIES = new string_id("base_player", "prose_bad_species");
     public static final String TBL_SKILL = "datatables/skill/skills.iff";
+    public static final int SKILL_POINT_CAP = 250;
+    public static final int PRECU_COMBAT_SKILL_SCORE_MAX = 90;
+    public static final int PRECU_ADVANCED_COMBAT_SKILL_WEIGHT = 3;
+    public static final int PRECU_PHASE_TWO_COMBAT_SCORE = 25;
+    public static final int PRECU_PHASE_THREE_COMBAT_SCORE = 50;
+    public static final int PRECU_PHASE_FOUR_COMBAT_SCORE = 75;
     public static final String SKILL_N = "skl_n";
     public static final String CONVOFILE = "skill_teacher";
     public static final string_id PROSE_SKILL_LEARNED = new string_id(CONVOFILE, "prose_skill_learned");
     public static final string_id PROSE_TRAIN_FAILED = new string_id(CONVOFILE, "prose_train_failed");
     public static final string_id SID_EXPERTISE_WRONG_PROFESSION = new string_id("spam", "expertise_wrong_profession");
+    public static boolean isRetiredNgeProgressionSkillName(String skillName) throws InterruptedException
+    {
+        return skillName != null &&
+            (skillName.startsWith("class_") ||
+                skillName.equals("expertise") ||
+                skillName.startsWith("expertise_") ||
+                skillName.startsWith("internal_expertise_"));
+    }
+    public static boolean isRetiredPostNgeSpySkill(String skillName) throws InterruptedException
+    {
+        return skillName != null &&
+            (skillName.startsWith("class_spy_") ||
+                skillName.startsWith("expertise_sp_"));
+    }
     public static boolean grant(obj_id target, String skillName) throws InterruptedException
     {
+        if (isPlayer(target) && isRetiredPostNgeSpySkill(skillName))
+        {
+            return false;
+        }
         if (grantSkillToPlayer(target, skillName))
         {
             dictionary d = new dictionary();
@@ -82,6 +106,10 @@ public class skill extends script.base_script
     public static boolean grantSkillToPlayer(obj_id player, String skillName) throws InterruptedException
     {
         if (!isIdValid(player) || (!isPlayer(player)) || skillName == null || skillName.equals(""))
+        {
+            return false;
+        }
+        if (isRetiredPostNgeSpySkill(skillName))
         {
             return false;
         }
@@ -162,9 +190,59 @@ public class skill extends script.base_script
         }
         return false;
     }
+    public static int getSkillPointCost(String skillName) throws InterruptedException
+    {
+        if (skillName == null || skillName.equals(""))
+        {
+            return -1;
+        }
+        int row = dataTableSearchColumnForString(skillName, "NAME", TBL_SKILL);
+        if (row < 0)
+        {
+            return -1;
+        }
+        int pointsRequired = dataTableGetInt(TBL_SKILL, row, "POINTS_REQUIRED");
+        return pointsRequired < 0 ? -1 : pointsRequired;
+    }
+    public static int getAvailableSkillPoints(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !isPlayer(player))
+        {
+            return 0;
+        }
+        String[] playerSkills = getSkillListingForPlayer(player);
+        if (playerSkills == null || playerSkills.length == 0)
+        {
+            return SKILL_POINT_CAP;
+        }
+        int usedPoints = 0;
+        for (String playerSkill : playerSkills)
+        {
+            int skillCost = getSkillPointCost(playerSkill);
+            if (skillCost < 0)
+            {
+                return 0;
+            }
+            usedPoints += skillCost;
+            if (usedPoints > SKILL_POINT_CAP)
+            {
+                return 0;
+            }
+        }
+        return SKILL_POINT_CAP - usedPoints;
+    }
     public static boolean purchaseSkill(obj_id player, String skillName) throws InterruptedException
     {
         if (!isIdValid(player) || (!isPlayer(player)) || skillName == null || skillName.equals(""))
+        {
+            return false;
+        }
+        if (isRetiredPostNgeSpySkill(skillName))
+        {
+            return false;
+        }
+        int pointsRequired = getSkillPointCost(skillName);
+        if (pointsRequired < 0 || getAvailableSkillPoints(player) < pointsRequired)
         {
             return false;
         }
@@ -405,7 +483,59 @@ public class skill extends script.base_script
     }
     public static String[] getTeachableSkills(obj_id target, obj_id teacher) throws InterruptedException
     {
-        return null;
+        if (!isIdValid(target) || !isMob(target) || !isIdValid(teacher) || !isMob(teacher))
+        {
+            return null;
+        }
+        if (hasObjVar(target, "newbie.hasSkill") && !hasObjVar(target, "newbie.trained"))
+        {
+            String[] newbieSkill = new String[1];
+            newbieSkill[0] = getStringObjVar(target, "newbie.hasSkill");
+            return newbieSkill;
+        }
+        String[] targetSkills = getSkillListingForPlayer(target);
+        String[] delta = deltaTeacherSkills(target, teacher);
+        if (targetSkills == null || delta == null || delta.length == 0)
+        {
+            return null;
+        }
+        Vector teachableSkills = new Vector();
+        teachableSkills.setSize(0);
+        for (String candidate : delta)
+        {
+            String[] prerequisites = getSkillPrerequisiteSkills(candidate);
+            if (prerequisites != null && prerequisites.length > 0 && !utils.isSubset(targetSkills, prerequisites))
+            {
+                continue;
+            }
+            if (candidate.startsWith("species_") ||
+                candidate.equals("social_language_lekku") ||
+                candidate.startsWith("social_language_hutt") ||
+                candidate.equals("demo_combat") ||
+                candidate.startsWith("force_rank") ||
+                candidate.startsWith("force_title") ||
+                candidate.startsWith("expertise") ||
+                candidate.startsWith("pilot_"))
+            {
+                continue;
+            }
+            if (candidate.equals("jedi_light_side_journeyman_novice") && hasSkill(target, "jedi_dark_side_journeyman_novice"))
+            {
+                continue;
+            }
+            if (candidate.equals("jedi_dark_side_journeyman_novice") && hasSkill(target, "jedi_light_side_journeyman_novice"))
+            {
+                continue;
+            }
+            teachableSkills = utils.addElement(teachableSkills, candidate);
+        }
+        if (teachableSkills == null || teachableSkills.size() == 0)
+        {
+            return null;
+        }
+        String[] result = new String[teachableSkills.size()];
+        teachableSkills.toArray(result);
+        return result;
     }
     public static String[] getQualifiedTeachableSkills(obj_id target, obj_id teacher) throws InterruptedException
     {
@@ -423,8 +553,6 @@ public class skill extends script.base_script
         dictionary d;
         Object o;
         String xpType;
-        Enumeration species_keys;
-        String key;
         String trainer_type;
         String branch;
         String skillName;
@@ -449,17 +577,10 @@ public class skill extends script.base_script
                 }
             }
             dictionary species = getSkillPrerequisiteSpecies(teachableSkill);
-            assert d != null;
-            if (species != null && !d.isEmpty()) {
-                species_keys = species.keys();
-                while (species_keys.hasMoreElements()) {
-                    o = species_keys.nextElement();
-                    if (o instanceof String) {
-                        key = (String) o;
-                        if (species.getBoolean(key)) {
-                            qualifies = false;
-                        }
-                    }
+            if (species != null && !species.isEmpty()) {
+                String speciesName = utils.getPlayerSpeciesName(getSpecies(target));
+                if (!species.getBoolean(speciesName)) {
+                    qualifies = false;
                 }
             }
             trainer_type = getStringObjVar(teacher, "trainer");
@@ -648,14 +769,147 @@ public class skill extends script.base_script
         ret.put(DICT_DELTA_PERCENT, deltaPercent);
         return ret;
     }
+    public static boolean isPrecuCombatSkillBox(String skillName) throws InterruptedException
+    {
+        if (skillName == null || skillName.length() == 0 || skillName.indexOf("_prereq") >= 0)
+        {
+            return false;
+        }
+        return skillName.startsWith("combat_") || skillName.startsWith("outdoors_creaturehandler_") || skillName.startsWith("outdoors_squadleader_") || skillName.startsWith("force_discipline_");
+    }
+    public static boolean isPrecuBaseCombatSkillBox(String skillName) throws InterruptedException
+    {
+        return skillName != null && (skillName.startsWith("combat_brawler_") || skillName.startsWith("combat_marksman_"));
+    }
+    public static int getPrecuCombatSkillScore(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !player.isLoaded() || !isPlayer(player))
+        {
+            return 0;
+        }
+        String[] learnedSkills = getSkillListingForPlayer(player);
+        if (learnedSkills == null || learnedSkills.length == 0)
+        {
+            return 0;
+        }
+        int score = 0;
+        for (String learnedSkill : learnedSkills)
+        {
+            if (!isPrecuCombatSkillBox(learnedSkill))
+            {
+                continue;
+            }
+            int points = dataTableGetInt(TBL_SKILL, learnedSkill, "POINTS_REQUIRED");
+            if (points <= 0)
+            {
+                continue;
+            }
+            if (!isPrecuBaseCombatSkillBox(learnedSkill))
+            {
+                points *= PRECU_ADVANCED_COMBAT_SKILL_WEIGHT;
+            }
+            score += points;
+        }
+        return Math.min(score, PRECU_COMBAT_SKILL_SCORE_MAX);
+    }
+    public static boolean isPrecuSkillBoxInFamilies(String skillName, String[] prefixes) throws InterruptedException
+    {
+        if (skillName == null || skillName.length() == 0 || skillName.indexOf("_prereq") >= 0 || prefixes == null)
+        {
+            return false;
+        }
+        for (String prefix : prefixes)
+        {
+            if (prefix != null && prefix.length() > 0 && skillName.startsWith(prefix))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static int getPrecuProfessionSkillScore(obj_id player, String[] professionPrefixes, String[] basePrefixes) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !player.isLoaded() || !isPlayer(player))
+        {
+            return 0;
+        }
+        String[] learnedSkills = getSkillListingForPlayer(player);
+        if (learnedSkills == null || learnedSkills.length == 0)
+        {
+            return 0;
+        }
+        int score = 0;
+        for (String learnedSkill : learnedSkills)
+        {
+            if (!isPrecuSkillBoxInFamilies(learnedSkill, professionPrefixes))
+            {
+                continue;
+            }
+            int points = dataTableGetInt(TBL_SKILL, learnedSkill, "POINTS_REQUIRED");
+            if (points <= 0)
+            {
+                continue;
+            }
+            if (!isPrecuSkillBoxInFamilies(learnedSkill, basePrefixes))
+            {
+                points *= PRECU_ADVANCED_COMBAT_SKILL_WEIGHT;
+            }
+            score += points;
+        }
+        return Math.min(score, PRECU_COMBAT_SKILL_SCORE_MAX);
+    }
+    public static int getPrecuCraftingContentDifficulty(obj_id player) throws InterruptedException
+    {
+        String[] craftingPrefixes = { "crafting_" };
+        String[] basePrefixes = { "crafting_artisan_" };
+        return Math.max(1, getPrecuProfessionSkillScore(player, craftingPrefixes, basePrefixes));
+    }
+    public static int getPrecuEntertainerContentDifficulty(obj_id player) throws InterruptedException
+    {
+        String[] entertainerPrefixes = { "social_entertainer_", "social_dancer_", "social_musician_", "social_imagedesigner_" };
+        String[] basePrefixes = { "social_entertainer_" };
+        return Math.max(1, getPrecuProfessionSkillScore(player, entertainerPrefixes, basePrefixes));
+    }
+    public static int getPrecuEncounterDifficulty(obj_id player) throws InterruptedException
+    {
+        return Math.max(1, getPrecuCombatSkillScore(player));
+    }
+    public static int getPrecuGroupCombatDifficulty(obj_id playerOrGroup) throws InterruptedException
+    {
+        obj_id groupId = group.isGroupObject(playerOrGroup) ? playerOrGroup : getGroupObject(playerOrGroup);
+        if (!isIdValid(groupId))
+        {
+            return getPrecuEncounterDifficulty(playerOrGroup);
+        }
+        obj_id[] members = getGroupMemberIds(groupId);
+        if (members == null || members.length == 0)
+        {
+            return getPrecuEncounterDifficulty(playerOrGroup);
+        }
+        int highestScore = 0;
+        float groupDifficulty = 0.0f;
+        for (obj_id member : members)
+        {
+            if (!isIdValid(member) || !exists(member) || !member.isLoaded() || !isPlayer(member))
+            {
+                continue;
+            }
+            int memberScore = getPrecuCombatSkillScore(member);
+            if (memberScore > highestScore)
+            {
+                groupDifficulty += memberScore - highestScore + (highestScore / 5.0f);
+                highestScore = memberScore;
+            }
+            else
+            {
+                groupDifficulty += memberScore / 5.0f;
+            }
+        }
+        return Math.max(1, Math.round(groupDifficulty));
+    }
     public static int getGroupLevel(obj_id objPlayer) throws InterruptedException
     {
-        obj_id objGroup = getGroupObject(objPlayer);
-        if (isIdValid(objGroup))
-        {
-            return getGroupObjectLevel(objGroup);
-        }
-        return getLevel(objPlayer);
+        return getPrecuGroupCombatDifficulty(objPlayer);
     }
     public static void checkForJediAbility(obj_id objPlayer, String strSkill, int intDelay) throws InterruptedException
     {
@@ -782,243 +1036,24 @@ public class skill extends script.base_script
     }
     public static void doPlayerLeveling(obj_id objPlayer, int intOldLevel, int intNewLevel) throws InterruptedException
     {
-        int levelDelta = intNewLevel - intOldLevel;
-        if (levelDelta == 1)
-        {
-            showFlyText(objPlayer, new string_id("cbt_spam", "level_up"), 2.5f, colors.CORNFLOWERBLUE);
-            playClientEffectObj(objPlayer, "clienteffect/level_granted.cef", objPlayer, null);
-        }
-        newbieTutorialHighlightUIElement(objPlayer, "/GroundHUD.MFDStatus.vsp.role.targetLevel", 5.0f);
-        setPlayerStatsForLevel(objPlayer, intNewLevel);
+        // Publish 14.1 progression is skill-box based.  Combat-level changes must
+        // not drive stat grants, level-up effects, or NGE tutorial UI.
     }
     public static void setPlayerStatsForLevel(obj_id objPlayer, int intLevel) throws InterruptedException
     {
-        if (intLevel < 1)
-        {
-            LOG("skill.scriptlib", "getPlayerStatForLevel BAD level");
-            return;
-        }
-        String strProfession = getProfessionName(getSkillTemplate(objPlayer));
-        player_levels.level_data stats = player_levels.getPlayerLevelData(strProfession, intLevel);
-        if (stats == null)
-        {
-            LOG("skill.scriptlib", "setPlayerStatsForLevel stats == null");
-            return;
-        }
-        if ((strProfession != null) && (!strProfession.equals("")))
-        {
-            int intStat = getPlayerStatForLevel(objPlayer, intLevel, "luck");
-            if (intStat >= 0)
-            {
-                int oldStat = getSkillStatMod(objPlayer, "luck");
-                applySkillStatisticModifier(objPlayer, "luck", -oldStat);
-                applySkillStatisticModifier(objPlayer, "luck", intStat);
-            }
-            intStat = getPlayerStatForLevel(objPlayer, intLevel, "precision");
-            if (intStat >= 0)
-            {
-                int oldStat = getSkillStatMod(objPlayer, "precision");
-                applySkillStatisticModifier(objPlayer, "precision", -oldStat);
-                applySkillStatisticModifier(objPlayer, "precision", intStat);
-            }
-            intStat = getPlayerStatForLevel(objPlayer, intLevel, "strength");
-            if (intStat >= 0)
-            {
-                int oldStat = getSkillStatMod(objPlayer, "strength");
-                applySkillStatisticModifier(objPlayer, "strength", -oldStat);
-                applySkillStatisticModifier(objPlayer, "strength", intStat);
-            }
-            intStat = getPlayerStatForLevel(objPlayer, intLevel, "constitution");
-            if (intStat >= 0)
-            {
-                int oldStat = getSkillStatMod(objPlayer, "constitution");
-                applySkillStatisticModifier(objPlayer, "constitution", -oldStat);
-                applySkillStatisticModifier(objPlayer, "constitution", intStat);
-            }
-            intStat = getPlayerStatForLevel(objPlayer, intLevel, "stamina");
-            if (intStat >= 0)
-            {
-                int oldStat = getSkillStatMod(objPlayer, "stamina");
-                applySkillStatisticModifier(objPlayer, "stamina", -oldStat);
-                applySkillStatisticModifier(objPlayer, "stamina", intStat);
-            }
-            intStat = getPlayerStatForLevel(objPlayer, intLevel, "agility");
-            if (intStat >= 0)
-            {
-                int oldStat = getSkillStatMod(objPlayer, "agility");
-                applySkillStatisticModifier(objPlayer, "agility", -oldStat);
-                applySkillStatisticModifier(objPlayer, "agility", intStat);
-            }
-            intStat = getPlayerStatForLevel(objPlayer, intLevel, "health");
-            if (intStat >= 0)
-            {
-                setMaxAttrib(objPlayer, HEALTH, intStat);
-            }
-            float fltStat = stats.health_regen;
-            if (fltStat >= 0)
-            {
-                setRegenRate(objPlayer, HEALTH, fltStat);
-            }
-            intStat = getPlayerStatForLevel(objPlayer, intLevel, "action");
-            if (intStat >= 0)
-            {
-                setMaxAttrib(objPlayer, ACTION, intStat);
-            }
-            fltStat = stats.action_regen;
-            if (fltStat >= 0)
-            {
-                setRegenRate(objPlayer, ACTION, fltStat);
-            }
-            recalcPlayerPools(objPlayer, true);
-        }
+        // Compatibility entry point retained for legacy scripts.  Pre-CU HAM
+        // maxima and regeneration are authoritative and never level-derived.
     }
     public static int getPlayerStatForLevel(obj_id player, int intLevel, String statString) throws InterruptedException
     {
-        int intStat = 0;
-        if (intLevel < 1 || intLevel > 90)
-        {
-            LOG("skill.scriptlib", "getPlayerStatForLevel BAD level");
-            return 0;
-        }
-        int playerRace = getSpecies(player);
-        String strProfession = getProfessionName(getSkillTemplate(player));
-        player_levels.level_data stats = player_levels.getPlayerLevelData(strProfession, intLevel);
-        if (stats == null)
-        {
-            LOG("skill.scriptlib", "setPlayerStatsForLevel stats == null");
-            return 0;
-        }
-        if (playerRace > 7)
-        {
-            if (playerRace == 33)
-            {
-                playerRace = 8;
-            }
-            else if (playerRace == 49)
-            {
-                playerRace = 9;
-            }
-            else 
-            {
-                sendSystemMessageTestingOnly(player, "Unknown race, defaulting to human");
-                LOG("npe", "library.skill - getPlayerStatForLevel invalid race, using human defaults");
-                playerRace = 0;
-            }
-        }
-        int racialStatColumnReference = (playerRace * NUM_STATS);
-        if (statString.equals("luck"))
-        {
-            intStat = stats.luck;
-            intStat += dataTableGetInt(DATATABLE_RACIAL_STATS, intLevel - 1, racialStatColumnReference + 1);
-            return intStat;
-        }
-        if (statString.equals("precision"))
-        {
-            intStat = stats.precision;
-            intStat += dataTableGetInt(DATATABLE_RACIAL_STATS, intLevel - 1, racialStatColumnReference + 2);
-            return intStat;
-        }
-        if (statString.equals("strength"))
-        {
-            intStat = stats.strength;
-            intStat += dataTableGetInt(DATATABLE_RACIAL_STATS, intLevel - 1, racialStatColumnReference + 3);
-            return intStat;
-        }
-        if (statString.equals("constitution"))
-        {
-            intStat = stats.constitution;
-            intStat += dataTableGetInt(DATATABLE_RACIAL_STATS, intLevel - 1, racialStatColumnReference + 4);
-            return intStat;
-        }
-        if (statString.equals("stamina"))
-        {
-            intStat = stats.stamina;
-            intStat += dataTableGetInt(DATATABLE_RACIAL_STATS, intLevel - 1, racialStatColumnReference + 5);
-            return intStat;
-        }
-        if (statString.equals("agility"))
-        {
-            intStat = stats.agility;
-            intStat += dataTableGetInt(DATATABLE_RACIAL_STATS, intLevel - 1, racialStatColumnReference + 6);
-            return intStat;
-        }
-        if (statString.equals("health"))
-        {
-            intStat = stats.health;
-            return intStat;
-        }
-        if (statString.equals("action"))
-        {
-            intStat = stats.action;
-            return intStat;
-        }
-        return intStat;
+        // Compatibility entry point retained for later-era callers. Publish
+        // 14.1 HAM and secondary statistics are not derived from combat level.
+        return 0;
     }
     public static void sendlevelUpStatChangeSystemMessages(obj_id player, int oldCombatLevel, int newCombatLevel) throws InterruptedException
     {
-        if (!isPlayer(player))
-        {
-            return;
-        }
-        if (newCombatLevel < 1 || newCombatLevel > 90)
-        {
-            return;
-        }
-        int levelDelta = newCombatLevel - oldCombatLevel;
-        if (levelDelta != 1)
-        {
-            return;
-        }
-        String[] statStrings = 
-        {
-            "luck",
-            "precision",
-            "strength",
-            "constitution",
-            "stamina",
-            "agility"
-        };
-        for (int i = 0; i < statStrings.length; i++)
-        {
-            int currentStat = getPlayerStatForLevel(player, newCombatLevel, statStrings[i]);
-            int lastStat = getPlayerStatForLevel(player, oldCombatLevel, statStrings[i]);
-            int statDelta = currentStat - lastStat;
-            if (statDelta > 0)
-            {
-                prose_package ppStatGainSpam = new prose_package();
-                ppStatGainSpam.stringId = new string_id("spam", "level_up_stat_gain_" + i);
-                ppStatGainSpam.digitInteger = statDelta;
-                sendSystemMessageProse(player, ppStatGainSpam);
-            }
-        }
-        int currentCon = getPlayerStatForLevel(player, newCombatLevel, "constitution");
-        int lastCon = getPlayerStatForLevel(player, oldCombatLevel, "constitution");
-        int currentSta = getPlayerStatForLevel(player, newCombatLevel, "stamina");
-        int lastSta = getPlayerStatForLevel(player, oldCombatLevel, "stamina");
-        int currentHealth = getPlayerStatForLevel(player, newCombatLevel, "health");
-        int lastHealth = getPlayerStatForLevel(player, oldCombatLevel, "health");
-        int currentAction = getPlayerStatForLevel(player, newCombatLevel, "action");
-        int lastAction = getPlayerStatForLevel(player, oldCombatLevel, "action");
-        int forRealsHealthCurrent = currentHealth + (currentCon * HEALTH_POINTS_PER_CONSTITUTION) + (currentSta * HEALTH_POINTS_PER_STAMINA);
-        int forRealsHealthLast = lastHealth + (lastCon * HEALTH_POINTS_PER_CONSTITUTION) + (lastSta * HEALTH_POINTS_PER_STAMINA);
-        int forRealsActionCurrent = currentAction + (currentCon * ACTION_POINTS_PER_CONSTITUTION) + (currentSta * ACTION_POINTS_PER_STAMINA);
-        int forRealsActionLast = lastAction + (lastCon * ACTION_POINTS_PER_CONSTITUTION) + (lastSta * ACTION_POINTS_PER_STAMINA);
-        int healthDelta = forRealsHealthCurrent - forRealsHealthLast;
-        int actionDelta = forRealsActionCurrent - forRealsActionLast;
-        if (healthDelta > 0)
-        {
-            prose_package ppStatGainSpam = new prose_package();
-            ppStatGainSpam.stringId = new string_id("spam", "level_up_stat_gain_6");
-            ppStatGainSpam.digitInteger = healthDelta;
-            sendSystemMessageProse(player, ppStatGainSpam);
-        }
-        if (actionDelta > 0)
-        {
-            prose_package ppStatGainSpam = new prose_package();
-            ppStatGainSpam.stringId = new string_id("spam", "level_up_stat_gain_7");
-            ppStatGainSpam.digitInteger = actionDelta;
-            sendSystemMessageProse(player, ppStatGainSpam);
-        }
+        // Publish 14.1 clients receive skill-box acquisition feedback instead
+        // of NGE combat-level stat-gain spam.
     }
     public static String getProfessionName(String strTemplate) throws InterruptedException
     {
@@ -1035,54 +1070,13 @@ public class skill extends script.base_script
         {
             return;
         }
-        int intLevel = getLevel(objPlayer);
-        if (intLevel < 0)
+        // Keep this compatibility hook for callers that request a heal, but do
+        // not recalculate any pool from NGE profession or combat-level tables.
+        if (boolHealEverything)
         {
-            intLevel = 1;
-        }
-        else 
-        {
-            if (intLevel > 90)
-            {
-                intLevel = 90;
-            }
-        }
-        String strProfession = getProfessionName(getSkillTemplate(objPlayer));
-        if (strProfession != null && strProfession.length() > 0)
-        {
-            player_levels.level_data stats = player_levels.getPlayerLevelData(strProfession, intLevel);
-            if (stats == null)
-            {
-                LOG("skill.scriptlib", "recalcPlayerPools stats == null");
-                return;
-            }
-            int intBaseHealth = stats.health;
-            int intBaseAction = stats.action;
-            int intConstitution = getSkillStatisticModifier(objPlayer, "constitution");
-            int intStamina = getSkillStatisticModifier(objPlayer, "stamina");
-            intConstitution += getEnhancedSkillStatisticModifierUncapped(objPlayer, "constitution_modified");
-            intStamina += getEnhancedSkillStatisticModifierUncapped(objPlayer, "stamina_modified");
-            intBaseHealth = intBaseHealth + (HEALTH_POINTS_PER_CONSTITUTION * intConstitution);
-            intBaseHealth = intBaseHealth + (HEALTH_POINTS_PER_STAMINA * intStamina);
-            intBaseAction = intBaseAction + (ACTION_POINTS_PER_STAMINA * intStamina);
-            intBaseAction = intBaseAction + (ACTION_POINTS_PER_CONSTITUTION * intConstitution);
-            setMaxAttrib(objPlayer, ACTION, intBaseAction);
-            setMaxAttrib(objPlayer, HEALTH, intBaseHealth);
-            int[] myBuffs = buff.getAllBuffs(objPlayer);
-            String thisBuffEffect;
-            for (int myBuff : myBuffs) {
-                thisBuffEffect = buff.getEffectParam(myBuff, 1);
-                float thisBuffValue = buff.getEffectValue(myBuff, 1);
-                if (thisBuffEffect != null && thisBuffValue < 0 && thisBuffEffect.equals("healthPercent")) {
-                    boolHealEverything = false;
-                    break;
-                }
-            }
-            if (boolHealEverything)
-            {
-                setAttrib(objPlayer, ACTION, getMaxAttrib(objPlayer, ACTION));
-                setAttrib(objPlayer, HEALTH, getMaxAttrib(objPlayer, HEALTH));
-            }
+            setAttrib(objPlayer, HEALTH, getMaxAttrib(objPlayer, HEALTH));
+            setAttrib(objPlayer, ACTION, getMaxAttrib(objPlayer, ACTION));
+            setAttrib(objPlayer, MIND, getMaxAttrib(objPlayer, MIND));
         }
     }
     public static void grantAllPoliticianSkills(obj_id player) throws InterruptedException
@@ -1118,65 +1112,18 @@ public class skill extends script.base_script
     }
     public static int getProfessionPhase(obj_id player) throws InterruptedException
     {
-        String[] phaseFourSkills = 
+        int combatScore = getPrecuCombatSkillScore(player);
+        if (combatScore >= PRECU_PHASE_FOUR_COMBAT_SCORE)
         {
-            "class_forcesensitive_phase4_novice",
-            "class_bountyhunter_phase4_novice",
-            "class_smuggler_phase4_novice",
-            "class_commando_phase4_novice",
-            "class_officer_phase4_novice",
-            "class_spy_phase4_novice",
-            "class_medic_phase4_novice",
-            "class_entertainer_phase4_novice",
-            "class_domestics_phase4_novice",
-            "class_structures_phase4_novice",
-            "class_munitions_phase4_novice",
-            "class_engineering_phase4_novice"
-        };
-        String[] phaseThreeSkills = 
-        {
-            "class_forcesensitive_phase3_novice",
-            "class_bountyhunter_phase3_novice",
-            "class_smuggler_phase3_novice",
-            "class_commando_phase3_novice",
-            "class_officer_phase3_novice",
-            "class_spy_phase3_novice",
-            "class_medic_phase3_novice",
-            "class_entertainer_phase3_novice",
-            "class_domestics_phase3_novice",
-            "class_structures_phase3_novice",
-            "class_munitions_phase3_novice",
-            "class_engineering_phase3_novice"
-        };
-        String[] phaseTwoSkills = 
-        {
-            "class_forcesensitive_phase2_novice",
-            "class_bountyhunter_phase2_novice",
-            "class_smuggler_phase2_novice",
-            "class_commando_phase2_novice",
-            "class_officer_phase2_novice",
-            "class_spy_phase2_novice",
-            "class_medic_phase2_novice",
-            "class_entertainer_phase2_novice",
-            "class_domestics_phase2_novice",
-            "class_structures_phase2_novice",
-            "class_munitions_phase2_novice",
-            "class_engineering_phase2_novice"
-        };
-        for (String phaseFourSkill : phaseFourSkills) {
-            if (hasSkill(player, phaseFourSkill)) {
-                return PHASE_FOUR;
-            }
+            return PHASE_FOUR;
         }
-        for (String phaseThreeSkill : phaseThreeSkills) {
-            if (hasSkill(player, phaseThreeSkill)) {
-                return PHASE_THREE;
-            }
+        if (combatScore >= PRECU_PHASE_THREE_COMBAT_SCORE)
+        {
+            return PHASE_THREE;
         }
-        for (String phaseTwoSkill : phaseTwoSkills) {
-            if (hasSkill(player, phaseTwoSkill)) {
-                return PHASE_TWO;
-            }
+        if (combatScore >= PRECU_PHASE_TWO_COMBAT_SCORE)
+        {
+            return PHASE_TWO;
         }
         return PHASE_ONE;
     }
@@ -1191,45 +1138,15 @@ public class skill extends script.base_script
         {
             return false;
         }
-        String skillTemplate = getSkillTemplate(player);
-        String profession = getProfessionName(skillTemplate);
-        boolean isTrader = false;
-        if (profession.equals("trader"))
-        {
-            isTrader = true;
-            if (skillTemplate.equals("trader_0a"))
-            {
-                profession = "trader_dom";
-            }
-            if (skillTemplate.equals("trader_0b"))
-            {
-                profession = "trader_struct";
-            }
-            if (skillTemplate.equals("trader_0c"))
-            {
-                profession = "trader_mun";
-            }
-            if (skillTemplate.equals("trader_0d"))
-            {
-                profession = "trader_eng";
-            }
-        }
-        for (String expertiseSkill : expertiseSkills) {
-            int row = dataTableSearchColumnForString(expertiseSkill, "NAME", DATATABLE_EXPERTISE);
-            if (row < 0) {
-                continue;
-            }
-            String reqProf = dataTableGetString(DATATABLE_EXPERTISE, row, "REQ_PROF");
-            if (!reqProf.equals(profession)) {
-                if ((!reqProf.equals("trader") || !isTrader) && !reqProf.equals("all")) {
-                    sendSystemMessage(player, SID_EXPERTISE_WRONG_PROFESSION);
-                    utils.fullExpertiseReset(player, false);
-                    CustomerServiceLog("SuspectedCheaterChannel: ", "DualProfessionCheat: Player " + getFirstName(player) + "(" + player + ") has an expertise that is not for thier profession. All expertises have been revoked.");
-                    CustomerServiceLog("SuspectedCheaterChannel: ", "DualProfessionCheat: Player " + getFirstName(player) + "(" + player + ")'s profession is " + profession + " and the skill they have is " + expertiseSkill + ".");
-                    return false;
-                }
-            }
-        }
-        return true;
+        // Expertises are an NGE progression layer. Remove only the persisted
+        // expertise allocation; the broad later-era reset also strips buffs
+        // and mutates respec state that Publish 14.1 owns independently.
+        resetExpertises(player);
+        CustomerServiceLog(
+            "precuExpertiseRetirement:",
+            "Player " + getFirstName(player) + "(" + player +
+            ") had " + expertiseSkills.length +
+            " later-era expertise allocation(s) removed.");
+        return false;
     }
 }

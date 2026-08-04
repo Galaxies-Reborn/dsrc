@@ -11,6 +11,16 @@ public class npc_difficulty_token extends script.base_script
     public npc_difficulty_token()
     {
     }
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        detachScript(self, "systems.storyteller.npc_difficulty_token");
+        return SCRIPT_CONTINUE;
+    }
+    public int OnInitialize(obj_id self) throws InterruptedException
+    {
+        detachScript(self, "systems.storyteller.npc_difficulty_token");
+        return SCRIPT_CONTINUE;
+    }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
         if (!utils.isNestedWithin(self, player))

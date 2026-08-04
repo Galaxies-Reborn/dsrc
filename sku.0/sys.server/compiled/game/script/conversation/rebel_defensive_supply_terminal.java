@@ -15,7 +15,7 @@ public class rebel_defensive_supply_terminal extends script.base_script
     }
     public boolean rebel_defensive_supply_terminal_condition_isTrader(obj_id player, obj_id npc) throws InterruptedException
     {
-        int level = utils.getLevel(player);
+        int level = script.library.skill.getPrecuCraftingContentDifficulty(player);
         if (utils.isProfession(player, utils.TRADER) && (level > 45))
         {
             return true;

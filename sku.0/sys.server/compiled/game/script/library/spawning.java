@@ -259,4 +259,72 @@ public class spawning extends script.base_script
 
         return true;
     }
+    public static boolean isRetiredEmpireDaySpawner(obj_id spawner) throws InterruptedException
+    {
+        if (!isValidId(spawner))
+        {
+            return false;
+        }
+        if (hasObjVar(spawner, "eventRequired") && getStringObjVar(spawner, "eventRequired").equals("empireday_ceremony"))
+        {
+            return true;
+        }
+        if (!hasObjVar(spawner, "strSpawns"))
+        {
+            return false;
+        }
+        String spawn = getStringObjVar(spawner, "strSpawns");
+        if (spawn == null)
+        {
+            return false;
+        }
+        return spawn.startsWith("at_st_empire_day_") ||
+            spawn.startsWith("imp_empireday_") ||
+            spawn.startsWith("reb_empireday_") ||
+            spawn.startsWith("imperial_emperorsday_") ||
+            spawn.startsWith("rebel_emperorsday_") ||
+            spawn.startsWith("imperial_detainment_") ||
+            spawn.startsWith("imperial_marine_detainment_") ||
+            spawn.startsWith("rebel_detainment_");
+    }
+    public static boolean isRetiredLoveDaySpawner(obj_id spawner) throws InterruptedException
+    {
+        if (!isValidId(spawner))
+        {
+            return false;
+        }
+        if (hasObjVar(spawner, "eventRequired") &&
+            (getStringObjVar(spawner, "eventRequired").equals("loveday") ||
+            getStringObjVar(spawner, "eventRequired").equals("life_day")))
+        {
+            return true;
+        }
+        if (!hasObjVar(spawner, "strSpawns"))
+        {
+            return false;
+        }
+        String spawn = getStringObjVar(spawner, "strSpawns");
+        return spawn != null && spawn.startsWith("loveday_");
+    }
+    public static void cleanupRetiredSpawnerChildren(obj_id spawner) throws InterruptedException
+    {
+        if (!isValidId(spawner))
+        {
+            return;
+        }
+        obj_id[] children = getAllObjectsWithObjVar(getLocation(spawner), 32000.0f, "objParent");
+        if (children != null)
+        {
+            for (obj_id child : children)
+            {
+                if (isValidId(child) && exists(child) &&
+                    getObjIdObjVar(child, "objParent") == spawner)
+                {
+                    destroyObject(child);
+                }
+            }
+        }
+        utils.removeScriptVar(spawner, "debugSpawnList");
+        utils.removeScriptVar(spawner, "intCurrentSpawnCount");
+    }
 }

@@ -9,14 +9,15 @@ public class combat_player extends script.systems.combat.combat_base
     public combat_player()
     {
     }
+    public int peace(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        queueClear(self);
+        stopCombat(self);
+        return SCRIPT_CONTINUE;
+    }
     public int OnExitedCombat(obj_id self) throws InterruptedException
     {
         combat.clearCombatDebuffs(self);
-        int fatigue = getShockWound(self);
-        if (fatigue > 0)
-        {
-            setShockWound(self, 0);
-        }
         setState(self, STATE_PEACE, false);
         obj_id objMount = getMountId(self);
         if (isIdValid(objMount))
@@ -92,14 +93,6 @@ public class combat_player extends script.systems.combat.combat_base
             queueCommand(self, (-1465754503), null, "", COMMAND_PRIORITY_FRONT);
             return SCRIPT_CONTINUE;
         }
-        if ((intCombatResult == COMBAT_RESULT_EVADE || intCombatResult == COMBAT_RESULT_MISS) && buff.isInStance(self))
-        {
-            int riposte = (int)getSkillStatisticModifier(self, "expertise_stance_riposte");
-            if (riposte > 0 && riposte > rand(0, 99))
-            {
-                queueCommand(self, (1127093938), objAttacker, "", COMMAND_PRIORITY_DEFAULT);
-            }
-        }
         return SCRIPT_CONTINUE;
     }
     public int OnAboutToReceiveItem(obj_id self, obj_id objContainer, obj_id objTransferer, obj_id objItem) throws InterruptedException
@@ -131,15 +124,6 @@ public class combat_player extends script.systems.combat.combat_base
     {
         if (isWeapon(objItem))
         {
-            int weaponType = getWeaponType(objItem);
-            if (weaponType != WEAPON_TYPE_LIGHT_RIFLE)
-            {
-                int onslaughtBuff = buff.getBuffOnTargetFromGroup(self, "bh_relentless_onslaught");
-                if (onslaughtBuff != 0)
-                {
-                    buff.removeBuff(self, onslaughtBuff);
-                }
-            }
             if (!combat.hasCertification(self, objItem))
             {
                 string_id strSpam = new string_id("combat_effects", "no_proficiency");
@@ -150,10 +134,6 @@ public class combat_player extends script.systems.combat.combat_base
     }
     public int OnDeath(obj_id self, obj_id killer, obj_id corpseId) throws InterruptedException
     {
-        if (hasSkill(self, "expertise_of_last_words_1"))
-        {
-            buff.applyBuff(self, "exclude_self_exclusive_proxy_of_last_words");
-        }
         return SCRIPT_CONTINUE;
     }
     public int target(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException

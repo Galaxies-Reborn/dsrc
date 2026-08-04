@@ -31,8 +31,37 @@ public class consume_click extends script.base_script
     public static final string_id SID_CONTROL_ACCESS_DELAY = new string_id("collection", "access_delay");
     public static final string_id SID_GCW_SENSITIVE_DATA = new string_id("collection", "gcw_sensitive_data");
     public static final string_id SID_GCW_NO_DATA = new string_id("collection", "gcw_no_data");
+    public boolean isRetiredFixedStaticBaseCollection(obj_id self) throws InterruptedException
+    {
+        String template = getTemplateName(self);
+        return gcw.isPostNgeFixedStaticBaseRetired() && template != null && template.startsWith("object/tangible/collection/col_gcw_static_base_");
+    }
+    public void cleanupRetiredFixedStaticBaseCollection(obj_id self) throws InterruptedException
+    {
+        if (!isRetiredFixedStaticBaseCollection(self))
+        {
+            return;
+        }
+        utils.removeScriptVarTree(self, "collection.gcw");
+        detachScript(self, "systems.collections.consume_click");
+    }
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        cleanupRetiredFixedStaticBaseCollection(self);
+        return SCRIPT_CONTINUE;
+    }
+    public int OnInitialize(obj_id self) throws InterruptedException
+    {
+        cleanupRetiredFixedStaticBaseCollection(self);
+        return SCRIPT_CONTINUE;
+    }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (isRetiredFixedStaticBaseCollection(self))
+        {
+            cleanupRetiredFixedStaticBaseCollection(self);
+            return SCRIPT_OVERRIDE;
+        }
         obj_id collectionItem = self;
         if (hasObjVar(collectionItem, "useStringFile") && hasObjVar(collectionItem, "useMenu"))
         {
@@ -55,6 +84,11 @@ public class consume_click extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (isRetiredFixedStaticBaseCollection(self))
+        {
+            cleanupRetiredFixedStaticBaseCollection(self);
+            return SCRIPT_OVERRIDE;
+        }
         sendDirtyObjectMenuNotification(self);
         obj_id collectionItem = self;
         if (item != menu_info_types.ITEM_USE)

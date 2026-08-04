@@ -10,7 +10,6 @@ public class camp_controlpanel extends script.base_script
     public camp_controlpanel()
     {
     }
-    public static final float FIELD_COST_MULTIPLER = 1.15f;
     public static final string_id SID_MNU_DISBAND = new string_id("camp", "mnu_disband");
     public static final string_id SID_MNU_STATUS = new string_id("camp", "mnu_status");
     public static final string_id SID_MNU_WAYPOINT = new string_id("camp", "mnu_waypoint");
@@ -18,12 +17,6 @@ public class camp_controlpanel extends script.base_script
     public static final string_id SID_NO_GROUP = new string_id("camp", "waypoint_no_group");
     public static final string_id SID_CAMP_UP = new string_id("camp", "waypoint_camp_up");
     public static final string_id SID_WAYPOINT_SENT = new string_id("camp", "waypoint_sent");
-    public static final string_id SID_SELECT_SUB_MENU = new string_id("camp", "select_sub_menu");
-    public static final string_id SID_MNU_REQUISITION = new string_id("camp", "mnu_requisition");
-    public static final string_id SID_MNU_REQUISITION_WPN = new string_id("camp", "mnu_requisition_wpn");
-    public static final string_id SID_MNU_REQUISITION_INSTALLATION = new string_id("camp", "mnu_requisition_installation");
-    public static final string_id SID_SUI_FIELD_REQ_TITLE = new string_id("camp", "sui_field_req_title");
-    public static final string_id SID_SUI_FIELD_REQ_PROMPT = new string_id("camp", "sui_field_req_prompt");
     public static final string_id SID_SUI_CAMP_STATUS_TITLE = new string_id("camp", "sui_camp_status_title");
     public static final string_id SID_SUI_CAMP_STATUS_PROMPT = new string_id("camp", "sui_camp_status_prompt");
     public static final string_id SID_SUI_CAMP_STATUS_OWNER = new string_id("camp", "sui_camp_status_owner");
@@ -64,20 +57,6 @@ public class camp_controlpanel extends script.base_script
                 mi.addRootMenu(menu_info_types.SERVER_CAMP_DISBAND, SID_MNU_DISBAND);
             }
             mi.addRootMenu(menu_info_types.SERVER_MENU1, SID_MNU_STATUS);
-            int mFac = pvpGetAlignedFaction(master);
-            if (mFac != 0)
-            {
-                int pFac = pvpGetAlignedFaction(player);
-                if (pFac == mFac && factions.isDeclared(player))
-                {
-                    int mnuReq = mi.addRootMenu(menu_info_types.SERVER_MENU3, SID_MNU_REQUISITION);
-                    if (mnuReq > -1)
-                    {
-                        mi.addSubMenu(mnuReq, menu_info_types.SERVER_MENU4, SID_MNU_REQUISITION_WPN);
-                        mi.addSubMenu(mnuReq, menu_info_types.SERVER_MENU5, SID_MNU_REQUISITION_INSTALLATION);
-                    }
-                }
-            }
         }
         return SCRIPT_CONTINUE;
     }
@@ -113,34 +92,6 @@ public class camp_controlpanel extends script.base_script
         else if (item == menu_info_types.SERVER_CAMP_ASSUME_OWNERSHIP)
         {
         }
-        else 
-        {
-            int mFac = pvpGetAlignedFaction(master);
-            if (mFac != 0)
-            {
-                int pFac = pvpGetAlignedFaction(player);
-                if (pFac == mFac && factions.isDeclared(player))
-                {
-                    if (item == menu_info_types.SERVER_MENU3)
-                    {
-                        sendSystemMessage(player, SID_SELECT_SUB_MENU);
-                    }
-                    else if (item == menu_info_types.SERVER_MENU4)
-                    {
-                        faction_perk.displayItemPurchaseSUI(player, pvpGetCurrentGcwRank(player), factions.getFaction(player), FIELD_COST_MULTIPLER);
-                    }
-                    else if (item == menu_info_types.SERVER_MENU5)
-                    {
-                        faction_perk.displayItemPurchaseSUI(player, pvpGetCurrentGcwRank(player), factions.getFaction(player), FIELD_COST_MULTIPLER);
-                    }
-                }
-            }
-        }
-        return SCRIPT_CONTINUE;
-    }
-    public int msgFactionItemPurchaseSelected(obj_id self, dictionary params) throws InterruptedException
-    {
-        faction_perk.factionItemPurchased(params, FIELD_COST_MULTIPLER);
         return SCRIPT_CONTINUE;
     }
     public void showStatus(obj_id self, obj_id player) throws InterruptedException

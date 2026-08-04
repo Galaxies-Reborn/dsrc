@@ -38,6 +38,8 @@ public class performance extends script.base_script
     public static final float PERFORMANCE_FLOURISH_ROUNDTIME = 0.0f;
     public static final float PERFORMANCE_EFFECT_ROUNDTIME = 2.0f;
     public static final float PERFORMANCE_HEAL_RANGE = 60.0f;
+    public static final float PRECU_HEALING_XP_GROUP_RANGE = 40.0f;
+    public static final int PRECU_BUILDING_SHOCK_HEAL_MOD = 5;
     public static final float PERFORMANCE_INSPIRE_RANGE = 20.0f;
     public static final float PERFORMANCE_XP_RANGE = 30.0f;
     public static final float PERFORMANCE_OUTRO_ROUNDTIME = 15.0f;
@@ -83,6 +85,20 @@ public class performance extends script.base_script
     public static final String VAR_SELECT_MUSIC_BAND = "performance.band_command";
     public static final String VAR_PERFORM_MOOD = "performance.old_mood";
     public static final String VAR_PERFORM_BUFF_TARGET = "performance.buff_target";
+    public static final String VAR_PRECU_BUFF_SESSION =
+        "performance.precu_buff_session.";
+    public static final float PRECU_BUFF_DURATION_PER_TICK_MINUTES = 2.0f;
+    public static final float PRECU_BUFF_MAX_DURATION_MINUTES =
+        120.0f + (10.0f / 60.0f);
+    public static final int PRECU_BUFF_MIN_SESSION_SECONDS = 60;
+    public static final float PRECU_BUFF_MIN_DURATION_SECONDS = 10.0f;
+    public static final int PRECU_BUFF_MAX_STRENGTH_PERCENT = 125;
+    public static final String PRECU_DANCE_MIND_BUFF =
+        "performance_enhance_dance_mind";
+    public static final String PRECU_MUSIC_FOCUS_BUFF =
+        "performance_enhance_music_focus";
+    public static final String PRECU_MUSIC_WILLPOWER_BUFF =
+        "performance_enhance_music_willpower";
     public static final String VAR_HEALING_XP_WOUND = "performance.healing_xp.wound";
     public static final String VAR_HEALING_XP_DAMAGE = "performance.healing_xp.damage";
     public static final String VAR_HEALING_XP_BUFF = "performance.healing_xp.buff";
@@ -348,6 +364,8 @@ public class performance extends script.base_script
     {
         obj_id watchTarget = getPerformanceWatchTarget(actor);
         obj_id listenTarget = getPerformanceListenTarget(actor);
+        activatePrecuEntertainerBuffSession(
+            actor, listenTarget, PERFORMANCE_TYPE_MUSIC);
         stopListeningToMessage(listenTarget, "handlePerformerStartPerforming");
         stopListeningToMessage(listenTarget, "handlePerformerStopPerforming");
         removeTriggerVolume("performance_listen_volume");
@@ -419,6 +437,8 @@ public class performance extends script.base_script
         setPerformanceListenTarget(actor, target);
         if (actor != target)
         {
+            beginPrecuEntertainerBuffSession(
+                actor, target, PERFORMANCE_TYPE_MUSIC);
             listenToMessage(target, "handlePerformerStopPerforming");
             createTriggerVolume("performance_listen_volume", PERFORMANCE_HEAL_RANGE, true);
             addTriggerVolumeEventSource("performance_listen_volume", target);
@@ -459,6 +479,8 @@ public class performance extends script.base_script
     {
         obj_id watchTarget = getPerformanceWatchTarget(actor);
         obj_id listenTarget = getPerformanceListenTarget(actor);
+        activatePrecuEntertainerBuffSession(
+            actor, watchTarget, PERFORMANCE_TYPE_DANCE);
         stopListeningToMessage(watchTarget, "handlePerformerStartPerforming");
         stopListeningToMessage(watchTarget, "handlePerformerStopPerforming");
         removeTriggerVolume("performance_watch_volume");
@@ -527,6 +549,11 @@ public class performance extends script.base_script
             }
         }
         setPerformanceWatchTarget(actor, target);
+        if (actor != target)
+        {
+            beginPrecuEntertainerBuffSession(
+                actor, target, PERFORMANCE_TYPE_DANCE);
+        }
         listenToMessage(target, "handlePerformerStopPerforming");
         createTriggerVolume("performance_watch_volume", PERFORMANCE_HEAL_RANGE, true);
         addTriggerVolumeEventSource("performance_watch_volume", target);
@@ -1662,24 +1689,20 @@ public class performance extends script.base_script
             dictionary params = new dictionary();
             messageTo(actor, "OnClearFlourish", params, PERFORMANCE_FLOURISH_ROUNDTIME, false);
         }
-        float flourishCost = 0;
         String entertainmentType = "";
         if (hasScript(actor, MUSIC_HEARTBEAT_SCRIPT))
         {
-            flourishCost = 0.5f;
             entertainmentType = "music";
         }
         else if (hasScript(actor, DANCE_HEARTBEAT_SCRIPT))
         {
-            flourishCost = 1.0f;
             entertainmentType = "dance";
         }
         else if (hasScript(actor, JUGGLE_HEARTBEAT_SCRIPT))
         {
-            flourishCost = 1.0f;
             entertainmentType = "juggle";
         }
-        if (applyPerformanceActionCost(actor, flourishCost))
+        if (applyPerformanceFlourishActionCost(actor))
         {
             performanceMessageToSelf(actor, null, SID_FLOURISH_PERFORM);
         }
@@ -1829,7 +1852,7 @@ public class performance extends script.base_script
                 dictionary params = new dictionary();
                 messageTo(player, "OnClearFlourish", params, PERFORMANCE_FLOURISH_ROUNDTIME, false);
             }
-            if (applyPerformanceActionCost(player, 0.5f))
+            if (applyPerformanceFlourishActionCost(player))
             {
                 performanceMessageToSelf(player, null, SID_FLOURISH_PERFORM);
             }
@@ -2109,150 +2132,487 @@ public class performance extends script.base_script
     }
     public static boolean performanceHeal(obj_id actor, String perf_type, float modifier) throws InterruptedException
     {
-        if (!isIdValid(actor))
+        if (!isIdValid(actor) || !isPlayer(actor))
         {
             return false;
         }
-        if (!isPlayer(actor))
+        if (canPerformanceHeal(actor) == 0)
         {
             return false;
         }
-        int can_heal = canPerformanceHeal(actor);
-        if (can_heal == 0)
+
+        int performanceIndex = getPerformanceType(actor);
+        if (performanceIndex <= 0)
         {
             return false;
         }
+
         obj_id[] audience;
         if (perf_type.equals(PERFORMANCE_TYPE_DANCE))
         {
-            audience = getPerformanceWatchersInRange(actor, PERFORMANCE_INSPIRE_RANGE);
+            audience =
+                getPerformanceWatchersInRange(actor, PERFORMANCE_HEAL_RANGE);
         }
         else if (perf_type.equals(PERFORMANCE_TYPE_MUSIC))
         {
-            audience = getPerformanceListenersInRange(actor, PERFORMANCE_INSPIRE_RANGE);
+            audience =
+                getPerformanceListenersInRange(actor, PERFORMANCE_HEAL_RANGE);
         }
-        else 
+        else
         {
             return false;
         }
-        if (audience.length < 1)
+
+        int flourishCount =
+            Math.max(0, getIntObjVar(actor, VAR_PERFORM_FLOURISH_COUNT));
+        int amountHealed = applyPrecuEntertainerHealing(
+            actor,
+            actor,
+            perf_type,
+            performanceIndex,
+            flourishCount,
+            true,
+            modifier);
+
+        for (obj_id patron : audience)
+        {
+            if (!isIdValid(patron) || !exists(patron) || patron == actor)
+            {
+                continue;
+            }
+            increasePrecuEntertainerBuffSession(
+                actor,
+                patron,
+                perf_type,
+                performanceIndex,
+                1 + Math.min(5, flourishCount));
+            amountHealed += applyPrecuEntertainerHealing(
+                actor,
+                patron,
+                perf_type,
+                performanceIndex,
+                flourishCount,
+                true,
+                modifier);
+        }
+        return amountHealed > 0;
+    }
+    public static int applyPrecuEntertainerHealing(
+        obj_id actor,
+        obj_id target,
+        String perfType,
+        int performanceIndex,
+        int flourishCount,
+        boolean canHealBattleFatigue,
+        float modifier) throws InterruptedException
+    {
+        if (!isIdValid(actor) || !isIdValid(target) ||
+            !exists(target) || performanceIndex <= 0 ||
+            modifier <= 0.0f)
+        {
+            return 0;
+        }
+        if (target != actor && checkDenyService(actor, target))
+        {
+            return 0;
+        }
+
+        String woundSkill;
+        String shockSkill;
+        if (perfType.equals(PERFORMANCE_TYPE_DANCE))
+        {
+            woundSkill = "healing_dance_wound";
+            shockSkill = "healing_dance_shock";
+        }
+        else if (perfType.equals(PERFORMANCE_TYPE_MUSIC))
+        {
+            woundSkill = "healing_music_wound";
+            shockSkill = "healing_music_shock";
+        }
+        else
+        {
+            return 0;
+        }
+
+        int factionSkill =
+            getSkillStatMod(actor, "private_faction_mind_heal");
+        int woundSkillValue =
+            getSkillStatMod(actor, woundSkill) + factionSkill;
+        int shockSkillValue =
+            getSkillStatMod(actor, shockSkill) + factionSkill;
+        if (canHealBattleFatigue)
+        {
+            shockSkillValue += PRECU_BUILDING_SHOCK_HEAL_MOD;
+        }
+
+        int woundHeal = (int)Math.ceil(
+            getPerformanceHealWoundMod(performanceIndex) *
+                (woundSkillValue / 100.0f));
+        int shockHeal = (int)Math.ceil(
+            getPerformanceHealShockMod(performanceIndex) *
+                (shockSkillValue / 100.0f));
+        int flourishMultiplier = Math.max(0, flourishCount) + 1;
+        woundHeal =
+            (int)(woundHeal * flourishMultiplier * modifier);
+        shockHeal =
+            (int)(shockHeal * flourishMultiplier * modifier);
+
+        int amountHealed = 0;
+        if (canHealBattleFatigue && shockHeal > 0 &&
+            getShockWound(target) > 0)
+        {
+            healShockWound(
+                target,
+                Math.min(shockHeal, getShockWound(target)));
+            amountHealed += shockHeal;
+        }
+        if (woundHeal > 0 &&
+            (getAttribWound(target, MIND) > 0 ||
+            getAttribWound(target, FOCUS) > 0 ||
+            getAttribWound(target, WILLPOWER) > 0))
+        {
+            healWound(
+                target,
+                MIND,
+                Math.min(woundHeal, getAttribWound(target, MIND)));
+            healWound(
+                target,
+                FOCUS,
+                Math.min(woundHeal, getAttribWound(target, FOCUS)));
+            healWound(
+                target,
+                WILLPOWER,
+                Math.min(woundHeal, getAttribWound(target, WILLPOWER)));
+            amountHealed += woundHeal;
+        }
+
+        grantPrecuEntertainerHealingXp(actor, amountHealed);
+        return amountHealed;
+    }
+    public static void beginPrecuEntertainerBuffSession(
+        obj_id patron,
+        obj_id entertainer,
+        String perfType) throws InterruptedException
+    {
+        if (!isIdValid(patron) || !isIdValid(entertainer) ||
+            patron == entertainer)
+        {
+            return;
+        }
+        String root = getPrecuEntertainerBuffSessionRoot(entertainer);
+        clearPrecuEntertainerBuffSession(patron, entertainer);
+        utils.setScriptVar(patron, root + ".started", getGameTime());
+        utils.setScriptVar(patron, root + ".duration", 0.0f);
+        utils.setScriptVar(patron, root + ".strength", 0.0f);
+        utils.setScriptVar(patron, root + ".type", perfType);
+    }
+    public static boolean increasePrecuEntertainerBuffSession(
+        obj_id entertainer,
+        obj_id patron,
+        String perfType,
+        int performanceIndex,
+        int increments) throws InterruptedException
+    {
+        if (!isIdValid(entertainer) || !isIdValid(patron) ||
+            !exists(patron) || patron == entertainer ||
+            performanceIndex <= 0 || increments <= 0 ||
+            !isPrecuEntertainerBuffTarget(entertainer, patron))
         {
             return false;
         }
-        int audienceMod = 0;
-        prose_package pt = new prose_package();
-        pt.target.set(actor);
-        pt.stringId = new string_id("spam", "cured_clonesick");
-        prose_package pa = new prose_package();
-        pa.stringId = new string_id("spam", "cured_clonesick_actor");
-        for (obj_id obj_id1 : audience) {
-            if (!isIdValid(obj_id1) || !exists(obj_id1)) {
-                continue;
-            }
-            if (checkDenyService(actor, obj_id1)) {
-                continue;
-            }
-            if (utils.hasScriptVar(obj_id1, VAR_PERFORM_PAY_WAIT)) {
-                continue;
-            }
-            if (buff.hasBuff(obj_id1, "cloning_sickness")) {
-                buff.removeBuff(obj_id1, "cloning_sickness");
-                playClientEffectObj(obj_id1, "appearance/pt_heal.prt", obj_id1, "");
-                if (!utils.hasScriptVar(obj_id1, VAR_PERFROM_ALREADY_PAID)) {
-                    int charge = utils.getIntScriptVar(obj_id1, performance.VAR_PERFORM_PAY_AGREE);
-                    if (charge > 0) {
-                        money.systemPayout(money.ACCT_PERFORM_ESCROW, actor, charge, "handlePayment", null);
-                        utils.setScriptVar(obj_id1, VAR_PERFROM_ALREADY_PAID, 1);
-                    }
-                }
-                if (obj_id1 != actor) {
-                    sendSystemMessageProse(obj_id1, pt);
-                }
-                pa.target.set(obj_id1);
-                sendSystemMessageProse(actor, pa);
-                audienceMod++;
-            }
-            if (buff.hasBuff(obj_id1, "gcw_fatigue")) {
-                if (groundquests.isQuestActive(actor, "gcw_entertain_fatigue") && factions.isSameFactionorFactionHelper(actor, obj_id1)) {
-                    pt.stringId = new string_id("spam", "cured_fatigue");
-                    pa.stringId = new string_id("spam", "cured_fatigued_actor");
-                    int stackSize = (int) buff.getBuffStackCount(obj_id1, "gcw_fatigue");
-                    if (stackSize <= 0) {
-                        continue;
-                    } else if (stackSize <= 5) {
-                        buff.removeBuff(obj_id1, "gcw_fatigue");
-                    } else if (stackSize > 5) {
-                        stackSize = stackSize - 5;
-                        buff.removeBuff(obj_id1, "gcw_fatigue");
-                        buff.applyBuffWithStackCount(obj_id1, "gcw_fatigue", stackSize);
-                    }
-                    groundquests.sendSignal(actor, "cureFatigue");
-                    obj_id cityEggId = gcw.getInvasionSequencerNearby(actor);
-                    if (isValidId(cityEggId)) {
-                        trial.addNonInstanceFactionParticipant(actor, cityEggId);
-                    }
-                    prose_package gcw_fatigue_pt = new prose_package();
-                    pt.target.set(actor);
-                    pt.stringId = new string_id("spam", "cured_fatigue");
-                    prose_package gcw_fatigue_pa = new prose_package();
-                    pa.stringId = new string_id("spam", "cured_fatigued_actor");
-                    playClientEffectObj(obj_id1, "appearance/pt_heal.prt", obj_id1, "");
-                    if (!utils.hasScriptVar(obj_id1, VAR_PERFROM_ALREADY_PAID)) {
-                        int charge = utils.getIntScriptVar(obj_id1, performance.VAR_PERFORM_PAY_AGREE);
-                        if (charge > 0) {
-                            money.systemPayout(money.ACCT_PERFORM_ESCROW, actor, charge, "handlePayment", null);
-                            utils.setScriptVar(obj_id1, VAR_PERFROM_ALREADY_PAID, 1);
-                        }
-                    }
-                    if (obj_id1 != actor) {
-                        sendSystemMessageProse(obj_id1, pt);
-                    }
-                    pa.target.set(obj_id1);
-                    sendSystemMessageProse(actor, pa);
-                    audienceMod++;
-                }
-            }
+
+        String root = getPrecuEntertainerBuffSessionRoot(entertainer);
+        if (!utils.hasScriptVar(patron, root + ".started") ||
+            !utils.hasScriptVar(patron, root + ".type") ||
+            !perfType.equals(
+                utils.getStringScriptVar(patron, root + ".type")))
+        {
+            return false;
         }
-        int experience = (CURE_CLONING_SICKNESS_XP * audienceMod);
-        obj_id[] band = getBandMembers(actor);
-        for (obj_id obj_id : band) {
-            xp.grantSocialStyleXp(obj_id, xp.ENTERTAINER, experience);
-        }
+
+        float acceleration =
+            1.0f +
+            (getSkillStatMod(
+                entertainer, "accelerate_entertainer_buff") / 100.0f);
+        float duration = utils.getFloatScriptVar(
+            patron, root + ".duration");
+        duration +=
+            PRECU_BUFF_DURATION_PER_TICK_MINUTES *
+            acceleration *
+            increments;
+        duration = Math.min(PRECU_BUFF_MAX_DURATION_MINUTES, duration);
+
+        String mindSkill = perfType.equals(PERFORMANCE_TYPE_DANCE) ?
+            "healing_dance_mind" : "healing_music_mind";
+        int maxStrength = Math.min(
+            PRECU_BUFF_MAX_STRENGTH_PERCENT,
+            Math.max(0, getSkillStatMod(entertainer, mindSkill)));
+        float strength = utils.getFloatScriptVar(
+            patron, root + ".strength");
+        strength += getPerformanceHealShockMod(performanceIndex) * increments;
+        strength = Math.min(maxStrength, strength);
+
+        utils.setScriptVar(patron, root + ".duration", duration);
+        utils.setScriptVar(patron, root + ".strength", strength);
         return true;
+    }
+    public static boolean activatePrecuEntertainerBuffSession(
+        obj_id patron,
+        obj_id entertainer,
+        String perfType) throws InterruptedException
+    {
+        if (!isIdValid(patron) || !isIdValid(entertainer) ||
+            patron == entertainer)
+        {
+            return false;
+        }
+
+        String root = getPrecuEntertainerBuffSessionRoot(entertainer);
+        try
+        {
+            if (!utils.hasScriptVar(patron, root + ".started") ||
+                !utils.hasScriptVar(patron, root + ".duration") ||
+                !utils.hasScriptVar(patron, root + ".strength") ||
+                !utils.hasScriptVar(patron, root + ".type") ||
+                !perfType.equals(
+                    utils.getStringScriptVar(patron, root + ".type")) ||
+                !isPrecuEntertainerBuffTarget(entertainer, patron) ||
+                isIncapacitated(patron) || isDead(patron))
+            {
+                return false;
+            }
+
+            float durationMinutes = utils.getFloatScriptVar(
+                patron, root + ".duration");
+            float strengthPercent = utils.getFloatScriptVar(
+                patron, root + ".strength");
+            int started = utils.getIntScriptVar(patron, root + ".started");
+            if (durationMinutes * 60.0f <
+                    PRECU_BUFF_MIN_DURATION_SECONDS ||
+                getGameTime() - started <
+                    PRECU_BUFF_MIN_SESSION_SECONDS ||
+                strengthPercent <= 0.0f)
+            {
+                return false;
+            }
+            return applyPrecuEntertainerAttributeBuff(
+                patron,
+                perfType,
+                strengthPercent,
+                durationMinutes * 60.0f);
+        }
+        finally
+        {
+            clearPrecuEntertainerBuffSession(patron, entertainer);
+        }
+    }
+    public static boolean applyPrecuEntertainerAttributeBuff(
+        obj_id target,
+        String perfType,
+        float strengthPercent,
+        float durationSeconds) throws InterruptedException
+    {
+        if (!isIdValid(target) || !exists(target) ||
+            strengthPercent <= 0.0f || durationSeconds <= 0.0f)
+        {
+            return false;
+        }
+
+        if (perfType.equals(PERFORMANCE_TYPE_DANCE))
+        {
+            int mindValue = Math.round(
+                getUnmodifiedMaxAttrib(target, MIND) *
+                (strengthPercent / 100.0f));
+            if (getNamedAttribModifierValue(
+                    target, MIND, PRECU_DANCE_MIND_BUFF) > mindValue)
+            {
+                return false;
+            }
+            removeAttribOrSkillModModifier(
+                target, PRECU_DANCE_MIND_BUFF);
+            boolean applied = addAttribModifier(
+                target,
+                PRECU_DANCE_MIND_BUFF,
+                MIND,
+                mindValue,
+                durationSeconds,
+                0.0f,
+                0.0f,
+                true,
+                false,
+                true);
+            if (applied)
+            {
+                addBuffIcon(
+                    target, PRECU_DANCE_MIND_BUFF, durationSeconds);
+                sendSystemMessage(
+                    target,
+                    new string_id(
+                        "healing",
+                        "performance_enhance_dance_mind_d"));
+            }
+            return applied;
+        }
+        if (!perfType.equals(PERFORMANCE_TYPE_MUSIC))
+        {
+            return false;
+        }
+
+        int focusValue = Math.round(
+            getUnmodifiedMaxAttrib(target, FOCUS) *
+            (strengthPercent / 100.0f));
+        int willpowerValue = Math.round(
+            getUnmodifiedMaxAttrib(target, WILLPOWER) *
+            (strengthPercent / 100.0f));
+        if (getNamedAttribModifierValue(
+                target, FOCUS, PRECU_MUSIC_FOCUS_BUFF) > focusValue)
+        {
+            return false;
+        }
+
+        removeAttribOrSkillModModifier(target, PRECU_MUSIC_FOCUS_BUFF);
+        removeAttribOrSkillModModifier(target, PRECU_MUSIC_WILLPOWER_BUFF);
+        attrib_mod[] mods = new attrib_mod[2];
+        mods[0] = new attrib_mod(
+            PRECU_MUSIC_FOCUS_BUFF,
+            FOCUS,
+            focusValue,
+            durationSeconds,
+            0.0f,
+            0.0f,
+            true,
+            false,
+            true);
+        mods[1] = new attrib_mod(
+            PRECU_MUSIC_WILLPOWER_BUFF,
+            WILLPOWER,
+            willpowerValue,
+            durationSeconds,
+            0.0f,
+            0.0f,
+            true,
+            false,
+            true);
+        boolean applied = addAttribModifiers(target, mods);
+        if (applied)
+        {
+            addBuffIcon(
+                target, PRECU_MUSIC_FOCUS_BUFF, durationSeconds);
+            addBuffIcon(
+                target, PRECU_MUSIC_WILLPOWER_BUFF, durationSeconds);
+            sendSystemMessage(
+                target,
+                new string_id(
+                    "healing",
+                    "performance_enhance_music_focus_d"));
+            sendSystemMessage(
+                target,
+                new string_id(
+                    "healing",
+                    "performance_enhance_music_willpower_d"));
+        }
+        return applied;
+    }
+    private static int getNamedAttribModifierValue(
+        obj_id target,
+        int attrib,
+        String name) throws InterruptedException
+    {
+        attrib_mod[] mods = getAttribModifiers(target, attrib);
+        if (mods == null)
+        {
+            return Integer.MIN_VALUE;
+        }
+        for (attrib_mod mod : mods)
+        {
+            if (mod != null && name.equals(mod.getName()))
+            {
+                return mod.getValue();
+            }
+        }
+        return Integer.MIN_VALUE;
+    }
+    private static boolean isPrecuEntertainerBuffTarget(
+        obj_id entertainer,
+        obj_id patron) throws InterruptedException
+    {
+        if (getSkillStatMod(entertainer, "private_buff_mind") <= 0 ||
+            checkDenyService(entertainer, patron))
+        {
+            return false;
+        }
+
+        obj_id entertainerGroup = getGroupObject(entertainer);
+        if (isIdValid(entertainerGroup) &&
+            entertainerGroup == getGroupObject(patron))
+        {
+            return true;
+        }
+        return utils.hasScriptVar(
+                entertainer, VAR_PERFORM_BUFF_TARGET) &&
+            utils.getObjIdScriptVar(
+                entertainer, VAR_PERFORM_BUFF_TARGET) == patron;
+    }
+    private static String getPrecuEntertainerBuffSessionRoot(
+        obj_id entertainer)
+    {
+        return VAR_PRECU_BUFF_SESSION + entertainer;
+    }
+    private static void clearPrecuEntertainerBuffSession(
+        obj_id patron,
+        obj_id entertainer) throws InterruptedException
+    {
+        String root = getPrecuEntertainerBuffSessionRoot(entertainer);
+        utils.removeScriptVar(patron, root + ".started");
+        utils.removeScriptVar(patron, root + ".duration");
+        utils.removeScriptVar(patron, root + ".strength");
+        utils.removeScriptVar(patron, root + ".type");
+    }
+    private static void grantPrecuEntertainerHealingXp(
+        obj_id actor,
+        int amount) throws InterruptedException
+    {
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        obj_id group = getGroupObject(actor);
+        if (!isIdValid(group))
+        {
+            xp.grant(actor, xp.ENTERTAINER_HEALING, amount);
+            return;
+        }
+
+        obj_id[] members = getGroupMemberIds(group);
+        for (obj_id member : members)
+        {
+            if (!isIdValid(member) || !isPlayer(member) ||
+                getDistance(actor, member) > PRECU_HEALING_XP_GROUP_RANGE ||
+                !hasSkill(member, "social_entertainer_novice"))
+            {
+                continue;
+            }
+            if (hasScript(member, DANCE_HEARTBEAT_SCRIPT) ||
+                hasScript(member, MUSIC_HEARTBEAT_SCRIPT))
+            {
+                xp.grant(member, xp.ENTERTAINER_HEALING, amount);
+            }
+        }
     }
     public static float inspireGetMaxDuration(obj_id actor) throws InterruptedException
     {
-        int can_heal = canPerformanceHeal(actor);
-        float pctComplete = respec.getPercentageCompletion(actor, getSkillTemplate(actor));
-        float totInspireSkill = (pctComplete * 300.0f);
-        int city_id = city.checkCity(actor, false);
-        if (city_id > 0 && (city.cityHasSpec(city_id, city.SF_SPEC_ENTERTAINER)))
-        {
-            totInspireSkill = totInspireSkill * 2.2f;
-        }
-        float expertiseDurationIncreaseMod = getEnhancedSkillStatisticModifierUncapped(actor, "expertise_en_inspire_buff_duration_increase") * 60;
-        float maxDuration = (12100.0f - (12100.0f * (1.0f / ((totInspireSkill + (1.0f / 0.01f)) * 0.01f)))) + 3600.0f;
-        maxDuration += expertiseDurationIncreaseMod;
-        obj_id camp = camping.getCurrentAdvancedCamp(actor);
-        if (isIdValid(camp))
-        {
-            if (camping.isInEntertainmentCamp(actor, camp))
-            {
-                float campEffectiveness = getFloatObjVar(camp, "modules.entertainer");
-                if (campEffectiveness < 1.0f)
-                {
-                    maxDuration = maxDuration * campEffectiveness;
-                }
-            }
-        }
-        if (can_heal == 3)
-        {
-            maxDuration = maxDuration * 0.2f;
-        }
-        return maxDuration;
+        // The NGE profession-completion inspiration duration is not a
+        // Publish 14.1 mechanic. Pre-CU entertainer attribute buffs are a
+        // separate skill-mod/session restoration boundary.
+        return 0.0f;
     }
     public static boolean inspire(obj_id actor, String perf_type) throws InterruptedException
     {
+        if (!isNgeInspirationEnabled())
+        {
+            return false;
+        }
         if (!isIdValid(actor))
         {
             return false;
@@ -2335,6 +2695,10 @@ public class performance extends script.base_script
         }
         return true;
     }
+    private static boolean isNgeInspirationEnabled()
+    {
+        return false;
+    }
     private static String getFormattedInspirationDuration(float time) {
         String formattedTime = "";
         time /= 60;
@@ -2373,9 +2737,61 @@ public class performance extends script.base_script
         performanceMessageToPerson(target, actor, target, SID_BUFF_SET_TARGET_OTHER);
         return true;
     }
-    public static boolean applyPerformanceActionCost(obj_id actor, float modifier) throws InterruptedException
+    public static int calculatePerformanceLoopActionCost(obj_id actor)
+        throws InterruptedException
     {
-        return true;
+        int baseCost =
+            getPerformanceActionCost(getPerformanceType(actor));
+        float adjustedCost =
+            baseCost -
+            (((float)(getAttrib(actor, QUICKNESS) - 300) /
+                1200.0f) * baseCost);
+        if (adjustedCost < 0.0f)
+        {
+            adjustedCost = 0.0f;
+        }
+        return (int)adjustedCost;
+    }
+    public static int calculatePerformanceFlourishActionCost(
+        obj_id actor) throws InterruptedException
+    {
+        int baseCost =
+            getPerformanceActionCost(getPerformanceType(actor));
+        float baseActionDrain =
+            baseCost -
+            (int)(getAttrib(actor, QUICKNESS) / 35.0f);
+        if (baseActionDrain < 0.0f)
+        {
+            baseActionDrain = 0.0f;
+        }
+        float flourishActionDrain = baseActionDrain / 2.0f;
+        return Math.round(
+            (flourishActionDrain * 10.0f + 0.5f) / 10.0f);
+    }
+    public static boolean applyPerformanceLoopActionCost(obj_id actor)
+        throws InterruptedException
+    {
+        return applyCalculatedPerformanceActionCost(
+            actor,
+            calculatePerformanceLoopActionCost(actor));
+    }
+    public static boolean applyPerformanceFlourishActionCost(
+        obj_id actor) throws InterruptedException
+    {
+        return applyCalculatedPerformanceActionCost(
+            actor,
+            calculatePerformanceFlourishActionCost(actor));
+    }
+    private static boolean applyCalculatedPerformanceActionCost(
+        obj_id actor,
+        int actionCost) throws InterruptedException
+    {
+        if (getAttrib(actor, ACTION) <= actionCost)
+        {
+            return false;
+        }
+        return actionCost == 0 ||
+            drainAttributes(actor, actionCost, 0);
     }
     public static float getPerformanceMistakeChance(obj_id actor) throws InterruptedException
     {
@@ -2527,7 +2943,7 @@ public class performance extends script.base_script
             {
                 return false;
             }
-            else if (getLevel(actor) < 82)
+            else if (script.library.skill.getPrecuEntertainerContentDifficulty(actor) < 82)
             {
                 return false;
             }
@@ -2954,7 +3370,7 @@ public class performance extends script.base_script
         {
             return 0;
         }
-        if (!utils.isProfession(actor, utils.ENTERTAINER))
+        if (!hasSkill(actor, "social_entertainer_novice"))
         {
             return 0;
         }
@@ -2976,11 +3392,6 @@ public class performance extends script.base_script
         if (regs != null && regs.length > 0)
         {
             return 2;
-        }
-        int improv = (int)getSkillStatisticModifier(actor, "expertise_en_improv");
-        if (improv == 1)
-        {
-            return 3;
         }
         return 0;
     }

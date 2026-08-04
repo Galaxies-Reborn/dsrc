@@ -43,7 +43,7 @@ public class meatlump_guard_trigger_volume extends script.base_script
         {
             stealth.checkForAndMakeVisibleNoRecourse(self);
         }
-        int mobLevel = getLevel(whoTriggeredMe);
+        int mobLevel = script.library.skill.getPrecuEncounterDifficulty(whoTriggeredMe);
         location curLoc = getLocation(self);
         obj_id mob = create.object(MEATLUMP_MOB, curLoc, mobLevel);
         setObjVar(mob, "player", whoTriggeredMe);

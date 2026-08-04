@@ -245,7 +245,7 @@ public class camp_survivor extends script.base_script
         {
             return SCRIPT_CONTINUE;
         }
-        int combatLevel = getLevel(player);
+        int combatLevel = script.library.skill.getPrecuEncounterDifficulty(player);
         if (combatLevel < 0 || combatLevel > 90)
         {
             CustomerServiceLog("outbreak_themepark", "camp_survivor.spawnEnemies() Player " + player + " has a level that is invalid. Player level is: " + combatLevel + ". Aborting the camp defense.");

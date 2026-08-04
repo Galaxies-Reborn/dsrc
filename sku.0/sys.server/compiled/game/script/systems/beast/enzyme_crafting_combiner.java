@@ -1,6 +1,7 @@
 package script.systems.beast;
 
 import script.library.beast_lib;
+import script.library.incubator;
 import script.library.player_structure;
 import script.library.prose;
 import script.library.utils;
@@ -13,6 +14,11 @@ public class enzyme_crafting_combiner extends script.systems.beast.enzyme_crafti
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            terminateProcess();
+            return SCRIPT_CONTINUE;
+        }
         if (!isInValidOperatingLocation())
         {
             return SCRIPT_CONTINUE;
@@ -45,6 +51,11 @@ public class enzyme_crafting_combiner extends script.systems.beast.enzyme_crafti
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            terminateProcess();
+            return SCRIPT_OVERRIDE;
+        }
         sendDirtyObjectMenuNotification(self);
         if (item == menu_info_types.ITEM_USE)
         {

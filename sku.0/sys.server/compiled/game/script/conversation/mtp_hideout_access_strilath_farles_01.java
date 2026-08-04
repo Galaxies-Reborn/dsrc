@@ -38,7 +38,7 @@ public class mtp_hideout_access_strilath_farles_01 extends script.base_script
     }
     public void mtp_hideout_access_strilath_farles_01_action_grant_mtpHideout04(obj_id player, obj_id npc) throws InterruptedException
     {
-        if (getLevel(player) >= 82)
+        if (script.library.skill.getPrecuEncounterDifficulty(player) >= 82)
         {
             groundquests.grantQuest(player, "mtp_hideout_access_high_04");
         }
@@ -51,7 +51,7 @@ public class mtp_hideout_access_strilath_farles_01 extends script.base_script
     }
     public void mtp_hideout_access_strilath_farles_01_action_regrant_mtpHideout04(obj_id player, obj_id npc) throws InterruptedException
     {
-        if (getLevel(player) >= 82)
+        if (script.library.skill.getPrecuEncounterDifficulty(player) >= 82)
         {
             if (!groundquests.isQuestActiveOrComplete(player, "mtp_hideout_access_high_04"))
             {

@@ -13,7 +13,6 @@ public class full_heal_item extends script.base_script
     public static final string_id SID_NOT_LINKED_TO_HOLDER = new string_id("base_player", "not_linked_to_holder");
     public static final string_id CANT_APPLY_BUFF = new string_id("base_player", "cant_apply_buff");
     public static final string_id BUFF_APPLIED = new string_id("base_player", "buff_applied");
-    public static final string_id SID_ITEM_LEVEL_TOO_LOW = new string_id("base_player", "level_too_low");
     public static final string_id SID_ITEM_NOT_IN_INVENTORY = new string_id("base_player", "not_in_your_inventory");
     public static final string_id SID_NOT_WHILE_IN_COMBAT = new string_id("base_player", "not_while_in_combat");
     public static final string_id SID_NO_NEED_TO_HEAL = new string_id("base_player", "no_need_to_heal");
@@ -97,48 +96,39 @@ public class full_heal_item extends script.base_script
             String clientEffect = itemData.getString("client_effect");
             String clientAnimation = itemData.getString("client_animation");
             int reuseTime = itemData.getInt("reuse_time");
-            int requiredLevel = itemData.getInt("required_level_for_effect");
             String varName = "clickItem." + coolDownGroup;
             int healTime = getIntObjVar(player, varName);
-            int playerLevel = getLevel(player);
-            if (static_item.validateLevelRequired(player, requiredLevel))
+            if (getGameTime() > healTime)
             {
-                if (getGameTime() > healTime)
+                int max_hp = getMaxAttrib(player, HEALTH);
+                int hp = getAttrib(player, HEALTH);
+                int to_heal = max_hp - hp;
+                if (to_heal <= 0)
                 {
-                    int max_hp = getMaxAttrib(player, HEALTH);
-                    int hp = getAttrib(player, HEALTH);
-                    int to_heal = max_hp - hp;
-                    if (to_heal <= 0)
-                    {
-                        sendSystemMessage(player, SID_NO_NEED_TO_HEAL);
-                        return SCRIPT_CONTINUE;
-                    }
-                    int delta = healing.healDamage(self, player, HEALTH, to_heal);
-                    setObjVar(player, varName, (getGameTime() + (reuseTime)));
-                    sendCooldownGroupTimingOnly(player, getStringCrc(coolDownGroup.toLowerCase()), reuseTime);
-                    prose_package pp = new prose_package();
-                    pp = prose.setStringId(pp, new string_id("healing", "heal_fly"));
-                    pp = prose.setDI(pp, to_heal);
-                    pp = prose.setTO(pp, ATTRIBUTES[HEALTH]);
-                    showFlyTextPrivateProseWithFlags(player, player, pp, 2.0f, colors.SEAGREEN, FLY_TEXT_FLAG_IS_HEAL);
-                    doAnimationAction(player, clientAnimation);
-                    playClientEffectObj(player, clientEffect, player, "");
-                    if (getCount(self) > 0)
-                    {
-                        static_item.decrementStaticItem(self);
-                    }
-                }
-                else 
-                {
-                    int timeDiff = healTime - getGameTime();
-                    prose_package pp = prose.getPackage(SID_NOT_YET, timeDiff);
-                    sendSystemMessageProse(player, pp);
+                    sendSystemMessage(player, SID_NO_NEED_TO_HEAL);
                     return SCRIPT_CONTINUE;
+                }
+                int delta = healing.healDamage(self, player, HEALTH, to_heal);
+                setObjVar(player, varName, (getGameTime() + (reuseTime)));
+                sendCooldownGroupTimingOnly(player, getStringCrc(coolDownGroup.toLowerCase()), reuseTime);
+                prose_package pp = new prose_package();
+                pp = prose.setStringId(pp, new string_id("healing", "heal_fly"));
+                pp = prose.setDI(pp, to_heal);
+                pp = prose.setTO(pp, ATTRIBUTES[HEALTH]);
+                showFlyTextPrivateProseWithFlags(player, player, pp, 2.0f, colors.SEAGREEN, FLY_TEXT_FLAG_IS_HEAL);
+                doAnimationAction(player, clientAnimation);
+                playClientEffectObj(player, clientEffect, player, "");
+                if (getCount(self) > 0)
+                {
+                    static_item.decrementStaticItem(self);
                 }
             }
             else 
             {
-                sendSystemMessage(player, SID_ITEM_LEVEL_TOO_LOW);
+                int timeDiff = healTime - getGameTime();
+                prose_package pp = prose.getPackage(SID_NOT_YET, timeDiff);
+                sendSystemMessageProse(player, pp);
+                return SCRIPT_CONTINUE;
             }
         }
         return SCRIPT_CONTINUE;

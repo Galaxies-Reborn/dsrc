@@ -28,7 +28,7 @@ public class locked_slicable extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
-        if (hasSkill(player, "class_smuggler_phase1_novice") && hasObjVar(self, "slicing.locked"))
+        if (hasSkill(player, "combat_smuggler_novice") && hasObjVar(self, "slicing.locked"))
         {
             if (!hasObjVar(self, "loot_crate"))
             {
@@ -62,7 +62,7 @@ public class locked_slicable extends script.base_script
                     return SCRIPT_CONTINUE;
                 }
             }
-            if (!hasSkill(player, "class_smuggler_phase1_novice") || !hasObjVar(self, "slicing.locked"))
+            if (!hasSkill(player, "combat_smuggler_novice") || !hasObjVar(self, "slicing.locked"))
             {
                 return SCRIPT_CONTINUE;
             }

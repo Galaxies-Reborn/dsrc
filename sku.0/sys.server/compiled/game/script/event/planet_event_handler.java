@@ -13,16 +13,7 @@ public class planet_event_handler extends script.base_script
     public int OnAttach(obj_id self) throws InterruptedException
     {
         CustomerServiceLog("holidayEvent", "planet_event_handler.OnAttach: trigger initialized.");
-        String lifedayRunning = getConfigSetting("GameServer", "lifeday");
-        if (lifedayRunning != null && !lifedayRunning.equals("false"))
-        {
-            CustomerServiceLog("holidayEvent", "planet_event_handler.OnAttach: Life Day oconfig found.");
-            checkLifeDayData(self);
-        }
-        else
-        {
-            removeObjVar(self, "lifeday");
-        }
+        cleanupFactionalLifeDayData(self);
         if (!checkForHolidayEventConfigs(self))
         {
             CustomerServiceLog("holidayEvent", "planet_event_handler.OnAttach: checkForHolidayEventConfigs failed.");
@@ -32,16 +23,7 @@ public class planet_event_handler extends script.base_script
     public int OnInitialize(obj_id self) throws InterruptedException
     {
         CustomerServiceLog("holidayEvent", "planet_event_handler.OnInitialize: trigger initialized.");
-        String lifedayRunning = getConfigSetting("GameServer", "lifeday");
-        if (lifedayRunning != null && !lifedayRunning.equals("false"))
-        {
-            CustomerServiceLog("holidayEvent", "planet_event_handler.OnInitialize: Life Day oconfig found.");
-            checkLifeDayData(self);
-        }
-        else
-        {
-            removeObjVar(self, "lifeday");
-        }
+        cleanupFactionalLifeDayData(self);
         if (!checkForHolidayEventConfigs(self))
         {
             CustomerServiceLog("holidayEvent", "planet_event_handler.OnInitialize: checkForHolidayEventConfigs failed.");
@@ -50,6 +32,11 @@ public class planet_event_handler extends script.base_script
     }
     private void checkLifeDayData(obj_id self) throws InterruptedException
     {
+        if (isFactionalLifeDayScoreboardRetired())
+        {
+            cleanupFactionalLifeDayData(self);
+            return;
+        }
         if (!hasObjVar(self, EVENT_TIMESTAMP))
         {
             newTimeStamp(self);
@@ -103,6 +90,11 @@ public class planet_event_handler extends script.base_script
         {
             return SCRIPT_CONTINUE;
         }
+        if (eventVar.equals(holiday.PLANET_VAR_EMPIRE_DAY))
+        {
+            cleanupEmpireDayEventData(self);
+            return SCRIPT_CONTINUE;
+        }
         if (hasObjVar(self, holiday.PLANET_VAR_EVENT_PREFIX + eventVar))
         {
             CustomerServiceLog("holidayEvent", "planet_event_handler.OnInitialize: Event data found: " + eventVar + ", removing data so we can start new.");
@@ -139,6 +131,11 @@ public class planet_event_handler extends script.base_script
             CustomerServiceLog("holidayEvent", "planet_event_handler.resetEventDataAfterDelay: Could not find eventVar params for reset.");
             return SCRIPT_CONTINUE;
         }
+        if (eventVar.equals(holiday.PLANET_VAR_EMPIRE_DAY))
+        {
+            cleanupEmpireDayEventData(self);
+            return SCRIPT_CONTINUE;
+        }
         CustomerServiceLog("holidayEvent", "planet_event_handler.resetEventDataAfterDelay: Event to reset: " + eventVar);
         String eventConfig = params.getString("eventConfig");
         if (eventConfig == null || eventConfig.length() <= 0)
@@ -166,6 +163,11 @@ public class planet_event_handler extends script.base_script
     }
     public int lifeDayDailyAlarm(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isFactionalLifeDayScoreboardRetired())
+        {
+            cleanupFactionalLifeDayData(self);
+            return SCRIPT_CONTINUE;
+        }
         String lifedayRunning = getConfigSetting("GameServer", "lifeday");
         if (lifedayRunning != null && !lifedayRunning.equals("false"))
         {
@@ -179,6 +181,11 @@ public class planet_event_handler extends script.base_script
     }
     public int lifeDayScoreBoardUpdate(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isFactionalLifeDayScoreboardRetired())
+        {
+            cleanupFactionalLifeDayData(self);
+            return SCRIPT_CONTINUE;
+        }
         if (params == null || params.isEmpty())
         {
             return SCRIPT_CONTINUE;
@@ -266,24 +273,22 @@ public class planet_event_handler extends script.base_script
         {
             return false;
         }
-        CustomerServiceLog("holidayEvent", "planet_event_handler.checkForHolidayEventConfigs: Function initialized.");
-        String empiredayRunning = getConfigSetting("GameServer", "empireday_ceremony");
-        if (empiredayRunning != null && (empiredayRunning.equals("true") || empiredayRunning.equals("1")))
-        {
-            CustomerServiceLog("holidayEvent", "planet_event_handler.checkForHolidayEventConfigs: EMPIRE DAY CONFIG FOUND.");
-            dictionary params = new dictionary();
-            params.put("eventVar", holiday.PLANET_VAR_EMPIRE_DAY);
-            params.put("eventConfig", "empireday_ceremony");
-            messageTo(planet, "setUpEventLeaderBoard", params, 3.0f, false);
-        }
-        else 
-        {
-            if (hasObjVar(planet, holiday.PLANET_VAR_EVENT_PREFIX + holiday.PLANET_VAR_EMPIRE_DAY))
-            {
-                CustomerServiceLog("holidayEvent", "planet_event_handler.checkForHolidayEventConfigs: Var: " + holiday.PLANET_VAR_EVENT_PREFIX + holiday.PLANET_VAR_EMPIRE_DAY + " removed because the event was not running.");
-                removeObjVar(planet, holiday.PLANET_VAR_EVENT_PREFIX + holiday.PLANET_VAR_EMPIRE_DAY);
-            }
-        }
+        cleanupEmpireDayEventData(planet);
         return true;
+    }
+    private void cleanupEmpireDayEventData(obj_id planet) throws InterruptedException
+    {
+        String empireDayData = holiday.PLANET_VAR_EVENT_PREFIX + holiday.PLANET_VAR_EMPIRE_DAY;
+        removeObjVar(planet, empireDayData + holiday.PLANET_VAR_SCORE_TIMESTAMP);
+        removeObjVar(planet, empireDayData + holiday.PLANET_VAR_SCORE);
+        removeObjVar(planet, empireDayData);
+    }
+    private boolean isFactionalLifeDayScoreboardRetired() throws InterruptedException
+    {
+        return true;
+    }
+    private void cleanupFactionalLifeDayData(obj_id planet) throws InterruptedException
+    {
+        removeObjVar(planet, "lifeday");
     }
 }

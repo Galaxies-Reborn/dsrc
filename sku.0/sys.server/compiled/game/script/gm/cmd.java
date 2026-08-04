@@ -1996,7 +1996,7 @@ public class cmd extends script.base_script
                 sendSystemMessageTestingOnly(self, "	limUseSchematic <weapon_id> <numUses> <optional: skillRequired> -- Creates a limited use draft schematic.");
                 return SCRIPT_CONTINUE;
             }
-            String requiredSkill = "class_munitions_phase4_master";
+            String requiredSkill = "crafting_weaponsmith_master";
             if (st.hasMoreTokens())
             {
                 requiredSkill = st.nextToken();

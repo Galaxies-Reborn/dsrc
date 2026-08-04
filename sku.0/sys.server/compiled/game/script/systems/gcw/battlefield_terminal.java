@@ -7,6 +7,7 @@ import java.util.Vector;
 
 public class battlefield_terminal extends script.base_script
 {
+    public static final String SCRIPT_NAME = "systems.gcw.battlefield_terminal";
     public battlefield_terminal()
     {
     }
@@ -40,22 +41,47 @@ public class battlefield_terminal extends script.base_script
     public static final String SCRIPT_VAR_CAPTURING = "gcw.static_base.control_terminal.capturing";
     public static final String COLOR_REBELS = "\\" + colors_hex.COLOR_REBELS;
     public static final String COLOR_IMPERIALS = "\\" + colors_hex.COLOR_IMPERIALS;
+    private void retirePostNgeQueuedBattlefieldTerminal(obj_id self) throws InterruptedException
+    {
+        utils.removeScriptVarTree(self, "battlefield");
+        utils.removeScriptVarTree(self, "gcw.static_base.control_terminal");
+        if (hasObjVar(self, VAR_ACCESS_DELAY))
+        {
+            removeObjVar(self, VAR_ACCESS_DELAY);
+        }
+        detachScript(self, SCRIPT_NAME);
+    }
     public void blog(obj_id controller, String text) throws InterruptedException
     {
         pvp.bfLog(controller, text);
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeQueuedBattlefieldRetired())
+        {
+            retirePostNgeQueuedBattlefieldTerminal(self);
+            return SCRIPT_CONTINUE;
+        }
         messageTo(self, "registerTerminal", null, 5.0f, false);
         return SCRIPT_CONTINUE;
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeQueuedBattlefieldRetired())
+        {
+            retirePostNgeQueuedBattlefieldTerminal(self);
+            return SCRIPT_CONTINUE;
+        }
         messageTo(self, "registerTerminal", null, 5.0f, false);
         return SCRIPT_CONTINUE;
     }
     public int OnHearSpeech(obj_id self, obj_id speaker, String text) throws InterruptedException
     {
+        if (gcw.isPostNgeQueuedBattlefieldRetired())
+        {
+            retirePostNgeQueuedBattlefieldTerminal(self);
+            return SCRIPT_CONTINUE;
+        }
         if (!isIdValid(speaker) || !isGod(speaker))
         {
             return SCRIPT_CONTINUE;
@@ -75,6 +101,11 @@ public class battlefield_terminal extends script.base_script
     }
     public int registerTerminal(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeQueuedBattlefieldRetired())
+        {
+            retirePostNgeQueuedBattlefieldTerminal(self);
+            return SCRIPT_CONTINUE;
+        }
         registerTerminalWithController(self);
         return SCRIPT_CONTINUE;
     }
@@ -98,6 +129,11 @@ public class battlefield_terminal extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (gcw.isPostNgeQueuedBattlefieldRetired())
+        {
+            retirePostNgeQueuedBattlefieldTerminal(self);
+            return SCRIPT_CONTINUE;
+        }
         menu_info_data mid = mi.getMenuItemByType(menu_info_types.ITEM_USE);
         mid.setLabel(SID_CONTROL_TERMINAL_MENU_USE);
         mid.setServerNotify(true);
@@ -105,6 +141,11 @@ public class battlefield_terminal extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (gcw.isPostNgeQueuedBattlefieldRetired())
+        {
+            retirePostNgeQueuedBattlefieldTerminal(self);
+            return SCRIPT_CONTINUE;
+        }
         obj_id controller = getLocalBattlefieldController(self);
         if (!isIdValid(controller) || !exists(controller))
         {

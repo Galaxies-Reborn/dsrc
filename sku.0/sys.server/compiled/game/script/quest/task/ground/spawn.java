@@ -156,8 +156,9 @@ public class spawn extends script.quest.task.ground.base_task
             int creatureLevel = 0;
             if (doAutoLeveling)
             {
-                int minLevel = Math.max(1, getLevel(player) - minLevelDifference);
-                int maxLevel = Math.max(minLevel, getLevel(player) + maxLevelDifference);
+                int playerDifficulty = skill.getPrecuEncounterDifficulty(player);
+                int minLevel = Math.max(1, playerDifficulty - minLevelDifference);
+                int maxLevel = Math.max(minLevel, playerDifficulty + maxLevelDifference);
                 creatureLevel = rand(minLevel, maxLevel);
                 if (creatureLevel > 90)
                 {

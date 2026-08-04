@@ -14,16 +14,14 @@ public class storyteller_vendor extends script.base_script
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
-        ai_lib.setDefaultCalmBehavior(self, ai_lib.BEHAVIOR_SENTINEL);
-        attachStorytellerVendorConvo(self);
-        messageTo(self, "handlSpecialName", null, 2, false);
+        detachScript(self, "conversation.storyteller_vendor");
+        detachScript(self, "systems.storyteller.storyteller_vendor");
         return SCRIPT_CONTINUE;
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
-        ai_lib.setDefaultCalmBehavior(self, ai_lib.BEHAVIOR_SENTINEL);
-        attachStorytellerVendorConvo(self);
-        messageTo(self, "handlSpecialName", null, 2, false);
+        detachScript(self, "conversation.storyteller_vendor");
+        detachScript(self, "systems.storyteller.storyteller_vendor");
         return SCRIPT_CONTINUE;
     }
     public int handlSpecialName(obj_id self, dictionary params) throws InterruptedException
@@ -65,35 +63,14 @@ public class storyteller_vendor extends script.base_script
     }
     public int msgStorytellerTokenTypeSelected(obj_id self, dictionary params) throws InterruptedException
     {
-        if ((params == null) || (params.isEmpty()))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        obj_id player = sui.getPlayerId(params);
-        int btn = sui.getIntButtonPressed(params);
-        int idx = sui.getListboxSelectedRow(params);
-        String scriptvar_path = "storytellerVendor." + player;
-        String oldPidVar = scriptvar_path + ".pid";
-        if (utils.hasScriptVar(self, oldPidVar))
-        {
-            utils.removeScriptVar(self, oldPidVar);
-        }
-        if (btn == sui.BP_CANCEL)
-        {
-            return SCRIPT_CONTINUE;
-        }
-        int tokenType = idx;
-        storyteller.displayStorytellerTokenPurchaseSUI(player, tokenType, self);
         return SCRIPT_CONTINUE;
     }
     public int msgStorytellerTokenPurchaseSelected(obj_id self, dictionary params) throws InterruptedException
     {
-        storyteller.storytellerTokenPurchased(params, self);
         return SCRIPT_CONTINUE;
     }
     public int msgStorytellerChargesSelected(obj_id self, dictionary params) throws InterruptedException
     {
-        storyteller.storytellerSellTokenWithCharges(params, self);
         return SCRIPT_CONTINUE;
     }
 }

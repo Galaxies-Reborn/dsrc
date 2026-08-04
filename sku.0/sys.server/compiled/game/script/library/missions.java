@@ -2,7 +2,6 @@ package script.library;
 
 import script.dictionary;
 import script.obj_id;
-import script.string_id;
 
 public class missions extends script.base_script
 {
@@ -24,22 +23,92 @@ public class missions extends script.base_script
     public static final int BH_STAT_MAX = 4;
     public static final int BOUNTY_FLAG_NONE = 0;
     public static final int BOUNTY_FLAG_SMUGGLER = 1;
-    public static final int DAILY_MISSION_XP_REWARD_DEFAULT = 10;
-    public static final int DAILY_MISSION_CASH_REWARD = 15;
-    public static final int DAILY_MISSION_XP_SANITY = 5;
-    public static final int DAILY_MISSION_XP_LOW = 9;
-    public static final int DAILY_MISSION_XP_MEDIUM = 14;
-    public static final int DAILY_MISSION_XP_HIGH = 19;
     public static final String DAILY_MISSION_OBJVAR = "missions.daily";
     public static final String DAILY_MISSION_CLOCK_OBJVAR = "missions.dailyClock";
-    public static final string_id DAILY_REWARD_XP = new string_id("base_player", "prose_mission_xp_amount");
+    public static final String PRECU_SKILL_TABLE = skill.TBL_SKILL;
+    public static final int PRECU_MISSION_COMBAT_SCORE_MAX = skill.PRECU_COMBAT_SKILL_SCORE_MAX;
+    public static final int PRECU_ADVANCED_COMBAT_SKILL_WEIGHT = skill.PRECU_ADVANCED_COMBAT_SKILL_WEIGHT;
+    public static final float PRECU_MISSION_MEMBER_REWARD_BONUS = 0.10f;
+    public static final String PRECU_MISSION_GROUP_SIZE = "precuMission.groupSize";
+    public static final String PRECU_MISSION_GROUP_COMBAT_SCORE = "precuMission.groupCombatScore";
+    public static final String PRECU_MISSION_GROUP_AVERAGE_SCORE = "precuMission.groupAverageCombatScore";
+    public static final String PRECU_MISSION_CREDIT_MULTIPLIER = "precuMission.creditMultiplier";
+    public static final String PRECU_MISSION_BASE_REWARD = "precuMission.baseReward";
+    public static boolean isPrecuCombatSkillBox(String skillName) throws InterruptedException
+    {
+        return skill.isPrecuCombatSkillBox(skillName);
+    }
+    public static boolean isPrecuBaseCombatSkillBox(String skillName) throws InterruptedException
+    {
+        return skill.isPrecuBaseCombatSkillBox(skillName);
+    }
+    public static int getPrecuCombatSkillScore(obj_id player) throws InterruptedException
+    {
+        return skill.getPrecuCombatSkillScore(player);
+    }
+    public static dictionary getPrecuMissionGroupRating(obj_id player) throws InterruptedException
+    {
+        dictionary rating = new dictionary();
+        obj_id groupId = getGroupObject(player);
+        obj_id[] members = null;
+        if (isIdValid(groupId))
+        {
+            members = getGroupMemberIds(groupId);
+        }
+        if (members == null || members.length == 0)
+        {
+            members = new obj_id[] { player };
+        }
+        int memberCount = 0;
+        int totalScore = 0;
+        for (obj_id member : members)
+        {
+            if (!isIdValid(member) || !exists(member) || !member.isLoaded() || !isPlayer(member))
+            {
+                continue;
+            }
+            memberCount++;
+            totalScore += getPrecuCombatSkillScore(member);
+        }
+        if (memberCount < 1)
+        {
+            memberCount = 1;
+            totalScore = getPrecuCombatSkillScore(player);
+        }
+        int averageScore = Math.round(totalScore / (float)memberCount);
+        averageScore = Math.max(1, Math.min(averageScore, PRECU_MISSION_COMBAT_SCORE_MAX));
+        float multiplier = 1.0f + ((memberCount - 1) * PRECU_MISSION_MEMBER_REWARD_BONUS) + (averageScore / 100.0f);
+        rating.put(PRECU_MISSION_GROUP_SIZE, memberCount);
+        rating.put(PRECU_MISSION_GROUP_COMBAT_SCORE, totalScore);
+        rating.put(PRECU_MISSION_GROUP_AVERAGE_SCORE, averageScore);
+        rating.put(PRECU_MISSION_CREDIT_MULTIPLIER, multiplier);
+        return rating;
+    }
+    public static int getPrecuMissionGroupCombatScore(obj_id player) throws InterruptedException
+    {
+        return getPrecuMissionGroupRating(player).getInt(PRECU_MISSION_GROUP_AVERAGE_SCORE);
+    }
+    public static void applyPrecuMissionGroupReward(obj_id missionData, obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(missionData))
+        {
+            return;
+        }
+        dictionary rating = getPrecuMissionGroupRating(player);
+        int baseReward = getMissionReward(missionData);
+        float multiplier = rating.getFloat(PRECU_MISSION_CREDIT_MULTIPLIER);
+        int scaledReward = Math.max(baseReward, Math.round(baseReward * multiplier));
+        setObjVar(missionData, PRECU_MISSION_BASE_REWARD, baseReward);
+        setObjVar(missionData, PRECU_MISSION_GROUP_SIZE, rating.getInt(PRECU_MISSION_GROUP_SIZE));
+        setObjVar(missionData, PRECU_MISSION_GROUP_COMBAT_SCORE, rating.getInt(PRECU_MISSION_GROUP_COMBAT_SCORE));
+        setObjVar(missionData, PRECU_MISSION_GROUP_AVERAGE_SCORE, rating.getInt(PRECU_MISSION_GROUP_AVERAGE_SCORE));
+        setObjVar(missionData, PRECU_MISSION_CREDIT_MULTIPLIER, multiplier);
+        setMissionReward(missionData, scaledReward);
+        LOG("PreCuMission", "reward mission=" + missionData + " base=" + baseReward + " members=" + rating.getInt(PRECU_MISSION_GROUP_SIZE) + " averageCombatScore=" + rating.getInt(PRECU_MISSION_GROUP_AVERAGE_SCORE) + " multiplier=" + multiplier + " scaled=" + scaledReward);
+    }
     public static int getDailyMissionXpLimit() throws InterruptedException
     {
-        String config = getConfigSetting("Custom", "dailyMissionXpLimit");
-        if (config != null && config.length() > 0) {
-            return utils.stringToInt(config);
-        }
-        return DAILY_MISSION_XP_REWARD_DEFAULT;
+        return 0;
     }
     public static void sendBountyFail(obj_id hunter, obj_id target) throws InterruptedException
     {
@@ -83,76 +152,21 @@ public class missions extends script.base_script
     }
     public static int getPlayerDailyCount(obj_id player) throws InterruptedException
     {
-        if (!isIdValid(player))
-        {
-            return 0;
-        }
-        if (!hasObjVar(player, DAILY_MISSION_OBJVAR))
-        {
-            return 0;
-        }
-        return getIntObjVar(player, DAILY_MISSION_OBJVAR);
+        return 0;
     }
     public static void incrementDaily(obj_id player) throws InterruptedException
     {
-        int missionData = getPlayerDailyCount(player);
-        if (!hasObjVar(player, DAILY_MISSION_CLOCK_OBJVAR))
-        {
-            int currentTime = getCalendarTime();
-            int alarmTime = createDailyAlarmClock(player, "handleDailyMissionReset", null, 19, 0, 0);
-            int alarmTimeObjVar = currentTime + alarmTime;
-            setObjVar(player, DAILY_MISSION_CLOCK_OBJVAR, alarmTimeObjVar);
-        }
-        missionData++;
-        setObjVar(player, DAILY_MISSION_OBJVAR, missionData);
     }
     public static boolean canEarnDailyMissionXp(obj_id player) throws InterruptedException
     {
-        if (!isIdValid(player))
-        {
-            return false;
-        }
-        int dailyData = getPlayerDailyCount(player);
-        if (dailyData < 0)
-        {
-            return false;
-        }
-        if (utils.isProfession(player, utils.TRADER) || utils.isProfession(player, utils.ENTERTAINER))
-        {
-            return false;
-        }
-        if (dailyData < getDailyMissionXpLimit())
-        {
-            return true;
-        }
         return false;
     }
     public static float alterMissionPayoutDivisor(obj_id player, float divisor, int missionLevel) throws InterruptedException
     {
-        int playerLevel = getLevel(player);
-        int levelDelta = Math.abs(missionLevel - playerLevel);
-        divisor = alterMissionPayoutDivisorDaily(player, divisor);
-        if (utils.isProfession(player, utils.ENTERTAINER))
-        {
-            divisor += 10.0f;
-        }
-        if (utils.isProfession(player, utils.TRADER))
-        {
-            divisor += 20.0f;
-        }
-        if (levelDelta >= 10)
-        {
-            divisor += (float)levelDelta / 2;
-        }
         return divisor;
     }
     public static float alterMissionPayoutDivisorDaily(obj_id player, float divisor) throws InterruptedException
     {
-        int missionsCompleted = getPlayerDailyCount(player);
-        if (missionsCompleted > DAILY_MISSION_CASH_REWARD)
-        {
-            divisor += missionsCompleted;
-        }
         return divisor;
     }
     public static float alterMissionPayoutDivisorDaily(obj_id player) throws InterruptedException
@@ -161,35 +175,14 @@ public class missions extends script.base_script
     }
     public static void initializeDailyOnLogin(obj_id player) throws InterruptedException
     {
-        if (hasObjVar(player, DAILY_MISSION_CLOCK_OBJVAR))
+        if (hasObjVar(player, DAILY_MISSION_OBJVAR) || hasObjVar(player, DAILY_MISSION_CLOCK_OBJVAR))
         {
-            int currentTime = getCalendarTime();
-            int alarmTimeObjVar = getIntObjVar(player, missions.DAILY_MISSION_CLOCK_OBJVAR);
-            if (currentTime >= alarmTimeObjVar)
-            {
-                clearDailyObjVars(player);
-            }
-            else 
-            {
-                int secondsUntil = alarmTimeObjVar - currentTime;
-                messageTo(player, "handleDailyMissionReset", null, secondsUntil, false);
-            }
-        }
-        else if (hasObjVar(player, DAILY_MISSION_OBJVAR))
-        {
-            int countObjVar = getIntObjVar(player, missions.DAILY_MISSION_OBJVAR);
-            if (countObjVar > 0)
-            {
-                int currentTime = getCalendarTime();
-                int alarmTime = createDailyAlarmClock(player, "handleDailyMissionReset", null, 19, 0, 0);
-                int alarmTimeObjVar = currentTime + alarmTime;
-                setObjVar(player, DAILY_MISSION_CLOCK_OBJVAR, alarmTimeObjVar);
-            }
+            clearDailyObjVars(player);
         }
     }
     public static void clearDailyObjVars(obj_id player) throws InterruptedException
     {
-        setObjVar(player, DAILY_MISSION_OBJVAR, 0);
+        removeObjVar(player, DAILY_MISSION_OBJVAR);
         removeObjVar(player, DAILY_MISSION_CLOCK_OBJVAR);
     }
     public static boolean isDestroyMission(obj_id objMissionData) throws InterruptedException

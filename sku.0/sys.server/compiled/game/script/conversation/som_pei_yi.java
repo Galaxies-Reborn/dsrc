@@ -17,7 +17,7 @@ public class som_pei_yi extends script.base_script
     }
     public boolean som_pei_yi_condition_isEntertainer(obj_id player, obj_id npc) throws InterruptedException
     {
-        int level = getLevel(player);
+        int level = script.library.skill.getPrecuEntertainerContentDifficulty(player);
         return (utils.isProfession(player, utils.ENTERTAINER) && level >= 46);
     }
     public boolean som_pei_yi_condition_isDancer(obj_id player, obj_id npc) throws InterruptedException

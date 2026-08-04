@@ -62,7 +62,7 @@ public class dath_bh_wanted_list_01 extends script.base_script
     }
     public boolean dath_bh_wanted_list_01_condition_hasSkill_BOUNTY_HUNTER(obj_id player, obj_id npc) throws InterruptedException
     {
-        if (!hasSkill(player, "class_bountyhunter_phase1_novice"))
+        if (!hasSkill(player, "combat_bountyhunter_novice"))
         {
             return false;
         }
@@ -125,7 +125,7 @@ public class dath_bh_wanted_list_01 extends script.base_script
     }
     public boolean dath_bh_wanted_list_01_condition_hasSkill_BOUNTY_HUNTER_isMale(obj_id player, obj_id npc) throws InterruptedException
     {
-        if (!hasSkill(player, "class_bountyhunter_phase1_novice") && (getGender(player) == GENDER_MALE))
+        if (!hasSkill(player, "combat_bountyhunter_novice") && (getGender(player) == GENDER_MALE))
         {
             return false;
         }

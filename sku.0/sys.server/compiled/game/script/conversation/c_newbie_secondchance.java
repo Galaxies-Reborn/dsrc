@@ -15,7 +15,7 @@ public class c_newbie_secondchance extends script.base_script
     }
     public boolean c_newbie_secondchance_condition_combatHigh(obj_id player, obj_id npc) throws InterruptedException
     {
-        if ((combat.getLevel(player)) > 9)
+        if ((script.library.skill.getPrecuEncounterDifficulty(player)) > 9)
         {
             return true;
         }
@@ -23,7 +23,7 @@ public class c_newbie_secondchance extends script.base_script
     }
     public boolean c_newbie_secondchance_condition_combatLow(obj_id player, obj_id npc) throws InterruptedException
     {
-        if ((combat.getLevel(player)) < 10)
+        if ((script.library.skill.getPrecuEncounterDifficulty(player)) < 10)
         {
             return true;
         }
@@ -164,7 +164,7 @@ public class c_newbie_secondchance extends script.base_script
     public void c_newbie_secondchance_action_grantStart(obj_id player, obj_id npc) throws InterruptedException
     {
         groundquests.sendSignal(player, "tat_eisley_legacy_e2");
-        if ((combat.getLevel(player)) > 9)
+        if ((script.library.skill.getPrecuEncounterDifficulty(player)) > 9)
         {
             int questId = questGetQuestId("quest/tatooine_eisley_gotoniko");
             groundquests.grantQuest(questId, player, npc, true);

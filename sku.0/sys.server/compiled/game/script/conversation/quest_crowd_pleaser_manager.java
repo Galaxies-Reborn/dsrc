@@ -35,11 +35,11 @@ public class quest_crowd_pleaser_manager extends script.base_script
     }
     public boolean quest_crowd_pleaser_manager_condition_has_dance_skill(obj_id player, obj_id npc) throws InterruptedException
     {
-        return hasSkill(player, "class_entertainer_phase1_master");
+        return hasSkill(player, "social_entertainer_master");
     }
     public boolean quest_crowd_pleaser_manager_condition_has_music_skill(obj_id player, obj_id npc) throws InterruptedException
     {
-        return hasSkill(player, "class_entertainer_phase1_master");
+        return hasSkill(player, "social_entertainer_master");
     }
     public boolean quest_crowd_pleaser_manager_condition_has_status_4(obj_id player, obj_id npc) throws InterruptedException
     {

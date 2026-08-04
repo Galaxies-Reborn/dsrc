@@ -391,7 +391,30 @@ public class factions extends script.base_script
     }
     public static float getFactionMax(obj_id target, String factionName) throws InterruptedException
     {
-        return FACTION_RATING_MAX;
+        if (!isIdValid(target) || factionName == null || factionName.equals(""))
+        {
+            return FACTION_RATING_MAX;
+        }
+        String normalizedFaction = toLower(factionName);
+        if (!normalizedFaction.equals("rebel") && !normalizedFaction.equals("imperial"))
+        {
+            return FACTION_RATING_MAX;
+        }
+        String alignedFaction = getFactionNameByHashCode(pvpGetAlignedFaction(target));
+        if (alignedFaction == null || !toLower(alignedFaction).equals(normalizedFaction))
+        {
+            return NON_ALIGNED_FACTION_MAX;
+        }
+        int rank = pvpGetCurrentGcwRank(target);
+        if (rank < 0)
+        {
+            rank = 0;
+        }
+        else if (rank > MAXIMUM_RANK)
+        {
+            rank = MAXIMUM_RANK;
+        }
+        return Math.max(NON_ALIGNED_FACTION_MAX, getRankCost(rank) * 20.0f);
     }
     public static void validateFactionStanding(obj_id player, String factionName) throws InterruptedException
     {
@@ -602,6 +625,7 @@ public class factions extends script.base_script
             space_skill.retire(player, space_skill.IMPERIAL);
         }
         CustomerServiceLog("player_faction", "|PLAYER:" + player + " |PLAYER NAME:" + getName(player) + " |PLAYER LEFT FACTION: " + resign_faction + " |OLD RANK WAS: " + pvpGetCurrentGcwRank(player));
+        setRank(player, 0);
         pvpMakeNeutral(player);
         pvpSetAlignedFaction(player, 0);
         String factionNormalized = toLower(resign_faction);
@@ -656,13 +680,6 @@ public class factions extends script.base_script
         if (playerAllowed != 1)
         {
             return false;
-        }
-        if (utils.hasScriptVar(target, "buff.general_inspiration.value"))
-        {
-            float factionBonus = utils.getFloatScriptVar(target, "buff.general_inspiration.value");
-            factionBonus /= 100.0f;
-            factionBonus += 1.0f;
-            value *= factionBonus;
         }
         float oldRating = getFactionStanding(target, factionName);
         float newRating = oldRating + value;
@@ -774,13 +791,13 @@ public class factions extends script.base_script
         }
         if (value != 0.0f)
         {
-            if ((utils.getPlayerProfession(target) == utils.SMUGGLER) && (factionName.equals("underworld")))
+            if (utils.isProfession(target, utils.SMUGGLER) && factionName.equals("underworld"))
             {
                 smuggler.checkSmugglerTitleGrants(target, value);
                 smuggler.checkRewardQuestGrants(target, value);
                 messageTo(target, "applySmugglingBonuses", null, 1.0f, false);
             }
-            if ((utils.getPlayerProfession(target) == utils.BOUNTY_HUNTER) && (factionName.equals("underworld")))
+            if (utils.isProfession(target, utils.BOUNTY_HUNTER) && factionName.equals("underworld"))
             {
                 smuggler.checkBountyTitleGrants(target, value);
             }
@@ -1068,23 +1085,11 @@ public class factions extends script.base_script
         {
             return false;
         }
-        if (value > 0)
-        {
-            if (luck.isLucky(player, 0.01f))
-            {
-                float bonus = value * 0.2f;
-                if (bonus < 1)
-                {
-                    bonus = 1;
-                }
-                value += bonus;
-            }
-        }
         return addFactionStanding(player, factionName, value);
     }
-    public static void grantCombatFaction(obj_id killer, obj_id target, double percentDamage) throws InterruptedException
+    public static void grantCombatFaction(obj_id killer, obj_id target, double ignoredPercentDamage) throws InterruptedException
     {
-        if (!isIdValid(target) || !isIdValid(killer) || percentDamage < 0.0f || percentDamage > 1.0f)
+        if (!isIdValid(target) || !isIdValid(killer))
         {
             return;
         }
@@ -1096,19 +1101,24 @@ public class factions extends script.base_script
         {
             return;
         }
-        String killerFaction = getFaction(killer);
         String targetFaction = getFaction(target);
-        if ((killerFaction == null) || (targetFaction == null))
+        if (targetFaction == null || targetFaction.equals(""))
         {
             return;
         }
-        float killerStanding = getFactionStanding(killer, killerFaction);
-        float targetStanding = getFactionStanding(target, targetFaction);
-        if (isPlayer(killer) && pvpGetType(killer) == PVPTYPE_NEUTRAL)
+
+        if (!isPlayer(target))
+        {
+            awardPrecuNpcCombatFaction(killer, targetFaction, getLevel(target));
+            return;
+        }
+
+        String killerFaction = getFaction(killer);
+        if (killerFaction == null || killerFaction.equals(""))
         {
             return;
         }
-        if (isPlayer(target) && pvpGetType(target) == PVPTYPE_NEUTRAL)
+        if (pvpGetType(killer) == PVPTYPE_NEUTRAL || pvpGetType(target) == PVPTYPE_NEUTRAL)
         {
             return;
         }
@@ -1116,50 +1126,68 @@ public class factions extends script.base_script
         {
             return;
         }
-        int killerDiff = getLevel(killer);
-        int targetDiff = getLevel(target);
-        gcw.incrementGCWStanding(killer, target);
-        if (isPlayer(target))
+
+        awardFactionStanding(killer, killerFaction, 30);
+        addFactionStanding(killer, targetFaction, -45);
+        addFactionStanding(target, targetFaction, -45);
+    }
+    private static void awardPrecuNpcCombatFaction(obj_id player, String defeatedFaction, int targetLevel) throws InterruptedException
+    {
+        int defeatedRow = getFactionNumber(defeatedFaction);
+        if (defeatedRow == AD_HOC_FACTION || defeatedRow < 0)
         {
-            if (targetStanding <= 0)
-            {
-                return;
-            }
-            int kRank = pvpGetCurrentGcwRank(killer);
-            int tRank = pvpGetCurrentGcwRank(target);
-            float diffFactor = 1.0f + (tRank - kRank) / (2 * MAXIMUM_RANK);
-            int actualReward = (int)(MAX_FACTION_KILL_REWARD * percentDamage * diffFactor);
-            int factionLoss = (int)(-1.5f * actualReward);
-            if (hasSkill(target, "class_smuggler_phase2_novice"))
-            {
-                actualReward /= 2;
-                factionLoss /= 2;
-            }
-            if (pvpGetType(killer) == PVPTYPE_DECLARED)
-            {
-                actualReward = actualReward * 2;
-            }
-            awardFactionStanding(killer, killerFaction, actualReward);
-            addFactionStanding(killer, targetFaction, factionLoss);
-            addFactionStanding(target, targetFaction, factionLoss);
+            return;
         }
-        else 
+        if (dataTableGetInt(FACTION_TABLE, defeatedRow, "playerAllowed") != 1)
         {
-            if (targetDiff > 25)
-            {
-                targetDiff = 25;
-            }
-            if (killerDiff > 25)
-            {
-                killerDiff = 25;
-            }
-            int diffDelta = (targetDiff - killerDiff) + 25;
-            float diffFactor = diffDelta / 50.0f;
-            int actualReward = (int)(MAX_FACTION_KILL_REWARD * percentDamage * diffFactor);
-            int factionLoss = (int)(-1.5f * actualReward);
-            awardFactionStanding(killer, killerFaction, actualReward);
-            addFactionStanding(killer, targetFaction, factionLoss);
+            return;
         }
+
+        float gain = targetLevel * dataTableGetFloat(FACTION_TABLE, defeatedRow, "combatFactor");
+        float loss = gain * 2.0f;
+        boolean defeatedGcwFaction = isPrecuGcwFaction(defeatedFaction);
+        String enemies = dataTableGetString(FACTION_TABLE, defeatedRow, "enemies");
+        if (enemies != null && !enemies.equals(""))
+        {
+            String[] enemyList = split(enemies, ',');
+            for (String enemy : enemyList)
+            {
+                if (isPrecuGcwFaction(enemy) && !defeatedGcwFaction)
+                {
+                    continue;
+                }
+                int enemyRow = getFactionNumber(enemy);
+                if (enemyRow >= 0 && dataTableGetInt(FACTION_TABLE, enemyRow, "playerAllowed") == 1)
+                {
+                    addFactionStanding(player, enemy, gain);
+                }
+            }
+        }
+
+        addFactionStanding(player, defeatedFaction, -loss);
+
+        String allies = dataTableGetString(FACTION_TABLE, defeatedRow, "allies");
+        if (allies == null || allies.equals(""))
+        {
+            return;
+        }
+        String[] allyList = split(allies, ',');
+        for (String ally : allyList)
+        {
+            if (isPrecuGcwFaction(ally))
+            {
+                continue;
+            }
+            int allyRow = getFactionNumber(ally);
+            if (allyRow >= 0 && dataTableGetInt(FACTION_TABLE, allyRow, "playerAllowed") == 1)
+            {
+                addFactionStanding(player, ally, -loss);
+            }
+        }
+    }
+    private static boolean isPrecuGcwFaction(String factionName) throws InterruptedException
+    {
+        return FACTION_IMPERIAL.equals(factionName) || FACTION_REBEL.equals(factionName);
     }
     public static void adjustSocialStanding(obj_id target, String faction, int amount) throws InterruptedException
     {
@@ -1317,7 +1345,11 @@ public class factions extends script.base_script
     }
     public static boolean setRank(obj_id player, int rank) throws InterruptedException
     {
-        return false;
+        if (!isIdValid(player) || !isPlayer(player) || rank < 0 || rank > MAXIMUM_RANK)
+        {
+            return false;
+        }
+        return pvpSetPrecuFactionRank(player, rank);
     }
     public static boolean releaseFactionHirelings(obj_id player) throws InterruptedException
     {
@@ -1325,8 +1357,9 @@ public class factions extends script.base_script
         {
             return false;
         }
-        obj_id hireling = callable.getCallable(player, callable.CALLABLE_TYPE_COMBAT_OTHER);
-        if (hasObjVar(hireling, VAR_FACTION_HIRELING))
+        obj_id hireling = callable.getCallable(player, callable.CALLABLE_TYPE_COMBAT_PET);
+        obj_id controlDevice = isIdValid(hireling) ? callable.getCallableCD(hireling) : obj_id.NULL_ID;
+        if (hasObjVar(hireling, VAR_FACTION_HIRELING) || hasObjVar(controlDevice, VAR_FACTION_HIRELING))
         {
             pet_lib.releasePet(hireling);
             prose_package pp = prose.getPackage(SID_HIRELING_RELEASED, player, hireling);
@@ -1629,6 +1662,7 @@ public class factions extends script.base_script
         }
         buff.removeAllAuraBuffs(player);
         pvpSetAlignedFaction(player, faction_id);
+        setRank(player, 0);
         pvpMakeCovert(player);
         LOG("LOG_CHANNEL", "faction_recruiter::joinFaction -- " + player + " has joined faction " + faction_id);
         return true;
@@ -1677,7 +1711,7 @@ public class factions extends script.base_script
         }
         int cost = factions.getRankCost(current_rank + 1);
         int faction_standing = (int)factions.getFactionStanding(objPlayer, intFaction);
-        return faction_standing >= cost;
+        return cost >= 0 && faction_standing >= cost + (int)FACTION_RATING_DECLARABLE_MIN;
     }
     public static void applyPromotion(obj_id objPlayer, int intFaction) throws InterruptedException
     {
@@ -1685,21 +1719,26 @@ public class factions extends script.base_script
         {
             int current_rank = pvpGetCurrentGcwRank(objPlayer);
             int cost = factions.getRankCost(current_rank + 1);
-            int faction_standing = (int)factions.getFactionStanding(objPlayer, intFaction);
-            if (factions.addFactionStanding(objPlayer, intFaction, -cost))
+            if (factions.addUnmodifiedFactionStanding(objPlayer, getFactionNameByHashCode(intFaction), -cost))
             {
-                CustomerServiceLog("player_faction", "PLAYER-FACTION ALTERED|TIME:" + getGameTime() + "|PLAYER:" + objPlayer + "|PLAYER NAME:" + getName(objPlayer) + "|ZONE:" + getCurrentSceneName() + "|Player has purchased rank for " + cost);
-                factions.setRank(objPlayer, current_rank + 1);
+                if (factions.setRank(objPlayer, current_rank + 1))
+                {
+                    CustomerServiceLog("player_faction", "PLAYER-FACTION ALTERED|TIME:" + getGameTime() + "|PLAYER:" + objPlayer + "|PLAYER NAME:" + getName(objPlayer) + "|ZONE:" + getCurrentSceneName() + "|Player has purchased rank for " + cost);
+                }
+                else
+                {
+                    factions.addUnmodifiedFactionStanding(objPlayer, getFactionNameByHashCode(intFaction), cost, false);
+                }
             }
         }
     }
     public static boolean isSmuggler(obj_id player) throws InterruptedException
     {
-        if (hasSkill(player, "class_smuggler_phase3_novice"))
+        if (hasSkill(player, "combat_smuggler_underworld_03"))
         {
             return true;
         }
-        else if (hasSkill(player, "class_smuggler_phase4_novice"))
+        else if (hasSkill(player, "combat_smuggler_underworld_04"))
         {
             return true;
         }

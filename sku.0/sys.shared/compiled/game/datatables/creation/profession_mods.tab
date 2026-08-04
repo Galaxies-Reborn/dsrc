@@ -1,9 +1,9 @@
 profession	health	strength	constitution	action	quickness	stamina	mind	focus	willpower
 s	I	I	I	I	I	I	I	I	I
-crafting_artisan	1000	0	1000	300	0	500	300	0	1000
-combat_brawler	1000	0	1000	300	0	500	300	0	1000
-social_entertainer	1000	0	1000	300	0	500	300	0	1000
-combat_marksman	1000	0	1000	300	0	500	300	0	1000
-science_medic	1000	0	1000	300	0	500	300	0	1000
-outdoors_scout	1000	0	1000	300	0	500	300	0	1000
-jedi	1000	0	1000	300	0	500	300	0	1000
+crafting_artisan	600	300	300	800	400	300	900	400	500
+combat_brawler	1000	500	400	800	350	350	500	300	300
+social_entertainer	500	300	300	1000	400	400	800	400	400
+combat_marksman	1000	450	300	800	450	300	600	300	300
+science_medic	600	300	300	700	300	300	1000	500	500
+outdoors_scout	800	300	350	800	400	400	700	350	400
+jedi	1000	500	400	800	350	350	500	300	300

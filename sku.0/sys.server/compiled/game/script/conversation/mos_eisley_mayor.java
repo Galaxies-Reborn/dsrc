@@ -127,7 +127,7 @@ public class mos_eisley_mayor extends script.base_script
     }
     public boolean mos_eisley_mayor_condition_isLevel10(obj_id player, obj_id npc) throws InterruptedException
     {
-        int level = getLevel(player);
+        int level = script.library.skill.getPrecuEncounterDifficulty(player);
         if (level >= 10)
         {
             return true;

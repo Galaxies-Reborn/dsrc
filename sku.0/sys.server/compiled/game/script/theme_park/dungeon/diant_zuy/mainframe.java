@@ -117,15 +117,15 @@ public class mainframe extends script.base_script
         int educationBonus = 0;
         int total = 0;
         int roll = rand(1, 5);
-        if (hasSkill(player, "class_medic_phase1_master") || hasSkill(player, "class_munitions_phase1_master") || hasSkill(player, "class_engineering_phase2_novice") || hasSkill(player, "class_bountyhunter_phase2_novice") || hasSkill(player, "class_smuggler_phase1_novice"))
+        if (hasSkill(player, "science_medic_master") || hasSkill(player, "crafting_weaponsmith_novice") || hasSkill(player, "crafting_armorsmith_novice") || hasSkill(player, "crafting_droidengineer_techniques_01") || hasSkill(player, "combat_bountyhunter_investigation_01") || hasSkill(player, "combat_smuggler_underworld_01"))
         {
             educationBonus++;
         }
-        if (hasSkill(player, "class_medic_phase2_novice") || hasSkill(player, "class_munitions_phase2_master") || hasSkill(player, "class_engineering_phase3_novice") || hasSkill(player, "class_bountyhunter_phase3_novice") || hasSkill(player, "class_smuggler_phase2_novice"))
+        if (hasSkill(player, "science_doctor_novice") || hasSkill(player, "crafting_weaponsmith_techniques_02") || hasSkill(player, "crafting_armorsmith_complexity_02") || hasSkill(player, "crafting_droidengineer_techniques_02") || hasSkill(player, "combat_bountyhunter_investigation_02") || hasSkill(player, "combat_smuggler_underworld_02"))
         {
             educationBonus++;
         }
-        if (hasSkill(player, "class_medic_phase3_novice") || hasSkill(player, "class_munitions_phase2_master") || hasSkill(player, "class_engineering_phase4_novice") || hasSkill(player, "class_bountyhunter_phase4_novice") || hasSkill(player, "class_smuggler_phase3_novice"))
+        if (hasSkill(player, "science_doctor_master") || hasSkill(player, "crafting_weaponsmith_master") || hasSkill(player, "crafting_armorsmith_master") || hasSkill(player, "crafting_droidengineer_master") || hasSkill(player, "combat_bountyhunter_investigation_04") || hasSkill(player, "combat_smuggler_underworld_03"))
         {
             educationBonus++;
         }

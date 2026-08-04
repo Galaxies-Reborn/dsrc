@@ -13,7 +13,12 @@ public class invitation_terminal extends script.base_script
     public static final String JUKEBOX_SCRIPT = "systems.event_perk.jukebox";
     public int OnAttach(obj_id self) throws InterruptedException
     {
-        messageTo(self, "initializeStorytellerInvitationTerminal", null, 1, false);
+        detachScript(self, "systems.storyteller.invitation_terminal");
+        return SCRIPT_CONTINUE;
+    }
+    public int OnInitialize(obj_id self) throws InterruptedException
+    {
+        detachScript(self, "systems.storyteller.invitation_terminal");
         return SCRIPT_CONTINUE;
     }
     public int initializeStorytellerInvitationTerminal(obj_id self, dictionary params) throws InterruptedException

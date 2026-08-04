@@ -697,7 +697,7 @@ public class weapons extends script.base_script
     }
     public static obj_id createLimitedUseSchematic(String name, int VIA_what, int numUses, obj_id container, String schematicNameKey) throws InterruptedException
     {
-        return createLimitedUseSchematic(name, VIA_what, numUses, container, schematicNameKey, "class_munitions_phase4_master");
+        return createLimitedUseSchematic(name, VIA_what, numUses, container, schematicNameKey, "crafting_weaponsmith_master");
     }
     public static obj_id createLimitedUseSchematic(String name, int VIA_what, int numUses, obj_id container, String schematicNameKey, String skillRequired) throws InterruptedException
     {
@@ -1211,37 +1211,19 @@ public class weapons extends script.base_script
     }
     public static void adjustWeaponRangeForExpertise(obj_id player, obj_id self, boolean modify) throws InterruptedException
     {
-        if (!hasObjVar(self, "weapon.original_max_range"))
+        // Retained callers still use the legacy helper name, but Publish 14.1
+        // has no expertise tree. Always restore the authored weapon range.
+        restorePrecuWeaponRange(self);
+    }
+    public static void restorePrecuWeaponRange(obj_id self) throws InterruptedException
+    {
+        if (!isIdValid(self) || !hasObjVar(self, "weapon.original_max_range"))
         {
             return;
         }
         range_info rangeData = getWeaponRangeInfo(self);
         float originalRange = getFloatObjVar(self, "weapon.original_max_range");
-        if (modify)
-        {
-            int weaponType = getWeaponType(self);
-            float rangeMod = getSkillStatisticModifier(player, "expertise_range_bonus_all");
-            rangeMod += getSkillStatisticModifier(player, "expertise_range_bonus_" + combat.getWeaponStringType(weaponType));
-            if (combat.isRangedWeapon(self) || combat.isHeavyWeapon(self))
-            {
-                rangeMod += getSkillStatisticModifier(player, "expertise_range_bonus_ranged");
-            }
-            if (combat.isMeleeWeapon(self))
-            {
-                rangeMod += getSkillStatisticModifier(player, "expertise_range_bonus_melee");
-            }
-            rangeMod += getSkillStatisticModifier(player, "expertise_sm_rank_range_bonus");
-            float adjustedMaxRange = rangeMod + originalRange;
-            if (adjustedMaxRange > 64)
-            {
-                adjustedMaxRange = 64;
-            }
-            rangeData.maxRange = adjustedMaxRange;
-        }
-        else 
-        {
-            rangeData.maxRange = originalRange;
-        }
+        rangeData.maxRange = originalRange;
         setWeaponRangeInfo(self, rangeData);
         setWeaponData(self);
     }
@@ -2293,7 +2275,7 @@ public class weapons extends script.base_script
         setName(newSchem, utils.packStringId(getNameFromTemplate(template)));
         setObjVar(newSchem, "loot_schematic.schematic", "object/draft_schematic/weapon/appearance/" + schemName + ".iff");
         setObjVar(newSchem, "loot_schematic.uses", 1);
-        setObjVar(newSchem, "loot_schematic.skill_req", "class_munitions_phase1_master");
+        setObjVar(newSchem, "loot_schematic.skill_req", "crafting_weaponsmith_master");
         obj_id bioLink = getBioLink(weapon);
         if (isIdValid(bioLink))
         {

@@ -48,7 +48,7 @@ public class mtp_ragtag_ames_missd extends script.base_script
     {
         npcEndConversation(player);
         groundquests.sendSignal(player, "ragTagBeatUp");
-        int mobLevel = getLevel(player);
+        int mobLevel = script.library.skill.getPrecuEncounterDifficulty(player);
         setLevel(npc, mobLevel + 10);
         setInvulnerable(npc, false);
         startCombat(npc, player);
@@ -59,7 +59,7 @@ public class mtp_ragtag_ames_missd extends script.base_script
         groundquests.sendSignal(player, "fightAnita");
         dictionary webster = new dictionary();
         webster.put("player", player);
-        webster.put("playerLevel", getLevel(player) - 10);
+        webster.put("playerLevel", script.library.skill.getPrecuEncounterDifficulty(player) - 10);
         messageTo(npc, "waveEventControllerNPCStart", webster, 1, false);
         return;
     }
@@ -68,7 +68,7 @@ public class mtp_ragtag_ames_missd extends script.base_script
         groundquests.sendSignal(player, "fightBox");
         dictionary webster = new dictionary();
         webster.put("player", player);
-        webster.put("playerLevel", getLevel(player) - 5);
+        webster.put("playerLevel", script.library.skill.getPrecuEncounterDifficulty(player) - 5);
         messageTo(npc, "waveEventControllerNPCStart", webster, 1, false);
         return;
     }

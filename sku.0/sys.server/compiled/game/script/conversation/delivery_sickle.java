@@ -44,7 +44,7 @@ public class delivery_sickle extends script.base_script
     }
     public boolean delivery_sickle_condition_tooLowLevel(obj_id player, obj_id npc) throws InterruptedException
     {
-        return getLevel(player) < 40;
+        return script.library.skill.getPrecuEncounterDifficulty(player) < 40;
     }
     public void delivery_sickle_action_giveQuest(obj_id player, obj_id npc) throws InterruptedException
     {

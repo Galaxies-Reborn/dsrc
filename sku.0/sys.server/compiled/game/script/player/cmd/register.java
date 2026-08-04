@@ -57,7 +57,7 @@ public class register extends script.base_script
             }
             if (hasObjVar(topMost, "healing.canhealshock"))
             {
-                if (hasSkill(self, "class_entertainer_phase1_novice"))
+                if (hasSkill(self, "social_dancer_novice") || hasSkill(self, "social_musician_novice"))
                 {
                     updateTarget = topMost;
                 }

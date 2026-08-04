@@ -73,6 +73,8 @@ public class stealth extends script.base_script
     public static final String DETECT_TIMES = "detectTimes";
     public static final String CAMOUFLAGED_AT_LEVEL = "camouflagedAtLevel";
     public static final String TRAP_LEVEL = "levelOfTrap";
+    public static final String PRECU_TRAPPING_SKILL_MOD = "trapping";
+    public static final String PRECU_CAMOUFLAGE_SKILL_MOD = "camouflage";
     public static final String BIO_PROBE_TARGET_NAME = "trap.targetName";
     public static final String BIO_PROBE_TRAP_TARGET = "trap.probeTarget";
     public static final String BIO_PROBE_DECAYED = "probe.decayed";
@@ -686,23 +688,19 @@ public class stealth extends script.base_script
             return;
         }
         float baseChanceToDisarm = BASE_DISARM_CHANCE;
-        int trapLevel = getIntObjVar(trap, TRAP_LEVEL);
-        int trapSkillMod = getIntObjVar(trap, TRAP_DIFFICULTY);
-        float trapperScore = trapLevel + trapSkillMod;
-        int diffuserLevel = getLevel(player);
-        int diffuserSkillMod = getEnhancedSkillStatisticModifier(player, "ranger_trap");
-        int spyBonus = utils.isProfession(player, utils.SPY) ? 30 : 0;
-        float diffuserScore = diffuserLevel + diffuserSkillMod + spyBonus;
+        float trapperScore = getIntObjVar(trap, TRAP_DIFFICULTY);
+        float diffuserScore = getEnhancedSkillStatisticModifier(player, PRECU_TRAPPING_SKILL_MOD);
         float totalDisparity = diffuserScore - trapperScore;
         float chanceToDetect = baseChanceToDisarm;
         float detectRange = MAX_CHANCE_TO_DISARM - MIN_CHANCE_TO_DISARM;
-        if (totalDisparity > 0)
-        {
-            chanceToDetect += (totalDisparity / MAX_HIDING_DETECT_SCORE) * detectRange;
-        }
+        chanceToDetect += (totalDisparity / MAX_HIDING_DETECT_SCORE) * detectRange;
         if (chanceToDetect > MAX_CHANCE_TO_DISARM)
         {
             chanceToDetect = MAX_CHANCE_TO_DISARM;
+        }
+        else if (chanceToDetect < MIN_CHANCE_TO_DISARM)
+        {
+            chanceToDetect = MIN_CHANCE_TO_DISARM;
         }
         if (rand(0.0f, 100.0f) < chanceToDetect)
         {
@@ -879,11 +877,10 @@ public class stealth extends script.base_script
     }
     public static void concealDevice(obj_id player, obj_id target) throws InterruptedException
     {
-        int camoSkill = getEnhancedSkillStatisticModifier(player, "camouflage");
-        camoSkill += getEnhancedSkillStatisticModifier(player, "stealth");
+        int camoSkill = getEnhancedSkillStatisticModifier(player, PRECU_CAMOUFLAGE_SKILL_MOD);
         setObjVar(target, CONCEALED_OBJECT, 1);
         setObjVar(target, CAMO_SKILL, camoSkill);
-        setObjVar(target, CAMOUFLAGED_AT_LEVEL, getLevel(player));
+        removeObjVar(target, CAMOUFLAGED_AT_LEVEL);
         hideFromClient(target, true);
     }
     public static void unconcealDevice(obj_id player, obj_id target) throws InterruptedException
@@ -1421,8 +1418,8 @@ public class stealth extends script.base_script
         setOwner(trap, player);
         setObjVar(trap, TRAP_FACTION, pvpGetAlignedFaction(player));
         setObjVar(trap, TRAP_PVP_TYPE, pvpGetType(player));
-        setObjVar(trap, TRAP_DIFFICULTY, getEnhancedSkillStatisticModifier(player, "ranger_trap"));
-        setObjVar(trap, TRAP_LEVEL, getLevel(player));
+        setObjVar(trap, TRAP_DIFFICULTY, getEnhancedSkillStatisticModifier(player, PRECU_TRAPPING_SKILL_MOD));
+        removeObjVar(trap, TRAP_LEVEL);
         if (hasObjVar(trap, "concealable"))
         {
             if (buff.hasBuff(player, "conceal_trap"))

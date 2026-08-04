@@ -25,12 +25,12 @@ public class blueprint extends script.base_script
     };
     public int OnAttach(obj_id self) throws InterruptedException
     {
-        messageTo(self, "handleStorytellerBlueprintInitialize", null, 1, false);
+        detachScript(self, "systems.storyteller.blueprint");
         return SCRIPT_CONTINUE;
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
-        messageTo(self, "handleStorytellerBlueprintInitialize", null, 5, false);
+        detachScript(self, "systems.storyteller.blueprint");
         return SCRIPT_CONTINUE;
     }
     public int handleStorytellerBlueprintInitialize(obj_id self, dictionary params) throws InterruptedException

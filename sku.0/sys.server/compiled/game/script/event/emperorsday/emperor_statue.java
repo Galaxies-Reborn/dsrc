@@ -35,16 +35,19 @@ public class emperor_statue extends script.base_script
     public static final float LAMBDA_YAW = -0.01f;
     public int OnInitialize(obj_id self) throws InterruptedException
     {
-        CustomerServiceLog("holidayEvent", "emperor_statue.OnInitialize: Init.");
-        if (utils.hasScriptVar(self, "musicObject")) {
-            obj_id oldSoundObject = utils.getObjIdScriptVar(self, "musicObject");
-            if ((isIdValid(oldSoundObject)) && exists(oldSoundObject)) {
-                destroyObject(oldSoundObject);
-            }
+        OnDestroy(self);
+        obj_id lambda = utils.getObjIdScriptVar(self, "lambdaShuttle");
+        if ((isIdValid(lambda)) && exists(lambda))
+        {
+            messageTo(lambda, "takeOff", null, 20.0f, false);
+            utils.removeScriptVar(self, "lambdaShuttle");
         }
-        utils.setScriptVar(self, "musicObject", createObject(MUSIC_IMPERIAL_ATTACK, getLocation(self)));
-        CustomerServiceLog("holidayEvent", "emperor_statue.OnInitialize: Preparing Parade.");
-        messageTo(self, "prepareParade", null, 30.0f, false);
+        detachScript(self, "event.emperorsday.emperor_statue");
+        return SCRIPT_CONTINUE;
+    }
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        detachScript(self, "event.emperorsday.emperor_statue");
         return SCRIPT_CONTINUE;
     }
     public int OnGetAttributes(obj_id self, obj_id player, String[] names, String[] attribs) throws InterruptedException

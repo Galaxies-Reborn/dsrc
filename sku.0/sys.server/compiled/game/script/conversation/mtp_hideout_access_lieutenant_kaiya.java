@@ -46,7 +46,7 @@ public class mtp_hideout_access_lieutenant_kaiya extends script.base_script
     }
     public void mtp_hideout_access_lieutenant_kaiya_action_grant_mtpHideout06(obj_id player, obj_id npc) throws InterruptedException
     {
-        if (getLevel(player) >= 82)
+        if (script.library.skill.getPrecuEncounterDifficulty(player) >= 82)
         {
             groundquests.grantQuest(player, "mtp_hideout_access_high_06");
         }
@@ -62,7 +62,7 @@ public class mtp_hideout_access_lieutenant_kaiya extends script.base_script
     }
     public void mtp_hideout_access_lieutenant_kaiya_action_grant_mtpHideout07(obj_id player, obj_id npc) throws InterruptedException
     {
-        if (getLevel(player) >= 82)
+        if (script.library.skill.getPrecuEncounterDifficulty(player) >= 82)
         {
             groundquests.grantQuest(player, "mtp_hideout_access_high_07");
         }

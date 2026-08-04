@@ -30,6 +30,10 @@ public class tcg_vendor_contract extends script.base_script
     public static final String NON_TRADER_AGREEMENT = CONTRACT_PREFIX + ".non_trader_agreement";
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (!isTcgVendorContractEnabled())
+        {
+            return SCRIPT_CONTINUE;
+        }
         blog("tcg_vendor_contract.OnObjectMenuRequest: Init.");
         if (!isValidId(player) || !exists(player))
         {
@@ -52,6 +56,10 @@ public class tcg_vendor_contract extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (!isTcgVendorContractEnabled())
+        {
+            return SCRIPT_CONTINUE;
+        }
         blog("tcg_vendor_contract.OnObjectMenuSelect: Init.");
         if (!utils.isNestedWithinAPlayer(self) || utils.getContainingPlayer(self) != player)
         {
@@ -59,26 +67,6 @@ public class tcg_vendor_contract extends script.base_script
         }
         if (item != menu_info_types.ITEM_USE)
         {
-            return SCRIPT_CONTINUE;
-        }
-        String classTemplate = getSkillTemplate(player);
-        if (classTemplate == null || classTemplate.equals(""))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        if (classTemplate.startsWith("trader"))
-        {
-            blog("tcg_vendor_contract.OnObjectMenuSelect: Found player to be a trader.");
-            if (!giveTcgTraderSkillMod(self, player))
-            {
-                blog("tcg_vendor_contract.OnObjectMenuSelect: Vendor Skill Mod Application Failed.");
-                sendSystemMessage(player, SID_VENDOR_INVOCATION_CANCELED);
-                CustomerServiceLog("vendor", " TCG Vendor Contract: " + self + " failed to apply a TCG vendor skill mod to player: " + player + ". The contract was not deleted.");
-                return SCRIPT_CONTINUE;
-            }
-            blog("tcg_vendor_contract.OnObjectMenuSelect: Vendor Skill Mod Application Succeeded. Deleting Contract");
-            CustomerServiceLog("vendor", " TCG Vendor Contract: " + self + " successfully applied a TCG vendor skill mod to player: " + player + ". The contract will now be deleted.");
-            destroyObject(self);
             return SCRIPT_CONTINUE;
         }
         if (!hasObjVar(self, NON_TRADER_AGREEMENT))
@@ -109,6 +97,10 @@ public class tcg_vendor_contract extends script.base_script
     }
     public int msgConfirmNonTraderVendorUse(obj_id self, dictionary params) throws InterruptedException
     {
+        if (!isTcgVendorContractEnabled())
+        {
+            return SCRIPT_CONTINUE;
+        }
         blog("tcg_vendor_contract.msgConfirmNonTraderVendorUse: Init.");
         if (params == null || params.isEmpty())
         {
@@ -133,6 +125,10 @@ public class tcg_vendor_contract extends script.base_script
     }
     public int handleNonVendorAppearanceSelection(obj_id self, dictionary params) throws InterruptedException
     {
+        if (!isTcgVendorContractEnabled())
+        {
+            return SCRIPT_CONTINUE;
+        }
         blog("tcg_vendor_contract.handleNonVendorAppearanceSelection: Init.");
         if (params == null || params.isEmpty())
         {
@@ -193,6 +189,10 @@ public class tcg_vendor_contract extends script.base_script
     }
     public int handleSetNonVendorName(obj_id self, dictionary params) throws InterruptedException
     {
+        if (!isTcgVendorContractEnabled())
+        {
+            return SCRIPT_CONTINUE;
+        }
         blog("tcg_vendor_contract.handleSetNonVendorName: init");
         if (params == null || params.isEmpty())
         {
@@ -425,6 +425,10 @@ public class tcg_vendor_contract extends script.base_script
         utils.removeScriptVarTree(self, vendor_lib.NONVENDOR_VAR_PREFIX);
         blog("tcg_vendor_contract.removeVars: removed NONVENDOR_VAR_PREFIX Vars ");
         return true;
+    }
+    private static boolean isTcgVendorContractEnabled()
+    {
+        return false;
     }
     public boolean blog(String msg) throws InterruptedException
     {

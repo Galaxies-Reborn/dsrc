@@ -30,7 +30,7 @@ public class door_lock_crafting_armor extends script.base_script
                 messageTo(self, "unlockTerminal", null, 30, false);
                 return SCRIPT_CONTINUE;
             }
-            if (hasSkill(player, "class_munitions_phase4_master"))
+            if (hasSkill(player, "crafting_armorsmith_master"))
             {
                 if (checkForIngredients(player))
                 {

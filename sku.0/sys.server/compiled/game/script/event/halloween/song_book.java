@@ -38,7 +38,7 @@ public class song_book extends script.base_script
             {
                 if (utils.isProfession(player, utils.ENTERTAINER))
                 {
-                    if (getLevel(player) > 81)
+                    if (script.library.skill.getPrecuEntertainerContentDifficulty(player) > 81)
                     {
                         grantCommand(player, "startMusic+dirge");
                         sendSystemMessage(player, LEARNED_SONG);

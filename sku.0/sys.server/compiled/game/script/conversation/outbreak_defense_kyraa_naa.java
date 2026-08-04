@@ -36,11 +36,11 @@ public class outbreak_defense_kyraa_naa extends script.base_script
     }
     public boolean outbreak_defense_kyraa_naa_condition_levelTooHigh(obj_id player, obj_id npc) throws InterruptedException
     {
-        return getLevel(player) >= 60;
+        return script.library.skill.getPrecuEncounterDifficulty(player) >= 60;
     }
     public boolean outbreak_defense_kyraa_naa_condition_levelTooLow(obj_id player, obj_id npc) throws InterruptedException
     {
-        return getLevel(player) < 40;
+        return script.library.skill.getPrecuEncounterDifficulty(player) < 40;
     }
     public boolean outbreak_defense_kyraa_naa_condition_noAntiVirus(obj_id player, obj_id npc) throws InterruptedException
     {

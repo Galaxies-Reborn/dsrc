@@ -20,7 +20,7 @@ public class trainer_beast_master extends script.base_script
         {
             return false;
         }
-        int playerLevel = getLevel(player);
+        int playerLevel = script.library.skill.getPrecuEncounterDifficulty(player);
         if (playerLevel > 72 && !bestProvoke.equals("bm_provoke_5"))
         {
             return true;

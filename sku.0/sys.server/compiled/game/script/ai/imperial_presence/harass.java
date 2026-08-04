@@ -549,7 +549,7 @@ public class harass extends script.base_script
                 }
                 for (Object member : members) {
                     obj_id thisMember = ((obj_id) member);
-                    if (hasSkill(thisMember, "class_smuggler_phase1_novice") && thisMember != (target)) {
+                    if (hasSkill(thisMember, "combat_smuggler_novice") && thisMember != (target)) {
                         if (ai_lib.checkForSmuggler(thisMember)) {
                             chat.publicChat(self, target, new string_id(STF, "clean_target_" + getFactionName(self)));
                             if (getGender(self) == GENDER_MALE) {
@@ -575,7 +575,7 @@ public class harass extends script.base_script
             return SCRIPT_CONTINUE;
         }
         int interests = utils.getIntScriptVar(self, gcw.SCRIPTVAR_SCAN_INTEREST);
-        int playerLevel = getLevel(target);
+        int playerLevel = script.library.skill.getPrecuEncounterDifficulty(target);
         if (playerLevel >= 75 && isEnemyJedi(self, target) && rand(1, 5) == 1)
         {
             sendSystemMessage(target, new string_id(STF, "discovered_" + getFactionName(self)));

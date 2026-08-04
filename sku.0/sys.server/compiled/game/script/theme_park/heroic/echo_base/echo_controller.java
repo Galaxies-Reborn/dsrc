@@ -144,8 +144,7 @@ public class echo_controller extends script.base_script
         CustomerServiceLog(instanceName, "Group (" + group + ") consists of: ");
         for (int i = 0; i < players.length; ++i)
         {
-            String strProfession = skill.getProfessionName(getSkillTemplate(players[i]));
-            CustomerServiceLog(instanceName, "Group (" + group + ") member " + i + " " + getFirstName(players[i]) + "'s(" + players[i] + ") profession is " + strProfession + ".");
+            CustomerServiceLog(instanceName, "Group (" + group + ") member " + i + " " + getFirstName(players[i]) + "'s(" + players[i] + ") progression is Publish 14.1 skills.");
         }
         CustomerServiceLog(instanceName, "Players earned " + tokens + " tokens");
         CustomerServiceLog(instanceName, "Objective Destroy 4 AT-AT: " + utils.getIntScriptVar(self, "quest_tracker.rebel.at_minor"));
@@ -182,8 +181,7 @@ public class echo_controller extends script.base_script
         CustomerServiceLog(instanceName, "Group (" + group + ") consists of: ");
         for (int i = 0; i < players.length; ++i)
         {
-            String strProfession = skill.getProfessionName(getSkillTemplate(players[i]));
-            CustomerServiceLog(instanceName, "Group (" + group + ") member " + i + " " + getFirstName(players[i]) + "'s(" + players[i] + ") profession is " + strProfession + ".");
+            CustomerServiceLog(instanceName, "Group (" + group + ") member " + i + " " + getFirstName(players[i]) + "'s(" + players[i] + ") progression is Publish 14.1 skills.");
         }
         CustomerServiceLog(instanceName, "Players earned " + tokens + " tokens");
         CustomerServiceLog(instanceName, "Objective Lost 1 AT-AT: " + utils.getIntScriptVar(self, "quest_tracker.imperial.fail_major"));

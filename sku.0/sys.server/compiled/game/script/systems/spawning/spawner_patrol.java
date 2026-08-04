@@ -18,16 +18,34 @@ public class spawner_patrol extends script.base_script
     public static final int LOCATION_SEARCH_RADIUS = 1000;
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        if (spawning.isRetiredEmpireDaySpawner(self))
+        {
+            spawning.cleanupRetiredSpawnerChildren(self);
+            OnDestroy(self);
+            detachScript(self, "systems.spawning.spawner_patrol");
+            return SCRIPT_CONTINUE;
+        }
         start(self);
         return SCRIPT_CONTINUE;
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        if (spawning.isRetiredEmpireDaySpawner(self))
+        {
+            spawning.cleanupRetiredSpawnerChildren(self);
+            OnDestroy(self);
+            detachScript(self, "systems.spawning.spawner_patrol");
+            return SCRIPT_CONTINUE;
+        }
         start(self);
         return SCRIPT_CONTINUE;
     }
     public int startTheaterFromBuildout(obj_id self, dictionary params) throws InterruptedException
     {
+        if (spawning.isRetiredEmpireDaySpawner(self))
+        {
+            return SCRIPT_CONTINUE;
+        }
         start(self);
         return SCRIPT_CONTINUE;
     }
@@ -47,6 +65,10 @@ public class spawner_patrol extends script.base_script
     }
     public int doInitialSpawn(obj_id self, dictionary params) throws InterruptedException
     {
+        if (spawning.isRetiredEmpireDaySpawner(self))
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (!spawning.checkSpawnCount(self))
         {
             return SCRIPT_CONTINUE;
@@ -130,6 +152,10 @@ public class spawner_patrol extends script.base_script
     }
     public int doSpawnEvent(obj_id self, dictionary params) throws InterruptedException
     {
+        if (spawning.isRetiredEmpireDaySpawner(self))
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (!spawning.checkSpawnCount(self))
         {
             LOG("spawning", "No count 1");
@@ -356,6 +382,10 @@ public class spawner_patrol extends script.base_script
     }
     public int spawnDestroyed(obj_id self, dictionary params) throws InterruptedException
     {
+        if (spawning.isRetiredEmpireDaySpawner(self))
+        {
+            return SCRIPT_CONTINUE;
+        }
         int intCurrentSpawnCount = utils.getIntScriptVar(self, "intCurrentSpawnCount");
         intCurrentSpawnCount = intCurrentSpawnCount - 1;
         if (intCurrentSpawnCount > -1)

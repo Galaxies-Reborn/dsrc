@@ -1,6 +1,7 @@
 package script.systems.beast;
 
 import script.library.beast_lib;
+import script.library.incubator;
 import script.menu_info;
 import script.menu_info_types;
 import script.obj_id;
@@ -13,11 +14,19 @@ public class enzyme_extractor extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return SCRIPT_CONTINUE;
+        }
         int options = mi.addRootMenu(menu_info_types.ITEM_USE, new string_id("beast", "extract_type_3_enzyme"));
         return SCRIPT_CONTINUE;
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         sendDirtyObjectMenuNotification(self);
         obj_id enzyme = null;
         obj_id target = getIntendedTarget(player);

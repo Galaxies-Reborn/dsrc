@@ -36,7 +36,7 @@ public class outbreak_defense_mika_horn_alpha extends script.base_script
     }
     public boolean outbreak_defense_mika_horn_alpha_condition_levelTooHigh(obj_id player, obj_id npc) throws InterruptedException
     {
-        return getLevel(player) >= 15;
+        return script.library.skill.getPrecuEncounterDifficulty(player) >= 15;
     }
     public boolean outbreak_defense_mika_horn_alpha_condition_hasDefenseQuest(obj_id player, obj_id npc) throws InterruptedException
     {

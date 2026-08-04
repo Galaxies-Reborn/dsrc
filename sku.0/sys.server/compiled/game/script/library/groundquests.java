@@ -1410,7 +1410,7 @@ public class groundquests extends script.base_script
     }
     public static int getQuestXpCap(obj_id player) throws InterruptedException
     {
-        int level = getLevel(player);
+        int level = script.library.skill.getPrecuEncounterDifficulty(player);
         int xpCurrentLevel = dataTableGetInt("datatables/player/player_level.iff", level, "xp_required");
         int xpPreviousLevel = dataTableGetInt("datatables/player/player_level.iff", level - 1, "xp_required");
         int xpRequired = xpCurrentLevel - xpPreviousLevel;

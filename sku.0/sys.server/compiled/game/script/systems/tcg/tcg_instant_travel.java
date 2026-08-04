@@ -13,47 +13,12 @@ public class tcg_instant_travel extends script.base_script
 
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
-        if (!isIdValid(player))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        if (isDead(player) || isIncapacitated(player))
-        {
-            sendSystemMessage(player, SID_WHILE_DEAD);
-            return SCRIPT_CONTINUE;
-        }
-        obj_id tcg_itv = getSelf();
-        if (utils.isNestedWithinAPlayer(tcg_itv) && isOwner(tcg_itv, player))
-        {
-            mi.addRootMenu(menu_info_types.SERVER_MENU8, new string_id("tcg", "manage_locations"));
-        }
-        else 
-        {
-            mi.addRootMenu(menu_info_types.SERVER_MENU9, new string_id("tcg", "travel_locations"));
-        }
+        LOG("LOG_CHANNEL", "Ignored retired NGE stationary instant-travel menu request for " + player);
         return SCRIPT_CONTINUE;
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
-        if (!isIdValid(player))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        if (getState(player, STATE_RIDING_MOUNT) == 1)
-        {
-            pet_lib.doDismountNow(player, true);
-        }
-        obj_id tcg_itv = getSelf();
-        if (item == menu_info_types.SERVER_MENU8)
-        {
-            markItvLocations(tcg_itv, player);
-            return SCRIPT_CONTINUE;
-        }
-        if (item == menu_info_types.SERVER_MENU9)
-        {
-            retrieveLocationsList(tcg_itv, player);
-            return SCRIPT_CONTINUE;
-        }
+        LOG("LOG_CHANNEL", "Ignored retired NGE stationary instant-travel selection for " + player);
         return SCRIPT_CONTINUE;
     }
     public void markItvLocations(obj_id itv, obj_id player) throws InterruptedException
@@ -276,53 +241,12 @@ public class tcg_instant_travel extends script.base_script
     }
     public int handleConfirmStationaryTravel(obj_id self, dictionary params) throws InterruptedException
     {
-        if (params == null || params.isEmpty())
-        {
-            return SCRIPT_CONTINUE;
-        }
-        obj_id player = sui.getPlayerId(params);
-        if (!isIdValid(player))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        int bp = sui.getIntButtonPressed(params);
-        if (bp == sui.BP_CANCEL)
-        {
-            return SCRIPT_CONTINUE;
-        }
-        if (!itvIsInRangeOfPlayer(self, player))
-        {
-            sendSystemMessage(player, new string_id("tcg", "itv_out_of_range"));
-            return SCRIPT_CONTINUE;
-        }
-        if (utils.hasScriptVar(player, "travel.stationary_itv.index"))
-        {
-            int index = utils.getIntScriptVar(player, "travel.stationary_itv.index");
-            utils.removeScriptVar(player, "travel.stationary_itv.index");
-            if (index > 0)
-            {
-                sendPlayerToLocation(player, index);
-            }
-        }
+        LOG("LOG_CHANNEL", "Rejected retired NGE stationary instant-travel warp");
         return SCRIPT_CONTINUE;
     }
     public void sendPlayerToLocation(obj_id player, int idx) throws InterruptedException
     {
-        if (!isIdValid(player))
-        {
-            return;
-        }
-        obj_id itv = getSelf();
-        if (hasObjVar(itv, ("travel_tcg.stationary_itv.location." + idx)) && hasObjVar(itv, ("travel_tcg.stationary_itv.scene." + idx)))
-        {
-            location travelLoc = getLocationObjVar(itv, ("travel_tcg.stationary_itv.location." + idx));
-            String destPlanet = getStringObjVar(itv, ("travel_tcg.stationary_itv.scene." + idx));
-            warpPlayer(player, destPlanet, travelLoc.x, travelLoc.y, travelLoc.z, null, 0, 0, 0, "", false);
-        }
-        else 
-        {
-            sendSystemMessage(player, new string_id("tcg", "corrupt_itv_location_data"));
-        }
+        LOG("LOG_CHANNEL", "Rejected retired NGE stationary instant-travel location warp for " + player);
         return;
     }
     public boolean canMarkAtLocation(obj_id player) throws InterruptedException

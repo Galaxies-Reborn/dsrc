@@ -2,6 +2,7 @@ package script.structure.municipal;
 
 import script.dictionary;
 import script.library.create;
+import script.library.gcw;
 import script.library.player_structure;
 import script.library.structure;
 import script.library.utils;
@@ -17,8 +18,27 @@ public class cloning_facility extends script.structure.municipal.cloning_base
     }
     public static final String SCRIPT_CLONING_FACILITY = "structure.municipal.cloning_facility";
     public static final String DATATABLE_TERMINAL_LIST = "datatables/structure/municipal/cloning_facility_terminal.iff";
+    public boolean isRetiredFixedStaticBaseCloner(obj_id self) throws InterruptedException
+    {
+        String template = getTemplateName(self);
+        return gcw.isPostNgeFixedStaticBaseRetired() && template != null && template.startsWith("object/tangible/gcw/static_base/invisible_cloner_");
+    }
+    public void cleanupRetiredFixedStaticBaseCloner(obj_id self) throws InterruptedException
+    {
+        if (!isRetiredFixedStaticBaseCloner(self))
+        {
+            return;
+        }
+        structure.destroyStructureTerminals(self);
+        detachScript(self, SCRIPT_CLONING_FACILITY);
+    }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        if (isRetiredFixedStaticBaseCloner(self))
+        {
+            cleanupRetiredFixedStaticBaseCloner(self);
+            return SCRIPT_CONTINUE;
+        }
         messageTo(self, "handleTerminalSpawning", null, 5.0f, false);
         return super.OnInitialize(self);
     }
@@ -35,6 +55,11 @@ public class cloning_facility extends script.structure.municipal.cloning_base
     }
     public int handleTerminalSpawning(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isRetiredFixedStaticBaseCloner(self))
+        {
+            cleanupRetiredFixedStaticBaseCloner(self);
+            return SCRIPT_CONTINUE;
+        }
         createCloningDroid(self);
         if (!player_structure.isCivic(self))
         {
@@ -44,6 +69,11 @@ public class cloning_facility extends script.structure.municipal.cloning_base
     }
     public void createCloningDroid(obj_id facility) throws InterruptedException
     {
+        if (isRetiredFixedStaticBaseCloner(facility))
+        {
+            cleanupRetiredFixedStaticBaseCloner(facility);
+            return;
+        }
         if (!isIdValid(facility))
         {
             return;

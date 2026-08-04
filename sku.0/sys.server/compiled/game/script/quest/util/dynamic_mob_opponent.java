@@ -106,13 +106,13 @@ public class dynamic_mob_opponent extends script.base_script
             CustomerServiceLog("quest", "dynamic_mob_opponent.OnAttach() FAILED to find player enemy.");
             return SCRIPT_CONTINUE;
         }
-        int mobLevel = getLevel(playerEnemy);
+        int mobLevel = skill.getPrecuEncounterDifficulty(playerEnemy);
         if (mobLevel <= 0)
         {
-            CustomerServiceLog("quest", "dynamic_mob_opponent.setDynamicDataOnMob() Player level was less than or equal to 0. Making Dynamic Mob level 5");
+            CustomerServiceLog("quest", "dynamic_mob_opponent.setDynamicDataOnMob() PRE-CU combat-skill difficulty was less than or equal to 0. Making Dynamic Mob level 5");
             mobLevel = 5;
         }
-        CustomerServiceLog("quest", "dynamic_mob_opponent.setDynamicDataOnMob() Dynamic Mob level is now: " + mobLevel);
+        CustomerServiceLog("quest", "dynamic_mob_opponent.setDynamicDataOnMob() Dynamic Mob PRE-CU difficulty is now: " + mobLevel);
         setObjVar(self, create.INITIALIZE_CREATURE_DO_NOT_SCALE_OBJVAR, 1);
         String creatureName = getStringObjVar(self, "creature_type");
         if (creatureName != null && creatureName.length() > 0)

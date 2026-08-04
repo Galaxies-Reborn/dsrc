@@ -3,6 +3,7 @@ package script.systems.gcw.static_base;
 import script.dictionary;
 import script.library.ai_lib;
 import script.library.create;
+import script.library.gcw;
 import script.library.utils;
 import script.location;
 import script.obj_id;
@@ -20,18 +21,65 @@ public class base_spawner extends script.base_script
     public static final int NO_CONTROL = 0;
     public static final int IMPERIAL_CONTROL = 1;
     public static final int REBEL_CONTROL = 2;
+    public void cleanupRetiredFixedStaticBaseSpawns(obj_id self) throws InterruptedException
+    {
+        if (!gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            return;
+        }
+        obj_var_list ovl = getObjVarList(self, SPAWNED_LIST);
+        if ((ovl != null) && (ovl.getNumItems() > 0))
+        {
+            int numItems = ovl.getNumItems();
+            for (int i = 0; i < numItems; i++)
+            {
+                obj_id spawned = getObjIdObjVar(self, SPAWNED + i);
+                if (!isIdValid(spawned))
+                {
+                    continue;
+                }
+                if (spawned.isLoaded())
+                {
+                    destroyObject(spawned);
+                }
+                else
+                {
+                    messageTo(spawned, "handleDestroyRequest", null, 0.0f, false);
+                }
+            }
+        }
+        removeObjVar(self, SPAWNED_LIST);
+        removeObjVar(self, "gcw.static_base");
+        utils.removeScriptVar(self, "spawnCounter");
+        detachScript(self, "systems.gcw.static_base.base_spawner");
+    }
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBaseSpawns(self);
+            return SCRIPT_CONTINUE;
+        }
         messageTo(self, "handleBeginSpawnRequest", null, 20.0f, false);
         return SCRIPT_CONTINUE;
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBaseSpawns(self);
+            return SCRIPT_CONTINUE;
+        }
         messageTo(self, "handleBeginSpawnRequest", null, 20.0f, false);
         return SCRIPT_CONTINUE;
     }
     public int handleBeginSpawnRequest(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBaseSpawns(self);
+            return SCRIPT_CONTINUE;
+        }
         location loc = getLocation(self);
         String datatable = "datatables/gcw/static_base/base_spawn_" + loc.area + ".iff";
         int numObjects = dataTableGetNumRows(datatable);
@@ -56,6 +104,11 @@ public class base_spawner extends script.base_script
     }
     public int handleBaseCleanupRequest(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBaseSpawns(self);
+            return SCRIPT_CONTINUE;
+        }
         obj_var_list ovl = getObjVarList(self, SPAWNED_LIST);
         obj_id[] objects = null;
         if ((ovl != null) && (ovl.getNumItems() > 0))
@@ -86,6 +139,11 @@ public class base_spawner extends script.base_script
     }
     public int handleNpcDeath(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBaseSpawns(self);
+            return SCRIPT_CONTINUE;
+        }
         int spawn_num = params.getInt("spawnNumber");
         int obj_status = params.getInt("status");
         obj_id spawn_obj = params.getObjId("spawnObj");
@@ -108,6 +166,11 @@ public class base_spawner extends script.base_script
     }
     public void spawn(int x, String datatable, obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBaseSpawns(self);
+            return;
+        }
         if (!hasObjVar(self, VAR_BASE_STATUS))
         {
             return;

@@ -1,0 +1,164 @@
+actionName	healthCostMultiplier	actionCostMultiplier	mindCostMultiplier	targetPool	speedMultiplier	accuracyBonus	animationType	dotAttribute	postureDownChance	stateEffect1	stateChance1	stateStrength1	stateDuration1	stateDefense1	stateJediDefense1	stateResistance1	stateEffect2	stateChance2	stateStrength2	stateDuration2	stateDefense2	stateJediDefense2	stateResistance2	stateEffect3	stateChance3	stateStrength3	stateDuration3	stateDefense3	stateJediDefense3	stateResistance3	poolDamageRolls	poolDamageIncrement	knockdownChance	hitIncapacitatedTarget	fixedMinDamage	fixedMaxDamage	accuracySkillMod	healthDamageMultiplier	actionDamageMultiplier	mindDamageMultiplier
+s	f	f	f	"e(NO_ATTRIBUTE=-2,HEALTH=0,ACTION=1,MIND=2,RANDOM=3,MULTI=4)[HEALTH]"	f	i	"e(NONE=0,RANGED=1,INTENSITY=2)[NONE]"	"e(NONE=-1,HEALTH=0,ACTION=3,MIND=6)[NONE]"	i[0]	"e(NONE=0,DIZZY=1,BLIND=2,STUN=3,REMOVE_COVER=4,POSTURE_UP=5,INTIMIDATE=6,NEXT_ATTACK_DELAY=7)[NONE]"	i[0]	i[0]	i[0]	s	s	s	"e(NONE=0,DIZZY=1,BLIND=2,STUN=3,REMOVE_COVER=4,POSTURE_UP=5,INTIMIDATE=6,NEXT_ATTACK_DELAY=7)[NONE]"	i[0]	i[0]	i[0]	s	s	s	"e(NONE=0,DIZZY=1,BLIND=2,STUN=3,REMOVE_COVER=4,POSTURE_UP=5,INTIMIDATE=6,NEXT_ATTACK_DELAY=7)[NONE]"	i[0]	i[0]	i[0]	s	s	s	i[0]	f[0]	i[0]	i[0]	i[-1]	i[-1]	s	f[0]	f[0]	f[0]
+__precu_runtime_probe	0	0	0	HEALTH	0	0	NONE
+creatureMeleeAttack	0	0	0	RANDOM	1	0	NONE
+creatureRangedAttack	0	0	0	RANDOM	1	0	NONE
+meleeHit	0	0	0	RANDOM	1	0	NONE
+rangedShot	0	0	0	RANDOM	1	0	NONE
+saberHit	0	0	0	RANDOM	1	0	NONE
+healthShot2	0.5	1	0.5	HEALTH	2	50	RANGED	HEALTH
+pistolMeleeDefense1	0.5	0.75	0.5	RANDOM	2	50	INTENSITY																										100
+pistolMeleeDefense2	0.5	1	0.5	RANDOM	2	50	INTENSITY																										65
+headShot1	0.5	0.5	1	MIND	1.5	5	RANGED
+bodyShot1	0.5	0.75	0.5	HEALTH	1	50	RANGED
+disarmingShot1	0.5	0.75	0.5	RANDOM	1.5	50	RANGED
+doubleTap	0.5	0.75	0.5	RANDOM	2.1	50	RANGED
+stoppingShot	0.5	1.25	0.5	RANDOM	2.5	50	RANGED
+cripplingShot	0.5	2	0.5	RANDOM	2	25	RANGED
+pointBlankSingle1	0.5	1.25	0.5	RANDOM	1.5	15	RANGED
+pointBlankSingle2	1	1	1	RANDOM	1.8	0	RANGED
+pointBlankArea1	0.5	1.25	0.5	RANDOM	1.5	15	INTENSITY
+burstShot1	1.75	1.25	0.5	RANDOM	2	25	RANGED
+bodyShot2	0.5	1	0.5	HEALTH	1	50	RANGED
+bodyShot3	0.75	1.25	0.75	HEALTH	1	50	RANGED
+headShot2	0.5	0.5	1.5	MIND	1.5	5	RANGED
+headShot3	0.5	0.5	2.5	MIND	2	5	RANGED
+melee1hBodyHit1	0.5	0.5	0.625	HEALTH	1.5	25	INTENSITY
+melee1hBodyHit2	0.75	0.75	1.25	HEALTH	2	25	INTENSITY
+melee1hBodyHit3	1	1	2	HEALTH	2.25	25	INTENSITY
+melee2hHeadHit1	0.5	1	0.5	MIND	1.25	10	INTENSITY
+melee2hHeadHit2	1	1.5	1	MIND	1.75	10	INTENSITY
+melee2hHeadHit3	1.5	2	1.5	MIND	2.25	10	INTENSITY
+legShot1	2.25	1.25	0.5	ACTION	2	25	NONE
+polearmLegHit1	1	0.5	0.5	ACTION	1.25	10	NONE
+polearmLunge1	0.5	1.0	0.5	RANDOM	1.5	10	NONE		100
+polearmLunge2	0.625	1.5	0.625	RANDOM	2.5	10	NONE		0																								100
+unarmedLunge1	1.0	1.0	1.0	RANDOM	1.5	15	NONE		100
+unarmedLunge2	1.5	1.5	1.5	RANDOM	2.0	15	NONE		0																								100
+melee1hLunge1	0.5	0.5	1.0	RANDOM	1.5	25	NONE		100
+melee1hLunge2	0.625	0.625	1.5	RANDOM	2.5	25	NONE		0																								100
+melee2hLunge1	1.0	0.5	0.5	RANDOM	1.5	10	NONE		100
+melee2hLunge2	1.5	0.625	0.625	RANDOM	2.5	10	NONE		0																								100
+melee1hDizzyHit1	0.5	0.5	0.625	RANDOM	1.5	25	INTENSITY		0	DIZZY	100	0	30	dizzy_defense	jedi_state_defense	resistance_states
+melee2hSweep1	0.75	1.5	0.75	RANDOM	1.5	10	NONE		100
+melee2hSweep2	0.5	2.25	1	RANDOM	2.5	10			100
+polearmStun1	1.0	0.5	0.5	RANDOM	1.5	10	INTENSITY		0	STUN	100	0	30	stun_defense	jedi_state_defense	resistance_states
+polearmSpinAttack1	1.5	1	1	RANDOM	1.5	10	NONE
+melee1hSpinAttack1	1	1	1.5	RANDOM	1.5	25	NONE
+melee2hSpinAttack1	1	1.5	1	RANDOM	1.5	10	NONE
+unarmedHeadHit1	1.75	1.75	1.75	MIND	2	15	NONE
+melee1hHit1	0.5	0.5	0.625	RANDOM	1.5	25	INTENSITY
+melee1hHit2	0.75	0.75	1.25	RANDOM	1.5	25	INTENSITY
+melee2hHit1	0.5	1	0.5	RANDOM	1.5	10	INTENSITY
+melee2hHit2	1	1.5	1	RANDOM	2	10	INTENSITY
+polearmLegHit2	1.5	1	1	ACTION	1.75	10	INTENSITY
+polearmLegHit3	2	1.5	1.5	ACTION	2.25	10	INTENSITY
+polearmHit1	1	0.5	0.5	RANDOM	1.5	10	INTENSITY
+polearmArea1	1.5	1	1	RANDOM	1.75	10	INTENSITY
+melee2hSpinAttack2	1.5	2	1.5	RANDOM	2.5	10	INTENSITY
+pointBlankArea2	0.5	1.5	0.5	RANDOM	1.5	50	INTENSITY
+multiTargetPistolShot	0.5	1.25	0.5	RANDOM	3.5	50	RANGED
+disarmingShot2	0.5	1	0.5	RANDOM	2	50	RANGED
+fanShot	0.5	1	0.5	RANDOM	2	50	INTENSITY
+burstShot2	2	1.25	0.5	RANDOM	2	25	RANGED
+unarmedHit1	1	1	1	RANDOM	1.5	15	INTENSITY
+unarmedHit2	1.5	1.5	1.5	RANDOM	2.5	15	INTENSITY
+unarmedHit3	2	2	2	RANDOM	3	15	INTENSITY		0	BLIND	40	0	30	blind_defense	jedi_state_defense	resistance_states
+unarmedBodyHit1	1.75	1.75	1.75	HEALTH	2	15	INTENSITY
+unarmedLegHit1	1.75	1.75	1.75	ACTION	2	15	INTENSITY
+unarmedSpinAttack1	1.5	1.5	1.5	RANDOM	2	15	INTENSITY
+unarmedSpinAttack2	2	2	2	RANDOM	3	15	INTENSITY
+threatenShot	1	1	1	RANDOM	2	15	RANGED
+warningShot	1	1	1	RANDOM	2	15	INTENSITY
+aim	3	0	0	HEALTH	1	0	NONE
+overChargeShot1	0.5	0.5	0.5	RANDOM	1.25	15	RANGED
+overChargeShot2	1	1	1	RANDOM	2	15	RANGED
+fireAcidSingle1	1.5	0.5	0.5	RANDOM	4	0	INTENSITY
+fireLightningSingle1	1	1	1	RANDOM	2	0	INTENSITY
+fireAcidCone1	1.5	0.5	0.5	RANDOM	4	0	INTENSITY
+fireAcidCone2	2	0.5	0.5	RANDOM	4	0	INTENSITY
+fireAcidSingle2	2	0.5	0.5	RANDOM	4	0	INTENSITY
+flameSingle1	1.5	0.5	0.5	RANDOM	4	0	INTENSITY
+flameSingle2	2	0.5	0.5	RANDOM	4	0	INTENSITY
+flameCone1	1.5	0.5	0.5	RANDOM	4	0	INTENSITY
+flameCone2	2	0.5	0.5	RANDOM	4	0	INTENSITY
+healthShot1	0.5	0.75	0.5	HEALTH	2	50	RANGED	HEALTH
+actionShot1	1.75	1.25	0.5	ACTION	1.5	25	RANGED	ACTION	100
+actionShot2	2.0	1.25	0.5	ACTION	2	0	RANGED	ACTION	100
+mindShot1	0.5	0.5	2	MIND	1	5	RANGED	MIND
+mindShot2	0.5	0.5	1.5	MIND	1.5	5	RANGED	MIND
+surpriseShot	0.5	0.5	1.5	RANDOM	3.0	5	RANGED
+sniperShot	0.5	0.5	2.0	RANDOM	1.0	5	NONE	NONE	0	NONE	0	0	0				NONE	0	0	0				NONE	0	0	0				0	0.0	0	1	135	135
+fireLightningCone1	1	1	1	RANDOM	2	0	INTENSITY
+fireLightningCone2	1	1	1	RANDOM	2	0	INTENSITY
+fireLightningSingle2	1	1	1	RANDOM	2	0	INTENSITY
+suppressionFire1	1.75	1.25	0.5	HEALTH	1.5	25	NONE		100
+rollShot	0.5	0.75	0.5	RANDOM	1.5	50	NONE
+diveShot	0.5	0.75	0.5	RANDOM	1.5	50	NONE
+kipUpShot	0.5	0.75	0.5	RANDOM	1.5	50	NONE
+fullAutoSingle1	1.75	2.5	0.5	RANDOM	1.5	25	RANGED			DIZZY	30	0	30	dizzy_defense	jedi_state_defense	resistance_states	BLIND	30	0	40	blind_defense	jedi_state_defense	resistance_states	STUN	30	0	30	stun_defense	jedi_state_defense	resistance_states
+scatterShot1	1.75	1.25	0.5	MULTI	2	25	RANGED																								2	0.5
+scatterShot2	2	1.25	0.5	MULTI	2	25	RANGED																								3	0.34
+legShot2	.5	1.5	1.5	ACTION	2	25	NONE			STUN	85	0	45	stun_defense	jedi_state_defense	resistance_states
+legShot3	.5	2	2	ACTION	2	25	NONE			STUN	100	0	30	stun_defense	jedi_state_defense	resistance_states
+fullAutoSingle2	2	2.5	.5	RANDOM	1.5	25	RANGED			DIZZY	30	0	30	dizzy_defense	jedi_state_defense	resistance_states	BLIND	30	0	40	blind_defense	jedi_state_defense	resistance_states	STUN	30	0	30	stun_defense	jedi_state_defense	resistance_states
+suppressionFire2	2	1.25	.5	RANDOM	1.5	25	NONE		100
+wildShot1	1.75	1.25	.5	RANDOM	2	25	RANGED			STUN	50	0	30	stun_defense	jedi_state_defense	resistance_states
+wildShot2	2.0	1.25	.5	RANDOM	2	25	RANGED			STUN	50	0	30	stun_defense	jedi_state_defense	resistance_states
+fullAutoArea1	1.75	2.5	0.5	RANDOM	1.5	25	INTENSITY			DIZZY	30	0	30	dizzy_defense	jedi_state_defense	resistance_states	BLIND	30	0	40	blind_defense	jedi_state_defense	resistance_states	STUN	30	0	30	stun_defense	jedi_state_defense	resistance_states
+fullAutoArea2	2.5	2.5	0.5	RANDOM	1.5	25	INTENSITY			DIZZY	30	0	30	dizzy_defense	jedi_state_defense	resistance_states	BLIND	30	0	40	blind_defense	jedi_state_defense	resistance_states	STUN	30	0	30	stun_defense	jedi_state_defense	resistance_states
+chargeShot1	0.5	2.0	0.5	RANDOM	2.0	25	NONE																										100
+chargeShot2	0.5	1.5	0.5	RANDOM	2.0	25	NONE																										100
+strafeShot1	0.5	0.5	1.5	RANDOM	2.0	5	RANGED			REMOVE_COVER	75	0	10
+concealShot	0.5	0.5	1.5	RANDOM	2.0	5	RANGED
+flurryShot1	0.5	0.5	1.5	RANDOM	2.0	5	RANGED			DIZZY	85	0	45	dizzy_defense	jedi_state_defense	resistance_states
+flurryShot2	0.5	0.5	2.0	RANDOM	2.0	5	INTENSITY			DIZZY	100	0	30	dizzy_defense	jedi_state_defense	resistance_states
+strafeShot2	0.5	0.5	2.0	RANDOM	2.0	5	INTENSITY			REMOVE_COVER	75	0	10
+startleShot1	0.5	0.5	1.5	RANDOM	2.0	5	NONE			POSTURE_UP	100	0	0	posture_change_up_defense
+startleShot2	0.5	0.5	2.0	RANDOM	2.0	5	NONE			POSTURE_UP	100	0	0	posture_change_up_defense
+flushingShot1	0.5	0.5	1.5	RANDOM	2.0	5	RANGED			STUN	100	0	35	stun_defense	jedi_state_defense	resistance_states	POSTURE_UP	100	0	0	posture_change_up_defense
+flushingShot2	0.5	0.5	2.0	RANDOM	2.0	5	INTENSITY			STUN	100	0	35	stun_defense	jedi_state_defense	resistance_states	POSTURE_UP	100	0	0	posture_change_up_defense
+unarmedBlind1	1.5	1.5	1.5	RANDOM	2.0	15	NONE		0	BLIND	100	0	50	blind_defense	jedi_state_defense	resistance_states
+unarmedStun1	1.5	1.5	1.5	RANDOM	2.0	15	INTENSITY		0	STUN	100	0	60	stun_defense	jedi_state_defense	resistance_states
+intimidate1	0	0	0	NO_ATTRIBUTE	1.0	0	NONE		0	INTIMIDATE	100	0	30																								intimidate
+intimidate2	0	0	0	NO_ATTRIBUTE	1.0	0	NONE		0	INTIMIDATE	100	0	120																								intimidate
+warcry1	0	0	0	NO_ATTRIBUTE	1.0	0	NONE		0	NEXT_ATTACK_DELAY	100	0	10	warcry_defense	jedi_state_defense	resistance_states																					warcry
+warcry2	0	0	0	NO_ATTRIBUTE	1.0	0	NONE		0	NEXT_ATTACK_DELAY	100	0	20	warcry_defense	jedi_state_defense	resistance_states																					warcry
+taunt	1.0	1.0	1.0	NO_ATTRIBUTE	1.0	0	NONE
+melee1hBlindHit1	0.5	0.5	0.625	RANDOM	1.5	25	INTENSITY		0	BLIND	100	0	30	blind_defense	jedi_state_defense	resistance_states
+melee1hBlindHit2	0.75	0.75	1.25	RANDOM	2.25	25	INTENSITY		0	BLIND	100	0	50	blind_defense	jedi_state_defense	resistance_states
+melee1hScatterHit1	1.0	1.0	1.5	MULTI	1.5	25	INTENSITY
+melee1hDizzyHit2	0.75	0.75	1.25	RANDOM	2.25	25	INTENSITY		0	DIZZY	100	0	50	dizzy_defense	jedi_state_defense	resistance_states
+melee1hScatterHit2	1.25	1.25	2.0	MULTI	2.5	25	INTENSITY
+melee1hHealthHit1	0.5	0.5	0.625	HEALTH	1.5	25	INTENSITY	HEALTH
+melee1hSpinAttack2	1.25	1.25	2.0	RANDOM	2.5	25	INTENSITY		0	BLIND	40	0	30	blind_defense	jedi_state_defense	resistance_states
+melee1hHealthHit2	0.75	0.75	1.25	HEALTH	2.0	25	INTENSITY	HEALTH
+melee1hHit3	1	1	2	RANDOM	2.25	25	INTENSITY		0	BLIND	40	0	30	blind_defense	jedi_state_defense	resistance_states
+polearmHit2	1.5	1	1	RANDOM	2.0	10	INTENSITY		0	STUN	75	0	45	stun_defense	jedi_state_defense	resistance_states
+polearmStun2	1.5	1.0	1.0	RANDOM	2.0	10			0	STUN	60	0	30	stun_defense	jedi_state_defense	resistance_states
+polearmSpinAttack2	2.0	1.5	1.5	RANDOM	2.5	10	INTENSITY		0	DIZZY	75	0	25	dizzy_defense	jedi_state_defense	resistance_states
+polearmArea2	2.0	1.5	1.5	RANDOM	2.5	10			0	DIZZY	75	0	30	dizzy_defense	jedi_state_defense	resistance_states	STUN	75	0	30	stun_defense	jedi_state_defense	resistance_states
+polearmSweep1	1.5	1.0	1.0	RANDOM	1.5	10			100
+polearmSweep2	2.0	1.5	1.5	RANDOM	2.5	15			100
+polearmActionHit1	1.0	0.5	0.5	ACTION	1.5	10		ACTION
+polearmActionHit2	1.5	1.0	1.0	ACTION	2.0	10		ACTION
+polearmHit3	2.0	1.5	1.5	RANDOM	2.5	10	INTENSITY		100	STUN	75	0	45	stun_defense	jedi_state_defense	resistance_states
+melee2hArea1	0.5	1.5	0.50	RANDOM	1.5	10	NONE		100
+melee2hArea2	1	2	1	RANDOM	2	10	NONE		100
+melee2hArea3	1.5	2.5	1.5	RANDOM	2.5	10	NONE		100	DIZZY	30	0	30	dizzy_defense	jedi_state_defense	resistance_states
+melee2hMindHit1	0.5	1	0.5	MIND	1.25	10	INTENSITY	MIND
+melee2hMindHit2	1	1.5	1	MIND	2	10	INTENSITY	MIND
+melee2hHit3	1.25	2	1.25	RANDOM	2.5	10	INTENSITY		0	DIZZY	50	0	30	dizzy_defense	jedi_state_defense	resistance_states
+unarmedKnockdown1	1	1	1	RANDOM	1.5	15	NONE		0																								100
+unarmedKnockdown2	1.5	1.5	1.5	RANDOM	2	15	NONE		0	DIZZY	75	0	40	dizzy_defense	jedi_state_defense	resistance_states																	100
+underHandShot	1	1	1	RANDOM	1.5	0	RANGED		0																								85
+knockdownFire	1	1	1	RANDOM	2	0	RANGED		0	DIZZY	85	0	10	dizzy_defense	jedi_state_defense	resistance_states																	85
+confusionShot	1	1	1	RANDOM	2.3	0	RANGED		0	DIZZY	100	0	10	dizzy_defense	jedi_state_defense	resistance_states	STUN	100	0	10	stun_defense	jedi_state_defense	resistance_states
+bleedingShot	1	1	1	RANDOM	1.5	0	RANGED	MIND
+eyeShot	1	1	1	MIND	2	0	RANGED		0	BLIND	100	0	40	blind_defense	jedi_state_defense	resistance_states
+torsoShot	1	1	1	HEALTH	2.3	0	RANGED	HEALTH
+sprayShot	1	1	1	RANDOM	3.5	0	RANGED		0	DIZZY	60	0	30	dizzy_defense	jedi_state_defense	resistance_states	BLIND	100	0	30	blind_defense	jedi_state_defense	resistance_states	STUN	30	0	10	stun_defense	jedi_state_defense	resistance_states
+fastBlast	1.5	1.5	1	MULTI	3.05	95	RANGED	NONE	0	NONE	0	0	0				NONE	0	0	0				NONE	0	0	0				0	0	0	0	-1	-1		0.33	0.33	0.33
+panicShot	.5	1.25	.5	RANDOM	3	50	RANGED			NEXT_ATTACK_DELAY	100	0	10	warcry_defense																										
+lowBlow	.5	1	.5	RANDOM	2.5	50	RANGED																										100							
+lastDitch	.5	1.25	.5	RANDOM	4	60	RANGED			STUN	100	0	30	stun_defense	jedi_state_defense	resistance_states																								

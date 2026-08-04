@@ -289,7 +289,9 @@ public class jedi extends script.base_script
     }
     public static boolean isLightsaber(obj_id objWeapon) throws InterruptedException
     {
-        return isLightsaber(getWeaponType(objWeapon));
+        return (hasObjVar(objWeapon, "isLightsaber") &&
+            getIntObjVar(objWeapon, "isLightsaber") == 1) ||
+            isLightsaber(getWeaponType(objWeapon));
     }
     public static boolean isLightsaber(int intWeaponType) throws InterruptedException
     {
@@ -2213,21 +2215,20 @@ public class jedi extends script.base_script
     }
     public static boolean isForceSensitive(obj_id player) throws InterruptedException
     {
-        String classTemplate = getSkillTemplate(player);
-        if (classTemplate != null && classTemplate.startsWith("force"))
-        {
-            return true;
-        }
-        return false;
+        return isIdValid(player) &&
+            isJediState(player, JEDI_STATE_FORCE_SENSITIVE);
     }
     public static boolean isForceSensitiveLevelRequired(obj_id player, int requiredLevel) throws InterruptedException
     {
-        int playerLevel = getLevel(player);
-        if (isForceSensitive(player) && playerLevel >= requiredLevel)
-        {
-            return true;
-        }
+        // Combat levels and NGE class-template eligibility are not part of the
+        // Publish 14.1 progression model. Retain this later-era entry point for
+        // binary/script compatibility, but never admit content through it.
         return false;
+    }
+    public static boolean canTuneLightsaberCrystal(obj_id player) throws InterruptedException
+    {
+        return isIdValid(player) &&
+            hasSkill(player, "force_title_jedi_rank_01");
     }
     public static boolean hasAnyUltraCloak(obj_id player) throws InterruptedException
     {

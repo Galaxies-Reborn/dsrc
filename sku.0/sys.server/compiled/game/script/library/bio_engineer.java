@@ -20,6 +20,11 @@ public class bio_engineer extends script.base_script
     public static final float CREATURE_MIN_FEROCITY_MOD = -0.25f;
     public static final float CREATURE_MAX_FEROCITY_MOD = 0.25f;
     public static final int HARVEST_TIME = 10;
+    private static final long PRECU_SAMPLE_DNA_PLAYER_OID = 44003778L;
+    private static final int PRECU_SAMPLE_DNA_STATION_ID = 91001;
+    private static final int PRECU_SAMPLE_DNA_PROTOCOL_VERSION = 1;
+    private static final String PRECU_SAMPLE_DNA_ROOT =
+        "precu.sampleDnaCommandFixture";
     public static final int DNA_V_LOW_QUALITY = 1;
     public static final int DNA_LOW_QUALITY = 2;
     public static final int DNA_B_AVG_QUALITY = 3;
@@ -479,6 +484,13 @@ public class bio_engineer extends script.base_script
             return false;
         }
         drainAttributes(player, actioncost, mindcost);
+        if (isPrecuSampleDnaFixture(player, creature))
+        {
+            setObjVar(player, PRECU_SAMPLE_DNA_ROOT + ".actionCost",
+                action - getAttrib(player, ACTION));
+            setObjVar(player, PRECU_SAMPLE_DNA_ROOT + ".mindCost",
+                mind - getAttrib(player, MIND));
+        }
         sendSystemMessage(player, SID_HARVEST_BEGIN_HARVEST);
         location loc = getLocation(player);
         dctScriptVars.put("bio_engineer.harvest_dna.harvesting", 1);
@@ -489,6 +501,14 @@ public class bio_engineer extends script.base_script
         dctScriptVars.put("bio_engineer.harvest_dna.creatureProfile", creatureProfile);
         dctScriptVars.put("bio_engineer.harvest_dna.profileDict", profileDict);
         dctScriptVars.put("bio_engineer.harvest_dna.creatureDict", creatureDict);
+        if (isPrecuSampleDnaFixture(player, creature))
+        {
+            setObjVar(player, PRECU_SAMPLE_DNA_ROOT + ".handlerEntered", 1);
+            setObjVar(player, PRECU_SAMPLE_DNA_ROOT + ".handlerCalls",
+                readPrecuSampleDnaInt(player, ".handlerCalls") + 1);
+            setObjVar(player, PRECU_SAMPLE_DNA_ROOT + ".startedAt", getGameTime());
+            setObjVar(player, PRECU_SAMPLE_DNA_ROOT + ".outcome", "started");
+        }
         int harvestTime = HARVEST_TIME;
         if (hasObjVar(player, "quick_dna_sample"))
         {
@@ -668,7 +688,7 @@ public class bio_engineer extends script.base_script
         {
             difficulty = 0;
         }
-        int dieRoll = rand(1, 100);
+        int dieRoll = getPrecuSampleDnaRoll(player, creature, 1);
         if (dieRoll > difficulty || failed)
         {
             failed = true;
@@ -684,7 +704,9 @@ public class bio_engineer extends script.base_script
             }
             else 
             {
-                creatureStats = getCreatureStats(creature);
+                creatureStats = getCreatureStats(
+                    creature,
+                    isPrecuSampleDnaFixture(player, creature));
             }
             if (creatureStats == null)
             {
@@ -711,6 +733,12 @@ public class bio_engineer extends script.base_script
             }
             if (!error)
             {
+                if (isPrecuSampleDnaFixture(player, creature))
+                {
+                    setObjVar(player, PRECU_SAMPLE_DNA_ROOT + ".dna", DNA_obj);
+                    setObjVar(player, PRECU_SAMPLE_DNA_ROOT + ".dnaTemplate",
+                        getTemplateName(DNA_obj));
+                }
                 harvestCount = getIntObjVar(creature, VAR_DNA_HARVEST_COUNT);
                 if (harvestCount < 0)
                 {
@@ -727,7 +755,7 @@ public class bio_engineer extends script.base_script
                 {
                     survivalCheck = 100;
                 }
-                dieRoll = rand(1, 100);
+                dieRoll = getPrecuSampleDnaRoll(player, creature, 2);
                 if (dieRoll > survivalCheck)
                 {
                     creatureSurvived = false;
@@ -765,7 +793,7 @@ public class bio_engineer extends script.base_script
             {
                 frenzyCheck = 100;
             }
-            dieRoll = rand(1, 100);
+            dieRoll = getPrecuSampleDnaRoll(player, creature, 3);
             if (dieRoll < attackCheck)
             {
                 if (deed)
@@ -801,6 +829,11 @@ public class bio_engineer extends script.base_script
         dctScriptVars.remove("bio_engineer.harvest_dna.creatureDict");
         if (failed || error)
         {
+            if (isPrecuSampleDnaFixture(player, creature))
+            {
+                setObjVar(player, PRECU_SAMPLE_DNA_ROOT + ".outcome", "failed");
+                setObjVar(player, PRECU_SAMPLE_DNA_ROOT + ".completedAt", getGameTime());
+            }
             LOG("dna_harvest", "FAILED: Failed skill check.");
             sendSystemMessage(player, SID_HARVEST_FAILED);
             return false;
@@ -822,9 +855,67 @@ public class bio_engineer extends script.base_script
             {
                 xp.grant(player, xp.BIO_ENGINEER_DNA_HARVESTING, xpAmount);
             }
+            if (isPrecuSampleDnaFixture(player, creature))
+            {
+                setObjVar(player, PRECU_SAMPLE_DNA_ROOT + ".xpGranted", xpAmount);
+                setObjVar(player, PRECU_SAMPLE_DNA_ROOT + ".creatureSurvived",
+                    creatureSurvived ? 1 : 0);
+                setObjVar(player, PRECU_SAMPLE_DNA_ROOT + ".harvestCount", harvestCount);
+                setObjVar(player, PRECU_SAMPLE_DNA_ROOT + ".outcome", "passed");
+                setObjVar(player, PRECU_SAMPLE_DNA_ROOT + ".completedAt", getGameTime());
+            }
             LOG("dna_harvest", "SUCCESS: " + xpAmount + " XP awarded.");
         }
         return true;
+    }
+    private static int getPrecuSampleDnaRoll(
+        obj_id player,
+        obj_id creature,
+        int phase) throws InterruptedException
+    {
+        if (!isPrecuSampleDnaFixture(player, creature))
+        {
+            return rand(1, 100);
+        }
+        if (phase == 1)
+        {
+            setObjVar(player, PRECU_SAMPLE_DNA_ROOT + ".skillRoll", 1);
+            return 1;
+        }
+        if (phase == 2)
+        {
+            setObjVar(player, PRECU_SAMPLE_DNA_ROOT + ".survivalRoll", 1);
+            return 1;
+        }
+        setObjVar(player, PRECU_SAMPLE_DNA_ROOT + ".behaviorRoll", 100);
+        return 100;
+    }
+    private static boolean isPrecuSampleDnaFixture(
+        obj_id player,
+        obj_id creature) throws InterruptedException
+    {
+        if (!isIdValid(player) || !isIdValid(creature) ||
+            !player.equals(obj_id.getObjId(PRECU_SAMPLE_DNA_PLAYER_OID)) ||
+            getPlayerStationId(player) != PRECU_SAMPLE_DNA_STATION_ID ||
+            !hasObjVar(player, PRECU_SAMPLE_DNA_ROOT) ||
+            !hasObjVar(player, PRECU_SAMPLE_DNA_ROOT + ".protocol") ||
+            getIntObjVar(player, PRECU_SAMPLE_DNA_ROOT + ".protocol") !=
+                PRECU_SAMPLE_DNA_PROTOCOL_VERSION ||
+            !hasObjVar(player, PRECU_SAMPLE_DNA_ROOT + ".prepared") ||
+            getIntObjVar(player, PRECU_SAMPLE_DNA_ROOT + ".prepared") != 1 ||
+            !hasObjVar(player, PRECU_SAMPLE_DNA_ROOT + ".target"))
+        {
+            return false;
+        }
+        return creature.equals(
+            getObjIdObjVar(player, PRECU_SAMPLE_DNA_ROOT + ".target"));
+    }
+    private static int readPrecuSampleDnaInt(
+        obj_id player,
+        String suffix) throws InterruptedException
+    {
+        String path = PRECU_SAMPLE_DNA_ROOT + suffix;
+        return hasObjVar(player, path) ? getIntObjVar(player, path) : 0;
     }
     public static boolean quickHarvest(obj_id player, String creatureName) throws InterruptedException
     {
@@ -917,6 +1008,12 @@ public class bio_engineer extends script.base_script
     }
     public static dictionary getCreatureStats(obj_id creature) throws InterruptedException
     {
+        return getCreatureStats(creature, false);
+    }
+    private static dictionary getCreatureStats(
+        obj_id creature,
+        boolean useAiCreatureName) throws InterruptedException
+    {
         dictionary creatureStats = new dictionary();
         String creatureName = (getNameStringId(creature)).toString();
         char openParen = '(';
@@ -928,8 +1025,13 @@ public class bio_engineer extends script.base_script
         creatureStats.put(CREATURE_DICT_MAX_HEALTH, getMaxHealth(creature));
         creatureStats.put(CREATURE_DICT_HEALTH_REGEN, getMaxConst(creature));
         creatureStats.put(CREATURE_DICT_LEVEL, getLevel(creature));
-        creatureStats.put(CREATURE_DICT_NICHE, dataTableGetInt(create.CREATURE_TABLE, creatureName, "niche"));
-        creatureStats.put(CREATURE_DICT_MEAT, dataTableGetString(create.CREATURE_TABLE, creatureName, "meatType"));
+        String creatureTableName = creatureName;
+        if (useAiCreatureName)
+        {
+            creatureTableName = ai_lib.getCreatureName(creature);
+        }
+        creatureStats.put(CREATURE_DICT_NICHE, dataTableGetInt(create.CREATURE_TABLE, creatureTableName, "niche"));
+        creatureStats.put(CREATURE_DICT_MEAT, dataTableGetString(create.CREATURE_TABLE, creatureTableName, "meatType"));
         if (callable.hasCallableCD(creature))
         {
             creatureStats.put(CREATURE_DICT_CRAFTED_PET, 1);

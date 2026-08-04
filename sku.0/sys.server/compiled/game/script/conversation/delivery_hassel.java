@@ -120,7 +120,7 @@ public class delivery_hassel extends script.base_script
             CustomerServiceLog("outbreak_themepark", "conversation.delivery_hassel() NPC " + npc + " has an invalid creatureName. Aborting the camp defense functionality.");
             return;
         }
-        int combatLevel = getLevel(player);
+        int combatLevel = script.library.skill.getPrecuEncounterDifficulty(player);
         if (combatLevel < 0 || combatLevel > 90)
         {
             CustomerServiceLog("outbreak_themepark", "conversation.delivery_hassel() Player " + player + " has a level that is invalid. Player level is: " + combatLevel + ". Aborting the camp defense.");

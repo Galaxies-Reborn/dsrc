@@ -47,7 +47,7 @@ public class interplanetary_survey extends script.base_script
     };
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
-        if (hasSkill(player, "class_trader"))
+        if (hasSkill(player, "crafting_artisan_novice"))
         {
             menu_info_data mid = mi.getMenuItemByType(menu_info_types.ITEM_USE);
             if (mid == null)

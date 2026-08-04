@@ -18,6 +18,43 @@ public class player_faction extends script.base_script
     public static final string_id SID_DUNGEON_NOCHANGE = new string_id("faction_recruiter", "dungeon_nochange");
     public static final String COLOR_REBELS = "\\" + colors_hex.COLOR_REBELS;
     public static final String COLOR_IMPERIALS = "\\" + colors_hex.COLOR_IMPERIALS;
+    public void cleanupRetiredFixedStaticBaseState(obj_id self) throws InterruptedException
+    {
+        if (!gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            return;
+        }
+        String[] planets = {"corellia", "talus", "naboo"};
+        for (String planet : planets)
+        {
+            String waypointVar = "gcw.static_base.waypoint." + planet;
+            if (hasObjVar(self, waypointVar))
+            {
+                obj_id waypoint = getObjIdObjVar(self, waypointVar);
+                if (isIdValid(waypoint))
+                {
+                    destroyWaypointInDatapad(waypoint, self);
+                }
+                removeObjVar(self, waypointVar);
+            }
+        }
+        utils.removeScriptVarTree(self, "gcw.static_base");
+    }
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        cleanupRetiredFixedStaticBaseState(self);
+        return SCRIPT_CONTINUE;
+    }
+    public int OnInitialize(obj_id self) throws InterruptedException
+    {
+        cleanupRetiredFixedStaticBaseState(self);
+        return SCRIPT_CONTINUE;
+    }
+    public int OnLogin(obj_id self) throws InterruptedException
+    {
+        cleanupRetiredFixedStaticBaseState(self);
+        return SCRIPT_CONTINUE;
+    }
     public int cmdPVP(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
         if (factions.isInAdhocPvpArea(self))
@@ -93,6 +130,11 @@ public class player_faction extends script.base_script
     }
     public int OnEnterRegion(obj_id self, String planet, String name) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBaseState(self);
+            return SCRIPT_CONTINUE;
+        }
         if (name.startsWith("gcw_") && name.endsWith("_start"))
         {
             location baseLoc = new location();

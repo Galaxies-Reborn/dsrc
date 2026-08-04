@@ -181,7 +181,7 @@ public class smuggler_spawn_enemy extends script.base_script
         }
         if (volumeName.equals(VOL_PATROL_WATCH))
         {
-            if (utils.getPlayerProfession(breacher) == utils.SMUGGLER)
+            if (utils.isProfession(breacher, utils.SMUGGLER))
             {
                 if (groundquests.isDoingSmugglerMission(breacher))
                 {

@@ -44,7 +44,7 @@ public class delivery_pirrohn extends script.base_script
     }
     public boolean delivery_pirrohn_condition_tooLowLevel(obj_id player, obj_id npc) throws InterruptedException
     {
-        return getLevel(player) < 20;
+        return script.library.skill.getPrecuEncounterDifficulty(player) < 20;
     }
     public void delivery_pirrohn_action_giveQuest(obj_id player, obj_id npc) throws InterruptedException
     {

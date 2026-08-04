@@ -12,6 +12,20 @@ public class taming extends script.base_script
     {
     }
     public static final string_id SHAPECHANGE = new string_id("spam", "not_while_shapechanged");
+    public static final string_id TAME_SUCCESS = new string_id("hireling/hireling", "taming_success");
+    public static final string_id TAME_FAILED = new string_id("hireling/hireling", "taming_fail");
+    public static final string_id TAME_TOO_FAR = new string_id("hireling/hireling", "taming_toofar");
+    public static final float TAME_RANGE = 8.0f;
+    public static final float TAME_PHASE_DELAY = 10.0f;
+    public static final float TAME_HOLD_DELAY = 1.0f;
+    public static final String TAME_ROOT = "pet.precuTame";
+    public static final String TAME_TARGET_LOCK = "pet.precuTamePlayer";
+    public static final String TAME_SCRIPT = "player.skill.taming_task";
+    private static final long PRECU_TAME_PLAYER_OID = 44003778L;
+    private static final int PRECU_TAME_STATION_ID = 91001;
+    private static final int PRECU_TAME_PROTOCOL_VERSION = 1;
+    private static final String PRECU_TAME_FIXTURE_ROOT =
+        "precu.tameCommandFixture";
     public int cmdTellPet(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
         if (!callable.hasAnyCallable(self) || params == null || params.length() > 30)
@@ -28,6 +42,370 @@ public class taming extends script.base_script
             }
         }
         return SCRIPT_CONTINUE;
+    }
+    public int cmdTame(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (isPrecuTameFixture(self, target))
+        {
+            setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".handlerEntered", 1);
+            setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".handlerCalls",
+                readPrecuTameInt(self, ".handlerCalls") + 1);
+            setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".startedAt", getGameTime());
+            setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".outcome", "entered");
+        }
+        if (!canBeginTame(self, target, true))
+        {
+            if (isPrecuTameFixture(self, target))
+            {
+                setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".outcome",
+                    "admissionFailed");
+            }
+            return SCRIPT_CONTINUE;
+        }
+        int originalBehavior = getBehavior(target);
+        if (originalBehavior > ai_lib.BEHAVIOR_CALM)
+        {
+            originalBehavior = ai_lib.BEHAVIOR_LOITER;
+        }
+        utils.setScriptVar(self, TAME_ROOT + ".target", target);
+        utils.setScriptVar(self, TAME_ROOT + ".phase", 1);
+        utils.setScriptVar(self, TAME_ROOT + ".originalBehavior", originalBehavior);
+        utils.setScriptVar(target, TAME_TARGET_LOCK, self);
+        if (!hasScript(self, TAME_SCRIPT))
+        {
+            attachScript(self, TAME_SCRIPT);
+            if (!hasScript(self, TAME_SCRIPT))
+            {
+                clearTameState(self, target, true);
+                sendSystemMessage(self, pet_lib.SID_SYS_CANT_TAME);
+                if (isPrecuTameFixture(self, target))
+                {
+                    setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".outcome",
+                        "handlerAttachFailed");
+                    setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".completedAt",
+                        getGameTime());
+                }
+                return SCRIPT_CONTINUE;
+            }
+            utils.setScriptVar(self, TAME_ROOT + ".detachHandler", 1);
+        }
+        stop(target);
+        messageTo(self, "handlePrecuTameHold", null, TAME_HOLD_DELAY, false);
+        chat.chat(self, new string_id("hireling/hireling", "taming_" + rand(1, 4)));
+        if (isPrecuTameFixture(self, target))
+        {
+            setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".outcome", "started");
+        }
+        messageTo(self, "handlePrecuTamePhase", null, TAME_PHASE_DELAY, false);
+        return SCRIPT_CONTINUE;
+    }
+    public int handlePrecuTameHold(obj_id self, dictionary params)
+        throws InterruptedException
+    {
+        if (!utils.hasScriptVar(self, TAME_ROOT + ".target"))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        obj_id target = utils.getObjIdScriptVar(self, TAME_ROOT + ".target");
+        if (!isIdValid(target) || !exists(target) ||
+            !utils.hasScriptVar(target, TAME_TARGET_LOCK) ||
+            !self.equals(utils.getObjIdScriptVar(target, TAME_TARGET_LOCK)))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        stop(target);
+        messageTo(self, "handlePrecuTameHold", null, TAME_HOLD_DELAY, false);
+        return SCRIPT_CONTINUE;
+    }
+    public int handlePrecuTamePhase(obj_id self, dictionary params) throws InterruptedException
+    {
+        if (!utils.hasScriptVar(self, TAME_ROOT + ".target"))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        obj_id target = utils.getObjIdScriptVar(self, TAME_ROOT + ".target");
+        if (isPrecuTameFixture(self, target))
+        {
+            setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".phaseCallbacks",
+                readPrecuTameInt(self, ".phaseCallbacks") + 1);
+        }
+        if (!canContinueTame(self, target))
+        {
+            if (isIdValid(target) && exists(target) && getDistance(self, target) > TAME_RANGE)
+            {
+                sendSystemMessage(self, TAME_TOO_FAR);
+                showFlyText(target, new string_id("npc_reaction/flytext", "toofar"), 1.0f, 204, 0, 0);
+            }
+            else
+            {
+                sendSystemMessage(self, pet_lib.SID_SYS_CANT_TAME);
+            }
+            clearTameState(self, target, true);
+            if (isPrecuTameFixture(self, target))
+            {
+                setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".outcome",
+                    "interrupted");
+                setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".completedAt",
+                    getGameTime());
+            }
+            return SCRIPT_CONTINUE;
+        }
+        int phase = utils.getIntScriptVar(self, TAME_ROOT + ".phase");
+        if (phase < 3)
+        {
+            chat.chat(self, new string_id("hireling/hireling", "taming_" + rand(1, 4)));
+            utils.setScriptVar(self, TAME_ROOT + ".phase", phase + 1);
+            messageTo(self, "handlePrecuTamePhase", null, TAME_PHASE_DELAY, false);
+            return SCRIPT_CONTINUE;
+        }
+        if (!canCommitTame(self, target))
+        {
+            clearTameState(self, target, true);
+            if (isPrecuTameFixture(self, target))
+            {
+                setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".outcome",
+                    "commitRejected");
+                setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".completedAt",
+                    getGameTime());
+            }
+            return SCRIPT_CONTINUE;
+        }
+        int chance = pet_lib.getChanceToTame(target, self);
+        int roll = getTameRoll(self, target);
+        if (isPrecuTameFixture(self, target))
+        {
+            setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".chance", chance);
+            setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".roll", roll);
+        }
+        if (roll >= chance)
+        {
+            sendSystemMessage(self, TAME_FAILED);
+            showFlyText(target, new string_id("npc_reaction/flytext", "fail"), 1.0f, 204, 0, 0);
+            int petType = pet_lib.getPetType(target);
+            clearTameState(self, target, true);
+            if (petType == pet_lib.PET_TYPE_AGGRO && rand(1, 20) == 1)
+            {
+                startCombat(target, self);
+            }
+            if (isPrecuTameFixture(self, target))
+            {
+                setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".outcome", "failed");
+                setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".completedAt",
+                    getGameTime());
+            }
+            return SCRIPT_CONTINUE;
+        }
+        int sourceLevel = getLevel(target);
+        int originalBehavior = utils.getIntScriptVar(
+            self, TAME_ROOT + ".originalBehavior");
+        clearTameState(self, target, false);
+        obj_id petControlDevice = pet_lib.makeTamedCreature(self, target, 1);
+        if (!isIdValid(petControlDevice) || !exists(petControlDevice))
+        {
+            sendSystemMessage(self, pet_lib.SID_SYS_CANT_TAME);
+            restoreWildCreature(target, originalBehavior);
+            if (isPrecuTameFixture(self, target))
+            {
+                setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".outcome",
+                    "materializationFailed");
+                setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".completedAt",
+                    getGameTime());
+            }
+            return SCRIPT_CONTINUE;
+        }
+        int xpAmount = sourceLevel * 20;
+        if (xpAmount > 0)
+        {
+            xp.grant(self, xp.CREATUREHANDLER, xpAmount);
+        }
+        if (isPrecuTameFixture(self, target))
+        {
+            setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".pcd", petControlDevice);
+            setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".pet", target);
+            setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".sourceLevel", sourceLevel);
+            setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".xpGranted", xpAmount);
+            setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".petPersisted",
+                isObjectPersisted(target) ? 1 : 0);
+            setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".outcome", "passed");
+            setObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".completedAt",
+                getGameTime());
+        }
+        sendSystemMessage(self, TAME_SUCCESS);
+        showFlyText(target, new string_id("npc_reaction/flytext", "success"), 1.0f, 0, 204, 0);
+        return SCRIPT_CONTINUE;
+    }
+    private boolean canBeginTame(obj_id self, obj_id target, boolean sendFailure) throws InterruptedException
+    {
+        if (!isIdValid(self) || !exists(self) || !isPlayer(self) ||
+            !isIdValid(target) || !exists(target) || !isMob(target) || isPlayer(target) ||
+            isDead(self) || isIncapacitated(self) || ai_lib.isAiDead(target) ||
+            ai_lib.isInCombat(self) || ai_lib.isInCombat(target) ||
+            getDistance(self, target) > TAME_RANGE || pet_lib.hasMaster(target) ||
+            !ai_lib.isMonster(target) || !hasScript(target, "ai.pet_advance") ||
+            !pet_lib.isTameable(target) ||
+            utils.hasScriptVar(self, TAME_ROOT) ||
+            utils.hasScriptVar(target, TAME_TARGET_LOCK))
+        {
+            if (sendFailure)
+            {
+                sendSystemMessage(self, pet_lib.SID_SYS_CANT_TAME);
+            }
+            return false;
+        }
+        if (!hasSkill(self, "outdoors_creaturehandler_novice") ||
+            pet_lib.getChanceToTame(target, self) <= 0)
+        {
+            if (sendFailure)
+            {
+                sendSystemMessage(self, pet_lib.SID_SYS_LACK_SKILL);
+            }
+            return false;
+        }
+        int petType = pet_lib.getPetType(target);
+        if (petType != pet_lib.PET_TYPE_NON_AGGRO && petType != pet_lib.PET_TYPE_AGGRO)
+        {
+            if (sendFailure)
+            {
+                sendSystemMessage(self, pet_lib.SID_SYS_CANT_TAME);
+            }
+            return false;
+        }
+        if (pet_lib.hasMaxPets(self, petType))
+        {
+            if (sendFailure)
+            {
+                sendSystemMessage(self, pet_lib.SID_SYS_TOO_MANY_PETS);
+            }
+            return false;
+        }
+        if (pet_lib.hasMaxStoredPetsOfType(self, petType))
+        {
+            if (sendFailure)
+            {
+                sendSystemMessage(self, pet_lib.SID_SYS_TOO_MANY_STORED_PETS);
+            }
+            return false;
+        }
+        if (!pet_lib.canControlPetsOfLevel(
+            self, petType, getLevel(target), pet_lib.getCreatureName(target)))
+        {
+            return false;
+        }
+        obj_id datapad = utils.getPlayerDatapad(self);
+        if (!isIdValid(datapad) || !exists(datapad))
+        {
+            if (sendFailure)
+            {
+                sendSystemMessage(self, pet_lib.SID_SYS_CANT_TAME);
+            }
+            return false;
+        }
+        return true;
+    }
+    private boolean canContinueTame(obj_id self, obj_id target) throws InterruptedException
+    {
+        if (!isIdValid(target) || !exists(target) ||
+            !utils.hasScriptVar(target, TAME_TARGET_LOCK) ||
+            !self.equals(utils.getObjIdScriptVar(target, TAME_TARGET_LOCK)))
+        {
+            return false;
+        }
+        return isIdValid(self) && exists(self) && !isDead(self) && !isIncapacitated(self) &&
+            !ai_lib.isAiDead(target) && !ai_lib.isInCombat(self) && !ai_lib.isInCombat(target) &&
+            getDistance(self, target) <= TAME_RANGE && !pet_lib.hasMaster(target) &&
+            ai_lib.isMonster(target) && hasScript(target, "ai.pet_advance") &&
+            pet_lib.isTameable(target);
+    }
+    private boolean canCommitTame(obj_id self, obj_id target) throws InterruptedException
+    {
+        if (!hasSkill(self, "outdoors_creaturehandler_novice") ||
+            pet_lib.getChanceToTame(target, self) <= 0)
+        {
+            sendSystemMessage(self, pet_lib.SID_SYS_LACK_SKILL);
+            return false;
+        }
+        int petType = pet_lib.getPetType(target);
+        if ((petType != pet_lib.PET_TYPE_NON_AGGRO &&
+            petType != pet_lib.PET_TYPE_AGGRO) ||
+            pet_lib.hasMaxPets(self, petType) ||
+            pet_lib.hasMaxStoredPetsOfType(self, petType) ||
+            !pet_lib.canControlPetsOfLevel(
+                self, petType, getLevel(target), pet_lib.getCreatureName(target)))
+        {
+            return false;
+        }
+        obj_id datapad = utils.getPlayerDatapad(self);
+        return isIdValid(datapad) && exists(datapad);
+    }
+    private int getTameRoll(obj_id self, obj_id target) throws InterruptedException
+    {
+        return isPrecuTameFixture(self, target) ? 0 : rand(0, 100);
+    }
+    private boolean isPrecuTameFixture(obj_id self, obj_id target)
+        throws InterruptedException
+    {
+        if (!isIdValid(self) || !exists(self) || !isPlayer(self) ||
+            self.getValue() != PRECU_TAME_PLAYER_OID ||
+            getPlayerStationId(self) != PRECU_TAME_STATION_ID ||
+            !hasObjVar(self, PRECU_TAME_FIXTURE_ROOT) ||
+            !hasObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".protocol") ||
+            getIntObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".protocol") !=
+                PRECU_TAME_PROTOCOL_VERSION ||
+            !hasObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".prepared") ||
+            getIntObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".prepared") != 1 ||
+            !hasObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".target"))
+        {
+            return false;
+        }
+        return isIdValid(target) && target.equals(
+            getObjIdObjVar(self, PRECU_TAME_FIXTURE_ROOT + ".target"));
+    }
+    private int readPrecuTameInt(obj_id self, String suffix)
+        throws InterruptedException
+    {
+        String path = PRECU_TAME_FIXTURE_ROOT + suffix;
+        return hasObjVar(self, path) ? getIntObjVar(self, path) : 0;
+    }
+    private void clearTameState(obj_id self, obj_id target, boolean restoreCreature) throws InterruptedException
+    {
+        int originalBehavior = ai_lib.BEHAVIOR_LOITER;
+        boolean detachHandler = false;
+        if (utils.hasScriptVar(self, TAME_ROOT + ".originalBehavior"))
+        {
+            originalBehavior = utils.getIntScriptVar(self, TAME_ROOT + ".originalBehavior");
+        }
+        if (utils.hasScriptVar(self, TAME_ROOT + ".detachHandler"))
+        {
+            detachHandler = utils.getIntScriptVar(
+                self, TAME_ROOT + ".detachHandler") == 1;
+        }
+        utils.removeScriptVar(self, TAME_ROOT);
+        if (isIdValid(target) && exists(target) &&
+            utils.hasScriptVar(target, TAME_TARGET_LOCK) &&
+            self.equals(utils.getObjIdScriptVar(target, TAME_TARGET_LOCK)))
+        {
+            utils.removeScriptVar(target, TAME_TARGET_LOCK);
+        }
+        if (restoreCreature)
+        {
+            restoreWildCreature(target, originalBehavior);
+        }
+        if (detachHandler && hasScript(self, TAME_SCRIPT))
+        {
+            detachScript(self, TAME_SCRIPT);
+        }
+    }
+    private void restoreWildCreature(obj_id target, int originalBehavior) throws InterruptedException
+    {
+        if (!isIdValid(target) || !exists(target) || pet_lib.hasMaster(target))
+        {
+            return;
+        }
+        if (originalBehavior > ai_lib.BEHAVIOR_CALM)
+        {
+            originalBehavior = ai_lib.BEHAVIOR_LOITER;
+        }
+        ai_lib.setDefaultCalmBehavior(target, originalBehavior);
     }
     public int tellPetAttack(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {

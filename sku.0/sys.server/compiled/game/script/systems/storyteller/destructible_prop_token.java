@@ -12,6 +12,16 @@ public class destructible_prop_token extends script.base_script
     }
     public static final int MIN_HEALTH = 180000;
     public static final int MAX_HEALTH = 250000;
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        detachScript(self, "systems.storyteller.destructible_prop_token");
+        return SCRIPT_CONTINUE;
+    }
+    public int OnInitialize(obj_id self) throws InterruptedException
+    {
+        detachScript(self, "systems.storyteller.destructible_prop_token");
+        return SCRIPT_CONTINUE;
+    }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
         if (!utils.isNestedWithin(self, player))

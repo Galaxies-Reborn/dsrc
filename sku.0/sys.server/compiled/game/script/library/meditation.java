@@ -2,6 +2,7 @@ package script.library;
 
 import script.dictionary;
 import script.obj_id;
+import script.prose_package;
 import script.string_id;
 
 public class meditation extends script.base_script
@@ -9,17 +10,44 @@ public class meditation extends script.base_script
     public meditation()
     {
     }
+    public static final float INITIAL_DELAY = 3.5f;
     public static final float TIME_TICK = 5.0f;
-    public static final float DELAY_MIN = 3.0f;
-    public static final float DELAY_MAX = 7.0f;
-    public static final float RAND_MODIFIER = 0.33f;
     public static final float POWERBOOST_RAMP = 60.0f;
+    public static final int POWERBOOST_BASE_DURATION = 300;
+    public static final int POWERBOOST_RAMP_TICKS = 20;
     public static final String MOD_MEDITATE = "meditate";
     public static final String VAR_MEDITATION_BASE = "meditation";
     public static final String VAR_POWERBOOST_ACTIVE = "meditation.powerBoost";
+    public static final String VAR_POWERBOOST_BONUS =
+        "meditation.powerBoostBonus";
+    public static final String VAR_POWERBOOST_TICK =
+        "meditation.powerBoostTick";
+    public static final String VAR_POWERBOOST_DURATION =
+        "meditation.powerBoostDuration";
+    public static final String VAR_POWERBOOST_COUNTER =
+        "meditation.powerBoostCounter";
+    public static final String VAR_POWERBOOST_HEALTH_ACTION_APPLIED =
+        "meditation.powerBoostHealthActionApplied";
+    public static final String VAR_POWERBOOST_MIND_APPLIED =
+        "meditation.powerBoostMindApplied";
     public static final String VAR_FORCE_OF_WILL_ACTIVE = "meditation.forceOfWill";
+    public static final String MOD_POWERBOOST_DRAIN =
+        "meditation.powerboost.drain";
+    public static final String MOD_POWERBOOST_RESTORE =
+        "meditation.powerboost.restore";
+    public static final String MOD_POWERBOOST_MIND =
+        "meditation.powerboost.mind";
+    public static final String MOD_POWERBOOST_HEALTH =
+        "meditation.powerboost.health";
+    public static final String MOD_POWERBOOST_ACTION =
+        "meditation.powerboost.action";
+    public static final String MOD_FORCE_OF_WILL_PREFIX =
+        "meditation.forceofwill.";
     public static final String SCRIPT_MEDITATE = "player.skill.meditate";
     public static final String HANDLER_MEDITATION_TICK = "handleMeditationTick";
+    public static final String HANDLER_POWERBOOST_TICK = "handlePowerBoostTick";
+    public static final String HANDLER_POWERBOOST_MIND_RISE =
+        "handlePowerBoostMindRise";
     public static final String HANDLER_POWERBOOST_WANE = "handlePowerBoostWane";
     public static final String HANDLER_POWERBOOST_END = "handlePowerBoostEnd";
     public static final String STF_TERASKASI = "teraskasi";
@@ -41,6 +69,12 @@ public class meditation extends script.base_script
     public static final string_id SID_STATE_PREVENTS_POWERBOOST = new string_id(STF_TERASKASI, "state_prevent_powerboost");
     public static final string_id SID_MIND_POOL_TOO_LOW = new string_id(STF_TERASKASI, "mind_pool_too_low");
     public static final string_id PROSE_CUREWOUND = new string_id(STF_TERASKASI, "prose_curewound");
+    public static final String[] ATTRIBUTE_NAMES =
+    {
+        "health", "strength", "constitution",
+        "action", "quickness", "stamina",
+        "mind", "focus", "willpower"
+    };
     public static final String[] MEDITATE_BUFFS = 
     {
         "fs_meditate_1",
@@ -64,7 +98,7 @@ public class meditation extends script.base_script
         }
         setState(player, STATE_MEDITATE, true);
         chat.setTempAnimationMood(player, "meditating");
-        messageTo(player, HANDLER_MEDITATION_TICK, trial.getSessionDict(player, meditation.HANDLER_MEDITATION_TICK), TIME_TICK, false);
+        messageTo(player, HANDLER_MEDITATION_TICK, trial.getSessionDict(player, meditation.HANDLER_MEDITATION_TICK), INITIAL_DELAY, false);
         sendSystemMessage(player, SID_MED_BEGIN);
         return true;
     }
@@ -110,37 +144,28 @@ public class meditation extends script.base_script
         {
             return -1.0f;
         }
-        float delay = 0.0f;
-        LOG("meditate", "trance: slotDot -> DOT_BLEEDING");
-        delay = slowDOT(player, modval, dot.DOT_BLEEDING);
-        if (modval > 20 && delay == 0.0f)
+        if (dot.isBleeding(player) || dot.isPoisoned(player) ||
+            dot.isDiseased(player))
         {
-            LOG("meditate", "trance: slotDot -> DOT_POISON");
-            delay = slowDOT(player, modval, dot.DOT_POISON);
-        }
-        if (modval > 40 && delay == 0.0f)
-        {
-            LOG("meditate", "trance: slotDot -> DOT_DISEASE");
-            delay = slowDOT(player, modval, dot.DOT_DISEASE);
-        }
-        if (modval > 60 && delay == 0.0f)
-        {
-            LOG("meditate", "trance: cureWounds...");
-            delay = cureWounds(player, modval);
-        }
-        LOG("meditate", "trance: pre-ret delay = " + delay);
-        if (delay > 0.0f)
-        {
-            if (delay < DELAY_MIN)
+            if (dot.isBleeding(player) && modval >= 15)
             {
-                delay = DELAY_MIN;
+                slowDOT(player, modval, dot.DOT_BLEEDING);
             }
-            if (delay > DELAY_MAX)
+            else if (dot.isPoisoned(player) && modval >= 30)
             {
-                delay = DELAY_MAX;
+                slowDOT(player, modval, dot.DOT_POISON);
             }
+            else if (dot.isDiseased(player) && modval >= 45)
+            {
+                slowDOT(player, modval, dot.DOT_DISEASE);
+            }
+            return TIME_TICK;
         }
-        return delay;
+        if (modval >= 75)
+        {
+            return cureWounds(player, modval);
+        }
+        return TIME_TICK;
     }
     public static float slowDOT(obj_id player, int modval, String dotType) throws InterruptedException
     {
@@ -148,37 +173,9 @@ public class meditation extends script.base_script
         {
             return 0.0f;
         }
-        int totalCured = 0;
-        int toCure = getDOTReductionAmount(player);
-        if (toCure > 0)
-        {
-            totalCured = dot.reduceDotTypeStrength(player, dotType, toCure);
-        }
-        if (totalCured < 0.0f)
-        {
-            return 0.0f;
-        }
-        return 5.0f;
-    }
-    public static int getDOTReductionAmount(obj_id player) throws InterruptedException
-    {
-        if (!isIdValid(player))
-        {
-            return -1;
-        }
-        int dotMod = getSkillStatMod(player, "private_med_dot");
-        float ret = dotMod * (1.0f + rand(-RAND_MODIFIER, RAND_MODIFIER));
-        return Math.round(ret);
-    }
-    public static int getWoundReductionAmount(obj_id player) throws InterruptedException
-    {
-        if (!isIdValid(player))
-        {
-            return -1;
-        }
-        int dotMod = getSkillStatMod(player, "private_med_wound");
-        float ret = dotMod * (1.0f + rand(-RAND_MODIFIER, RAND_MODIFIER));
-        return Math.round(ret);
+        int reduction = 15 + (modval / 3);
+        dot.reduceDotTypeStrength(player, dotType, reduction);
+        return TIME_TICK;
     }
     public static float cureWounds(obj_id player, int modval) throws InterruptedException
     {
@@ -186,13 +183,33 @@ public class meditation extends script.base_script
         {
             return 0.0f;
         }
-        dictionary toHeal = new dictionary();
-        if ((toHeal == null) || (toHeal.isEmpty()))
+        int[] woundedPools = new int[ATTRIBUTE_NAMES.length];
+        int woundedCount = 0;
+        for (int attribute = 0; attribute < ATTRIBUTE_NAMES.length;
+            ++attribute)
         {
-            LOG("meditate", "cureWounds: no wounds...");
+            if (getAttribWound(player, attribute) > 0)
+            {
+                woundedPools[woundedCount++] = attribute;
+            }
+        }
+        if (woundedCount == 0)
+        {
             return 0.0f;
         }
-        return 5.0f;
+        int heal = 20 + rand(0, 10);
+        if (modval >= 100)
+        {
+            heal = 30 + rand(0, 20);
+        }
+        int attribute = woundedPools[rand(0, woundedCount - 1)];
+        heal = Math.min(heal, getAttribWound(player, attribute));
+        healWound(player, attribute, heal);
+        prose_package message = prose.getPackage(PROSE_CUREWOUND);
+        message = prose.setTO(message, ATTRIBUTE_NAMES[attribute]);
+        message = prose.setDI(message, heal);
+        sendSystemMessageProse(player, message);
+        return TIME_TICK;
     }
     public static boolean forceOfWill(obj_id player, int delta) throws InterruptedException
     {
@@ -209,34 +226,82 @@ public class meditation extends script.base_script
         {
             return false;
         }
+        clearForceOfWillModifiers(player);
         if (delta < 10)
         {
+            for (int attribute = HEALTH; attribute <= WILLPOWER; ++attribute)
+            {
+                addWound(player, attribute, 100);
+            }
             addShockWound(player, 100);
-            sendSystemMessage(player, new string_id(STF_TERASKASI, "forceofwill_crit_fail"));
+            sendSystemMessage(player,
+                new string_id(STF_TERASKASI, "forceofwill_crit_fail"));
         }
         else if (delta < 40)
         {
-            for (int i = 0; i < 3; i++)
+            for (int attribute = HEALTH; attribute <= WILLPOWER; ++attribute)
             {
-                addAttribModifier(player, i * 3, -200, 300, 0.0f, 0.0f);
+                addAttribModifier(player,
+                    MOD_FORCE_OF_WILL_PREFIX + attribute, attribute, -200,
+                    300.0f, 0.0f, 0.0f, false, false, true);
             }
             addShockWound(player, 100);
-            sendSystemMessage(player, new string_id(STF_TERASKASI, "forceofwill_marginal"));
+            sendSystemMessage(player,
+                new string_id(STF_TERASKASI, "forceofwill_marginal"));
         }
         else if (delta < 70)
         {
-            for (int i = 0; i < 3; i++)
+            for (int attribute = HEALTH; attribute <= WILLPOWER; ++attribute)
             {
-                addAttribModifier(player, i * 3, -100, 300, 0.0f, 0.0f);
+                addAttribModifier(player,
+                    MOD_FORCE_OF_WILL_PREFIX + attribute, attribute, -100,
+                    120.0f, 0.0f, 0.0f, false, false, true);
             }
-            sendSystemMessage(player, new string_id(STF_TERASKASI, "forceofwill_normal"));
+            sendSystemMessage(player,
+                new string_id(STF_TERASKASI, "forceofwill_normal"));
         }
         else 
         {
             sendSystemMessage(player, new string_id(STF_TERASKASI, "forceofwill_exceptional"));
         }
         innate.equalizeEffect(player);
+        utils.removeScriptVar(player, "incap.timeStamp");
+        setCount(player, 0);
+        setState(player, STATE_FEIGN_DEATH, false);
+        setPostureClientImmediate(player, POSTURE_UPRIGHT);
         return true;
+    }
+    public static String getForceOfWillTier(int delta)
+    {
+        if (delta < 10)
+        {
+            return "critical";
+        }
+        if (delta < 40)
+        {
+            return "marginal";
+        }
+        if (delta < 70)
+        {
+            return "normal";
+        }
+        return "exceptional";
+    }
+    public static void clearForceOfWillModifiers(obj_id player)
+        throws InterruptedException
+    {
+        if (!isIdValid(player))
+        {
+            return;
+        }
+        for (int attribute = HEALTH; attribute <= WILLPOWER; ++attribute)
+        {
+            String name = MOD_FORCE_OF_WILL_PREFIX + attribute;
+            if (hasAttribModifier(player, name))
+            {
+                removeAttribOrSkillModModifier(player, name);
+            }
+        }
     }
     public static boolean forceOfWill(obj_id player) throws InterruptedException
     {
@@ -262,39 +327,136 @@ public class meditation extends script.base_script
             sendSystemMessage(player, SID_MUST_BE_MEDITATING);
             return false;
         }
-        if (hasObjVar(player, VAR_POWERBOOST_ACTIVE))
+        if (hasObjVar(player, VAR_POWERBOOST_ACTIVE) ||
+            hasPowerBoostModifiers(player))
         {
             sendSystemMessage(player, SID_POWERBOOST_ACTIVE);
             return false;
         }
-        int now = getGameTime();
-        float duration = 300.0f + (float)(modval) * 3 * rand(0.95f, 1.05f);
-        int maxMind = utils.getUnbuffedWoundedMaxAttrib(player, MIND);
-        if (maxMind < 10)
+        int baseMind = utils.getUnbuffedWoundedMaxAttrib(player, MIND);
+        if (baseMind < POWERBOOST_RAMP_TICKS)
         {
             sendSystemMessage(player, SID_STATE_PREVENTS_POWERBOOST);
             return false;
         }
-        int boost = maxMind / 2;
+        int boost = baseMind / 2;
         if (getAttrib(player, MIND) <= boost)
         {
             sendSystemMessage(player, SID_MIND_POOL_TOO_LOW);
             return false;
         }
-        addAttribModifier(player, MIND, -boost, POWERBOOST_RAMP, 0.0f, 0.0f);
-        addAttribModifier(player, "meditation.powerboost.mind", MIND, boost, duration, POWERBOOST_RAMP, POWERBOOST_RAMP, false, false, true);
-        addAttribModifier(player, "meditation.powerboost.health", HEALTH, boost, duration, POWERBOOST_RAMP, POWERBOOST_RAMP, false, false, false);
-        addAttribModifier(player, "meditation.powerboost.action", ACTION, boost, duration, POWERBOOST_RAMP, POWERBOOST_RAMP, false, false, false);
-        int wane_time = (int)(duration + POWERBOOST_RAMP);
-        int expire_time = wane_time + (int)POWERBOOST_RAMP;
-        int expiration = now + expire_time;
+        int tick = boost / POWERBOOST_RAMP_TICKS;
+        int adjustedBoost = tick * POWERBOOST_RAMP_TICKS;
+        int duration = POWERBOOST_BASE_DURATION +
+            (modval / 100) * POWERBOOST_BASE_DURATION;
+        if (tick < 1 || adjustedBoost < POWERBOOST_RAMP_TICKS)
+        {
+            sendSystemMessage(player, SID_STATE_PREVENTS_POWERBOOST);
+            return false;
+        }
+        float plateau = Math.max(0.0f,
+            duration - (POWERBOOST_RAMP * 2.0f));
+        boolean applied =
+            addAttribModifier(player, MOD_POWERBOOST_DRAIN, MIND,
+                -adjustedBoost, POWERBOOST_RAMP, 0.0f, 0.0f,
+                true, false, true) &&
+            addAttribModifier(player, MOD_POWERBOOST_RESTORE, MIND,
+                adjustedBoost, 0.0f, POWERBOOST_RAMP,
+                0.0f, false, false, true) &&
+            addAttribModifier(player, MOD_POWERBOOST_HEALTH, HEALTH,
+                adjustedBoost, plateau, POWERBOOST_RAMP,
+                POWERBOOST_RAMP, false, false, false) &&
+            addAttribModifier(player, MOD_POWERBOOST_ACTION, ACTION,
+                adjustedBoost, plateau, POWERBOOST_RAMP,
+                POWERBOOST_RAMP, false, false, false);
+        if (!applied)
+        {
+            return false;
+        }
+        int now = getGameTime();
+        int expiration = now + duration;
         setObjVar(player, VAR_POWERBOOST_ACTIVE, expiration);
+        setObjVar(player, VAR_POWERBOOST_BONUS, adjustedBoost);
+        setObjVar(player, VAR_POWERBOOST_TICK, tick);
+        setObjVar(player, VAR_POWERBOOST_DURATION, duration);
         dictionary d = new dictionary();
         d.put("expiration", expiration);
-        messageTo(player, HANDLER_POWERBOOST_WANE, d, wane_time, false);
-        messageTo(player, HANDLER_POWERBOOST_END, d, expire_time, true);
+        messageTo(player, HANDLER_POWERBOOST_MIND_RISE, d,
+            POWERBOOST_RAMP, false);
+        messageTo(player, HANDLER_POWERBOOST_WANE, d,
+            duration - POWERBOOST_RAMP, false);
+        messageTo(player, HANDLER_POWERBOOST_END, d, duration, true);
         messageTo(player, "handlePowerBoostLog", null, POWERBOOST_RAMP * 2, false);
         sendSystemMessage(player, SID_POWERBOOST_BEGIN);
         return true;
+    }
+    public static boolean hasPowerBoostModifiers(obj_id player)
+        throws InterruptedException
+    {
+        return isIdValid(player) &&
+            (hasAttribModifier(player, MOD_POWERBOOST_DRAIN) ||
+            hasAttribModifier(player, MOD_POWERBOOST_RESTORE) ||
+            hasAttribModifier(player, MOD_POWERBOOST_MIND) ||
+            hasAttribModifier(player, MOD_POWERBOOST_HEALTH) ||
+            hasAttribModifier(player, MOD_POWERBOOST_ACTION));
+    }
+    public static void beginPowerBoostMindRise(obj_id player,
+        dictionary params) throws InterruptedException
+    {
+        if (!isIdValid(player) || params == null ||
+            !hasObjVar(player, VAR_POWERBOOST_ACTIVE))
+        {
+            return;
+        }
+        int expiration = getIntObjVar(player, VAR_POWERBOOST_ACTIVE);
+        if (params.getInt("expiration") != expiration)
+        {
+            return;
+        }
+        int tick = getIntObjVar(player, VAR_POWERBOOST_TICK);
+        int duration = getIntObjVar(player, VAR_POWERBOOST_DURATION);
+        int adjustedBoost = tick * POWERBOOST_RAMP_TICKS;
+        addAttribModifier(player, MOD_POWERBOOST_MIND, MIND,
+            adjustedBoost, Math.max(0.0f, duration - 180.0f),
+            POWERBOOST_RAMP, POWERBOOST_RAMP, false, false, true);
+    }
+    public static void endPowerBoost(obj_id player, boolean verbose)
+        throws InterruptedException
+    {
+        if (!isIdValid(player))
+        {
+            return;
+        }
+        if (hasObjVar(player, VAR_POWERBOOST_ACTIVE) &&
+            getGameTime() < getIntObjVar(player, VAR_POWERBOOST_ACTIVE))
+        {
+            return;
+        }
+        String[] modifiers =
+        {
+            MOD_POWERBOOST_DRAIN,
+            MOD_POWERBOOST_RESTORE,
+            MOD_POWERBOOST_MIND,
+            MOD_POWERBOOST_HEALTH,
+            MOD_POWERBOOST_ACTION
+        };
+        for (String modifier : modifiers)
+        {
+            if (hasAttribModifier(player, modifier))
+            {
+                removeAttribOrSkillModModifier(player, modifier);
+            }
+        }
+        removeObjVar(player, VAR_POWERBOOST_ACTIVE);
+        removeObjVar(player, VAR_POWERBOOST_BONUS);
+        removeObjVar(player, VAR_POWERBOOST_TICK);
+        removeObjVar(player, VAR_POWERBOOST_DURATION);
+        removeObjVar(player, VAR_POWERBOOST_COUNTER);
+        removeObjVar(player, VAR_POWERBOOST_HEALTH_ACTION_APPLIED);
+        removeObjVar(player, VAR_POWERBOOST_MIND_APPLIED);
+        if (verbose)
+        {
+            sendSystemMessage(player, SID_POWERBOOST_END);
+        }
     }
 }

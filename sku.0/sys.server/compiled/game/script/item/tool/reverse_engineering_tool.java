@@ -52,9 +52,9 @@ public class reverse_engineering_tool extends script.base_script
     };
     public static final String[] SKILL_LIST = 
     {
-        "class_domestics_phase1_novice",
-        "class_munitions_phase1_novice",
-        "class_engineering_phase1_novice"
+        "crafting_tailor_novice",
+        "crafting_armorsmith_novice",
+        "crafting_weaponsmith_novice"
     };
     public static final String[] POWERUP_STATIC_NAMES = 
     {

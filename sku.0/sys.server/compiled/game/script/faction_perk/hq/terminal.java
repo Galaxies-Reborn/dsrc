@@ -190,7 +190,7 @@ public class terminal extends script.terminal.base.base_terminal
                         sendSystemMessageProse(player, ppDisableOther);
                         return SCRIPT_CONTINUE;
                     }
-                    if (!hasSkill(player, "class_officer_phase1_novice"))
+                    if (!hasSkill(player, "outdoors_squadleader_novice"))
                     {
                         sendSystemMessage(player, new string_id(STRING_FILE_LOC, "terminal_response03"));
                         return SCRIPT_CONTINUE;

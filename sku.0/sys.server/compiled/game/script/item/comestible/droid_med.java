@@ -215,7 +215,7 @@ public class droid_med extends script.base_script
     }
     public boolean isDroidEngineer(obj_id player) throws InterruptedException
     {
-        if (hasSkill(player, "class_engineering_phase1_novice"))
+        if (hasSkill(player, "crafting_droidengineer_novice"))
         {
             return true;
         }

@@ -17,16 +17,20 @@ public class loveday_romance_target_spawner extends script.base_script
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
-        messageTo(self, "spawnRomanceTargetNpcs", null, 120, false);
+        retireRomanceTargetSpawner(self);
         return SCRIPT_CONTINUE;
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
-        messageTo(self, "spawnRomanceTargetNpcs", null, 180, false);
+        retireRomanceTargetSpawner(self);
         return SCRIPT_CONTINUE;
     }
     public int spawnRomanceTargetNpcs(obj_id self, dictionary params) throws InterruptedException
     {
+        if (!hasScript(self, "event.ewok_festival.loveday_romance_target_spawner"))
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (!utils.hasScriptVar(self, "spawnedRomanceTargetNpcs"))
         {
             String planet = getLocation(self).area;
@@ -94,5 +98,29 @@ public class loveday_romance_target_spawner extends script.base_script
             messageTo(self, "spawnRomanceTargetNpcs", null, 1, false);
         }
         return SCRIPT_CONTINUE;
+    }
+    private void retireRomanceTargetSpawner(obj_id self) throws InterruptedException
+    {
+        String planet = getLocation(self).area;
+        cleanupRomanceTargets(self, planet, "loveday_romance_target_male");
+        cleanupRomanceTargets(self, planet, "loveday_romance_target_female");
+        utils.removeScriptVar(self, "spawnedRomanceTargetNpcs");
+        detachScript(self, "event.ewok_festival.loveday_romance_target_spawner");
+    }
+    private void cleanupRomanceTargets(obj_id self, String planet, String spawnName) throws InterruptedException
+    {
+        String datatable = "datatables/spawning/holiday/love_day_romance_target_" +
+            (spawnName.endsWith("_male") ? "male_" : "female_") + planet + ".iff";
+        int numRows = dataTableGetNumRows(datatable);
+        for (int i = 0; i < numRows; i++)
+        {
+            String key = spawnName + "_" + i;
+            obj_id target = utils.getObjIdScriptVar(self, key);
+            if (isIdValid(target) && exists(target))
+            {
+                destroyObject(target);
+            }
+            utils.removeScriptVar(self, key);
+        }
     }
 }

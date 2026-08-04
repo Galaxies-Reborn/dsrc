@@ -41,20 +41,13 @@ public class yoda_fountain extends script.base_script
     public static final string_id WINNER_HELP = new string_id(EMP_DAY, "winner_help_rebel");
     public int OnInitialize(obj_id self) throws InterruptedException
     {
-        CustomerServiceLog("holidayEvent", "yoda_fountain.OnInitialize: Fountain is initializing.");
-
-        if (utils.hasScriptVar(self, "musicObject"))
-        {
-            obj_id oldSoundObject = utils.getObjIdScriptVar(self, "musicObject");
-            if ((isIdValid(oldSoundObject)) && exists(oldSoundObject))
-            {
-                destroyObject(oldSoundObject);
-            }
-        }
-        utils.setScriptVar(self, "musicObject", createObject(MUSIC_HAN_LEIA, getLocation(self)));
-
-        CustomerServiceLog("holidayEvent", "yoda_fountain.OnInitialize: Preparing Parade.");
-        messageTo(self, "prepareParade", null, 30.0f, false);
+        OnDestroy(self);
+        detachScript(self, "event.emperorsday.yoda_fountain");
+        return SCRIPT_CONTINUE;
+    }
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        detachScript(self, "event.emperorsday.yoda_fountain");
         return SCRIPT_CONTINUE;
     }
     public int OnGetAttributes(obj_id self, obj_id player, String[] names, String[] attribs) throws InterruptedException

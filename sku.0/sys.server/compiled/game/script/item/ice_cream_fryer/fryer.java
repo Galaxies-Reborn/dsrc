@@ -293,20 +293,6 @@ public class fryer extends script.base_script
                     boolean success = setFourthIngredient(fryer, generatedItem, row);
                     return generatedItem;
                 }
-                else 
-                {
-                    blog("setBuffTypeOnEdible - The player getSkillTemplate: " + getSkillTemplate(player));
-                    if ((getSkillTemplate(player)).startsWith("trader_0a"))
-                    {
-                        CustomerServiceLog("ice_cream_fryer", "%TU has created a TRADER buff consumable using fryer: " + fryer, player);
-                        blog("setBuffTypeOnEdible - DOMESTICS BUFF BEING CREATED: " + i);
-                        generatedItem = static_item.createNewItemFunction(currentBuff, player);
-                        setObjVar(generatedItem, collection.FRYER_BUFF_TYPE, collection.ICE_CREAM_DOMESTICS_ONLY);
-                        boolean success = setFourthIngredient(fryer, generatedItem, row);
-                        return generatedItem;
-                    }
-                    blog("setBuffTypeOnEdible - DOMESTICS BUFF FAILED: ");
-                }
             }
         }
         CustomerServiceLog("ice_cream_fryer", "%TU has created a DEBUFF consumable using fryer: " + fryer, player);

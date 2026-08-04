@@ -9,8 +9,87 @@ public class player_stealth extends script.systems.combat.combat_base
     {
     }
     public static final java.text.NumberFormat floatFormat = new java.text.DecimalFormat("#####");
+    public static boolean isRetiredPostNgeSpyBuffName(String buffName) throws InterruptedException
+    {
+        return buffName != null &&
+            (buffName.startsWith("invis_sp_") ||
+                buffName.startsWith("sp_") ||
+                buffName.equals("no_break_invis"));
+    }
+    public static void retirePostNgeSpyPlayerState(obj_id self) throws InterruptedException
+    {
+        if (!isIdValid(self) || !isPlayer(self))
+        {
+            return;
+        }
+        boolean changed = false;
+        for (int pass = 0; pass < 8; ++pass)
+        {
+            boolean removedBuff = false;
+            int[] activeBuffs = buff.getAllBuffs(self);
+            if (activeBuffs == null || activeBuffs.length == 0)
+            {
+                break;
+            }
+            for (int activeBuff : activeBuffs)
+            {
+                String buffName = buff.getBuffNameFromCrc(activeBuff);
+                if (isRetiredPostNgeSpyBuffName(buffName))
+                {
+                    buff.removeBuff(self, activeBuff);
+                    removedBuff = true;
+                    changed = true;
+                }
+            }
+            if (!removedBuff)
+            {
+                break;
+            }
+        }
+        utils.removeScriptVar(self, "sp_smoke_bomb");
+        utils.removeScriptVar(self, "sp_without_a_trace");
+        String[] playerSkills = getSkillListingForPlayer(self);
+        int attempts = playerSkills == null ? 0 : playerSkills.length;
+        while (playerSkills != null && playerSkills.length > 0 && attempts-- > 0)
+        {
+            boolean retiredSkillFound = false;
+            for (String playerSkill : playerSkills)
+            {
+                if (skill.isRetiredPostNgeSpySkill(playerSkill))
+                {
+                    revokeSkillSilent(self, playerSkill);
+                    retiredSkillFound = true;
+                    changed = true;
+                }
+            }
+            if (!retiredSkillFound)
+            {
+                break;
+            }
+            playerSkills = getSkillListingForPlayer(self);
+        }
+        if (changed)
+        {
+            recomputeCommandSeries(self);
+        }
+    }
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        retirePostNgeSpyPlayerState(self);
+        return SCRIPT_CONTINUE;
+    }
+    public int OnInitialize(obj_id self) throws InterruptedException
+    {
+        retirePostNgeSpyPlayerState(self);
+        return SCRIPT_CONTINUE;
+    }
     public int smokeBombTimerExpired(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            retirePostNgeSpyPlayerState(self);
+            return SCRIPT_CONTINUE;
+        }
         if (utils.hasScriptVar(self, "sp_smoke_bomb"))
         {
             utils.removeScriptVar(self, "sp_smoke_bomb");
@@ -19,6 +98,11 @@ public class player_stealth extends script.systems.combat.combat_base
     }
     public int withoutTraceTimerExpired(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            retirePostNgeSpyPlayerState(self);
+            return SCRIPT_CONTINUE;
+        }
         if (utils.hasScriptVar(self, "sp_without_a_trace"))
         {
             utils.removeScriptVar(self, "sp_without_a_trace");
@@ -82,6 +166,11 @@ public class player_stealth extends script.systems.combat.combat_base
         {
             return SCRIPT_CONTINUE;
         }
+        if (isPlayer(self) && isRetiredPostNgeSpyBuffName(invisBuff))
+        {
+            retirePostNgeSpyPlayerState(self);
+            return SCRIPT_CONTINUE;
+        }
         int invis = getStringCrc(toLower(invisBuff));
         switch (invis)
         {
@@ -115,18 +204,33 @@ public class player_stealth extends script.systems.combat.combat_base
     }
     public int handleStealCashSuccess(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            retirePostNgeSpyPlayerState(self);
+            return SCRIPT_CONTINUE;
+        }
         int amt = params.getInt(money.DICT_AMOUNT);
         withdrawCashFromBank(self, amt, "handleStealCashFinal", "handleStealCashFail", params);
         return SCRIPT_CONTINUE;
     }
     public int handleStealCashFail(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            retirePostNgeSpyPlayerState(self);
+            return SCRIPT_CONTINUE;
+        }
         int amt = params.getInt(money.DICT_AMOUNT);
         CustomerServiceLog("stealing", "%TU failed to steal " + amt + " credits.", self);
         return SCRIPT_CONTINUE;
     }
     public int handleStealCashFinal(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            retirePostNgeSpyPlayerState(self);
+            return SCRIPT_CONTINUE;
+        }
         int amt = params.getInt(money.DICT_AMOUNT);
         prose_package pp = prose.getPackage(new string_id("spam", "stole_cash"), amt);
         sendSystemMessageProse(self, pp);

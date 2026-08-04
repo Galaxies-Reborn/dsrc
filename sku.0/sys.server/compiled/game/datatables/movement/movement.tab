@@ -20,6 +20,7 @@ testRoot1	root			1	1	TESTING ONLY - Do not use
 testRoot2	root			1	1	TESTING ONLY - Do not use
 testRoot3	root			1	1	TESTING ONLY - Do not use
 burstRun	boost	75				Burst run ability
+retreat	boost	82.2				Publish 14.1 Squad Leader retreat
 tranqDart	snare	66				Scout tranquilizer dart
 crippleAttack	snare	25				
 crippleAttack_1	snare	45				

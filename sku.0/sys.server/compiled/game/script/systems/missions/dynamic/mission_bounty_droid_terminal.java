@@ -20,7 +20,7 @@ public class mission_bounty_droid_terminal extends script.systems.missions.base.
     {
         if (item == menu_info_types.SERVER_PROBE_DROID_BUY)
         {
-            if (!hasSkill(player, "class_bountyhunter_phase1_novice"))
+            if (!hasSkill(player, "combat_bountyhunter_novice"))
             {
                 string_id strSpam = new string_id("mission/mission_generic", "not_bounty_hunter_terminal");
                 sendSystemMessage(self, strSpam);

@@ -701,3 +701,7 @@ expertise_action_weapon_melee	skill	expertise_action_weapon_melee
 expertise_undiminished_critical_melee	skill	expertise_undiminished_critical_melee	
 en_action_regen	commandGrant	en_action_regen	
 expertise_resource_quality_increase	skill	expertise_resource_quality_increase	
+private_center_of_being	skill	private_center_of_being	
+expertise_cooldown_line_sm_0_hope	skill	expertise_cooldown_line_sm_0_hope	
+lnd_dm_1	skill	lnd_dm_1	
+strength	attrib	strength	

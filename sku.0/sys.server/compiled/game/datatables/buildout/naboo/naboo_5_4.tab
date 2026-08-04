@@ -13,7 +13,7 @@ i	i	h	i	f	f	f	f	f	f	f	s	p
 -1966548373	0	object/building/kashyyyk/myyydril_cave_naktra_crystal_med.iff	0	1938.43	307.946	472.44	0.902611	0.430458	0	0		$|
 -1959887684	0	object/static/item/item_container_inorganic_chemicals.iff	0	543.447	343.695	600.702	0.735088	0	-0.677972	0		$|
 -1954286288	0	object/static/structure/military/military_column_strong_imperial_style_01.iff	0	1501.79	303	496.852	0.382683	0	0.92388	0		$|
--1946025983	0	object/building/general/naboo_gcw_bunker_01.iff	0	1003.77	298	576.501	0	0	1	0	systems.gcw.static_base.base_master:systems.gcw.static_base.base_spawner	gcw.static_base.master|6|13857519|gcw.static_base.terminal_ids|7|30369077:30369081:30369085:30369089:|gcw.static_base.terminal_status|1|0:0:0:0:|portalProperty.crc|0|-1266970242|$|
+-1946025983	0	object/building/general/naboo_gcw_bunker_01.iff	0	1003.77	298	576.501	0	0	1	0		portalProperty.crc|0|-1266970242|$|
 -1946025982	-1946025983	object/cell/cell.iff	1	0	0	0	1	0	0	0		$|
 -1946025981	-1946025983	object/cell/cell.iff	2	0	0	0	1	0	0	0		$|
 -1946025980	-1946025983	object/cell/cell.iff	3	0	0	0	1	0	0	0		$|
@@ -40,7 +40,7 @@ i	i	h	i	f	f	f	f	f	f	f	s	p
 -1946025959	-1946025983	object/cell/cell.iff	24	0	0	0	1	0	0	0		$|
 -1946025958	-1946025983	object/cell/cell.iff	25	0	0	0	1	0	0	0		$|
 -1946025957	-1946025983	object/cell/cell.iff	26	0	0	0	1	0	0	0		$|
--949623093	-1946025957	object/tangible/collection/col_gcw_static_base_naboo.iff	26	104.693	-19.2324	117.167	1	0	0	0	systems.collections.consume_click	collection.gcw_control_check|4|1|collection.slotName|4|col_gcw_insurgency:col_gcw_insurgency_naboo|$|
+-949623093	-1946025957	object/tangible/collection/col_gcw_static_base_naboo.iff	26	104.693	-19.2324	117.167	1	0	0	0		$|
 -1946025956	-1946025983	object/cell/cell.iff	27	0	0	0	1	0	0	0		$|
 -1946025955	-1946025983	object/cell/cell.iff	28	0	0	0	1	0	0	0		$|
 -1946025954	-1946025983	object/cell/cell.iff	29	0	0	0	1	0	0	0		$|
@@ -66,7 +66,7 @@ i	i	h	i	f	f	f	f	f	f	f	s	p
 -1946025934	-1946025983	object/cell/cell.iff	49	0	0	0	1	0	0	0		$|
 -1944015138	0	object/static/structure/military/military_column_med_imperial_style_01.iff	0	958.602	298	518.867	1	0	0	0		$|
 -1930057877	0	object/static/item/eqp_camping_tent_s3.iff	0	544.444	343	591.036	0.946042	0	0.324043	0		$|
--1925852435	0	object/tangible/gcw/static_base/invisible_beacon.iff	0	1504.75	303	491.14	1	0	0	0	structure.municipal.starport	travel.air_time|0|60|travel.arrival_location|8|1504.750000 303.000000 -1556.859985 naboo 0|travel.cost|0|100|travel.ground_time|0|300|travel.is_shuttleport|0|1|travel.point_name|4|@gcw:gcwstaticbaseimperial|travel.shuttle_available|0|1|travel.shuttle_timestamp|0|3123936|travel.version|0|3|$|
+-1925852435	0	object/tangible/gcw/static_base/invisible_beacon.iff	0	1504.75	303	491.14	1	0	0	0		$|
 -1889024224	0	object/static/structure/general/banner_imperial_style_01.iff	0	1517.25	303	491.857	0.92388	0	0.382683	0		$|
 -1886544832	0	object/static/structure/general/cloning_tube.iff	0	527.645	343	584.254	0.967663	0	0.252245	0		$|
 -1878593565	0	object/static/structure/military/military_column_med_imperial_style_01.iff	0	955.463	298	552.052	0.731689	0	0.681639	0		$|
@@ -114,14 +114,14 @@ i	i	h	i	f	f	f	f	f	f	f	s	p
 -1325813228	0	object/static/structure/military/military_wall_med_imperial_style_01.iff	0	1011.37	298	549.712	0.92168	0	0.387951	0		$|
 -1322587241	0	object/static/structure/general/prp_junk_s6.iff	0	1522.11	306.993	496.117	0.707107	0	0.707107	0		$|
 -1317924097	0	object/static/structure/general/allum_mine_bucket_s01.iff	0	950.619	299.333	573.362	0	-0.629102	0	0.777322		$|
--1288314132	0	object/tangible/gcw/static_base/invisible_cloner_rebel.iff	0	528.614	343	592.474	1	0	0	0	structure.municipal.cloning_facility	$|
+-1288314132	0	object/tangible/gcw/static_base/invisible_cloner_rebel.iff	0	528.614	343	592.474	1	0	0	0		$|
 -1272732644	0	object/static/particle/pt_miasma_of_fog_gray.iff	0	1928.28	295.224	487.199	1	0	0	0		$|
 -1269567805	0	object/building/kashyyyk/myyydril_cave_naktra_crystal_red_lrg.iff	0	1938.13	311.028	483.178	-0.413978	0.676423	-0.519577	-0.317986		$|
 -1263921396	0	object/static/structure/general/prp_junk_s4.iff	0	971.526	298	564.602	0.955337	0	0.29552	0		$|
 -1254920233	0	object/static/item/item_container_installation.iff	0	528.458	343.695	608.158	0	0.999899	0	0.0142031		$|
--1202557081	0	object/tangible/gcw/static_base/invisible_cloner_imperial.iff	0	1512.79	303	495.044	1	0	0	0	structure.municipal.cloning_facility	$|
+-1202557081	0	object/tangible/gcw/static_base/invisible_cloner_imperial.iff	0	1512.79	303	495.044	1	0	0	0		$|
 -1183999591	0	object/static/structure/naboo/gungan_pillar_ruined_s01.iff	0	1004.25	301.468	504.779	-0.449135	0	0.893464	0		$|
--1156051021	0	object/tangible/theme_park/invisible_object.iff	0	1003.77	298	576.501	0	0	1	0	theme_park.controller_initialize	scriptString|4|systems.gcw.static_base.master|$|
+-1156051021	0	object/tangible/theme_park/invisible_object.iff	0	1003.77	298	576.501	0	0	1	0		$|
 -1134777365	0	object/static/structure/general/allum_mine_bucket_s01.iff	0	950.16	299.307	571.229	0	-0.573194	0	0.81942		$|
 -1113838511	0	object/static/structure/corellia/corl_power_transformer_s01.iff	0	999.191	298	526.624	0.707107	0	0.707107	0		$|
 -1110957960	0	object/static/structure/corellia/corl_tent_small.iff	0	970.47	298	536.947	0.961055	0	0.276356	0		$|
@@ -401,7 +401,7 @@ i	i	h	i	f	f	f	f	f	f	f	s	p
 -875858783	0	object/static/item/item_container_weapon.iff	0	1502.3	303	483.59	0.96639	0	0.257081	0		$|
 -874001932	0	object/static/structure/general/allum_mine_bucket_s01.iff	0	971.434	299.307	535.991	0	0.874982	0	-0.484156		$|
 -870324354	0	object/static/structure/military/military_column_strong_imperial_style_01.iff	0	1492.91	302.904	505.655	0.92388	0	-0.382683	0		$|
--859124609	0	object/tangible/gcw/static_base/invisible_beacon.iff	0	536.581	343	600.901	1	0	0	0	structure.municipal.starport	travel.air_time|0|60|travel.arrival_location|8|536.580994 343.000000 -1447.098999 naboo 0|travel.cost|0|100|travel.ground_time|0|300|travel.is_shuttleport|0|1|travel.point_name|4|@gcw:gcwstaticbaserebel|travel.shuttle_available|0|1|travel.shuttle_timestamp|0|3123933|travel.version|0|3|$|
+-859124609	0	object/tangible/gcw/static_base/invisible_beacon.iff	0	536.581	343	600.901	1	0	0	0		$|
 -853843991	0	object/static/structure/general/banner_rebel_style_01.iff	0	529.133	343	587.691	0.797474	0	0.603353	0		$|
 -833185778	0	object/static/structure/corellia/corl_power_transformer_s02.iff	0	986.231	298	562.176	1	0	0	0		$|
 -827016393	0	object/static/item/item_binoculars.iff	0	528.793	343.682	609.106	0.62161	0	0.783327	0		$|

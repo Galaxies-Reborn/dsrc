@@ -42,7 +42,7 @@ public class prof_officer_21 extends script.base_script
     }
     public boolean prof_officer_21_condition_notOnQuest(obj_id player, obj_id npc) throws InterruptedException
     {
-        if (!utils.isProfession(player, utils.OFFICER) || getLevel(player) < 20)
+        if (!utils.isProfession(player, utils.OFFICER) || script.library.skill.getPrecuEncounterDifficulty(player) < 20)
         {
             return true;
         }

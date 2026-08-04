@@ -16,8 +16,16 @@ public class auto_level extends script.base_script
     public static final string_id SID_CONSUME_TITLE = new string_id("spam", "consume_auto_level_title");
     public static final string_id SID_CONSUME_ITEM = new string_id("spam", "consume_auto_level");
     public static final string_id SID_CONSUME_TOO_HIGH = new string_id("spam", "consume_auto_level_too_high");
+    private static boolean isNgeAutoLevelItemEnabled()
+    {
+        return false;
+    }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (!isNgeAutoLevelItemEnabled())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (utils.isNestedWithinAPlayer(self))
         {
             mi.addRootMenu(menu_info_types.SERVER_MENU1, SID_CONSUME_ITEM);
@@ -26,6 +34,10 @@ public class auto_level extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (!isNgeAutoLevelItemEnabled())
+        {
+            return SCRIPT_CONTINUE;
+        }
         sendDirtyObjectMenuNotification(self);
         if (item == menu_info_types.SERVER_MENU1 && utils.isNestedWithinAPlayer(self))
         {
@@ -69,6 +81,10 @@ public class auto_level extends script.base_script
     }
     public int handlerSuiAutoLevel(obj_id self, dictionary params) throws InterruptedException
     {
+        if (!isNgeAutoLevelItemEnabled())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (params == null || params.isEmpty())
         {
             return SCRIPT_CONTINUE;

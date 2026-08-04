@@ -80,7 +80,7 @@ public class camp_defense extends script.base_script
             return SCRIPT_CONTINUE;
         }
         CustomerServiceLog("outbreak_themepark", "camp_defense.OnTriggerVolumeEntered() Player: " + getPlayerName(whoTriggeredMe) + " (" + whoTriggeredMe + ") has triggered the volume and is ready to defend camp.");
-        int combatLevel = getLevel(whoTriggeredMe);
+        int combatLevel = script.library.skill.getPrecuEncounterDifficulty(whoTriggeredMe);
         if (combatLevel < 0 || combatLevel > 90)
         {
             CustomerServiceLog("outbreak_themepark", "camp_defense.OnTriggerVolumeEntered() Player " + whoTriggeredMe + " has a level that is invalid. Player level is: " + combatLevel + ". Aborting the camp defense.");

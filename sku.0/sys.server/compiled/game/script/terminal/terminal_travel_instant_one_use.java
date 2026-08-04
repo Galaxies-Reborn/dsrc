@@ -27,71 +27,18 @@ public class terminal_travel_instant_one_use extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
-        int mnu = mi.addRootMenu(menu_info_types.ITEM_USE, new string_id("ui_radial", "item_use"));
+        LOG("LOG_CHANNEL", "Ignored retired NGE one-use instant-travel menu request for " + player);
         return SCRIPT_CONTINUE;
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
-        if (item == menu_info_types.ITEM_USE)
-        {
-            sendSystemMessage(player, SID_CALLING_FOR_PICKUP);
-            spawnPickupCraft(player, 2);
-        }
+        LOG("LOG_CHANNEL", "Ignored retired NGE one-use instant-travel selection for " + player);
         return SCRIPT_CONTINUE;
     }
     public obj_id spawnPickupCraft(obj_id player, int type) throws InterruptedException
     {
-        debugLogging("//***// spawnPickupCraft", "////>>>> ENTERED");
-        if (!isIdValid(player))
-        {
-            return null;
-        }
-        location here = getLocation(player);
-        location spawnLoc = locations.getGoodLocationAroundLocation(here, 1.0f, 1.0f, 4.0f, 4.0f);
-        if (spawnLoc == null)
-        {
-            debugLogging("//***// spawnPickupCraft", "////>>>> getGoodLocationAroundLocation (player area) returned NULL! OH NO! Telling player that the location is no good.");
-            sendSystemMessage(player, SID_LOCATION_NOGOOD_FOR_PICKUP);
-            return null;
-        }
-        String pickupCraftType = "object/tangible/terminal/terminal_travel_instant_xwing.iff";
-        if (type == SHIP_TYPE_INSTANT_XWING_TIE)
-        {
-            int playerFactionID = pvpGetAlignedFaction(player);
-            if (playerFactionID == (-615855020))
-            {
-                pickupCraftType = "object/tangible/terminal/terminal_travel_instant_tie.iff";
-                spawnLoc.y += 5.0f;
-            }
-        }
-        if (type == SHIP_TYPE_INSTANT_PRIVATEER)
-        {
-            pickupCraftType = "object/tangible/terminal/terminal_travel_instant_privateer.iff";
-        }
-        if (type == SHIP_TYPE_INSTANT_ROYAL_SHIP)
-        {
-            pickupCraftType = "object/tangible/terminal/terminal_travel_instant_royal_ship.iff";
-        }
-        obj_id pickupCraft = create.object(pickupCraftType, spawnLoc);
-        debugLogging("//***// spawnPickupCraft", "////>>>> spawned the pickup craft. It was obj_id: " + pickupCraft);
-        if (!isIdValid(pickupCraft))
-        {
-            debugLogging("//***// spawnPickupCraft", "////>>>> Apparently, we DIDN'T SPAWN A SHIP!");
-            return null;
-        }
-        utils.setScriptVar(player, "instantTravelShip", pickupCraft);
-        utils.setScriptVar(pickupCraft, "playerOwner", player);
-        if (!utils.hasScriptVar(pickupCraft, "playerOwner"))
-        {
-            debugLogging("//***// spawnPickupCraft", "////>>>> FAILED TO WRITE PLAYER OID TO SHIP");
-        }
-        setObjVar(pickupCraft, "playerOwner", player);
-        if (!hasObjVar(pickupCraft, "playerOwner"))
-        {
-            debugLogging("//***// spawnPickupCraft", "////>>>> FAILED TO WRITE PLAYER OID TO SHIP - OBJVAR");
-        }
-        messageTo(pickupCraft, "initializeInstaTravelShip", null, 1, false);
-        return pickupCraft;
+        LOG("LOG_CHANNEL", "Rejected retired NGE one-use instant-travel craft spawn for " + player);
+        return null;
     }
     public void debugLogging(String section, String message) throws InterruptedException
     {

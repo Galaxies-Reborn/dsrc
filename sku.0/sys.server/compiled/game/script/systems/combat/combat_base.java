@@ -32,8 +32,67 @@ public class combat_base extends script.base_script
     public static final int HIT_RESULT_HIT = 7;
     public static final int HIT_RESULT_EVADE = 8;
     public static final int HIT_RESULT_STRIKETHROUGH = 9;
+    public static final int HIT_RESULT_PRECU_COUNTER = 10;
+    public static final int HIT_RESULT_PRECU_RICOCHET = 11;
     public static final String PROGRESSIVE_DAMAGE_COUNTER = "hitData.progressive.counter";
     public static final string_id SID_NONE = new string_id();
+    public static final String PRECU_COMBAT_OVERRIDES = "datatables/combat/precu_combat_overrides.iff";
+    public static final String PRECU_COMBAT_SPAM = "datatables/combat/precu_combat_spam.iff";
+    public static final String PRECU_WEAPON_PROFILES = "datatables/combat/precu_weapon_profiles.iff";
+    public static final String PRECU_AIM_MODIFIER = "precu_aim";
+    public static final String PRECU_TUMBLE_MELEE_MODIFIER =
+        "precu_tumble_melee_defense";
+    public static final String PRECU_TUMBLE_RANGED_MODIFIER =
+        "precu_tumble_ranged_defense";
+    public static final int PRECU_PRIMARY_RESULT_FALLBACK = -1;
+    public static final int PRECU_SECONDARY_RESULT_FALLBACK = -2;
+    public static final int PRECU_COUNTERATTACK_COMMAND = 1957054281;
+    public static final String PRECU_LIVE_DIAGNOSTIC_ROOT =
+        "precu.p14.marksmanTier1Fixture.liveDiagnostic";
+    public static final String PRECU_LIVE_DIAGNOSTIC_ENABLED =
+        PRECU_LIVE_DIAGNOSTIC_ROOT + ".enabled";
+    public static final String PRECU_POSTURE_DOWN_RECOVERY =
+        "combat.precuPostureDownTime";
+    public static final String PRECU_POSTURE_UP_RECOVERY =
+        "combat.precuPostureUpTime";
+    public static final String PRECU_KNOCKDOWN_RECOVERY =
+        "combat.intKnockdownTime";
+    public static final String PRECU_KNOCKDOWN_ORIGINAL_POSTURE =
+        PRECU_KNOCKDOWN_RECOVERY + ".posture";
+    public static final float PRECU_KNOCKDOWN_DURATION = 5.0f;
+    public static final int PRECU_STATE_EFFECT_NONE = 0;
+    public static final int PRECU_STATE_EFFECT_DIZZY = 1;
+    public static final int PRECU_STATE_EFFECT_BLIND = 2;
+    public static final int PRECU_STATE_EFFECT_STUN = 3;
+    public static final int PRECU_STATE_EFFECT_REMOVE_COVER = 4;
+    public static final int PRECU_STATE_EFFECT_POSTURE_UP = 5;
+    public static final int PRECU_STATE_EFFECT_INTIMIDATE = 6;
+    public static final int PRECU_STATE_EFFECT_NEXT_ATTACK_DELAY = 7;
+    public static final int PRECU_TARGET_POOL_NO_ATTRIBUTE = -2;
+    public static final int PRECU_TARGET_POOL_MULTI = 4;
+    public static final String PRECU_NEXT_ATTACK_DELAY_UNTIL =
+        "combat.precuNextAttackDelayUntil";
+    public static final String PRECU_NEXT_ATTACK_DELAY_RESULT =
+        "combat.precuNextAttackDelayResult";
+    public static final String PRECU_NEXT_ATTACK_DELAY_REMAINING =
+        "combat.precuNextAttackDelayRemaining";
+    public static boolean isRetiredPostNgeSpyPlayerAction(obj_id self, String actionName) throws InterruptedException
+    {
+        if (!isPlayer(self) || actionName == null)
+        {
+            return false;
+        }
+        if (actionName.equals("sp_hide_device_1") ||
+            actionName.equals("sp_neutralize_device_1"))
+        {
+            return false;
+        }
+        return actionName.equals("steal") || actionName.startsWith("sp_");
+    }
+    public static boolean isRetiredPostNgeBeastMasterPlayerAction(obj_id self, String actionName) throws InterruptedException
+    {
+        return beast_lib.isRetiredPostNgeBeastMasterPlayerAction(self, actionName);
+    }
     public boolean combatStandardAction(String actionName, obj_id self, obj_id target, String params, String successHandler, String failHandler) throws InterruptedException
     {
         return combatStandardAction(actionName, self, target, getCurrentWeapon(self), params, null, false, false, 0);
@@ -60,13 +119,92 @@ public class combat_base extends script.base_script
         pp = prose.setTO(pp, actionStringId);
         sendCombatSpamMessageProse(actor, target, pp, true, true, true, spam_type);
     }
+    public boolean sendPrecuCombatSpam(attacker_data attackerData, defender_results[] defenderResults, hit_result[] hitData, combat_data actionData) throws InterruptedException
+    {
+        if (!actionData.actionName.equals("creatureMeleeAttack") &&
+            !actionData.actionName.equals("creatureRangedAttack"))
+        {
+            return false;
+        }
+        dictionary spamData = dataTableGetRow(PRECU_COMBAT_SPAM, actionData.actionName);
+        if (spamData == null)
+        {
+            return false;
+        }
+        String spamStem = spamData.getString("combatSpam");
+        if (spamStem == null || spamStem.equals(""))
+        {
+            return false;
+        }
+        for (int i = 0; i < defenderResults.length; ++i)
+        {
+            String suffix = "";
+            switch (defenderResults[i].result)
+            {
+                case COMBAT_RESULT_HIT:
+                suffix = "_hit";
+                break;
+                case COMBAT_RESULT_MISS:
+                suffix = "_miss";
+                break;
+                case COMBAT_RESULT_EVADE:
+                suffix = "_evade";
+                break;
+                case COMBAT_RESULT_COUNTER:
+                case COMBAT_RESULT_LIGHTSABER_COUNTER:
+                case COMBAT_RESULT_LIGHTSABER_COUNTER_TARGET:
+                suffix = "_counter";
+                break;
+                case COMBAT_RESULT_BLOCK:
+                case COMBAT_RESULT_LIGHTSABER_BLOCK:
+                suffix = "_block";
+                break;
+            }
+            int damage = defenderResults[i].result == COMBAT_RESULT_HIT
+                ? hitData[i].damage
+                : hitData[i].rawDamage;
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "spam.key", spamStem + suffix);
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "spam.result", defenderResults[i].result);
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "spam.damage", damage);
+            prose_package pp = new prose_package();
+            pp = prose.setStringId(pp, new string_id("cbt_spam", spamStem + suffix));
+            pp = prose.setTU(pp, attackerData.id);
+            pp = prose.setTT(pp, defenderResults[i].id);
+            pp = prose.setDI(pp, damage);
+            sendCombatSpamMessageProse(
+                attackerData.id,
+                defenderResults[i].id,
+                pp,
+                true,
+                true,
+                true,
+                defenderResults[i].result);
+        }
+        return true;
+    }
     public boolean combatStandardAction(String actionName, obj_id self, obj_id target, obj_id objWeapon, String params, combat_data actionData, boolean isTangibleAttacking) throws InterruptedException
     {
         return combatStandardAction(actionName, self, target, objWeapon, params, actionData, isTangibleAttacking, false, 0);
     }
     public boolean combatStandardAction(String actionName, obj_id self, obj_id target, obj_id objWeapon, String params, combat_data actionData, boolean isTangibleAttacking, boolean testPetBar, int overloadDamage) throws InterruptedException
     {
+        if (isRetiredPostNgeSpyPlayerAction(self, actionName))
+        {
+            return false;
+        }
+        if (isRetiredPostNgeBeastMasterPlayerAction(self, actionName))
+        {
+            return false;
+        }
+        combat.revealPrecuFeignDeath(self, "combatCommand");
         if (combat.isStunned(self))
+        {
+            return false;
+        }
+        if (isPrecuNextAttackDelayed(self))
         {
             return false;
         }
@@ -99,12 +237,29 @@ public class combat_base extends script.base_script
         {
             actionData = combat_engine.getCombatData(actionName);
         }
-        actionData = attackOverrideByBuff(self, actionData);
         if (actionData == null)
         {
             combat.combatLog(self, target, "combatStandardAction", "Attack Aborted - Not a valid combat action - " + actionName);
             return false;
         }
+        boolean precuAuthoritativeAction =
+            isPrecuAuthoritativeAttack(self, actionData);
+        if (!precuAuthoritativeAction)
+        {
+            actionData = attackOverrideByBuff(self, actionData);
+        }
+        if (actionData == null)
+        {
+            combat.combatLog(
+                self,
+                target,
+                "combatStandardAction",
+                "Attack Aborted - Buff override returned no combat action - " +
+                    actionName);
+            return false;
+        }
+        precuAuthoritativeAction =
+            isPrecuAuthoritativeAttack(self, actionData);
         if (isEggWeapon && actionName.equals("forceThrow"))
         {
             self = utils.getObjIdScriptVar(objWeapon, "objOwner");
@@ -234,12 +389,20 @@ public class combat_base extends script.base_script
         {
             actionData.targetLoc = targetLoc;
         }
-        if (!isTangibleAttacking)
+        if (!isTangibleAttacking && !precuAuthoritativeAction)
         {
             actionData = modifyActionDataByExpertise(self, actionData);
         }
-        stealth.clearPreviousInvis(self);
-        stealth.testInvisCombatAction(self, target, actionData);
+        if (!precuAuthoritativeAction)
+        {
+            stealth.clearPreviousInvis(self);
+            stealth.testInvisCombatAction(self, target, actionData);
+        }
+        else
+        {
+            recordPrecuLiveDiagnostic(
+                self, "admission.ngeStealthMutationApplied", 0);
+        }
         if (!isDelayedAttack)
         {
             obj_id[] defenders = getCombatDefenders(self, combatTarget, weaponData, actionData, isSpecialAttack);
@@ -268,11 +431,15 @@ public class combat_base extends script.base_script
                     }
                     atkRslt.endPosture = (combat.isMeleeWeapon(weaponData.id) || combat.isLightsaberWeapon(weaponData.id)) ? POSTURE_UPRIGHT : getPosture(self);
                     String anim = actionData.animDefault;
-                    stealth.testInvisCombatAction(self, target, actionData);
+                    if (!precuAuthoritativeAction)
+                    {
+                        stealth.testInvisCombatAction(self, target, actionData);
+                    }
                     doCombatResults(anim, atkRslt, dfndRslt);
                     return true;
                 }
-                stealth.reinstateInvisFromCombat(self);
+                reinstateNgeInvisFromCombat(
+                    self, precuAuthoritativeAction);
                 return false;
             }
             weapon_data junkData = new weapon_data();
@@ -281,7 +448,8 @@ public class combat_base extends script.base_script
             {
                 String msg = "ERROR::combatStandardAction:" + actionData.actionName + ") call to getCombatData returned false";
                 CustomerServiceLog("combat_errors", msg);
-                stealth.reinstateInvisFromCombat(self);
+                reinstateNgeInvisFromCombat(
+                    self, precuAuthoritativeAction);
                 return false;
             }
         }
@@ -299,7 +467,7 @@ public class combat_base extends script.base_script
         if (!isTangibleAttacking)
         {
             actionCost = combat.getActionCost(self, weaponData, actionData);
-            if (!combat.canDrainCombatActionAttributes(self, actionCost))
+            if (!combat.canDrainCombatActionAttributes(self, actionCost, actionData.precuHamCostModel > 0))
             {
                 showFlyTextPrivate(self, self, new string_id("combat_effects", "action_too_tired"), 1.5f, colors.GOLDENROD);
                 if (verbose)
@@ -307,18 +475,21 @@ public class combat_base extends script.base_script
                     combat.sendCombatSpamMessage(self, new string_id("cbt_spam", "pool_drain_fail"));
                 }
                 combat.combatLog(self, self, "combatStandardAction", "Aborting Attack - Insufficient ability points for action");
-                stealth.reinstateInvisFromCombat(self);
+                reinstateNgeInvisFromCombat(
+                    self, precuAuthoritativeAction);
                 return false;
             }
-            int killMeterCost = (int)actionData.vigorCost;
-            if (killMeterCost > 0)
+            int killMeterCost = precuAuthoritativeAction ? 0 :
+                (int)actionData.vigorCost;
+            if (!precuAuthoritativeAction && killMeterCost > 0)
             {
                 if (!beast_lib.isBeast(attackerData.id) && isPlayer(attackerData.id))
                 {
                     if (!combat.canDrainKillMeter(attackerData.id, killMeterCost))
                     {
                         showFlyTextPrivate(self, self, new string_id("combat_effects", "need_more_kills"), 1.5f, colors.FIREBRICK);
-                        stealth.reinstateInvisFromCombat(self);
+                        reinstateNgeInvisFromCombat(
+                            self, precuAuthoritativeAction);
                         return false;
                     }
                     combat.drainKillMeter(attackerData.id, killMeterCost);
@@ -333,12 +504,14 @@ public class combat_base extends script.base_script
             if (!doHealingPreCheck(actionData, attackerData, defenderData, verbose))
             {
                 combat.combatLog(self, combatTarget, "combatStandardAction", "Attack Failed - Healing precheck failed");
-                stealth.reinstateInvisFromCombat(self);
+                reinstateNgeInvisFromCombat(
+                    self, precuAuthoritativeAction);
                 return false;
             }
-            if (!combat.canDrainCombatActionAttributes(self, actionCost))
+            if (!combat.canDrainCombatActionAttributes(self, actionCost, actionData.precuHamCostModel > 0))
             {
-                stealth.reinstateInvisFromCombat(self);
+                reinstateNgeInvisFromCombat(
+                    self, precuAuthoritativeAction);
                 return false;
             }
             if (actionData.performanceSpamStrId.isValid() && !isTangibleAttacking)
@@ -354,17 +527,18 @@ public class combat_base extends script.base_script
             {
                 success = healing.performRevivePlayer(attackerData, defenderData, actionData, actionData.addedDamage > 0);
             }
-            if (success)
+            if (success && !precuAuthoritativeAction)
             {
                 stealth.testInvisNonCombatAction(self, target, actionData);
             }
             if (success)
             {
                 LOG("combat_base", "combatStandardAction 7 success " + actionName);
-                if (!combat.drainCombatActionAttributes(self, actionCost))
+                if (!combat.drainCombatActionAttributes(self, actionCost, actionData.precuHamCostModel > 0))
                 {
                     combat.combatLog(self, combatTarget, "combatStandardAction", "ERROR:Insufficient action not caught in canDrainCombatActionAttributes()");
-                    stealth.reinstateInvisFromCombat(self);
+                    reinstateNgeInvisFromCombat(
+                        self, precuAuthoritativeAction);
                     return false;
                 }
                 String anim = actionData.animDefault;
@@ -392,15 +566,17 @@ public class combat_base extends script.base_script
             if (!doCombatPreCheck(actionData, attackerData, weaponData, defenderData, verbose))
             {
                 combat.combatLog(self, combatTarget, "combatStandardAction", "Attack Failed - Combat precheck failed");
-                stealth.reinstateInvisFromCombat(self);
+                reinstateNgeInvisFromCombat(
+                    self, precuAuthoritativeAction);
                 return false;
             }
             boolean isSingleTargetAttack = actionData.hitType == -1 && actionData.attackType == combat.SINGLE_TARGET;
-            if (!isSingleTargetAttack && !combat.drainCombatActionAttributes(self, actionCost))
+            if (!isSingleTargetAttack && !combat.drainCombatActionAttributes(self, actionCost, actionData.precuHamCostModel > 0))
             {
                 showFlyTextPrivate(self, self, new string_id("combat_effects", "action_too_tired"), 1.5f, colors.GOLDENROD);
                 combat.combatLog(self, combatTarget, "combatStandardAction", "ERROR:Insufficient action not caught in canDrainCombatActionAttributes()");
-                stealth.reinstateInvisFromCombat(self);
+                reinstateNgeInvisFromCombat(
+                    self, precuAuthoritativeAction);
                 return false;
             }
             if (actionData.performanceSpamStrId.isValid())
@@ -419,7 +595,8 @@ public class combat_base extends script.base_script
                 String msg = " Attack Failed - No hit data returned";
                 CustomerServiceLog("combat_errors", "ERROR::combatStandardAction:" + actionData.actionName + " " + msg);
                 combat.combatLog(self, combatTarget, "combatStandardAction", msg);
-                stealth.reinstateInvisFromCombat(self);
+                reinstateNgeInvisFromCombat(
+                    self, precuAuthoritativeAction);
                 return false;
             }
         }
@@ -450,16 +627,18 @@ public class combat_base extends script.base_script
         {
             setLocation(self, getLocation(target));
         }
-        if (!isPlayer(self) && !beast_lib.isBeast(self))
-        {
-            setCommandTimerValue(self, TIMER_COOLDOWN, 0.0f);
-        }
         if (triggerPetBar)
         {
             combat_data cd = combat_engine.getCombatData(actionName);
             String cooldownGroup = cd.cooldownGroup;
             int groupCrc = getStringCrc(cooldownGroup);
             sendCooldownGroupTimingOnly(player, groupCrc, cd.cooldownTime);
+        }
+        if (hasSkillModModifier(self, PRECU_AIM_MODIFIER))
+        {
+            recordPrecuLiveDiagnostic(self, "aim.consumed", 1);
+            removeAttribOrSkillModModifier(self, PRECU_AIM_MODIFIER);
+            setState(self, STATE_AIMING, false);
         }
         return true;
     }
@@ -517,10 +696,17 @@ public class combat_base extends script.base_script
             }
         }
         obj_id objOwner = utils.getObjIdScriptVar(objEgg, "objOwner");
-        if (isIdValid(objOwner))
+        if (isIdValid(objOwner) &&
+            !isPrecuAuthoritativeAttack(objOwner, actionData))
         {
             delay += (int)getSkillStatisticModifier(objOwner, "expertise_delay_line_" + actionData.specialLine);
             delay -= (int)getSkillStatisticModifier(objOwner, "expertise_delay_reduce_line_" + actionData.specialLine);
+        }
+        else if (isIdValid(objOwner))
+        {
+            recordPrecuLiveDiagnostic(objOwner, "preparation.delay", delay);
+            recordPrecuLiveDiagnostic(
+                objOwner, "preparation.ngeDelayApplied", 0);
         }
         if (delay < 0)
         {
@@ -592,7 +778,8 @@ public class combat_base extends script.base_script
             combat.combatLog(self, newTarget, "getCorrectCombatTarget", "Invalid Target - Target is Dead");
             return null;
         }
-        if (isOffensive && isIncapacitated(newTarget))
+        if (isOffensive && isIncapacitated(newTarget) &&
+            actionData.precuHitIncapacitatedTarget == 0)
         {
             if (verbose)
             {
@@ -630,7 +817,9 @@ public class combat_base extends script.base_script
             combat.combatLog(self, curTarget, "getCorrectCombatTarget", "Not a valid PvP target - returning null target");
             return null;
         }
-        if (isOffensive && stealth.hasInvisibleBuff(newTarget))
+        if (isOffensive &&
+            !isPrecuAuthoritativeAttack(self, actionData) &&
+            stealth.hasInvisibleBuff(newTarget))
         {
             int range = getPassiveRevealRange(newTarget, self);
             if (range >= 0)
@@ -676,6 +865,8 @@ public class combat_base extends script.base_script
         float dist = getDistance(attacker, target);
         float adjustMin = 0.0f;
         float adjustMax = 0.0f;
+        boolean precuAuthoritativeAction =
+            isPrecuAuthoritativeAttack(attacker, actionData);
         if (dist > combat_engine.getMaxCombatRange() && actionData.ignore_distance == 0)
         {
             if (verbose)
@@ -686,7 +877,17 @@ public class combat_base extends script.base_script
             combat.combatLog(attacker, target, "doCombatPreCheck", "Aborting Attack - Target is further than max combat range");
             return false;
         }
-        if (actionData.overloadWeaponType == WEAPON_TYPE_THROWN)
+        if (precuAuthoritativeAction)
+        {
+            float core3Range = actionData.maxRange > 0.0f ?
+                actionData.maxRange : Math.max(10.0f, weaponData.maxRange);
+            weaponData.maxRange = core3Range;
+            recordPrecuLiveDiagnostic(
+                attacker, "preparation.maxRange", core3Range);
+            recordPrecuLiveDiagnostic(
+                attacker, "preparation.ngeRangeApplied", 0);
+        }
+        else if (actionData.overloadWeaponType == WEAPON_TYPE_THROWN)
         {
             weaponData.maxRange = cybernetic.getThrowRangeMod(attacker, weaponData.maxRange);
         }
@@ -702,17 +903,34 @@ public class combat_base extends script.base_script
                 adjustMax = 6.0f;
             }
         }
-        float rangeMod = getSkillStatisticModifier(attacker, "expertise_range_bonus_" + weaponData.weaponType);
-        weaponData.maxRange += rangeMod;
-        float actionMaxRange = actionData.maxRange;
-        if (actionMaxRange > 0)
+        if (!precuAuthoritativeAction)
         {
-            weaponData.maxRange = actionMaxRange;
-        }
-        rangeMod = getSkillStatisticModifier(attacker, "expertise_range_line_" + actionData.specialLine);
-        if (rangeMod != 0)
-        {
+            float rangeMod = getSkillStatisticModifier(attacker, "expertise_range_bonus_" + weaponData.weaponType);
             weaponData.maxRange += rangeMod;
+            float actionMaxRange = actionData.maxRange;
+            if (actionMaxRange > 0)
+            {
+                weaponData.maxRange = actionMaxRange;
+            }
+            rangeMod = getSkillStatisticModifier(attacker, "expertise_range_line_" + actionData.specialLine);
+            if (rangeMod != 0)
+            {
+                weaponData.maxRange += rangeMod;
+            }
+        }
+        if (precuAuthoritativeAction &&
+            combat.isRangedWeapon(weaponData.weaponType) &&
+            getPosture(attacker) == POSTURE_PRONE &&
+            dist <= 7.0f && actionData.ignore_distance == 0)
+        {
+            if (verbose)
+            {
+                showFlyTextPrivate(attacker, attacker, new string_id("combat_effects", "range_too_close"), 1.5f, colors.MEDIUMTURQUOISE);
+                combat.sendCombatSpamMessage(attacker, new string_id("cbt_spam", "out_of_range_close"), COMBAT_RESULT_OUT_OF_RANGE);
+            }
+            recordPrecuLiveDiagnostic(
+                attacker, "admission.proneRangedTooClose", 1);
+            return false;
         }
         if (dist > (weaponData.maxRange + adjustMax) && actionData.ignore_distance == 0)
         {
@@ -825,6 +1043,8 @@ public class combat_base extends script.base_script
         int validTargetType = actionData.validTarget;
         int attackType = actionData.attackType;
         int hitType = actionData.hitType;
+        boolean precuAuthoritativeAction =
+            isPrecuAuthoritativeAttack(self, actionData);
         boolean isOffensive = true;
         int pvpOnly = actionData.pvp_only;
         if (validTargetType == combat.VALID_TARGET_FRIEND || validTargetType == combat.VALID_TARGET_DEAD || hitType == combat.HEAL || hitType == combat.REVIVE)
@@ -868,20 +1088,32 @@ public class combat_base extends script.base_script
             String specialLine = actionData.specialLine;
             float expertiseConeLengthBonus = 0.0f;
             float expertiseConeWidthBonus = 0.0f;
-            if (actionName != null && !actionName.equals(""))
+            if (!precuAuthoritativeAction)
             {
-                expertiseConeLengthBonus = getSkillStatisticModifier(self, "expertise_cone_length_single_" + actionName);
-            }
-            if (specialLine != null && !specialLine.equals(""))
-            {
-                expertiseConeLengthBonus += getSkillStatisticModifier(self, "expertise_cone_length_line_" + specialLine);
-            }
-            if (specialLine != null && !actionName.equals(""))
-            {
-                expertiseConeWidthBonus += getSkillStatisticModifier(self, "expertise_cone_width_line_" + specialLine);
+                if (actionName != null && !actionName.equals(""))
+                {
+                    expertiseConeLengthBonus = getSkillStatisticModifier(self, "expertise_cone_length_single_" + actionName);
+                }
+                if (specialLine != null && !specialLine.equals(""))
+                {
+                    expertiseConeLengthBonus += getSkillStatisticModifier(self, "expertise_cone_length_line_" + specialLine);
+                }
+                if (specialLine != null && !actionName.equals(""))
+                {
+                    expertiseConeWidthBonus += getSkillStatisticModifier(self, "expertise_cone_width_line_" + specialLine);
+                }
             }
             length += expertiseConeLengthBonus;
             width += (expertiseConeWidthBonus / 2.0f);
+            if (precuAuthoritativeAction)
+            {
+                recordPrecuLiveDiagnostic(
+                    self, "preparation.coneLength", length);
+                recordPrecuLiveDiagnostic(
+                    self, "preparation.coneWidth", width);
+                recordPrecuLiveDiagnostic(
+                    self, "preparation.ngeGeometryApplied", 0);
+            }
             if (actionData.maxRange == 0)
             {
                 length = weaponData.maxRange;
@@ -919,15 +1151,25 @@ public class combat_base extends script.base_script
             String actionName = actionData.actionName;
             String specialLine = actionData.specialLine;
             float expertiseConeLengthBonus = 0.0f;
-            if (actionName != null && !actionName.equals(""))
+            if (!precuAuthoritativeAction)
             {
-                expertiseConeLengthBonus = getSkillStatisticModifier(self, "expertise_area_size_single_" + actionName);
-            }
-            if (specialLine != null && !specialLine.equals(""))
-            {
-                expertiseConeLengthBonus += getSkillStatisticModifier(self, "expertise_area_size_line_" + specialLine);
+                if (actionName != null && !actionName.equals(""))
+                {
+                    expertiseConeLengthBonus = getSkillStatisticModifier(self, "expertise_area_size_single_" + actionName);
+                }
+                if (specialLine != null && !specialLine.equals(""))
+                {
+                    expertiseConeLengthBonus += getSkillStatisticModifier(self, "expertise_area_size_line_" + specialLine);
+                }
             }
             area += expertiseConeLengthBonus;
+            if (precuAuthoritativeAction)
+            {
+                recordPrecuLiveDiagnostic(
+                    self, "preparation.areaRange", area);
+                recordPrecuLiveDiagnostic(
+                    self, "preparation.ngeGeometryApplied", 0);
+            }
             if (area <= 0)
             {
                 area = weaponData.maxRange;
@@ -1177,10 +1419,15 @@ public class combat_base extends script.base_script
         int[] results = new int[hitData.length];
         String[] playbackNames = new String[defenderData.length];
         String strAttack = actionData.actionName;
+        boolean precuAuthoritativeAttack =
+            isPrecuAuthoritativeAttack(attackerData.id, actionData);
         attackerResults.id = attackerData.id;
         attackerResults.weapon = weaponData.id;
         attackerResults.endPosture = (!isTangibleAttacking && (combat.isMeleeWeapon(weaponData.id) || combat.isLightsaberWeapon(weaponData.id))) ? POSTURE_UPRIGHT : getPosture(attackerData.id);
-        combat.applyAttackerCombatBuffs(attackerData.id, actionData);
+        if (!precuAuthoritativeAttack)
+        {
+            combat.applyAttackerCombatBuffs(attackerData.id, actionData);
+        }
         int hitType = actionData.hitType;
         if (hitType == combat.NON_ATTACK)
         {
@@ -1213,7 +1460,9 @@ public class combat_base extends script.base_script
         boolean criticalHit = false;
         boolean seriesStrikethrough = false;
         attackerData = combat.fillAttackerCombatAttributes(attackerData);
-        if (utils.hasScriptVar(attackerData.id, "nextCritHit") && actionData.commandType != combat.LEFT_CLICK_DEFAULT)
+        if (!precuAuthoritativeAttack &&
+            utils.hasScriptVar(attackerData.id, "nextCritHit") &&
+            actionData.commandType != combat.LEFT_CLICK_DEFAULT)
         {
             actionData.increaseCritical += 100.0f;
             actionData.reduceParry += 100;
@@ -1223,7 +1472,9 @@ public class combat_base extends script.base_script
             actionData.increaseStrikethrough -= 100;
         }
         utils.removeScriptVar(attackerData.id, PROGRESSIVE_DAMAGE_COUNTER);
-        if (combat.isCommandoBonus(attackerData.id, weaponData, actionData.commandType))
+        if (!precuAuthoritativeAttack &&
+            combat.isCommandoBonus(
+                attackerData.id, weaponData, actionData.commandType))
         {
             float devastationBonus = combat.getDevastationChance(attackerData.id);
             if (rand(0.0f, 99.0f) < devastationBonus)
@@ -1250,16 +1501,25 @@ public class combat_base extends script.base_script
         int intWeaponAttackType = getWeaponAttackType(weaponData.id);
         boolean isRanged = (intWeaponAttackType == ATTACK_TYPE_RANGED);
         boolean specialAttack = actionData.commandType == combat.RIGHT_CLICK_SPECIAL;
-        int critDamageIncrease = getEnhancedSkillStatisticModifierUncapped(attackerData.id, "expertise_critical_damage_increase");
+        int critDamageIncrease = precuAuthoritativeAttack ? 0 :
+            getEnhancedSkillStatisticModifierUncapped(
+                attackerData.id, "expertise_critical_damage_increase");
         for (int i = 0; i < defenderData.length; i++)
         {
             float minDamage = weaponData.minDamage;
             float maxDamage = weaponData.maxDamage;
+            if (actionData.precuFixedMinDamage >= 0 &&
+                actionData.precuFixedMaxDamage >= 0)
+            {
+                minDamage = actionData.precuFixedMinDamage;
+                maxDamage = actionData.precuFixedMaxDamage;
+            }
             hitData[i] = new hit_result();
             float distance = 0;
             boolean isPlayerDefender = isPlayer(defenderData[i].id);
             obj_id oldDefender = defenderData[i].id;
-            if (hitType != combat.NON_DAMAGE_ATTACK)
+            if (!precuAuthoritativeAttack &&
+                hitType != combat.NON_DAMAGE_ATTACK)
             {
                 obj_id newDefender = combat.directDamageToDifferentTarget(attackerData.id, defenderData[i].id);
                 if (oldDefender != newDefender)
@@ -1275,8 +1535,18 @@ public class combat_base extends script.base_script
             }
             else 
             {
-                int defResult = getDefenderResult(attackerData, defenderData[i], actionData, isAutoAiming);
-                int atkResult = getAttackerResult(attackerData, defenderData[i], actionData, isAutoAiming);
+                int precuPrimaryResult = getPrecuPrimaryAttackResult(attackerData, defenderData[i], weaponData, actionData);
+                int precuSecondaryResult = HIT_RESULT_HIT;
+                if (precuPrimaryResult == HIT_RESULT_HIT)
+                {
+                    precuSecondaryResult = getPrecuSecondaryDefenseResult(attackerData, defenderData[i], weaponData, actionData);
+                    if (precuSecondaryResult == PRECU_SECONDARY_RESULT_FALLBACK)
+                    {
+                        precuPrimaryResult = PRECU_PRIMARY_RESULT_FALLBACK;
+                    }
+                }
+                int defResult = precuPrimaryResult == PRECU_PRIMARY_RESULT_FALLBACK ? getDefenderResult(attackerData, defenderData[i], actionData, isAutoAiming) : precuSecondaryResult;
+                int atkResult = precuPrimaryResult == PRECU_PRIMARY_RESULT_FALLBACK ? getAttackerResult(attackerData, defenderData[i], actionData, isAutoAiming) : precuPrimaryResult;
                 switch (defResult)
                 {
                     case HIT_RESULT_DODGE:
@@ -1293,7 +1563,22 @@ public class combat_base extends script.base_script
                     break;
                     case HIT_RESULT_BLOCK:
                     hitData[i].success = true;
-                    hitData[i].blockResult = true;
+                    if (precuPrimaryResult == PRECU_PRIMARY_RESULT_FALLBACK)
+                    {
+                        hitData[i].blockResult = true;
+                    }
+                    else
+                    {
+                        hitData[i].precuBlock = true;
+                    }
+                    break;
+                    case HIT_RESULT_PRECU_COUNTER:
+                    hitData[i].success = false;
+                    hitData[i].precuCounter = true;
+                    break;
+                    case HIT_RESULT_PRECU_RICOCHET:
+                    hitData[i].success = false;
+                    hitData[i].precuRicochet = true;
                     break;
                     case HIT_RESULT_EVADE:
                     hitData[i].success = true;
@@ -1332,7 +1617,7 @@ public class combat_base extends script.base_script
                 }
             }
             int[] actionCost = combat.getSuccessBasedSingleTargetActionCost(hitData[i], actionData, attackerData.id, weaponData);
-            combat.drainCombatActionAttributes(attackerData.id, actionCost);
+            combat.drainCombatActionAttributes(attackerData.id, actionCost, actionData.precuHamCostModel > 0);
             int validTargetType = actionData.validTarget;
             if (validTargetType == combat.VALID_TARGET_FRIEND && pvpCanHelp(attackerData.id, defenderData[i].id))
             {
@@ -1345,15 +1630,26 @@ public class combat_base extends script.base_script
             defenderResults[i] = new defender_results();
             defenderResults[i].id = defenderData[i].id;
             defenderResults[i].endPosture = getPosture(defenderData[i].id);
-            if (validTargetType != combat.VALID_TARGET_FRIEND && defenderData[i].id != attackerData.id && hitData[i].success)
+            if (validTargetType != combat.VALID_TARGET_FRIEND &&
+                defenderData[i].id != attackerData.id &&
+                (precuAuthoritativeAttack || hitData[i].success))
             {
                 startCombat(defenderData[i].id, attackerData.id);
+                if (precuAuthoritativeAttack)
+                {
+                    recordPrecuLiveDiagnostic(
+                        attackerData.id,
+                        "admission.defenderCombatStarted",
+                        1);
+                }
                 if (oldDefender != defenderData[i].id)
                 {
                     startCombat(oldDefender, attackerData.id);
                 }
             }
-            if (combat.isDamageImmune(attackerData.id, defenderData[i].id, actionData))
+            if (!precuAuthoritativeAttack &&
+                combat.isDamageImmune(
+                    attackerData.id, defenderData[i].id, actionData))
             {
                 if (defenderData.length == 1)
                 {
@@ -1361,7 +1657,9 @@ public class combat_base extends script.base_script
                 }
                 continue;
             }
-            if (combat.hasPrescience(attackerData.id, defenderData[i].id, actionData))
+            if (!precuAuthoritativeAttack &&
+                combat.hasPrescience(
+                    attackerData.id, defenderData[i].id, actionData))
             {
                 if (defenderData.length == 1)
                 {
@@ -1375,8 +1673,9 @@ public class combat_base extends script.base_script
             }
             if (hitData[i].success)
             {
-                defenderResults[i].result = COMBAT_RESULT_HIT;
-                if (beast_lib.isBeast(attackerData.id))
+                defenderResults[i].result = hitData[i].precuBlock ? COMBAT_RESULT_BLOCK : COMBAT_RESULT_HIT;
+                if (!precuAuthoritativeAttack &&
+                    beast_lib.isBeast(attackerData.id))
                 {
                     addHate(defenderData[i].id, getMaster(attackerData.id), 0);
                 }
@@ -1398,7 +1697,7 @@ public class combat_base extends script.base_script
                     minDamage = maxDamage * 1.5f;
                     maxDamage = (maxDamage * 1.5f) + 1.0f;
                 }
-                dictionary rawDict = getRawDamage(attackerData.id, weaponData, actionData, hitData[i], minDamage, maxDamage, defenderData.length);
+                dictionary rawDict = getRawDamage(attackerData.id, defenderData[i].id, weaponData, actionData, hitData[i], minDamage, maxDamage, defenderData.length);
                 minDamage = rawDict.getFloat("minDamage");
                 maxDamage = rawDict.getFloat("maxDamage");
                 if (hitData[i].glancing)
@@ -1424,37 +1723,102 @@ public class combat_base extends script.base_script
                     criticalHit = true;
                 }
                 hitData[i].damage = rand((int)minDamage, (int)maxDamage);
+                int originalElementalValue = weaponData.elementalValue;
+                if (hitData[i].precuBlock)
+                {
+                    int damageBeforeBlock = hitData[i].damage;
+                    int elementalBeforeBlock = weaponData.elementalValue;
+                    hitData[i].damage = hitData[i].damage / 2;
+                    hitData[i].blockedDamage += damageBeforeBlock - hitData[i].damage;
+                    weaponData.elementalValue = weaponData.elementalValue / 2;
+                    recordPrecuLiveDiagnostic(
+                        attackerData.id, "secondary.blockBaseBefore", damageBeforeBlock);
+                    recordPrecuLiveDiagnostic(
+                        attackerData.id, "secondary.blockBaseAfter", hitData[i].damage);
+                    recordPrecuLiveDiagnostic(
+                        attackerData.id,
+                        "secondary.blockElementalBefore",
+                        elementalBeforeBlock);
+                    recordPrecuLiveDiagnostic(
+                        attackerData.id,
+                        "secondary.blockElementalAfter",
+                        weaponData.elementalValue);
+                }
+                if (hitData[i].success &&
+                    (hitData[i].damage > 0 || weaponData.elementalValue > 0))
+                {
+                    combat.consumePrecuFeignDeathOnDamage(
+                        defenderData[i].id);
+                }
                 if (hitType != combat.NON_DAMAGE_ATTACK)
                 {
                     hitData[i] = applyDamage(attackerData.id, defenderData[i].id, weaponData, hitData[i], actionData, (i == 0), overloadDamage);
+                    if (!hitData[i].precuBlock)
+                    {
+                        applyPrecuStateEffects(
+                            attackerData.id, defenderData[i].id, actionData);
+                        defenderResults[i].endPosture = applyPrecuPostureUp(
+                            attackerData.id,
+                            defenderData[i].id,
+                            actionData,
+                            defenderResults[i].endPosture);
+                        defenderResults[i].endPosture = applyPrecuKnockdown(
+                            attackerData.id,
+                            defenderData[i].id,
+                            actionData,
+                            defenderResults[i].endPosture);
+                    }
+                    defenderResults[i].endPosture = applyPrecuPostureDown(
+                        attackerData.id,
+                        defenderData[i].id,
+                        actionData,
+                        defenderResults[i].endPosture);
                 }
                 else 
                 {
                     hitData[i].damage = 0;
                 }
+                weaponData.elementalValue = originalElementalValue;
                 effect_data defenderEffect = new effect_data();
-                combat.applyDefenderCombatBuffs(attackerData.id, defenderData[i].id, weaponData, actionData);
-                beast_lib.checkForSkillAcquisition(attackerData.id, defenderData[i].id, actionData.actionName);
-                if (!actionData.specialLine.equals("no_proc"))
+                if (!precuAuthoritativeAttack)
                 {
-                    proc.executeProcEffects(attackerData.id, defenderData[i].id, actionData);
-                }
-                else 
-                {
-                    hitData[i].proc = true;
+                    combat.applyDefenderCombatBuffs(
+                        attackerData.id,
+                        defenderData[i].id,
+                        weaponData,
+                        actionData);
+                    beast_lib.checkForSkillAcquisition(
+                        attackerData.id,
+                        defenderData[i].id,
+                        actionData.actionName);
+                    if (!actionData.specialLine.equals("no_proc"))
+                    {
+                        proc.executeProcEffects(
+                            attackerData.id,
+                            defenderData[i].id,
+                            actionData);
+                    }
+                    else
+                    {
+                        hitData[i].proc = true;
+                    }
                 }
                 if (actionData.effectOnTarget != null && actionData.effectOnTarget != "")
                 {
                     playClientEffectObj(defenderData[i].id, actionData.effectOnTarget, defenderData[i].id, "");
                 }
-                int luckyBreakChance = getSkillStatisticModifier(attackerData.id, "expertise_lucky_break_chance");
+                int luckyBreakChance = precuAuthoritativeAttack ? 0 :
+                    getSkillStatisticModifier(
+                        attackerData.id,
+                        "expertise_lucky_break_chance");
                 if (luckyBreakChance > 0 && buff.hasBuff(attackerData.id, "sm_feeling_lucky") && !buff.hasBuff(attackerData.id, "sm_lucky_break") && !buff.hasBuff(attackerData.id, "sm_lucky_break_recourse") && rand(0, 99) < luckyBreakChance)
                 {
                     buff.applyBuff(attackerData.id, "sm_lucky_break");
                     string_id luckySID = new string_id("cbt_spam", "sm_lucky_break_proc");
                     sendCombatSpamMessage(attackerData.id, defenderData[i].id, luckySID, true, true, true, COMBAT_RESULT_BUFF);
                 }
-                if (buff.hasBuff(attackerData.id, "sm_lucky_break"))
+                if (!precuAuthoritativeAttack &&
+                    buff.hasBuff(attackerData.id, "sm_lucky_break"))
                 {
                     int doubleHitChance = (int)getSkillStatisticModifier(attackerData.id, "expertise_double_hit_chance");
                     if (doubleHitChance > 0 && !buff.hasBuff(attackerData.id, "sm_double_hit") && !buff.hasBuff(attackerData.id, "sm_double_hit_recourse") && rand(0, 99) < doubleHitChance)
@@ -1478,6 +1842,8 @@ public class combat_base extends script.base_script
             }
             else if (hitData[i].parry)
             {
+                recordPrecuLiveDiagnostic(
+                    attackerData.id, "secondary.ngeParryBranch", 1);
                 defenderResults[i].result = COMBAT_RESULT_BLOCK;
                 weapon_data attackerWeapon = getWeaponData(getCurrentWeapon(attackerData.id));
                 weapon_data defenderWeapon = getWeaponData(getCurrentWeapon(defenderData[i].id));
@@ -1495,25 +1861,56 @@ public class combat_base extends script.base_script
                 {
                     defenderResults[i].result = COMBAT_RESULT_LIGHTSABER_BLOCK;
                 }
-                if (!actionData.specialLine.equals("no_proc"))
+                if (!precuAuthoritativeAttack)
                 {
-                    proc.executeProcEffects(attackerData.id, defenderData[i].id, actionData);
+                    if (!actionData.specialLine.equals("no_proc"))
+                    {
+                        proc.executeProcEffects(attackerData.id, defenderData[i].id, actionData);
+                    }
+                    else
+                    {
+                        hitData[i].proc = true;
+                    }
+                    if (isLightSaber && buff.hasBuff(defenderData[i].id, "fs_saber_reflect") && !strAttack.equals("fs_saber_reflect"))
+                    {
+                        boolean reflectQueued =
+                            queueCommand(
+                                defenderData[i].id,
+                                (1345072218),
+                                attackerData.id,
+                                "",
+                                COMMAND_PRIORITY_DEFAULT);
+                        recordPrecuLiveDiagnostic(
+                            attackerData.id,
+                            "secondary.reflectQueued",
+                            reflectQueued ? 1 : 0);
+                    }
+                    int addDefenderDamageToAction = getSkillStatisticModifier(defenderData[i].id, "expertise_damage_add_to_action");
+                    if (addDefenderDamageToAction > 0)
+                    {
+                        float halfOfMod = addDefenderDamageToAction / 2.0f;
+                        int actionToAdd = Math.round((halfOfMod / 100.0f) * getMaxAction(defenderData[i].id));
+                        combat.gainCombatActionAttribute(defenderData[i].id, actionToAdd);
+                    }
                 }
-                else 
-                {
-                    hitData[i].proc = true;
-                }
-                if (isLightSaber && buff.hasBuff(defenderData[i].id, "fs_saber_reflect") && !strAttack.equals("fs_saber_reflect"))
-                {
-                    queueCommand(defenderData[i].id, (1345072218), attackerData.id, "", COMMAND_PRIORITY_DEFAULT);
-                }
-                int addDefenderDamageToAction = getSkillStatisticModifier(defenderData[i].id, "expertise_damage_add_to_action");
-                if (addDefenderDamageToAction > 0)
-                {
-                    float halfOfMod = addDefenderDamageToAction / 2.0f;
-                    int actionToAdd = Math.round((halfOfMod / 100.0f) * getMaxAction(defenderData[i].id));
-                    combat.gainCombatActionAttribute(defenderData[i].id, actionToAdd);
-                }
+            }
+            else if (hitData[i].precuCounter)
+            {
+                boolean counterQueued =
+                    doPrecuCounterAttack(attackerData.id, defenderData[i].id);
+                recordPrecuLiveDiagnostic(
+                    attackerData.id,
+                    "secondary.counterDispatched",
+                    1);
+                recordPrecuLiveDiagnostic(
+                    attackerData.id,
+                    "secondary.counterQueued",
+                    counterQueued ? 1 : 0);
+                defenderResults[i].result = COMBAT_RESULT_COUNTER;
+            }
+            else if (hitData[i].precuRicochet)
+            {
+                defenderResults[i].result = COMBAT_RESULT_LIGHTSABER_BLOCK;
             }
             else 
             {
@@ -1521,9 +1918,40 @@ public class combat_base extends script.base_script
             }
             if (defenderResults[i].result != COMBAT_RESULT_TETHERED)
             {
-                combat.addHateProcess(attackerData.id, defenderData[i].id, hitData[i], actionData);
+                if (precuAuthoritativeAttack)
+                {
+                    addPrecuCore3HateProcess(
+                        attackerData.id,
+                        defenderData[i].id,
+                        hitData[i],
+                        actionData);
+                }
+                else
+                {
+                    combat.addHateProcess(
+                        attackerData.id,
+                        defenderData[i].id,
+                        hitData[i],
+                        actionData);
+                }
+                applyPrecuConcealThreat(
+                    attackerData.id,
+                    defenderData[i].id,
+                    defenderResults[i].result,
+                    actionData);
             }
-            playbackNames[i] = combat.getActionAnimation(actionData, combat.getWeaponStringType(weaponData.weaponType));
+            playbackNames[i] = combat.getPrecuActionAnimation(
+                actionData,
+                combat.getWeaponStringType(weaponData.weaponType),
+                hitData[i].hitLocation,
+                weaponData.maxDamage,
+                hitData[i].damage);
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "animation.generated", playbackNames[i]);
+            recordPrecuLiveDiagnostic(
+                attackerData.id,
+                "animation.type",
+                actionData.precuAnimationType);
             if (hitType == combat.NON_DAMAGE_ATTACK && hasScript(defenderData[i].id, "player.player_logout"))
             {
                 defenders[i] = null;
@@ -1534,13 +1962,13 @@ public class combat_base extends script.base_script
             }
             results[i] = defenderResults[i].result;
         }
-        if (criticalHit && utils.hasScriptVar(attackerData.id, "critRemoveBuffNames") && actionData.commandType != combat.LEFT_CLICK_DEFAULT)
+        if (!precuAuthoritativeAttack && criticalHit && utils.hasScriptVar(attackerData.id, "critRemoveBuffNames") && actionData.commandType != combat.LEFT_CLICK_DEFAULT)
         {
             utils.removeScriptVar(attackerData.id, "nextCritHit");
             Vector buffNames = utils.getResizeableStringArrayScriptVar(attackerData.id, "critRemoveBuffNames");
             buff.removeBuffs(attackerData.id, buffNames);
         }
-        if (seriesStrikethrough)
+        if (!precuAuthoritativeAttack && seriesStrikethrough)
         {
             int stproc = getEnhancedSkillStatisticModifierUncapped(attackerData.id, "expertise_onstrikethrough_proc_sp_resonance");
             if (stproc > 0)
@@ -1548,7 +1976,7 @@ public class combat_base extends script.base_script
                 buff.partyBuff(attackerData.id, "sp_critbuff_resonance");
             }
         }
-        if (criticalHit)
+        if (!precuAuthoritativeAttack && criticalHit)
         {
             int critproc = getEnhancedSkillStatisticModifierUncapped(attackerData.id, "expertise_oncrit_proc_sp_savagery");
             if (critproc > 0)
@@ -1556,7 +1984,9 @@ public class combat_base extends script.base_script
                 buff.partyBuff(attackerData.id, "sp_critbuff_savagery");
             }
         }
-        if (utils.hasScriptVar(attackerData.id, buff.ON_ATTACK_REMOVE) && actionData.commandType != combat.LEFT_CLICK_DEFAULT)
+        if (!precuAuthoritativeAttack &&
+            utils.hasScriptVar(attackerData.id, buff.ON_ATTACK_REMOVE) &&
+            actionData.commandType != combat.LEFT_CLICK_DEFAULT)
         {
             Vector buffList = utils.getResizeableStringArrayScriptVar(attackerData.id, buff.ON_ATTACK_REMOVE);
             for (Object o : buffList) {
@@ -1567,58 +1997,1499 @@ public class combat_base extends script.base_script
         }
         if (actionData.hitSpam != combat.NO_HIT_SPAM)
         {
-            obj_id currentWeapon = null;
-            if (actionData.hitSpam == combat.ACTION_NAME)
+            boolean creatureDefaultAttack =
+                actionData.actionName.equals("creatureMeleeAttack") ||
+                actionData.actionName.equals("creatureRangedAttack");
+            if (!creatureDefaultAttack)
             {
+                obj_id currentWeapon = null;
                 string_id attackId = new string_id("cmd_n", actionData.actionName);
                 combat.doBasicCombatSpam(attackId, SID_NONE, currentWeapon, attackerResults, defenderResults, hitData);
+                recordPrecuLiveDiagnostic(
+                    attackerData.id, "spam.key", "cmd_n:" + actionData.actionName);
             }
-            else if (actionData.hitSpam == combat.WEAPON_NAME)
+            else if (!sendPrecuCombatSpam(attackerData, defenderResults, hitData, actionData))
             {
-                if (weaponData.weaponName != null)
+                obj_id currentWeapon = null;
+                if (actionData.hitSpam == combat.ACTION_NAME)
                 {
-                    combat.doBasicCombatSpam(SID_NONE, weaponData.weaponName, currentWeapon, attackerResults, defenderResults, hitData);
+                    string_id attackId = new string_id("cmd_n", actionData.actionName);
+                    combat.doBasicCombatSpam(attackId, SID_NONE, currentWeapon, attackerResults, defenderResults, hitData);
                 }
-                else if (isValidId(weaponData.id))
+                else if (actionData.hitSpam == combat.WEAPON_NAME)
                 {
-                    combat.doBasicCombatSpam(SID_NONE, weaponData.weaponName, weaponData.id, attackerResults, defenderResults, hitData);
-                }
-                else if (isValidId(attackerResults.weapon))
-                {
-                    combat.doBasicCombatSpam(SID_NONE, weaponData.weaponName, attackerResults.weapon, attackerResults, defenderResults, hitData);
-                }
-                else if (isValidId(getCurrentWeapon(attackerResults.id)))
-                {
-                    combat.doBasicCombatSpam(SID_NONE, weaponData.weaponName, getCurrentWeapon(attackerResults.id), attackerResults, defenderResults, hitData);
+                    if (weaponData.weaponName != null)
+                    {
+                        combat.doBasicCombatSpam(SID_NONE, weaponData.weaponName, currentWeapon, attackerResults, defenderResults, hitData);
+                    }
+                    else if (isValidId(weaponData.id))
+                    {
+                        combat.doBasicCombatSpam(SID_NONE, weaponData.weaponName, weaponData.id, attackerResults, defenderResults, hitData);
+                    }
+                    else if (isValidId(attackerResults.weapon))
+                    {
+                        combat.doBasicCombatSpam(SID_NONE, weaponData.weaponName, attackerResults.weapon, attackerResults, defenderResults, hitData);
+                    }
+                    else if (isValidId(getCurrentWeapon(attackerResults.id)))
+                    {
+                        combat.doBasicCombatSpam(SID_NONE, weaponData.weaponName, getCurrentWeapon(attackerResults.id), attackerResults, defenderResults, hitData);
+                    }
+                    else 
+                    {
+                        combat.doBasicCombatSpam(SID_NONE, SID_NONE, currentWeapon, attackerResults, defenderResults, hitData);
+                    }
                 }
                 else 
                 {
                     combat.doBasicCombatSpam(SID_NONE, SID_NONE, currentWeapon, attackerResults, defenderResults, hitData);
                 }
             }
-            else 
-            {
-                combat.doBasicCombatSpam(SID_NONE, SID_NONE, currentWeapon, attackerResults, defenderResults, hitData);
-            }
         }
         if (actionData.hitType != 6 || actionData.delayAttackLoopsDone == 0)
         {
             doMultiDefenderCombatResults(playbackNames, attackerResults, defenderResults, weaponData, actionData, hitData);
         }
-        int rampageAttacks = getEnhancedSkillStatisticModifierUncapped(attackerData.id, "expertise_co_killing_spree_target");
-        if (actionData.commandType == combat.LEFT_CLICK_DEFAULT && buff.hasBuff(attackerData.id, "co_killing_spree") && rampageAttacks > 0)
+        if (!precuAuthoritativeAttack)
         {
-            obj_id[] hateList = getHateList(attackerData.id);
-            for (int q = 0; q < rampageAttacks; q++)
+            int rampageAttacks = getEnhancedSkillStatisticModifierUncapped(attackerData.id, "expertise_co_killing_spree_target");
+            if (actionData.commandType == combat.LEFT_CLICK_DEFAULT && buff.hasBuff(attackerData.id, "co_killing_spree") && rampageAttacks > 0)
             {
-                if (hateList != null && hateList.length > 0)
+                obj_id[] hateList = getHateList(attackerData.id);
+                for (int q = 0; q < rampageAttacks; q++)
                 {
-                    queueCommand(attackerData.id, (-410474913), hateList[rand(0, hateList.length - 1)], "", COMMAND_PRIORITY_IMMEDIATE);
+                    if (hateList != null && hateList.length > 0)
+                    {
+                        queueCommand(attackerData.id, (-410474913), hateList[rand(0, hateList.length - 1)], "", COMMAND_PRIORITY_IMMEDIATE);
+                    }
                 }
             }
         }
         callDefenderCombatAction(defenders, results, attackerData.id, weaponData.id);
         return hitData;
+    }
+    /**
+     * Applies the Publish 14.1 weapon wound roll after damage and before later
+     * combat effects. A successful roll wounds the selected primary pool and
+     * its two linked secondary attributes by one point each, adding one shock
+     * wound for every affected attribute.
+     */
+    public void applyPrecuWounds(
+        obj_id attacker,
+        obj_id defender,
+        weapon_data weaponData,
+        combat_data actionData,
+        int targetPoolMask,
+        boolean damageApplied) throws InterruptedException
+    {
+        recordPrecuLiveDiagnostic(attacker, "wound.profile", "INELIGIBLE");
+        recordPrecuLiveDiagnostic(attacker, "wound.ratio", -1);
+        recordPrecuLiveDiagnostic(attacker, "wound.roll", -1);
+        recordPrecuLiveDiagnostic(attacker, "wound.primaryAttribute", -1);
+        recordPrecuLiveDiagnostic(attacker, "wound.applied", 0);
+        recordPrecuLiveDiagnostic(attacker, "wound.shockAdded", 0);
+
+        if (!damageApplied ||
+            actionData == null ||
+            (targetPoolMask & 0x7) == 0 ||
+            weaponData == null ||
+            !isIdValid(weaponData.id) ||
+            !isIdValid(defender) ||
+            isDead(defender) ||
+            isIncapacitated(defender))
+        {
+            return;
+        }
+
+        String weaponTemplate = getTemplateName(weaponData.id);
+        int weaponRow = getPrecuWeaponProfileRow(weaponData);
+        if (weaponRow < 0)
+        {
+            recordPrecuLiveDiagnostic(
+                attacker, "wound.profile", "FALLBACK_NO_PROFILE");
+            return;
+        }
+
+        int woundsRatio =
+            dataTableGetInt(PRECU_WEAPON_PROFILES, weaponRow, "woundsRatio");
+        int woundRoll = rand(0, 100);
+        recordPrecuLiveDiagnostic(attacker, "wound.profile", weaponTemplate);
+        recordPrecuLiveDiagnostic(attacker, "wound.ratio", woundsRatio);
+        recordPrecuLiveDiagnostic(attacker, "wound.roll", woundRoll);
+        if (woundsRatio <= 0 || woundRoll >= woundsRatio)
+        {
+            return;
+        }
+
+        int[] woundPools = new int[3];
+        int woundPoolCount = 0;
+        for (int pool = combat.PRECU_TARGET_POOL_HEALTH;
+            pool <= combat.PRECU_TARGET_POOL_MIND;
+            ++pool)
+        {
+            if ((targetPoolMask & (1 << pool)) != 0)
+            {
+                woundPools[woundPoolCount++] = pool;
+            }
+        }
+        int targetPool = woundPools[
+            woundPoolCount == 1 ? 0 : rand(0, woundPoolCount - 1)];
+        int primaryAttribute = targetPool * 3;
+        int applied = 0;
+        int shockAdded = 0;
+        for (int attribute = primaryAttribute;
+            attribute < primaryAttribute + NUM_ATTRIBUTES_PER_GROUP;
+            ++attribute)
+        {
+            int wound = addWound(defender, attribute, 1);
+            if (wound != ATTRIB_ERROR)
+            {
+                applied += wound;
+                if (addShockWound(defender, 1))
+                {
+                    ++shockAdded;
+                }
+            }
+        }
+        recordPrecuLiveDiagnostic(
+            attacker, "wound.primaryAttribute", primaryAttribute);
+        recordPrecuLiveDiagnostic(attacker, "wound.applied", applied);
+        recordPrecuLiveDiagnostic(attacker, "wound.shockAdded", shockAdded);
+    }
+    public boolean isPrecuLiveDiagnosticEnabled(obj_id attacker) throws InterruptedException
+    {
+        return isIdValid(attacker) &&
+            hasObjVar(attacker, PRECU_LIVE_DIAGNOSTIC_ENABLED) &&
+            getIntObjVar(attacker, PRECU_LIVE_DIAGNOSTIC_ENABLED) == 1;
+    }
+    public void recordPrecuLiveDiagnostic(obj_id attacker, String leaf, int value) throws InterruptedException
+    {
+        if (isPrecuLiveDiagnosticEnabled(attacker))
+        {
+            setObjVar(attacker, PRECU_LIVE_DIAGNOSTIC_ROOT + "." + leaf, value);
+        }
+    }
+    public void recordPrecuLiveDiagnostic(obj_id attacker, String leaf, float value) throws InterruptedException
+    {
+        if (isPrecuLiveDiagnosticEnabled(attacker))
+        {
+            setObjVar(attacker, PRECU_LIVE_DIAGNOSTIC_ROOT + "." + leaf, value);
+        }
+    }
+    public void recordPrecuLiveDiagnostic(obj_id attacker, String leaf, String value) throws InterruptedException
+    {
+        if (isPrecuLiveDiagnosticEnabled(attacker))
+        {
+            setObjVar(attacker, PRECU_LIVE_DIAGNOSTIC_ROOT + "." + leaf, value);
+        }
+    }
+    public void applyPrecuConcealThreat(obj_id attacker, obj_id defender,
+        int combatResult, combat_data actionData) throws InterruptedException
+    {
+        if (actionData == null ||
+            !"concealShot".equals(actionData.actionName))
+        {
+            return;
+        }
+
+        boolean aiTarget = isIdValid(defender) && isMob(defender) &&
+            !isPlayer(defender) && !isIdValid(getMaster(defender));
+        float distance = isIdValid(attacker) && isIdValid(defender) ?
+            getDistance(attacker, defender) : -1.0f;
+        int posture = isIdValid(attacker) ? getPosture(attacker) : -1;
+        int threshold = posture == POSTURE_PRONE ? 3 :
+            (posture == POSTURE_CROUCHED ? 2 :
+                (posture == POSTURE_UPRIGHT ? 1 : 0));
+        int missBefore = 0;
+        int missAfter = 0;
+        float hateBefore = 0.0f;
+        float hateAfter = 0.0f;
+        String result = "INELIGIBLE";
+
+        if (aiTarget)
+        {
+            String missPath = "combat.precuConcealMiss." + attacker;
+            missBefore = hasObjVar(defender, missPath) ?
+                getIntObjVar(defender, missPath) : 0;
+            missAfter = missBefore;
+            if (combatResult == COMBAT_RESULT_MISS)
+            {
+                missAfter = missBefore + 1;
+                setObjVar(defender, missPath, missAfter);
+            }
+            hateBefore = getHate(defender, attacker);
+            if (!isDead(defender) && distance >= 40.0f &&
+                threshold > 0 && missAfter <= threshold)
+            {
+                removeHateTarget(defender, attacker);
+                result = "REMOVED";
+            }
+            else
+            {
+                result = isDead(defender) ? "DEAD" :
+                    (distance < 40.0f ? "RANGE" :
+                        (threshold == 0 ? "POSTURE" : "MISS_LIMIT"));
+            }
+            hateAfter = getHate(defender, attacker);
+        }
+
+        recordPrecuLiveDiagnostic(attacker, "conceal.target", defender.toString());
+        recordPrecuLiveDiagnostic(attacker, "conceal.aiTarget", aiTarget ? 1 : 0);
+        recordPrecuLiveDiagnostic(attacker, "conceal.distance", distance);
+        recordPrecuLiveDiagnostic(attacker, "conceal.posture", posture);
+        recordPrecuLiveDiagnostic(attacker, "conceal.threshold", threshold);
+        recordPrecuLiveDiagnostic(attacker, "conceal.missBefore", missBefore);
+        recordPrecuLiveDiagnostic(attacker, "conceal.missAfter", missAfter);
+        recordPrecuLiveDiagnostic(attacker, "conceal.hateBefore", hateBefore);
+        recordPrecuLiveDiagnostic(attacker, "conceal.hateAfter", hateAfter);
+        recordPrecuLiveDiagnostic(attacker, "conceal.result", result);
+    }
+    private int getPrecuStateConstant(int effectType)
+    {
+        switch (effectType)
+        {
+            case PRECU_STATE_EFFECT_DIZZY:
+                return STATE_DIZZY;
+            case PRECU_STATE_EFFECT_BLIND:
+                return STATE_BLINDED;
+            case PRECU_STATE_EFFECT_STUN:
+                return STATE_STUNNED;
+            case PRECU_STATE_EFFECT_INTIMIDATE:
+                return STATE_INTIMIDATED;
+            default:
+                return -1;
+        }
+    }
+    private boolean isPrecuNextAttackDelayed(obj_id self)
+        throws InterruptedException
+    {
+        if (!isIdValid(self) ||
+            !utils.hasScriptVar(self, PRECU_NEXT_ATTACK_DELAY_UNTIL))
+        {
+            return false;
+        }
+        int remaining =
+            utils.getIntScriptVar(self, PRECU_NEXT_ATTACK_DELAY_UNTIL) -
+                getGameTime();
+        utils.setScriptVar(
+            self, PRECU_NEXT_ATTACK_DELAY_REMAINING,
+            Math.max(remaining, 0));
+        if (remaining > 0)
+        {
+            utils.setScriptVar(
+                self, PRECU_NEXT_ATTACK_DELAY_RESULT, "BLOCKED");
+            return true;
+        }
+        utils.removeScriptVar(self, PRECU_NEXT_ATTACK_DELAY_UNTIL);
+        utils.setScriptVar(
+            self, PRECU_NEXT_ATTACK_DELAY_RESULT, "EXPIRED");
+        return false;
+    }
+    private String getPrecuStateBuff(int effectType)
+    {
+        switch (effectType)
+        {
+            case PRECU_STATE_EFFECT_DIZZY:
+                return "dizzy";
+            case PRECU_STATE_EFFECT_BLIND:
+                return "blind";
+            case PRECU_STATE_EFFECT_STUN:
+                return "stun";
+            case PRECU_STATE_EFFECT_INTIMIDATE:
+                return "intimidate";
+            default:
+                return "";
+        }
+    }
+    private boolean isPrecuStateEffectImmune(obj_id defender, int effectType)
+        throws InterruptedException
+    {
+        return isImmuneToStateChange(defender) ||
+            (effectType == PRECU_STATE_EFFECT_STUN &&
+                utils.hasScriptVar(defender, "immunity.state.stun"));
+    }
+    private boolean applyPrecuStateEffect(obj_id attacker, obj_id defender,
+        dictionary row, int slot) throws InterruptedException
+    {
+        String prefix = "stateEffect." + slot + ".";
+        String suffix = Integer.toString(slot);
+        int effectType = row.getInt("stateEffect" + suffix);
+        int chance = row.getInt("stateChance" + suffix);
+        int strength = row.getInt("stateStrength" + suffix);
+        int baseDuration = row.getInt("stateDuration" + suffix);
+        String defenseMod = row.getString("stateDefense" + suffix);
+        String jediDefenseMod = row.getString("stateJediDefense" + suffix);
+        String resistanceMod = row.getString("stateResistance" + suffix);
+        int state = getPrecuStateConstant(effectType);
+        String buffName = getPrecuStateBuff(effectType);
+
+        recordPrecuLiveDiagnostic(attacker, prefix + "type", effectType);
+        recordPrecuLiveDiagnostic(attacker, prefix + "chance", chance);
+        recordPrecuLiveDiagnostic(attacker, prefix + "strength", strength);
+        recordPrecuLiveDiagnostic(
+            attacker, prefix + "durationBase", baseDuration);
+        recordPrecuLiveDiagnostic(attacker, prefix + "roll", -1);
+        recordPrecuLiveDiagnostic(attacker, prefix + "threshold", -1);
+        recordPrecuLiveDiagnostic(attacker, prefix + "resolvedDuration", 0);
+        recordPrecuLiveDiagnostic(attacker, prefix + "result", "NONE");
+        boolean removeCover = effectType == PRECU_STATE_EFFECT_REMOVE_COVER;
+        boolean nextAttackDelay =
+            effectType == PRECU_STATE_EFFECT_NEXT_ATTACK_DELAY;
+        if (effectType == PRECU_STATE_EFFECT_NONE ||
+            (!removeCover && !nextAttackDelay && state < 0) ||
+            chance <= 0 || baseDuration <= 0 || !isIdValid(defender))
+        {
+            return false;
+        }
+        int stateBefore = nextAttackDelay ?
+            (utils.hasScriptVar(defender, PRECU_NEXT_ATTACK_DELAY_UNTIL) ?
+                1 : 0) :
+            getState(defender, removeCover ? STATE_COVER : state);
+        recordPrecuLiveDiagnostic(
+            attacker, prefix + "stateBefore", stateBefore);
+        if (isDead(defender) || isIncapacitated(defender))
+        {
+            recordPrecuLiveDiagnostic(attacker, prefix + "result", "POST_DAMAGE");
+            recordPrecuLiveDiagnostic(
+                attacker, prefix + "stateAfter",
+                nextAttackDelay ? stateBefore :
+                    getState(defender, removeCover ? STATE_COVER : state));
+            return false;
+        }
+        if (isPrecuStateEffectImmune(defender, effectType))
+        {
+            recordPrecuLiveDiagnostic(attacker, prefix + "result", "IMMUNE");
+            recordPrecuLiveDiagnostic(
+                attacker, prefix + "stateAfter",
+                nextAttackDelay ? stateBefore :
+                    getState(defender, removeCover ? STATE_COVER : state));
+            return false;
+        }
+
+        int playerLevel = isPlayer(defender) ? xp.getPrecuWeaponCombatLevel(defender) - 5 : 0;
+        int defense = defenseMod == null || defenseMod.equals("") ? 0 :
+            getSkillStatisticModifier(defender, defenseMod);
+        int jediDefense =
+            jediDefenseMod == null || jediDefenseMod.equals("") ? 0 :
+                getSkillStatisticModifier(defender, jediDefenseMod);
+        int resistance =
+            resistanceMod == null || resistanceMod.equals("") ? 0 :
+                getSkillStatisticModifier(defender, resistanceMod);
+        int roll = rand(0, 100);
+        int threshold =
+            (int)(chance - ((float)defense / 1.5f) - playerLevel);
+        boolean passed = roll <= threshold;
+        if (passed && isPlayer(defender) && isJedi(defender))
+        {
+            if (jediDefenseMod != null && !jediDefenseMod.equals(""))
+            {
+                passed = roll <=
+                    (int)(chance - ((float)jediDefense / 1.5f) - playerLevel);
+            }
+            if (passed && resistanceMod != null && !resistanceMod.equals(""))
+            {
+                passed = roll <=
+                    (int)(chance - ((float)resistance / 1.5f) - playerLevel);
+            }
+        }
+        int duration = (int)Math.max(
+            5.0f,
+            (float)baseDuration *
+                (1.0f - ((float)(defense - strength) / 120.0f)));
+        recordPrecuLiveDiagnostic(attacker, prefix + "playerLevel", playerLevel);
+        recordPrecuLiveDiagnostic(attacker, prefix + "defense", defense);
+        recordPrecuLiveDiagnostic(attacker, prefix + "jediDefense", jediDefense);
+        recordPrecuLiveDiagnostic(attacker, prefix + "resistance", resistance);
+        recordPrecuLiveDiagnostic(attacker, prefix + "roll", roll);
+        recordPrecuLiveDiagnostic(attacker, prefix + "threshold", threshold);
+        recordPrecuLiveDiagnostic(
+            attacker, prefix + "resolvedDuration", duration);
+        if (!passed)
+        {
+            recordPrecuLiveDiagnostic(attacker, prefix + "result", "RESISTED");
+            recordPrecuLiveDiagnostic(
+                attacker, prefix + "stateAfter",
+                nextAttackDelay ? stateBefore :
+                    getState(defender, removeCover ? STATE_COVER : state));
+            return false;
+        }
+        if (nextAttackDelay)
+        {
+            recordPrecuLiveDiagnostic(
+                attacker, prefix + "appliedRoll", roll);
+            recordPrecuLiveDiagnostic(
+                attacker, prefix + "appliedThreshold", threshold);
+            recordPrecuLiveDiagnostic(
+                attacker, prefix + "appliedDuration", duration);
+            recordPrecuLiveDiagnostic(
+                attacker, prefix + "appliedStateBefore", stateBefore);
+            int delayUntil = getGameTime() + duration;
+            utils.setScriptVar(
+                defender, PRECU_NEXT_ATTACK_DELAY_UNTIL, delayUntil);
+            utils.setScriptVar(
+                defender, PRECU_NEXT_ATTACK_DELAY_REMAINING, duration);
+            utils.setScriptVar(
+                defender, PRECU_NEXT_ATTACK_DELAY_RESULT, "ARMED");
+            recordPrecuLiveDiagnostic(
+                attacker, prefix + "delayUntil", delayUntil);
+            recordPrecuLiveDiagnostic(
+                attacker, prefix + "delaySeconds", duration);
+            recordPrecuLiveDiagnostic(
+                attacker, prefix + "result", "APPLIED");
+            recordPrecuLiveDiagnostic(
+                attacker, prefix + "stateAfter", 1);
+            recordPrecuLiveDiagnostic(
+                attacker, prefix + "appliedStateAfter", 1);
+            return true;
+        }
+        if (removeCover)
+        {
+            if (stateBefore == 0)
+            {
+                recordPrecuLiveDiagnostic(
+                    attacker, prefix + "result", "NO_COVER");
+                recordPrecuLiveDiagnostic(
+                    attacker, prefix + "stateAfter", 0);
+                return false;
+            }
+            recordPrecuLiveDiagnostic(
+                attacker, prefix + "appliedRoll", roll);
+            recordPrecuLiveDiagnostic(
+                attacker, prefix + "appliedThreshold", threshold);
+            recordPrecuLiveDiagnostic(
+                attacker, prefix + "appliedDuration", duration);
+            recordPrecuLiveDiagnostic(
+                attacker, prefix + "appliedStateBefore", stateBefore);
+            setState(defender, STATE_COVER, false);
+            sendSystemMessage(
+                defender, new string_id("combat_effects", "strafe_system"));
+            int delayUntil = getGameTime() + duration;
+            utils.setScriptVar(
+                defender, PRECU_NEXT_ATTACK_DELAY_UNTIL, delayUntil);
+            utils.setScriptVar(
+                defender, PRECU_NEXT_ATTACK_DELAY_REMAINING, duration);
+            utils.setScriptVar(
+                defender, PRECU_NEXT_ATTACK_DELAY_RESULT, "ARMED");
+            recordPrecuLiveDiagnostic(
+                attacker, prefix + "delayUntil", delayUntil);
+            recordPrecuLiveDiagnostic(
+                attacker, prefix + "delaySeconds", duration);
+            recordPrecuLiveDiagnostic(
+                attacker, prefix + "result", "APPLIED");
+            recordPrecuLiveDiagnostic(
+                attacker, prefix + "stateAfter",
+                getState(defender, STATE_COVER));
+            recordPrecuLiveDiagnostic(
+                attacker, prefix + "appliedStateAfter",
+                getState(defender, STATE_COVER));
+            return getState(defender, STATE_COVER) == 0;
+        }
+        boolean applied =
+            buff.applyBuff(defender, attacker, buffName, (float)duration);
+        recordPrecuLiveDiagnostic(
+            attacker, prefix + "result", applied ? "APPLIED" : "APPLY_FAILED");
+        recordPrecuLiveDiagnostic(
+            attacker, prefix + "stateAfter", getState(defender, state));
+        return applied;
+    }
+    public void applyPrecuStateEffects(obj_id attacker, obj_id defender,
+        combat_data actionData) throws InterruptedException
+    {
+        dictionary row =
+            dataTableGetRow(PRECU_COMBAT_OVERRIDES, actionData.actionName);
+        if (row == null)
+        {
+            return;
+        }
+        int applied = 0;
+        for (int slot = 1; slot <= 3; ++slot)
+        {
+            if (applyPrecuStateEffect(attacker, defender, row, slot))
+            {
+                ++applied;
+            }
+        }
+        recordPrecuLiveDiagnostic(attacker, "stateEffect.appliedCount", applied);
+        String appliedTotalPath =
+            PRECU_LIVE_DIAGNOSTIC_ROOT + ".stateEffect.appliedTotal";
+        int appliedTotal = hasObjVar(attacker, appliedTotalPath) ?
+            getIntObjVar(attacker, appliedTotalPath) : 0;
+        recordPrecuLiveDiagnostic(
+            attacker, "stateEffect.appliedTotal", appliedTotal + applied);
+    }
+    public int applyPrecuPostureUp(obj_id attacker, obj_id defender,
+        combat_data actionData, int currentPosture) throws InterruptedException
+    {
+        dictionary row =
+            dataTableGetRow(PRECU_COMBAT_OVERRIDES, actionData.actionName);
+        int slot = 0;
+        if (row != null)
+        {
+            for (int i = 1; i <= 3; ++i)
+            {
+                if (row.getInt("stateEffect" + i) ==
+                    PRECU_STATE_EFFECT_POSTURE_UP)
+                {
+                    slot = i;
+                    break;
+                }
+            }
+        }
+        recordPrecuLiveDiagnostic(attacker, "postureUp.slot", slot);
+        recordPrecuLiveDiagnostic(attacker, "postureUp.start", currentPosture);
+        recordPrecuLiveDiagnostic(attacker, "postureUp.end", currentPosture);
+        recordPrecuLiveDiagnostic(attacker, "postureUp.defense", -1);
+        recordPrecuLiveDiagnostic(attacker, "postureUp.roll", -1);
+        recordPrecuLiveDiagnostic(attacker, "postureUp.threshold", -1);
+        recordPrecuLiveDiagnostic(attacker, "postureUp.recoverySeconds", 30);
+        recordPrecuLiveDiagnostic(attacker, "postureUp.result", "INELIGIBLE");
+        if (slot == 0 || !isIdValid(defender))
+        {
+            return currentPosture;
+        }
+        int chance = row.getInt("stateChance" + slot);
+        String defenseMod = row.getString("stateDefense" + slot);
+        recordPrecuLiveDiagnostic(attacker, "postureUp.chance", chance);
+        if (chance <= 0 || isDead(defender) || isIncapacitated(defender))
+        {
+            recordPrecuLiveDiagnostic(attacker, "postureUp.result", "POST_DAMAGE");
+            return currentPosture;
+        }
+        if (isImmuneToStateChange(defender))
+        {
+            recordPrecuLiveDiagnostic(attacker, "postureUp.result", "IMMUNE");
+            return currentPosture;
+        }
+        int currentTime = getGameTime();
+        if (utils.hasScriptVar(defender, PRECU_POSTURE_UP_RECOVERY) &&
+            currentTime - utils.getIntScriptVar(
+                defender, PRECU_POSTURE_UP_RECOVERY) < 30)
+        {
+            int recoveryPosture = currentPosture == POSTURE_UPRIGHT ?
+                currentPosture : POSTURE_UPRIGHT;
+            recordPrecuLiveDiagnostic(
+                attacker, "postureUp.end", recoveryPosture);
+            recordPrecuLiveDiagnostic(attacker, "postureUp.result", "RECOVERY");
+            sendSystemMessage(
+                attacker, new string_id("cbt_spam", "posture_change_fail"));
+            return recoveryPosture;
+        }
+        int playerLevel = isPlayer(defender) ? xp.getPrecuWeaponCombatLevel(defender) - 5 : 0;
+        int defense = defenseMod == null || defenseMod.equals("") ? 0 :
+            getSkillStatisticModifier(defender, defenseMod);
+        int roll = rand(0, 100);
+        int threshold =
+            (int)(chance - ((float)defense / 1.5f) - playerLevel);
+        recordPrecuLiveDiagnostic(attacker, "postureUp.playerLevel", playerLevel);
+        recordPrecuLiveDiagnostic(attacker, "postureUp.defense", defense);
+        recordPrecuLiveDiagnostic(attacker, "postureUp.roll", roll);
+        recordPrecuLiveDiagnostic(attacker, "postureUp.threshold", threshold);
+        if (roll > threshold)
+        {
+            recordPrecuLiveDiagnostic(attacker, "postureUp.result", "RESISTED");
+            sendSystemMessage(
+                attacker, new string_id("cbt_spam", "posture_change_fail"));
+            return currentPosture;
+        }
+        int endPosture = currentPosture == POSTURE_PRONE ?
+            POSTURE_CROUCHED :
+            (currentPosture == POSTURE_CROUCHED ?
+                POSTURE_UPRIGHT : currentPosture);
+        utils.setScriptVar(defender, PRECU_POSTURE_UP_RECOVERY, currentTime);
+        recordPrecuLiveDiagnostic(attacker, "postureUp.end", endPosture);
+        recordPrecuLiveDiagnostic(attacker, "postureUp.result", "APPLIED");
+        recordPrecuLiveDiagnostic(attacker, "postureUp.appliedRoll", roll);
+        recordPrecuLiveDiagnostic(
+            attacker, "postureUp.appliedThreshold", threshold);
+        recordPrecuLiveDiagnostic(
+            attacker, "postureUp.appliedStart", currentPosture);
+        recordPrecuLiveDiagnostic(attacker, "postureUp.appliedEnd", endPosture);
+        buff.removeBuff(defender, "burstrun");
+        buff.removeBuff(defender, "retreat");
+        if (endPosture != currentPosture)
+        {
+            sendSystemMessage(
+                defender,
+                new string_id(
+                    "cbt_spam",
+                    endPosture == POSTURE_CROUCHED ?
+                        "force_posture_change_1" : "force_posture_change_0"));
+        }
+        return endPosture;
+    }
+    public int applyPrecuPostureDown(obj_id attacker, obj_id defender,
+        combat_data actionData, int currentPosture) throws InterruptedException
+    {
+        int chance = actionData.precuPostureDownChance;
+        recordPrecuLiveDiagnostic(attacker, "postureDown.chance", chance);
+        recordPrecuLiveDiagnostic(attacker, "postureDown.start", currentPosture);
+        recordPrecuLiveDiagnostic(attacker, "postureDown.end", currentPosture);
+        recordPrecuLiveDiagnostic(attacker, "postureDown.defense", -1);
+        recordPrecuLiveDiagnostic(attacker, "postureDown.roll", -1);
+        recordPrecuLiveDiagnostic(attacker, "postureDown.result", "INELIGIBLE");
+        if (chance <= 0 || !isIdValid(defender))
+        {
+            return currentPosture;
+        }
+        if (isImmuneToStateChange(defender))
+        {
+            recordPrecuLiveDiagnostic(attacker, "postureDown.result", "IMMUNE");
+            return currentPosture;
+        }
+        if (currentPosture != POSTURE_UPRIGHT &&
+            currentPosture != POSTURE_CROUCHED)
+        {
+            recordPrecuLiveDiagnostic(attacker, "postureDown.result", "POSTURE");
+            return currentPosture;
+        }
+        int currentTime = getGameTime();
+        if (utils.hasScriptVar(defender, PRECU_POSTURE_DOWN_RECOVERY) &&
+            currentTime - utils.getIntScriptVar(
+                defender, PRECU_POSTURE_DOWN_RECOVERY) < 30)
+        {
+            int recoveryPosture =
+                currentPosture == POSTURE_UPRIGHT ? currentPosture : POSTURE_UPRIGHT;
+            recordPrecuLiveDiagnostic(attacker, "postureDown.end", recoveryPosture);
+            recordPrecuLiveDiagnostic(attacker, "postureDown.result", "RECOVERY");
+            return recoveryPosture;
+        }
+        int playerLevel = isPlayer(defender) ? xp.getPrecuWeaponCombatLevel(defender) - 5 : 0;
+        if (playerLevel < 0)
+        {
+            playerLevel = 0;
+        }
+        int defense = (int)(
+            getSkillStatisticModifier(defender, "posture_change_down_defense") /
+                1.5f) + playerLevel;
+        int roll = rand(0, 100);
+        int threshold = chance - defense;
+        recordPrecuLiveDiagnostic(attacker, "postureDown.defense", defense);
+        recordPrecuLiveDiagnostic(attacker, "postureDown.roll", roll);
+        if (roll > threshold)
+        {
+            recordPrecuLiveDiagnostic(attacker, "postureDown.result", "RESISTED");
+            return currentPosture;
+        }
+        int endPosture = currentPosture == POSTURE_UPRIGHT ?
+            POSTURE_CROUCHED : POSTURE_PRONE;
+        utils.setScriptVar(defender, PRECU_POSTURE_DOWN_RECOVERY, currentTime);
+        recordPrecuLiveDiagnostic(attacker, "postureDown.end", endPosture);
+        recordPrecuLiveDiagnostic(attacker, "postureDown.result", "APPLIED");
+        sendSystemMessage(
+            defender,
+            new string_id(
+                "cbt_spam",
+                endPosture == POSTURE_CROUCHED ?
+                    "force_posture_change_1" : "force_posture_change_2"));
+        return endPosture;
+    }
+    public int applyPrecuKnockdown(obj_id attacker, obj_id defender,
+        combat_data actionData, int currentPosture) throws InterruptedException
+    {
+        int chance = actionData.precuKnockdownChance;
+        recordPrecuLiveDiagnostic(attacker, "knockdown.chance", chance);
+        recordPrecuLiveDiagnostic(attacker, "knockdown.start", currentPosture);
+        recordPrecuLiveDiagnostic(attacker, "knockdown.end", currentPosture);
+        recordPrecuLiveDiagnostic(attacker, "knockdown.defense", -1);
+        recordPrecuLiveDiagnostic(attacker, "knockdown.roll", -1);
+        recordPrecuLiveDiagnostic(attacker, "knockdown.result", "INELIGIBLE");
+        if (chance <= 0 || !isIdValid(defender))
+        {
+            return currentPosture;
+        }
+        if (isImmuneToStateChange(defender))
+        {
+            recordPrecuLiveDiagnostic(attacker, "knockdown.result", "IMMUNE");
+            return currentPosture;
+        }
+        if (currentPosture == POSTURE_INCAPACITATED ||
+            currentPosture == POSTURE_DEAD ||
+            currentPosture == POSTURE_KNOCKED_DOWN)
+        {
+            recordPrecuLiveDiagnostic(attacker, "knockdown.result", "POSTURE");
+            return currentPosture;
+        }
+        int currentTime = getGameTime();
+        if (utils.hasScriptVar(defender, PRECU_KNOCKDOWN_RECOVERY) &&
+            currentTime - utils.getIntScriptVar(
+                defender, PRECU_KNOCKDOWN_RECOVERY) < 30)
+        {
+            recordPrecuLiveDiagnostic(attacker, "knockdown.result", "RECOVERY");
+            return currentPosture;
+        }
+        int playerLevel = isPlayer(defender) ? xp.getPrecuWeaponCombatLevel(defender) - 5 : 0;
+        if (playerLevel < 0)
+        {
+            playerLevel = 0;
+        }
+        int defense =
+            getSkillStatisticModifier(defender, "knockdown_defense") +
+                playerLevel;
+        if (defense > 90)
+        {
+            defense = 90;
+        }
+        int roll = rand(0, 100);
+        int threshold = chance - defense;
+        recordPrecuLiveDiagnostic(attacker, "knockdown.defense", defense);
+        recordPrecuLiveDiagnostic(attacker, "knockdown.roll", roll);
+        if (roll > threshold)
+        {
+            recordPrecuLiveDiagnostic(attacker, "knockdown.result", "RESISTED");
+            sendSystemMessage(attacker, new string_id("cbt_spam", "knockdown_fail"));
+            return currentPosture;
+        }
+        utils.setScriptVar(defender, PRECU_KNOCKDOWN_RECOVERY, currentTime);
+        utils.setScriptVar(
+            defender, PRECU_KNOCKDOWN_ORIGINAL_POSTURE, currentPosture);
+        messageTo(
+            defender, "handlePostureRestore", null,
+            PRECU_KNOCKDOWN_DURATION, false);
+        recordPrecuLiveDiagnostic(
+            attacker, "knockdown.end", POSTURE_KNOCKED_DOWN);
+        recordPrecuLiveDiagnostic(attacker, "knockdown.result", "APPLIED");
+        return POSTURE_KNOCKED_DOWN;
+    }
+    public String getPrecuDiagnosticResultName(int result) throws InterruptedException
+    {
+        switch (result)
+        {
+            case HIT_RESULT_MISS:
+                return "MISS";
+            case HIT_RESULT_DODGE:
+                return "DODGE";
+            case HIT_RESULT_PARRY:
+                return "PARRY";
+            case HIT_RESULT_GLANCING:
+                return "GLANCING";
+            case HIT_RESULT_BLOCK:
+                return "BLOCK";
+            case HIT_RESULT_CRITICAL:
+                return "CRITICAL";
+            case HIT_RESULT_PUNISHING:
+                return "PUNISHING";
+            case HIT_RESULT_HIT:
+                return "HIT";
+            case HIT_RESULT_EVADE:
+                return "EVADE";
+            case HIT_RESULT_STRIKETHROUGH:
+                return "STRIKETHROUGH";
+            case HIT_RESULT_PRECU_COUNTER:
+                return "COUNTER";
+            case HIT_RESULT_PRECU_RICOCHET:
+                return "RICOCHET";
+            default:
+                return "UNKNOWN_" + result;
+        }
+    }
+    public boolean isPrecuAuthoritativeAttack(obj_id attacker, combat_data actionData)
+        throws InterruptedException
+    {
+        return actionData != null &&
+            (dataTableSearchColumnForString(
+                actionData.actionName,
+                "actionName",
+                PRECU_COMBAT_OVERRIDES) >= 0 ||
+                hasObjVar(attacker, "precu.combatProfile"));
+    }
+    public void reinstateNgeInvisFromCombat(
+        obj_id attacker, boolean precuAuthoritativeAction)
+        throws InterruptedException
+    {
+        if (!precuAuthoritativeAction)
+        {
+            stealth.reinstateInvisFromCombat(attacker);
+        }
+    }
+    public void addPrecuCore3HateProcess(
+        obj_id attacker,
+        obj_id defender,
+        hit_result hitData,
+        combat_data actionData) throws InterruptedException
+    {
+        if (!isIdValid(attacker) || !isIdValid(defender) ||
+            defender == attacker || hitData == null || actionData == null)
+        {
+            return;
+        }
+
+        float hate = hitData.success ?
+            hitData.damage * actionData.hateDamageModifier : 1.0f;
+        if (hate > 0.0f)
+        {
+            addHate(defender, attacker, hate);
+        }
+        if (isPlayer(attacker))
+        {
+            addHate(attacker, defender, 0.0f);
+            obj_id[] hateList = getHateList(attacker);
+            if (hateList != null)
+            {
+                for (obj_id hateTarget : hateList)
+                {
+                    if (!isPlayer(hateTarget) && isTangible(hateTarget) &&
+                        getHateTarget(hateTarget) == attacker)
+                    {
+                        resetHateTimer(hateTarget);
+                    }
+                }
+            }
+        }
+        recordPrecuLiveDiagnostic(
+            attacker, "lifecycle.core3HateAdded", hate);
+        recordPrecuLiveDiagnostic(
+            attacker, "lifecycle.ngeHateModifiersApplied", 0);
+    }
+    public int getPrecuPrimaryAttackResult(attacker_data attackerData, defender_data defenderData, weapon_data weaponData, combat_data actionData) throws InterruptedException
+    {
+        float hitChance = getPrecuPrimaryHitChance(attackerData, defenderData, weaponData, actionData);
+        if (hitChance < 0.0f)
+        {
+            if (isPrecuAuthoritativeAttack(attackerData.id, actionData))
+            {
+                recordPrecuLiveDiagnostic(
+                    attackerData.id, "primary.result", HIT_RESULT_HIT);
+                recordPrecuLiveDiagnostic(
+                    attackerData.id,
+                    "primary.resultName",
+                    "HIT_NO_PROFILE");
+                return HIT_RESULT_HIT;
+            }
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "primary.result", PRECU_PRIMARY_RESULT_FALLBACK);
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "primary.resultName", "FALLBACK");
+            return PRECU_PRIMARY_RESULT_FALLBACK;
+        }
+        int hitRoll = rand(0, 100);
+        int result = hitRoll <= hitChance ? HIT_RESULT_HIT : HIT_RESULT_MISS;
+        recordPrecuLiveDiagnostic(attackerData.id, "primary.roll", hitRoll);
+        recordPrecuLiveDiagnostic(attackerData.id, "primary.result", result);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "primary.resultName", getPrecuDiagnosticResultName(result));
+        return result;
+    }
+    public float getPrecuPrimaryHitChance(attacker_data attackerData, defender_data defenderData, weapon_data weaponData, combat_data actionData) throws InterruptedException
+    {
+        int actionRow = dataTableSearchColumnForString(actionData.actionName, "actionName", PRECU_COMBAT_OVERRIDES);
+        if (!isPrecuAuthoritativeAttack(attackerData.id, actionData))
+        {
+            return -1.0f;
+        }
+        int accuracyBonus = actionRow >= 0 ?
+            getPrecuActionAccuracyBonus(attackerData.id, actionRow) : 0;
+        int weaponRow = getPrecuWeaponProfileRow(weaponData);
+        if (weaponRow < 0)
+        {
+            return -1.0f;
+        }
+        String weaponTemplate = isIdValid(weaponData.id) ?
+            getTemplateName(weaponData.id) :
+            dataTableGetString(
+                PRECU_WEAPON_PROFILES, weaponRow, "templateName");
+
+        String defenseSkill = dataTableGetString(PRECU_WEAPON_PROFILES, weaponRow, "defenseSkill");
+        String defenseSkill2 = dataTableGetString(PRECU_WEAPON_PROFILES, weaponRow, "defenseSkill2");
+        float accuracyTotal = getPrecuAttackerAccuracyTotal(attackerData, defenderData, weaponRow, accuracyBonus);
+
+        int defenseSkillValue = getLevel(defenderData.id);
+        defenseSkillValue += getEnhancedSkillStatisticModifierUncapped(defenderData.id, defenseSkill);
+        defenseSkillValue += getEnhancedSkillStatisticModifierUncapped(defenderData.id, "private_" + defenseSkill);
+        if (defenseSkill2 != null && defenseSkill2.length() > 0)
+        {
+            defenseSkillValue += getEnhancedSkillStatisticModifierUncapped(defenderData.id, defenseSkill2);
+            defenseSkillValue += getEnhancedSkillStatisticModifierUncapped(defenderData.id, "private_" + defenseSkill2);
+        }
+        if (defenseSkillValue > 125)
+        {
+            defenseSkillValue = 125;
+        }
+        if (isPlayer(attackerData.id))
+        {
+            defenseSkillValue += getEnhancedSkillStatisticModifierUncapped(defenderData.id, "private_defense");
+        }
+        defenseSkillValue += getEnhancedSkillStatisticModifierUncapped(defenderData.id, "private_group_" + defenseSkill);
+        if (defenseSkill2 != null && defenseSkill2.length() > 0)
+        {
+            defenseSkillValue += getEnhancedSkillStatisticModifierUncapped(defenderData.id, "private_group_" + defenseSkill2);
+        }
+        defenseSkillValue += getEnhancedSkillStatisticModifierUncapped(defenderData.id, "dodge_attack");
+        defenseSkillValue += getEnhancedSkillStatisticModifierUncapped(defenderData.id, "private_dodge_attack");
+
+        int defenseLocomotion = isPrecuRangedWeaponProfile(weaponRow) ?
+            getPrecuRangedDefenseLocomotionModifier(defenderData.locomotion) :
+            getPrecuMeleeDefenseLocomotionModifier(defenderData.locomotion);
+        float defenseTotal = defenseSkillValue + defenseLocomotion;
+        float hitChance = getPrecuHitChanceEquation(accuracyTotal, defenseTotal);
+        recordPrecuLiveDiagnostic(attackerData.id, "action", actionData.actionName);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "attackerWeaponTemplate", weaponTemplate);
+        recordPrecuLiveDiagnostic(attackerData.id, "primary.accuracyBonus", accuracyBonus);
+        recordPrecuLiveDiagnostic(attackerData.id, "primary.accuracyTotal", accuracyTotal);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "primary.defenseSkill", defenseSkillValue);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "primary.defenseLocomotion", defenseLocomotion);
+        recordPrecuLiveDiagnostic(attackerData.id, "primary.defenseTotal", defenseTotal);
+        recordPrecuLiveDiagnostic(attackerData.id, "primary.hitChance", hitChance);
+        return hitChance;
+    }
+    private int getPrecuActionAccuracyBonus(obj_id attacker, int actionRow)
+        throws InterruptedException
+    {
+        int accuracyBonus = dataTableGetInt(
+            PRECU_COMBAT_OVERRIDES, actionRow, "accuracyBonus");
+        String accuracySkillMod = dataTableGetString(
+            PRECU_COMBAT_OVERRIDES, actionRow, "accuracySkillMod");
+        if (accuracySkillMod != null && accuracySkillMod.length() > 0)
+        {
+            accuracyBonus += getEnhancedSkillStatisticModifierUncapped(
+                attacker, accuracySkillMod);
+        }
+        return accuracyBonus;
+    }
+    public int getPrecuWeaponProfileRow(weapon_data weaponData)
+        throws InterruptedException
+    {
+        if (weaponData == null)
+        {
+            return dataTableSearchColumnForString(
+                "__family_default", "templateName", PRECU_WEAPON_PROFILES);
+        }
+        if (isIdValid(weaponData.id))
+        {
+            int exactRow = dataTableSearchColumnForString(
+                getTemplateName(weaponData.id),
+                "templateName",
+                PRECU_WEAPON_PROFILES);
+            if (exactRow >= 0)
+            {
+                return exactRow;
+            }
+        }
+        return getPrecuWeaponFamilyProfileRow(weaponData.weaponType);
+    }
+    public int getPrecuWeaponProfileRow(obj_id weapon)
+        throws InterruptedException
+    {
+        if (!isIdValid(weapon))
+        {
+            return getPrecuWeaponFamilyProfileRow(WEAPON_TYPE_UNARMED);
+        }
+        int exactRow = dataTableSearchColumnForString(
+            getTemplateName(weapon), "templateName", PRECU_WEAPON_PROFILES);
+        return exactRow >= 0 ? exactRow :
+            getPrecuWeaponFamilyProfileRow(getWeaponType(weapon));
+    }
+    public int getPrecuWeaponFamilyProfileRow(int weaponType)
+        throws InterruptedException
+    {
+        String family = "default";
+        switch (weaponType)
+        {
+            case WEAPON_TYPE_RIFLE:
+            family = "rifle";
+            break;
+            case WEAPON_TYPE_LIGHT_RIFLE:
+            family = "carbine";
+            break;
+            case WEAPON_TYPE_PISTOL:
+            family = "pistol";
+            break;
+            case WEAPON_TYPE_HEAVY:
+            case WEAPON_TYPE_GROUND_TARGETTING:
+            case WEAPON_TYPE_DIRECTIONAL:
+            family = "heavy";
+            break;
+            case WEAPON_TYPE_1HAND_MELEE:
+            family = "onehandmelee";
+            break;
+            case WEAPON_TYPE_2HAND_MELEE:
+            family = "twohandmelee";
+            break;
+            case WEAPON_TYPE_UNARMED:
+            family = "unarmed";
+            break;
+            case WEAPON_TYPE_POLEARM:
+            family = "polearm";
+            break;
+            case WEAPON_TYPE_THROWN:
+            family = "thrown";
+            break;
+            case WEAPON_TYPE_WT_1HAND_LIGHTSABER:
+            family = "onehandlightsaber";
+            break;
+            case WEAPON_TYPE_WT_2HAND_LIGHTSABER:
+            family = "twohandlightsaber";
+            break;
+            case WEAPON_TYPE_WT_POLEARM_LIGHTSABER:
+            family = "polearmlightsaber";
+            break;
+        }
+        return dataTableSearchColumnForString(
+            "__family_" + family, "templateName", PRECU_WEAPON_PROFILES);
+    }
+    public boolean isPrecuRangedWeaponProfile(int weaponRow)
+        throws InterruptedException
+    {
+        return weaponRow >= 0 && dataTableGetString(
+            PRECU_WEAPON_PROFILES,
+            weaponRow,
+            "categoryAccuracySkill").equals("ranged_accuracy");
+    }
+    public boolean isPrecuLightsaberWeaponType(int weaponType)
+        throws InterruptedException
+    {
+        return weaponType == WEAPON_TYPE_WT_1HAND_LIGHTSABER ||
+            weaponType == WEAPON_TYPE_WT_2HAND_LIGHTSABER ||
+            weaponType == WEAPON_TYPE_WT_POLEARM_LIGHTSABER;
+    }
+    public float getPrecuAttackerAccuracyTotal(attacker_data attackerData, defender_data defenderData, int weaponRow, int accuracyBonus) throws InterruptedException
+    {
+        String accuracySkill = dataTableGetString(PRECU_WEAPON_PROFILES, weaponRow, "accuracySkill");
+        String categoryAccuracySkill = dataTableGetString(PRECU_WEAPON_PROFILES, weaponRow, "categoryAccuracySkill");
+        String weaponFamily = dataTableGetString(PRECU_WEAPON_PROFILES, weaponRow, "weaponFamily");
+        float postureMultiplier = dataTableGetFloat(PRECU_WEAPON_PROFILES, weaponRow, "postureMultiplier");
+
+        int accuracySkillValue = getEnhancedSkillStatisticModifierUncapped(attackerData.id, accuracySkill);
+        accuracySkillValue += getEnhancedSkillStatisticModifierUncapped(attackerData.id, "private_" + accuracySkill);
+        if (accuracySkillValue == 0)
+        {
+            accuracySkillValue = -15;
+        }
+        accuracySkillValue += getEnhancedSkillStatisticModifierUncapped(attackerData.id, "attack_accuracy");
+        accuracySkillValue += getEnhancedSkillStatisticModifierUncapped(attackerData.id, categoryAccuracySkill);
+
+        float accuracyWeapon = getPrecuWeaponRangeModifier(attackerData, defenderData, weaponRow);
+        boolean rangedProfile = isPrecuRangedWeaponProfile(weaponRow);
+        int accuracyPosture = rangedProfile ?
+            getPrecuRangedAttackLocomotionModifier(attackerData.locomotion) :
+            getPrecuMeleeAttackLocomotionModifier(attackerData.locomotion);
+        int accuracyWeaponPosture = 0;
+        if (isPrecuMovingLocomotion(attackerData.locomotion))
+        {
+            accuracyWeaponPosture += getEnhancedSkillStatisticModifierUncapped(attackerData.id, weaponFamily + "_hit_while_moving");
+        }
+        if (attackerData.posture == POSTURE_UPRIGHT)
+        {
+            accuracyWeaponPosture += getEnhancedSkillStatisticModifierUncapped(attackerData.id, weaponFamily + "_accuracy_while_standing");
+        }
+        int accuracyPostureTotal = (int)(accuracyPosture * postureMultiplier) + accuracyWeaponPosture;
+        if (accuracyPostureTotal > 0 && accuracyPosture < 0)
+        {
+            accuracyPostureTotal = 0;
+        }
+
+        int accuracyPrivateBonus = getEnhancedSkillStatisticModifierUncapped(attackerData.id, "private_attack_accuracy");
+        accuracyPrivateBonus += getEnhancedSkillStatisticModifierUncapped(attackerData.id, "private_accuracy_bonus");
+        accuracyPrivateBonus += getEnhancedSkillStatisticModifierUncapped(
+            attackerData.id,
+            rangedProfile ? "private_ranged_accuracy_bonus" :
+                "private_melee_accuracy_bonus");
+        if (rangedProfile)
+        {
+            accuracyPrivateBonus += getEnhancedSkillStatisticModifierUncapped(attackerData.id, "private_aim");
+        }
+        if (defenderData.isCreature)
+        {
+            accuracyPrivateBonus += getEnhancedSkillStatisticModifierUncapped(attackerData.id, "creature_hit_bonus");
+        }
+        float accuracyTotal =
+            accuracySkillValue + accuracyWeapon + accuracyPostureTotal +
+            accuracyBonus + accuracyPrivateBonus;
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "primary.accuracySkill", accuracySkillValue);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "primary.accuracyWeapon", accuracyWeapon);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "primary.accuracyPosture", accuracyPostureTotal);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "primary.accuracyPrivate", accuracyPrivateBonus);
+        return accuracyTotal;
+    }
+    public int getPrecuSecondaryDefenseResult(attacker_data attackerData, defender_data defenderData, weapon_data weaponData, combat_data actionData) throws InterruptedException
+    {
+        boolean precuAuthoritativeAttack =
+            isPrecuAuthoritativeAttack(attackerData.id, actionData);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "secondary.blockBaseBefore", -1);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "secondary.blockBaseAfter", -1);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "secondary.blockElementalBefore", -1);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "secondary.blockElementalAfter", -1);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "secondary.counterDispatched", 0);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "secondary.counterQueued", 0);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "secondary.ngeParryBranch", 0);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "secondary.reflectQueued", 0);
+        obj_id defenderWeapon = getHeldWeapon(defenderData.id);
+        if (!isIdValid(defenderWeapon))
+        {
+            defenderWeapon = getCurrentWeapon(defenderData.id);
+        }
+        if (isIdValid(defenderWeapon) &&
+            (jedi.isLightsaber(defenderWeapon) ||
+                isPrecuLightsaberWeaponType(getWeaponType(defenderWeapon))))
+        {
+            boolean canRicochet = !ai_lib.isTurret(attackerData.id) &&
+                (combat.isRangedWeapon(weaponData.weaponType) || combat.isHeavyWeapon(weaponData.weaponType));
+            if (!canRicochet)
+            {
+                recordPrecuLiveDiagnostic(
+                    attackerData.id, "secondary.profile", "LIGHTSABER_INELIGIBLE");
+                recordPrecuLiveDiagnostic(
+                    attackerData.id, "secondary.result", HIT_RESULT_HIT);
+                recordPrecuLiveDiagnostic(
+                    attackerData.id, "secondary.resultName", "HIT");
+                return HIT_RESULT_HIT;
+            }
+            int saberBlock = getEnhancedSkillStatisticModifierUncapped(defenderData.id, "saber_block");
+            int saberRoll = rand(0, 100);
+            int saberResult = saberBlock > 0 && saberRoll <= saberBlock ?
+                HIT_RESULT_PRECU_RICOCHET : HIT_RESULT_HIT;
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "secondary.profile", "LIGHTSABER");
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "secondary.defenderWeaponTemplate",
+                getTemplateName(defenderWeapon));
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "secondary.evadeSkill", saberBlock);
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "secondary.defendRoll", saberRoll);
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "secondary.result", saberResult);
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "secondary.resultName",
+                getPrecuDiagnosticResultName(saberResult));
+            return saberResult;
+        }
+        int defenderWeaponRow = getPrecuWeaponProfileRow(defenderWeapon);
+        if (defenderWeaponRow < 0)
+        {
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "secondary.profile", "FALLBACK_NO_PROFILE");
+            recordPrecuLiveDiagnostic(
+                attackerData.id,
+                "secondary.defenderWeaponTemplate",
+                isIdValid(defenderWeapon) ? getTemplateName(defenderWeapon) :
+                    "__family_unarmed");
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "secondary.result", PRECU_SECONDARY_RESULT_FALLBACK);
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "secondary.resultName", "FALLBACK");
+            return precuAuthoritativeAttack ?
+                HIT_RESULT_HIT : PRECU_SECONDARY_RESULT_FALLBACK;
+        }
+        String secondaryDefenseSkill = dataTableGetString(PRECU_WEAPON_PROFILES, defenderWeaponRow, "secondaryDefenseSkill");
+        String secondaryDefenseResult = dataTableGetString(PRECU_WEAPON_PROFILES, defenderWeaponRow, "secondaryDefenseResult");
+        if (secondaryDefenseSkill == null || secondaryDefenseSkill.length() == 0 || secondaryDefenseResult == null || secondaryDefenseResult.length() == 0)
+        {
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "secondary.profile", "FALLBACK_INCOMPLETE_PROFILE");
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "secondary.result", PRECU_SECONDARY_RESULT_FALLBACK);
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "secondary.resultName", "FALLBACK");
+            return precuAuthoritativeAttack ?
+                HIT_RESULT_HIT : PRECU_SECONDARY_RESULT_FALLBACK;
+        }
+        if (getState(defenderData.id, STATE_INTIMIDATED) > 0 || getState(defenderData.id, STATE_BERSERK) > 0 || vehicle.isVehicle(defenderData.id))
+        {
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "secondary.profile", "SUPPRESSED");
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "secondary.result", HIT_RESULT_HIT);
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "secondary.resultName", "HIT");
+            return HIT_RESULT_HIT;
+        }
+
+        int actionRow = dataTableSearchColumnForString(actionData.actionName, "actionName", PRECU_COMBAT_OVERRIDES);
+        if (!precuAuthoritativeAttack)
+        {
+            return PRECU_SECONDARY_RESULT_FALLBACK;
+        }
+        int accuracyBonus = actionRow >= 0 ?
+            getPrecuActionAccuracyBonus(attackerData.id, actionRow) : 0;
+        int attackerWeaponRow = getPrecuWeaponProfileRow(weaponData);
+        if (attackerWeaponRow < 0)
+        {
+            return HIT_RESULT_HIT;
+        }
+
+        int defendResult = getPrecuSecondaryDefenseResultCode(secondaryDefenseResult);
+        if (defendResult == PRECU_SECONDARY_RESULT_FALLBACK)
+        {
+            return HIT_RESULT_HIT;
+        }
+        int evadeSkill = getLevel(defenderData.id);
+        evadeSkill += getEnhancedSkillStatisticModifierUncapped(defenderData.id, secondaryDefenseSkill);
+        evadeSkill += getEnhancedSkillStatisticModifierUncapped(defenderData.id, "private_" + secondaryDefenseSkill);
+        if (evadeSkill > 125)
+        {
+            evadeSkill = 125;
+        }
+        if (evadeSkill == 0)
+        {
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "secondary.profile", secondaryDefenseResult);
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "secondary.defenderWeaponTemplate",
+                isIdValid(defenderWeapon) ? getTemplateName(defenderWeapon) :
+                    "__family_unarmed");
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "secondary.skillName", secondaryDefenseSkill);
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "secondary.evadeSkill", evadeSkill);
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "secondary.result", HIT_RESULT_HIT);
+            recordPrecuLiveDiagnostic(
+                attackerData.id, "secondary.resultName", "HIT");
+            return HIT_RESULT_HIT;
+        }
+
+        float accuracyTotal = getPrecuAttackerAccuracyTotal(attackerData, defenderData, attackerWeaponRow, accuracyBonus);
+        int evadeCenter = getEnhancedSkillStatisticModifierUncapped(defenderData.id, "private_center_of_being");
+        int evadePosture = isPrecuRangedWeaponProfile(attackerWeaponRow) ?
+            getPrecuRangedDefenseLocomotionModifier(defenderData.locomotion) :
+            getPrecuMeleeDefenseLocomotionModifier(defenderData.locomotion);
+        int evadeTotal = evadeSkill + evadeCenter + evadePosture;
+        int attackRoll = rand(1, 500);
+        int defendRoll = rand(1, 200);
+        int result = accuracyTotal + attackRoll <= evadeTotal + defendRoll ?
+            defendResult : HIT_RESULT_HIT;
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "secondary.profile", secondaryDefenseResult);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "secondary.defenderWeaponTemplate",
+            isIdValid(defenderWeapon) ? getTemplateName(defenderWeapon) :
+                "__family_unarmed");
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "secondary.skillName", secondaryDefenseSkill);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "secondary.accuracyTotal", accuracyTotal);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "secondary.evadeSkill", evadeSkill);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "secondary.evadeCenter", evadeCenter);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "secondary.evadePosture", evadePosture);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "secondary.evadeTotal", evadeTotal);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "secondary.attackRoll", attackRoll);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "secondary.defendRoll", defendRoll);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "secondary.result", result);
+        recordPrecuLiveDiagnostic(
+            attackerData.id, "secondary.resultName",
+            getPrecuDiagnosticResultName(result));
+        return result;
+    }
+    public int getPrecuSecondaryDefenseResultCode(String secondaryDefenseResult) throws InterruptedException
+    {
+        if (secondaryDefenseResult.equals("BLOCK"))
+        {
+            return HIT_RESULT_BLOCK;
+        }
+        if (secondaryDefenseResult.equals("DODGE"))
+        {
+            return HIT_RESULT_DODGE;
+        }
+        if (secondaryDefenseResult.equals("COUNTER"))
+        {
+            return HIT_RESULT_PRECU_COUNTER;
+        }
+        if (secondaryDefenseResult.equals("RANDOM"))
+        {
+            int resultRoll = rand(1, 3);
+            return resultRoll == 1 ? HIT_RESULT_BLOCK : resultRoll == 2 ? HIT_RESULT_DODGE : HIT_RESULT_PRECU_COUNTER;
+        }
+        return PRECU_SECONDARY_RESULT_FALLBACK;
+    }
+    public boolean doPrecuCounterAttack(obj_id attacker, obj_id defender) throws InterruptedException
+    {
+        // The Publish 14 response command consumes this marker from the
+        // original attacker. Without it the NGE command queue rejects the
+        // otherwise valid legacy default-attack CRC.
+        setObjVar(attacker, "combat.boolCounterAttack", true);
+        startCombat(defender, attacker);
+        return queueCommand(
+            defender,
+            PRECU_COUNTERATTACK_COMMAND,
+            attacker,
+            "",
+            COMMAND_PRIORITY_FRONT);
+    }
+    public float getPrecuWeaponRangeModifier(attacker_data attackerData, defender_data defenderData, int weaponRow) throws InterruptedException
+    {
+        float currentRange = attackerData.worldPos.distance(defenderData.worldPos) - (attackerData.radius + defenderData.radius);
+        if (currentRange < 0.0f)
+        {
+            currentRange = 0.0f;
+        }
+        float pointBlankRange = dataTableGetFloat(PRECU_WEAPON_PROFILES, weaponRow, "pointBlankRange");
+        float pointBlankAccuracy = dataTableGetFloat(PRECU_WEAPON_PROFILES, weaponRow, "pointBlankAccuracy");
+        float idealRange = dataTableGetFloat(PRECU_WEAPON_PROFILES, weaponRow, "idealRange");
+        float idealAccuracy = dataTableGetFloat(PRECU_WEAPON_PROFILES, weaponRow, "idealAccuracy");
+        float maxRange = dataTableGetFloat(PRECU_WEAPON_PROFILES, weaponRow, "maxRange");
+        float maxRangeAccuracy = dataTableGetFloat(PRECU_WEAPON_PROFILES, weaponRow, "maxRangeAccuracy");
+        if (currentRange >= maxRange)
+        {
+            return maxRangeAccuracy;
+        }
+        if (currentRange <= pointBlankRange)
+        {
+            return pointBlankAccuracy;
+        }
+        float smallRange = pointBlankRange;
+        float bigRange = idealRange;
+        float smallAccuracy = pointBlankAccuracy;
+        float bigAccuracy = idealAccuracy;
+        if (currentRange > idealRange)
+        {
+            smallRange = idealRange;
+            bigRange = maxRange;
+            smallAccuracy = idealAccuracy;
+            bigAccuracy = maxRangeAccuracy;
+        }
+        if (bigRange == smallRange)
+        {
+            return idealAccuracy;
+        }
+        return smallAccuracy + ((currentRange - smallRange) / (bigRange - smallRange) * (bigAccuracy - smallAccuracy));
+    }
+    public float getPrecuHitChanceEquation(float attackerAccuracy, float targetDefense) throws InterruptedException
+    {
+        float roll = (attackerAccuracy - targetDefense) / 50.0f;
+        float sign = roll > 0.0f ? 1.0f : roll < 0.0f ? -1.0f : 0.0f;
+        float toHit = 75.0f;
+        for (int i = 1; i <= 3; i++)
+        {
+            if ((roll * sign) > i)
+            {
+                toHit += sign * 25.0f;
+                roll -= sign * i;
+            }
+            else
+            {
+                toHit += (roll / i) * 25.0f;
+                break;
+            }
+        }
+        if (toHit > 100.0f)
+        {
+            return 100.0f;
+        }
+        if (toHit < 0.0f)
+        {
+            return 0.0f;
+        }
+        return toHit;
+    }
+    public boolean isPrecuMovingLocomotion(int locomotion) throws InterruptedException
+    {
+        return locomotion == LOCOMOTION_SNEAKING || locomotion == LOCOMOTION_WALKING || locomotion == LOCOMOTION_RUNNING || locomotion == LOCOMOTION_CRAWLING || locomotion == LOCOMOTION_FLYING;
+    }
+    public int getPrecuRangedAttackLocomotionModifier(int locomotion) throws InterruptedException
+    {
+        switch (locomotion)
+        {
+            case LOCOMOTION_SNEAKING:
+            return -6;
+            case LOCOMOTION_WALKING:
+            return -40;
+            case LOCOMOTION_RUNNING:
+            return -60;
+            case LOCOMOTION_KNEELING:
+            return 15;
+            case LOCOMOTION_PRONE:
+            return 30;
+            case LOCOMOTION_CRAWLING:
+            return -80;
+            case LOCOMOTION_FLYING:
+            return -10;
+            default:
+            return 0;
+        }
+    }
+    public int getPrecuMeleeAttackLocomotionModifier(int locomotion)
+        throws InterruptedException
+    {
+        switch (locomotion)
+        {
+            case LOCOMOTION_SNEAKING:
+            return -20;
+            case LOCOMOTION_WALKING:
+            return 10;
+            case LOCOMOTION_RUNNING:
+            return 25;
+            case LOCOMOTION_KNEELING:
+            return -20;
+            case LOCOMOTION_PRONE:
+            case LOCOMOTION_CRAWLING:
+            return -90;
+            case LOCOMOTION_FLYING:
+            return -10;
+            default:
+            return 0;
+        }
+    }
+    public int getPrecuRangedDefenseLocomotionModifier(int locomotion) throws InterruptedException
+    {
+        switch (locomotion)
+        {
+            case LOCOMOTION_STANDING:
+            return -10;
+            case LOCOMOTION_SNEAKING:
+            return 5;
+            case LOCOMOTION_WALKING:
+            return 25;
+            case LOCOMOTION_RUNNING:
+            return 45;
+            case LOCOMOTION_PRONE:
+            return 25;
+            case LOCOMOTION_CRAWLING:
+            return 5;
+            case LOCOMOTION_HOVERING:
+            return -5;
+            case LOCOMOTION_FLYING:
+            return -10;
+            case LOCOMOTION_KNOCKED_DOWN:
+            return -15;
+            default:
+            return 0;
+        }
+    }
+    public int getPrecuMeleeDefenseLocomotionModifier(int locomotion)
+        throws InterruptedException
+    {
+        switch (locomotion)
+        {
+            case LOCOMOTION_WALKING:
+            return 10;
+            case LOCOMOTION_RUNNING:
+            return 25;
+            case LOCOMOTION_KNEELING:
+            return -20;
+            case LOCOMOTION_PRONE:
+            return -80;
+            case LOCOMOTION_CRAWLING:
+            return -95;
+            case LOCOMOTION_HOVERING:
+            return -5;
+            case LOCOMOTION_FLYING:
+            return -40;
+            case LOCOMOTION_KNOCKED_DOWN:
+            return -15;
+            default:
+            return 0;
+        }
     }
     public int getDefenderResult(attacker_data attackerData, defender_data defenderData, combat_data actionData, boolean autoAim) throws InterruptedException
     {
@@ -2051,6 +3922,30 @@ public class combat_base extends script.base_script
         {
             return getWeaponData(getCurrentWeapon(self));
         }
+        if (isPrecuAuthoritativeAttack(self, actionData))
+        {
+            weapon_data precuWeaponData = weapons.getNewWeaponData(objWeapon);
+            if (precuWeaponData == null)
+            {
+                CustomerServiceLog(
+                    "combat_errors: ",
+                    "getOverloadedWeaponData PRE-CU weaponData: null for objWeapon: " +
+                        objWeapon + " getName(objWeapon): " + getName(objWeapon));
+                precuWeaponData = getWeaponData(getCurrentWeapon(self));
+            }
+            if (precuWeaponData != null)
+            {
+                recordPrecuLiveDiagnostic(
+                    self,
+                    "preparation.elementalValue",
+                    precuWeaponData.elementalValue);
+                recordPrecuLiveDiagnostic(
+                    self, "preparation.ngeElementalMultiplierApplied", 0);
+                recordPrecuLiveDiagnostic(
+                    self, "preparation.ngeWeaponOverloadApplied", 0);
+            }
+            return precuWeaponData;
+        }
         if (actionData.overloadWeapon > 0)
         {
             return weapons.fillWeaponData(objWeapon, actionData);
@@ -2067,8 +3962,18 @@ public class combat_base extends script.base_script
         }
         return weaponData;
     }
-    public dictionary getRawDamage(obj_id attacker, weapon_data weaponData, combat_data actionData, hit_result hitData, float minDamage, float maxDamage, int numTargets) throws InterruptedException
+    public dictionary getRawDamage(obj_id attacker, obj_id defender, weapon_data weaponData, combat_data actionData, hit_result hitData, float minDamage, float maxDamage, int numTargets) throws InterruptedException
     {
+        if (isPrecuAuthoritativeAttack(attacker, actionData))
+        {
+            return getPrecuCore3RawDamage(
+                attacker,
+                defender,
+                weaponData,
+                actionData,
+                minDamage,
+                maxDamage);
+        }
         int addedDamage = actionData.addedDamage;
         if (actionData.attackType == combat.AREA_PROGRESSIVE)
         {
@@ -2080,12 +3985,6 @@ public class combat_base extends script.base_script
             addedDamage = Math.round((float)addedDamage / numTargets);
         }
         float percentAddFromWeapon = actionData.percentAddFromWeapon;
-        if (!combat.checkWeaponCerts(attacker, weaponData, false))
-        {
-            combat.combatLog(attacker, null, "getRawDamage", "Weapon Certification Failed.  Modifying damage to 5 min, 10 max.");
-            minDamage = 5.0f;
-            maxDamage = 10.0f;
-        }
         if (beast_lib.isBeastMaster(attacker) || beast_lib.isBeast(attacker))
         {
             minDamage = minDamage + (minDamage * (beast_lib.getBeastModDamageBonus(attacker) / 100.0f));
@@ -2132,7 +4031,7 @@ public class combat_base extends script.base_script
             maxDamage *= enragedMod;
         }
         combat.combatLog(attacker, null, "getRawDamage", "Final Modified Damage = " + minDamage + "-" + maxDamage);
-        if (minDamage > maxDamage - 1)
+        if (minDamage > maxDamage - 1 && minDamage != maxDamage)
         {
             minDamage = maxDamage - 1;
         }
@@ -2153,6 +4052,187 @@ public class combat_base extends script.base_script
         dict.put("minDamage", minDamage);
         dict.put("maxDamage", maxDamage);
         return dict;
+    }
+    public dictionary getPrecuCore3RawDamage(obj_id attacker, obj_id defender, weapon_data weaponData, combat_data actionData, float minDamage, float maxDamage) throws InterruptedException
+    {
+        int weaponRow = getPrecuWeaponProfileRow(weaponData);
+        float actionMultiplier = actionData.percentAddFromWeapon;
+        String damageSkill = weaponRow >= 0 ?
+            dataTableGetString(
+                PRECU_WEAPON_PROFILES, weaponRow, "damageSkill") : "";
+        int additiveBonus = 0;
+        if (damageSkill != null && damageSkill.length() > 0)
+        {
+            additiveBonus += getEnhancedSkillStatisticModifierUncapped(
+                attacker, damageSkill);
+        }
+        boolean rangedProfile = isPrecuRangedWeaponProfile(weaponRow);
+        int mitigationLevel = 0;
+        boolean fixedDamage = actionData.precuFixedMinDamage >= 0 &&
+            actionData.precuFixedMaxDamage >= 0;
+        if (!fixedDamage && isPlayer(defender))
+        {
+            String mitigationPrefix = rangedProfile ?
+                "ranged_damage_mitigation_" :
+                "melee_damage_mitigation_";
+            for (int level = 3; level > 0; --level)
+            {
+                if (hasCommand(defender, mitigationPrefix + level))
+                {
+                    mitigationLevel = level;
+                    break;
+                }
+            }
+            if (mitigationLevel > 0)
+            {
+                maxDamage = minDamage +
+                    (maxDamage - minDamage) *
+                        (1.0f - 0.2f * mitigationLevel);
+            }
+        }
+        additiveBonus += getEnhancedSkillStatisticModifierUncapped(
+            attacker,
+            rangedProfile ? "private_ranged_damage_bonus" :
+                "private_melee_damage_bonus");
+        additiveBonus += getEnhancedSkillStatisticModifierUncapped(
+            attacker, "private_damage_bonus");
+        minDamage += additiveBonus;
+        maxDamage += additiveBonus;
+
+        int damageMultiplier = getEnhancedSkillStatisticModifierUncapped(
+            attacker, "private_damage_multiplier");
+        if (damageMultiplier != 0)
+        {
+            minDamage *= damageMultiplier;
+            maxDamage *= damageMultiplier;
+        }
+        int damageDivisor = getEnhancedSkillStatisticModifierUncapped(
+            attacker, "private_damage_divisor");
+        if (damageDivisor != 0)
+        {
+            minDamage /= damageDivisor;
+            maxDamage /= damageDivisor;
+        }
+
+        float stateReduction =
+            getEnhancedSkillStatisticModifierUncapped(
+                attacker, "private_damage_divisor_intimidate") +
+            getEnhancedSkillStatisticModifierUncapped(
+                attacker, "private_damage_divisor_stun");
+        if (stateReduction > 100.0f)
+        {
+            stateReduction = 100.0f;
+        }
+        if (stateReduction > 0.0f)
+        {
+            float stateMultiplier = 1.0f - stateReduction / 100.0f;
+            minDamage *= stateMultiplier;
+            maxDamage *= stateMultiplier;
+        }
+
+        int susceptibility = getEnhancedSkillStatisticModifierUncapped(
+            defender, "private_damage_susceptibility");
+        minDamage += susceptibility;
+        maxDamage += susceptibility;
+        if (isPlayer(attacker))
+        {
+            minDamage *= 1.5f;
+            maxDamage *= 1.5f;
+        }
+        if (!rangedProfile)
+        {
+            minDamage *= 1.25f;
+            maxDamage *= 1.25f;
+        }
+        if (getPosture(defender) == POSTURE_KNOCKED_DOWN)
+        {
+            minDamage *= 1.5f;
+            maxDamage *= 1.5f;
+        }
+
+        obj_id defenderWeapon = getHeldWeapon(defender);
+        if (!isIdValid(defenderWeapon))
+        {
+            defenderWeapon = getCurrentWeapon(defender);
+        }
+        int defenderWeaponRow = getPrecuWeaponProfileRow(defenderWeapon);
+        String toughnessSkill = defenderWeaponRow >= 0 ?
+            dataTableGetString(
+                PRECU_WEAPON_PROFILES,
+                defenderWeaponRow,
+                "toughnessSkill") : "";
+        boolean matchingAttackType = defenderWeaponRow >= 0 &&
+            isPrecuRangedWeaponProfile(defenderWeaponRow) == rangedProfile;
+        int weaponToughness = matchingAttackType && toughnessSkill != null &&
+            toughnessSkill.length() > 0 ?
+                getEnhancedSkillStatisticModifierUncapped(
+                    defender, toughnessSkill) : 0;
+        if (weaponToughness > 100)
+        {
+            weaponToughness = 100;
+        }
+        if (weaponToughness > 0)
+        {
+            float toughnessMultiplier =
+                1.0f - weaponToughness / 100.0f;
+            minDamage *= toughnessMultiplier;
+            maxDamage *= toughnessMultiplier;
+        }
+        int jediToughness = 0;
+        if (!isPrecuLightsaberWeaponType(weaponData.weaponType))
+        {
+            jediToughness = getEnhancedSkillStatisticModifierUncapped(
+                defender, "jedi_toughness");
+        }
+        if (jediToughness > 100)
+        {
+            jediToughness = 100;
+        }
+        if (jediToughness > 0)
+        {
+            float toughnessMultiplier =
+                1.0f - jediToughness / 100.0f;
+            minDamage *= toughnessMultiplier;
+            maxDamage *= toughnessMultiplier;
+        }
+        if (isPlayer(attacker) && isPlayer(defender))
+        {
+            minDamage *= 0.25f;
+            maxDamage *= 0.25f;
+        }
+        if (minDamage < 1.0f)
+        {
+            minDamage = 1.0f;
+        }
+        if (maxDamage < minDamage)
+        {
+            maxDamage = minDamage;
+        }
+        minDamage *= actionMultiplier;
+        maxDamage *= actionMultiplier;
+
+        recordPrecuLiveDiagnostic(
+            attacker, "damage.pipeline", "PRECU_CORE3");
+        recordPrecuLiveDiagnostic(
+            attacker, "damage.actionMultiplier", actionMultiplier);
+        recordPrecuLiveDiagnostic(
+            attacker, "damage.additiveBonus", additiveBonus);
+        recordPrecuLiveDiagnostic(
+            attacker, "damage.stateReduction", stateReduction);
+        recordPrecuLiveDiagnostic(
+            attacker, "damage.mitigationLevel", mitigationLevel);
+        recordPrecuLiveDiagnostic(
+            attacker, "damage.weaponToughness", weaponToughness);
+        recordPrecuLiveDiagnostic(
+            attacker, "damage.jediToughness", jediToughness);
+        recordPrecuLiveDiagnostic(
+            attacker, "damage.minimum", minDamage);
+        recordPrecuLiveDiagnostic(
+            attacker, "damage.maximum", maxDamage);
+        dictionary result = new dictionary();
+        result.put("minDamage", minDamage);
+        result.put("maxDamage", maxDamage);
+        return result;
     }
     public int expertiseDamageModify(obj_id attacker, obj_id defender, hit_result hitData, combat_data actionData) throws InterruptedException
     {
@@ -2232,6 +4312,14 @@ public class combat_base extends script.base_script
         hitData.rawDamage = hitData.damage;
         int maxDamage = hitData.rawDamage + weaponData.elementalValue;
         String dotType = actionData.dotType;
+        boolean precuAuthoritativeAttack =
+            isPrecuAuthoritativeAttack(attacker, actionData);
+        float expertiseDamageBonus = 0;
+        obj_id expert = attacker;
+        String specialLine = actionData.specialLine;
+        String actionName = actionData.actionName;
+        if (!precuAuthoritativeAttack)
+        {
         if (utils.hasScriptVar(defender, "elemental_vulnerability.type_heat"))
         {
             float value = utils.getFloatScriptVar(defender, "elemental_vulnerability.type_heat.value");
@@ -2337,7 +4425,6 @@ public class combat_base extends script.base_script
                 dotIntensity = (int)(hitData.rawDamage * actionData.percentAddFromWeapon);
             }
             String specialName = actionData.actionName;
-            String specialLine = actionData.specialLine;
             int expertiseDotDurationBonus = 0;
             float expertiseDotDamageBonus = getEnhancedSkillStatisticModifierUncapped(attacker, "expertise_damage_all");
             if (isMob(defender) && !isPlayer(defender) && !isIdValid(getMaster(defender)))
@@ -2353,7 +4440,9 @@ public class combat_base extends script.base_script
             float dotIntensityFloat = dotIntensity * (1.0f + (expertiseDotDamageBonus / 100.0f));
             dotIntensity = (int)dotIntensityFloat;
             dotDuration += expertiseDotDurationBonus;
-            int targetAttrib = dotType.equals("disease") ? ACTION : HEALTH;
+            int targetAttrib = actionData.precuDotAttribute >= 0 ?
+                actionData.precuDotAttribute :
+                (dotType.equals("disease") ? ACTION : HEALTH);
             boolean rslt = dot.applyDotEffect(defender, attacker, dotType, dotType + "" + attacker, targetAttrib, 100, dotIntensity, dotDuration);
         }
         hitData.damage = (hitData.rawDamage);
@@ -2363,8 +4452,6 @@ public class combat_base extends script.base_script
             hitData.damageType = actionData.overloadWeaponDamageType;
         }
         hitData.damage = expertiseDamageModify(attacker, defender, hitData, actionData);
-        float expertiseDamageBonus = 0;
-        obj_id expert = attacker;
         if (!isPlayer(attacker) && utils.hasScriptVar(attacker, "objOwner"))
         {
             expert = utils.getObjIdObjVar(attacker, "objOwner");
@@ -2392,8 +4479,6 @@ public class combat_base extends script.base_script
                 expertiseDamageBonus += getEnhancedSkillStatisticModifierUncapped(expert, "expertise_damage_ranged");
             }
         }
-        String specialLine = actionData.specialLine;
-        String actionName = actionData.actionName;
         if (specialLine != null && !specialLine.equals(""))
         {
             expertiseDamageBonus += getEnhancedSkillStatisticModifierUncapped(defender, "expertise_damage_line_vulnerability_" + specialLine);
@@ -2451,49 +4536,409 @@ public class combat_base extends script.base_script
         hitData.damage -= getEnhancedSkillStatisticModifierUncapped(expert, "combat_subtract_damage_dealt");
         hitData.damage += getEnhancedSkillStatisticModifierUncapped(defender, "combat_add_damage_taken");
         hitData.damage -= getEnhancedSkillStatisticModifierUncapped(defender, "combat_subtract_damage_taken");
+        }
+        else
+        {
+            hitData.damage = hitData.rawDamage;
+            hitData.damageType = weaponData.damageType;
+            if (dotType != null && dotType.length() > 0)
+            {
+                int dotIntensity = actionData.dotIntensity;
+                if (dotIntensity == 0)
+                {
+                    dotIntensity = (int)(
+                        hitData.rawDamage * actionData.percentAddFromWeapon);
+                }
+                int targetAttrib = actionData.precuDotAttribute >= 0 ?
+                    actionData.precuDotAttribute :
+                    (dotType.equals("disease") ? ACTION : HEALTH);
+                dot.applyDotEffect(
+                    defender,
+                    attacker,
+                    dotType,
+                    dotType + "" + attacker,
+                    targetAttrib,
+                    100,
+                    dotIntensity,
+                    actionData.dotDuration);
+            }
+            recordPrecuLiveDiagnostic(
+                attacker, "damage.ngeExpertiseApplied", 0);
+            recordPrecuLiveDiagnostic(
+                attacker, "damage.ngeKillMeterApplied", 0);
+            recordPrecuLiveDiagnostic(
+                attacker, "damage.ngeNicheApplied", 0);
+        }
         if (isPlayer(attacker))
         {
             session.logActivity(attacker, isPlayer(defender) ? session.ACTIVITY_PVP : session.ACTIVITY_PVE);
         }
-        hitData.blockedDamage += combat.applyArmorProtection(attacker, defender, weaponData, hitData, armorBypass, expertiseDamageBonus);
+        boolean precuRolledPoolDamage =
+            actionData.precuPoolDamageRolls > 0 &&
+            actionData.precuPoolDamageIncrement > 0.0f;
+        boolean precuAllPoolDamage =
+            actionData.precuTargetPool == PRECU_TARGET_POOL_MULTI &&
+            !precuRolledPoolDamage;
+        boolean precuMultiPoolDamage =
+            precuRolledPoolDamage || precuAllPoolDamage;
+        boolean precuConfiguredPoolMultipliers =
+            actionData.precuHealthDamageMultiplier > 0.0f ||
+            actionData.precuActionDamageMultiplier > 0.0f ||
+            actionData.precuMindDamageMultiplier > 0.0f;
+        float[] precuPoolMultipliers = precuAllPoolDamage ?
+            (precuConfiguredPoolMultipliers ?
+                new float[] {
+                    actionData.precuHealthDamageMultiplier,
+                    actionData.precuActionDamageMultiplier,
+                    actionData.precuMindDamageMultiplier
+                } :
+                new float[] {1.0f, 1.0f, 1.0f}) :
+            new float[] {0.0f, 0.0f, 0.0f};
+        int precuActivePoolMask = precuAllPoolDamage ? 7 : 0;
+        if (precuRolledPoolDamage)
+        {
+            for (int roll = 0; roll < actionData.precuPoolDamageRolls; ++roll)
+            {
+                int pool = rand(0, 2);
+                precuPoolMultipliers[pool] +=
+                    actionData.precuPoolDamageIncrement;
+                recordPrecuLiveDiagnostic(
+                    attacker, "poolDamage.roll" + (roll + 1), pool);
+            }
+            for (int pool = 0; pool < precuPoolMultipliers.length; ++pool)
+            {
+                if (precuPoolMultipliers[pool] > 0.0f)
+                {
+                    precuActivePoolMask |= 1 << pool;
+                    hitData.hitLocation =
+                        combat.selectPrecuHitLocationForPool(pool);
+                }
+            }
+        }
+        int precuResolvedTargetPool = actionData.precuTargetPool;
+        if (!precuMultiPoolDamage &&
+            precuResolvedTargetPool < 0 &&
+            precuResolvedTargetPool != PRECU_TARGET_POOL_NO_ATTRIBUTE &&
+            hasObjVar(attacker, "precu.combatProfile"))
+        {
+            precuResolvedTargetPool = combat.resolvePrecuTargetPool(
+                combat.PRECU_TARGET_POOL_RANDOM);
+        }
+        if (!precuMultiPoolDamage &&
+            precuResolvedTargetPool == combat.PRECU_TARGET_POOL_RANDOM)
+        {
+            precuResolvedTargetPool =
+                combat.resolvePrecuTargetPool(precuResolvedTargetPool);
+        }
+        recordPrecuLiveDiagnostic(
+            attacker, "targetPool.configured", actionData.precuTargetPool);
+        recordPrecuLiveDiagnostic(
+            attacker, "targetPool.resolved", precuResolvedTargetPool);
+        recordPrecuLiveDiagnostic(
+            attacker, "poolDamage.rolls", actionData.precuPoolDamageRolls);
+        recordPrecuLiveDiagnostic(
+            attacker, "poolDamage.increment",
+            actionData.precuPoolDamageIncrement);
+        recordPrecuLiveDiagnostic(
+            attacker, "poolDamage.activeMask", precuActivePoolMask);
+        if (precuResolvedTargetPool >= 0 || precuMultiPoolDamage)
+        {
+            if (!precuMultiPoolDamage)
+            {
+                hitData.hitLocation =
+                    combat.selectPrecuHitLocationForPool(
+                        precuResolvedTargetPool);
+            }
+            int armorPiercing = 0;
+            int weaponRow = getPrecuWeaponProfileRow(weaponData);
+            if (weaponRow >= 0)
+            {
+                armorPiercing = dataTableGetInt(
+                    PRECU_WEAPON_PROFILES, weaponRow, "armorPiercing");
+            }
+            int rawMitigationDamage =
+                Math.max(0, hitData.damage) + Math.max(0, weaponData.elementalValue);
+            recordPrecuLiveDiagnostic(
+                attacker, "armor.rawDamage", rawMitigationDamage);
+            recordPrecuLiveDiagnostic(
+                attacker, "armor.hitLocation", hitData.hitLocation);
+            recordPrecuLiveDiagnostic(
+                attacker, "armor.piercing", armorPiercing);
+
+            if (isPlayer(defender))
+            {
+                int armorMitigated = combat.applyPrecuArmorProtection(
+                    defender, weaponData, hitData, armorPiercing);
+                int postArmorDamage =
+                    hitData.damage + hitData.elementalDamage;
+                int foodMitigated =
+                    combat.applyPrecuFoodMitigation(defender, hitData);
+                hitData.blockedDamage += armorMitigated + foodMitigated;
+                recordPrecuLiveDiagnostic(
+                    attacker, "armor.postArmorDamage", postArmorDamage);
+                recordPrecuLiveDiagnostic(
+                    attacker, "armor.foodMitigated", foodMitigated);
+                recordPrecuLiveDiagnostic(
+                    attacker,
+                    "armor.finalDamage",
+                    hitData.damage + hitData.elementalDamage);
+                recordPrecuLiveDiagnostic(
+                    attacker,
+                    "armor.rating",
+                    isIdValid(hitData.blockingArmor) ?
+                        combat.getPrecuArmorRating(hitData.blockingArmor) : 0);
+                recordPrecuLiveDiagnostic(
+                    attacker,
+                    "armor.protection",
+                    isIdValid(hitData.blockingArmor) ?
+                        combat.getPrecuArmorObjectProtection(
+                            hitData.blockingArmor,
+                            weaponData.damageType,
+                            armor.isPsg(hitData.blockingArmor)) :
+                        0.0f);
+            }
+            else if (hasObjVar(defender, "precu.combatProfile"))
+            {
+                int creatureArmorMitigated =
+                    combat.applyPrecuCreatureArmorProtection(
+                    defender,
+                    weaponData,
+                    hitData,
+                    armorPiercing);
+                hitData.blockedDamage += creatureArmorMitigated;
+                recordPrecuLiveDiagnostic(
+                    attacker,
+                    "armor.postArmorDamage",
+                    hitData.damage + hitData.elementalDamage);
+                recordPrecuLiveDiagnostic(
+                    attacker, "armor.foodMitigated", 0);
+                recordPrecuLiveDiagnostic(
+                    attacker,
+                    "armor.finalDamage",
+                    hitData.damage + hitData.elementalDamage);
+                recordPrecuLiveDiagnostic(
+                    attacker,
+                    "armor.rating",
+                    combat.getPrecuCreatureArmorRating(defender));
+                recordPrecuLiveDiagnostic(
+                    attacker,
+                    "armor.protection",
+                    combat.getPrecuCreatureArmorResistance(
+                        defender, weaponData.damageType));
+            }
+            else
+            {
+                hitData.blockedDamage += combat.applyArmorProtection(
+                    attacker,
+                    defender,
+                    weaponData,
+                    hitData,
+                    armorBypass,
+                    expertiseDamageBonus);
+                recordPrecuLiveDiagnostic(
+                    attacker,
+                    "armor.postArmorDamage",
+                    hitData.damage + hitData.elementalDamage);
+                recordPrecuLiveDiagnostic(
+                    attacker, "armor.foodMitigated", 0);
+                recordPrecuLiveDiagnostic(
+                    attacker,
+                    "armor.finalDamage",
+                    hitData.damage + hitData.elementalDamage);
+                recordPrecuLiveDiagnostic(attacker, "armor.rating", -1);
+                recordPrecuLiveDiagnostic(attacker, "armor.protection", -1.0f);
+            }
+        }
+        else
+        {
+            hitData.blockedDamage += combat.applyArmorProtection(
+                attacker,
+                defender,
+                weaponData,
+                hitData,
+                armorBypass,
+                expertiseDamageBonus);
+        }
         if (hitData.damage < 0)
         {
             hitData.damage = 0;
         }
-        healing.applyLifeSiphonHeal(attacker, defender, hitData.damage, siphonLife, actionData.actionName);
-        int addDefenderDamageToAction = getSkillStatisticModifier(defender, "expertise_damage_add_to_action");
-        if (addDefenderDamageToAction > 0)
+        if (!precuAuthoritativeAttack)
         {
-            int actionToAdd = (int)(hitData.damage * (float)(addDefenderDamageToAction / 100.0f));
-            combat.gainCombatActionAttribute(defender, actionToAdd);
-            if (rand(0, 9) < 1)
+            healing.applyLifeSiphonHeal(
+                attacker,
+                defender,
+                hitData.damage,
+                siphonLife,
+                actionData.actionName);
+            int addDefenderDamageToAction = getSkillStatisticModifier(
+                defender, "expertise_damage_add_to_action");
+            if (addDefenderDamageToAction > 0)
             {
-                playClientEffectObj(defender, "appearance/pt_jedi_reactive_response.prt", defender, "root");
+                int actionToAdd = (int)(
+                    hitData.damage *
+                    (float)(addDefenderDamageToAction / 100.0f));
+                combat.gainCombatActionAttribute(defender, actionToAdd);
+                if (rand(0, 9) < 1)
+                {
+                    playClientEffectObj(
+                        defender,
+                        "appearance/pt_jedi_reactive_response.prt",
+                        defender,
+                        "root");
+                }
             }
-        }
-        int addAttackerDamageToAction = getSkillStatisticModifier(attacker, "expertise_attacker_action_gain");
-        if (addAttackerDamageToAction > 0)
-        {
-            int actionToAdd = (int)(hitData.damage * (float)(addAttackerDamageToAction / 100.0f));
-            combat.gainCombatActionAttribute(attacker, actionToAdd);
-            if (rand(0, 9) < 1)
+            int addAttackerDamageToAction = getSkillStatisticModifier(
+                attacker, "expertise_attacker_action_gain");
+            if (addAttackerDamageToAction > 0)
             {
-                playClientEffectObj(attacker, "appearance/pt_jedi_tempt_hatred.prt", attacker, "");
+                int actionToAdd = (int)(
+                    hitData.damage *
+                    (float)(addAttackerDamageToAction / 100.0f));
+                combat.gainCombatActionAttribute(attacker, actionToAdd);
+                if (rand(0, 9) < 1)
+                {
+                    playClientEffectObj(
+                        attacker,
+                        "appearance/pt_jedi_tempt_hatred.prt",
+                        attacker,
+                        "");
+                }
             }
         }
         target_dummy.sendTargetDummyCombatData(attacker, defender, actionData, hitData);
-        doDamage(attacker, defender, hitData);
-        int expertiseActionDamage = 0;
-        if (specialLine != null && specialLine.length() > 0)
+        boolean damageApplied = false;
+        int precuWoundPoolMask = 0;
+        if (precuMultiPoolDamage)
         {
-            expertiseActionDamage = getSkillStatisticModifier(attacker, "expertise_action_damage_line_" + specialLine);
+            int basePoolDamage =
+                Math.max(0, hitData.damage + hitData.elementalDamage);
+            int activePoolCount = 0;
+            for (int pool = 0; pool < precuPoolMultipliers.length; ++pool)
+            {
+                if (precuPoolMultipliers[pool] > 0.0f)
+                {
+                    ++activePoolCount;
+                }
+            }
+            int spillPoolCount = 3 - activePoolCount;
+            float spillMultiplierPerPool =
+                (0.0834f * spillPoolCount) /
+                    (float)Math.max(activePoolCount, 1);
+            int[] poolDamage = new int[] {0, 0, 0};
+            int totalSpillDamage = 0;
+            for (int pool = 0; pool < precuPoolMultipliers.length; ++pool)
+            {
+                float multiplier = precuPoolMultipliers[pool];
+                int rawPoolDamage = (int)(basePoolDamage * multiplier);
+                int spilledDamage =
+                    (int)(rawPoolDamage * spillMultiplierPerPool);
+                if (multiplier > 0.0f)
+                {
+                    poolDamage[pool] = rawPoolDamage - spilledDamage;
+                    totalSpillDamage += spilledDamage;
+                }
+                recordPrecuLiveDiagnostic(
+                    attacker, "poolDamage.multiplier" + pool, multiplier);
+                recordPrecuLiveDiagnostic(
+                    attacker, "poolDamage.direct" + pool, poolDamage[pool]);
+            }
+            if (spillPoolCount > 0)
+            {
+                int spillDamagePerPool =
+                    totalSpillDamage / spillPoolCount;
+                int spillRemainder =
+                    (totalSpillDamage % spillPoolCount) +
+                        spillDamagePerPool;
+                int spillToApply =
+                    spillPoolCount > 1 ?
+                        spillDamagePerPool : spillRemainder;
+                for (int pool = 0; pool < precuPoolMultipliers.length; ++pool)
+                {
+                    if (precuPoolMultipliers[pool] <= 0.0f)
+                    {
+                        poolDamage[pool] += spillToApply;
+                    }
+                }
+            }
+            int totalAppliedDamage = 0;
+            for (int pool = 0; pool < poolDamage.length; ++pool)
+            {
+                int damage = poolDamage[pool];
+                recordPrecuLiveDiagnostic(
+                    attacker, "poolDamage.applied" + pool, damage);
+                if (damage <= 0)
+                {
+                    continue;
+                }
+                hit_result poolHit = new hit_result();
+                poolHit.damage = damage;
+                poolHit.hitLocation =
+                    combat.selectPrecuHitLocationForPool(pool);
+                boolean poolApplied =
+                    doDamageToPool(attacker, defender, poolHit, pool);
+                damageApplied = poolApplied || damageApplied;
+                if (poolApplied)
+                {
+                    totalAppliedDamage += damage;
+                    if ((precuActivePoolMask & (1 << pool)) != 0)
+                    {
+                        precuWoundPoolMask |= 1 << pool;
+                    }
+                }
+            }
+            hitData.damage = totalAppliedDamage;
+            hitData.elementalDamage = 0;
+            recordPrecuLiveDiagnostic(
+                attacker, "poolDamage.totalApplied", totalAppliedDamage);
         }
-        int flatActionDamage = getAction(defender) < actionData.flatActionDamage + expertiseActionDamage ? getAction(defender) : actionData.flatActionDamage + expertiseActionDamage;
-        if (flatActionDamage > 0)
+        else if (precuResolvedTargetPool == PRECU_TARGET_POOL_NO_ATTRIBUTE)
         {
-            drainAttributes(defender, flatActionDamage, 0);
+            hitData.damage = 0;
+            hitData.elementalDamage = 0;
+            damageApplied = false;
         }
-        doKillMeterUpdate(attacker, defender, hitData.damage);
+        else if (precuResolvedTargetPool >= 0)
+        {
+            damageApplied =
+                doDamageToPool(
+                    attacker, defender, hitData, precuResolvedTargetPool);
+            if (damageApplied)
+            {
+                precuWoundPoolMask = 1 << precuResolvedTargetPool;
+            }
+        }
+        else
+        {
+            damageApplied = doDamage(attacker, defender, hitData);
+        }
+        applyPrecuWounds(
+            attacker,
+            defender,
+            weaponData,
+            actionData,
+            precuWoundPoolMask,
+            damageApplied && hitData.damage + hitData.elementalDamage > 0);
+        if (!precuAuthoritativeAttack)
+        {
+            int expertiseActionDamage = 0;
+            if (specialLine != null && specialLine.length() > 0)
+            {
+                expertiseActionDamage = getSkillStatisticModifier(
+                    attacker,
+                    "expertise_action_damage_line_" + specialLine);
+            }
+            int flatActionDamage =
+                getAction(defender) <
+                    actionData.flatActionDamage + expertiseActionDamage ?
+                    getAction(defender) :
+                    actionData.flatActionDamage + expertiseActionDamage;
+            if (flatActionDamage > 0)
+            {
+                drainAttributes(defender, flatActionDamage, 0);
+            }
+            doKillMeterUpdate(attacker, defender, hitData.damage);
+        }
         if (isPlayer(attacker))
         {
             string_id strSpam = new string_id("combat_effects", "damage_fly");
@@ -2719,7 +5164,8 @@ public class combat_base extends script.base_script
                 combat.combatLog(attacker, defender, "validateDefenders", "Invalid Target - Target is Dead");
                 continue;
             }
-            if (isOffensiveAction && isIncapacitated(defender)) {
+            if (isOffensiveAction && isIncapacitated(defender) &&
+                actionData.precuHitIncapacitatedTarget == 0) {
                 combat.combatLog(attacker, defender, "validateDefenders", "Invalid Target - Target is Incapped");
                 continue;
             }

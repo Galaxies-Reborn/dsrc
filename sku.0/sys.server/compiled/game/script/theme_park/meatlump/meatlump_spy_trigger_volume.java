@@ -60,7 +60,7 @@ public class meatlump_spy_trigger_volume extends script.base_script
         blog("Sending Signal!");
         groundquests.sendSignal(whoTriggeredMe, QUEST_SIGNAL);
         blog("Signal Sent!");
-        int mobLevel = getLevel(whoTriggeredMe);
+        int mobLevel = script.library.skill.getPrecuEncounterDifficulty(whoTriggeredMe);
         location curLoc = getLocation(self);
         blog("Creating Mob");
         obj_id mob = create.object(ENEMY_MOB, curLoc, mobLevel);

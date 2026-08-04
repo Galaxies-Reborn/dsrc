@@ -59,7 +59,7 @@ public class outbreak_defense_zsu_val_epsilon extends script.base_script
     }
     public boolean outbreak_defense_zsu_val_epsilon_condition_levelTooLow(obj_id player, obj_id npc) throws InterruptedException
     {
-        return getLevel(player) < 80;
+        return script.library.skill.getPrecuEncounterDifficulty(player) < 80;
     }
     public boolean outbreak_defense_zsu_val_epsilon_condition_noAntiVirus(obj_id player, obj_id npc) throws InterruptedException
     {

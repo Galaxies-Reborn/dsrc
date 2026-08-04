@@ -32,18 +32,53 @@ public class control_terminal extends script.base_script
     public static final String VAR_ACCESS_DELAY = "gcw.static_base.access_delay";
     public static final String VAR_ICON_OBJECT = "gcw.static_base.icon_object";
     public static final String SCRIPT_VAR_CAPTURING = "gcw.static_base.control_terminal.capturing";
+    public void cleanupRetiredFixedStaticBaseTerminal(obj_id self) throws InterruptedException
+    {
+        if (!gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            return;
+        }
+        removePlanetaryMapLocation(self);
+        if (hasObjVar(self, VAR_ICON_OBJECT))
+        {
+            obj_id icon = getObjIdObjVar(self, VAR_ICON_OBJECT);
+            if (isIdValid(icon))
+            {
+                destroyObject(icon);
+            }
+        }
+        removeObjVar(self, "gcw.static_base");
+        utils.removeScriptVarTree(self, "gcw.static_base.control_terminal");
+        detachScript(self, "systems.gcw.static_base.control_terminal");
+        destroyObject(self);
+    }
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBaseTerminal(self);
+            return SCRIPT_CONTINUE;
+        }
         registerTerminalWithMap(self);
         return SCRIPT_CONTINUE;
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBaseTerminal(self);
+            return SCRIPT_CONTINUE;
+        }
         registerTerminalWithMap(self);
         return SCRIPT_CONTINUE;
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBaseTerminal(self);
+            return SCRIPT_OVERRIDE;
+        }
         menu_info_data mid = mi.getMenuItemByType(menu_info_types.ITEM_USE);
         mid.setLabel(SID_CONTROL_TERMINAL_MENU_USE);
         mid.setServerNotify(true);
@@ -51,6 +86,11 @@ public class control_terminal extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBaseTerminal(self);
+            return SCRIPT_OVERRIDE;
+        }
         if (item == menu_info_types.ITEM_USE)
         {
             if (getDistance(self, player) > 3.0f)
@@ -126,6 +166,11 @@ public class control_terminal extends script.base_script
     }
     public void startControlAttempt(obj_id self, obj_id player) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBaseTerminal(self);
+            return;
+        }
         int gameTime = getGameTime();
         utils.setScriptVar(self, SCRIPT_VAR_CAPTURING, gameTime);
         utils.setScriptVar(player, SCRIPT_VAR_CAPTURING, gameTime);
@@ -143,6 +188,11 @@ public class control_terminal extends script.base_script
     }
     public void registerTerminalWithMap(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBaseTerminal(self);
+            return;
+        }
         int terminalFaction = pvpGetAlignedFaction(self);
         String color = "";
         if (terminalFaction == (-615855020))
@@ -160,6 +210,16 @@ public class control_terminal extends script.base_script
     }
     public int handleControlAttemptResults(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            obj_id player = params.getObjId("player");
+            if (isIdValid(player))
+            {
+                utils.removeScriptVarTree(player, "gcw.static_base.control_terminal");
+            }
+            cleanupRetiredFixedStaticBaseTerminal(self);
+            return SCRIPT_CONTINUE;
+        }
         int pid = params.getInt("id");
         obj_id player = params.getObjId("player");
         if (!isIdValid(player))
@@ -278,6 +338,11 @@ public class control_terminal extends script.base_script
     }
     public int handleTerminalInitialization(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBaseTerminal(self);
+            return SCRIPT_CONTINUE;
+        }
         obj_id master = params.getObjId("master");
         int id = params.getInt("id");
         int control = params.getInt("control");
@@ -323,6 +388,11 @@ public class control_terminal extends script.base_script
     }
     public int handleTerminalValidationRequest(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBaseTerminal(self);
+            return SCRIPT_CONTINUE;
+        }
         obj_id master = params.getObjId("master");
         if (!isIdValid(master))
         {

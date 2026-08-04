@@ -13,12 +13,12 @@ public class npc_token extends script.base_script
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
-        storyteller.resetTokenDailyCount(self);
+        detachScript(self, "systems.storyteller.npc_token");
         return SCRIPT_CONTINUE;
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
-        storyteller.resetTokenDailyCount(self);
+        detachScript(self, "systems.storyteller.npc_token");
         return SCRIPT_CONTINUE;
     }
     public int storytellerEffectTokenDailyAlarm(obj_id self, dictionary params) throws InterruptedException

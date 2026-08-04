@@ -50,25 +50,25 @@ public class healing extends script.base_script
     public static final int VAR_MAX_BUFF_TIME = 7200;
     public static final float VAR_BUFF_MOD_ATTACK = 10.0f;
     public static final float VAR_BUFF_MOD_DECAY = 10.0f;
-    public static final int VAR_HEALDAMAGE_COST = 100;
-    public static final int VAR_HEALWOUND_COST = 250;
+    public static final int VAR_HEALDAMAGE_COST = 50;
+    public static final int VAR_HEALWOUND_COST = 50;
     public static final int VAR_HEALSTATE_COST = 150;
-    public static final int VAR_HEALENHANCE_COST = 250;
+    public static final int VAR_HEALENHANCE_COST = 150;
     public static final int VAR_FIRSTAID_COST = 125;
-    public static final int VAR_CURE_POISON_COST = 200;
-    public static final int VAR_CURE_FIRE_COST = 350;
-    public static final int VAR_CURE_DISEASE_COST = 200;
+    public static final int VAR_CURE_POISON_COST = 100;
+    public static final int VAR_CURE_FIRE_COST = 100;
+    public static final int VAR_CURE_DISEASE_COST = 100;
     public static final int VAR_APPLY_POISON_COST = 150;
     public static final int VAR_APPLY_DISEASE_COST = 150;
     public static final int VAR_QUICK_HEAL_COST = 500;
-    public static final int VAR_TEND_WOUND_COST = 500;
-    public static final int VAR_TEND_DAMAGE_COST = 250;
+    public static final int VAR_TEND_WOUND_COST = 400;
+    public static final int VAR_TEND_DAMAGE_COST = 200;
     public static final int VAR_QUICK_HEAL_WOUND_COST = 10;
     public static final int VAR_QUICK_HEAL_BASE_POWER = 400;
-    public static final int VAR_TEND_WOUND_WOUND_COST = 7;
-    public static final int VAR_TEND_WOUND_BASE_POWER = 15;
+    public static final int VAR_TEND_WOUND_WOUND_COST = 5;
+    public static final int VAR_TEND_WOUND_BASE_POWER = 20;
     public static final int VAR_TEND_DAMAGE_WOUND_COST = 5;
-    public static final int VAR_TEND_DAMAGE_BASE_POWER = 75;
+    public static final int VAR_TEND_DAMAGE_BASE_POWER = 20;
     public static final int VAR_HEAL_MIND_COST = 100;
     public static final int VAR_HEAL_MIND_WOUND_COST = 40;
     public static final int VAR_HEAL_MIND_BASE_POWER = 500;
@@ -76,7 +76,7 @@ public class healing extends script.base_script
     public static final float VAR_STIMPACK_DROID_RADIUS = 30.0f;
     public static final int VAR_AUTO_REPAIR_PULSE_INTERVAL = 10;
     public static final int VAR_AUTO_REPAIR_MIN_INTERVAL = 2;
-    public static final int COST_MIND_REVIVE = 500;
+    public static final int COST_MIND_REVIVE = 200;
     public static final int REVIVE_TIMER = 1800;
     public static final float HEALING_KILL_CREDIT_MULTIPLIER = 0.1f;
     public static final float HEALING_AGGRO_REDUCER = 10.0f;
@@ -1961,22 +1961,30 @@ public class healing extends script.base_script
         int experience = 0;
         int total_healed = 0;
         String exp_type;
-        boolean directGrant = false;
+        boolean immediateGrant = false;
         for (int i1 : healed_damage) {
             total_healed = total_healed + i1;
         }
         switch (heal_type) {
             case HEAL_TYPE_MEDICAL_DAMAGE:
-                experience = total_healed;
+                if (!isIdValid(target) || target == player ||
+                    !isPlayer(target))
+                {
+                    return true;
+                }
+                experience = Math.round(total_healed * 0.25f);
                 exp_type = xp.MEDICAL;
+                immediateGrant = true;
                 break;
             case HEAL_TYPE_MEDICAL_WOUND:
-                experience = (int) (total_healed * 5.0f);
+                experience = (int) (total_healed * 2.5f);
                 exp_type = xp.MEDICAL;
+                immediateGrant = true;
                 break;
             case HEAL_TYPE_MEDICAL_BUFF:
-                experience = total_healed * 2;
+                experience = (int)(total_healed * 2.5f);
                 exp_type = xp.MEDICAL;
+                immediateGrant = true;
                 break;
             case HEAL_TYPE_MEDICAL_STATE:
                 experience = total_healed * 50;
@@ -2013,13 +2021,14 @@ public class healing extends script.base_script
             case HEAL_TYPE_MEDICAL_TEND_WOUND:
                 experience = (int) (total_healed * 2.5f);
                 exp_type = xp.MEDICAL;
+                immediateGrant = true;
                 break;
             case HEAL_TYPE_MEDICAL_TEND_DAMAGE:
                 return true;
             case HEAL_TYPE_MEDICAL_REVIVE:
                 experience = 500;
                 exp_type = xp.MEDICAL;
-                directGrant = true;
+                immediateGrant = true;
                 break;
             default:
                 return false;
@@ -2028,9 +2037,9 @@ public class healing extends script.base_script
         {
             return false;
         }
-        if (directGrant)
+        if (immediateGrant)
         {
-            xp.grantCombatStyleXp(player, exp_type, experience);
+            xp.grant(player, exp_type, experience);
         }
         else 
         {
@@ -2138,7 +2147,13 @@ public class healing extends script.base_script
         }
         if (medic != target)
         {
-            if (getDistance(medic, target) > consumable.MAX_AFFECT_DISTANCE)
+            float maximumRange =
+                heal_type.equals(HEAL_TYPE_MEDICAL_CURE_POISON) ||
+                heal_type.equals(HEAL_TYPE_MEDICAL_CURE_FIRE) ||
+                heal_type.equals(HEAL_TYPE_MEDICAL_CURE_DISEASE)
+                    ? 7.0f
+                    : consumable.MAX_AFFECT_DISTANCE;
+            if (getDistance(medic, target) > maximumRange)
             {
                 sendMedicalSpam(medic, consumable.SID_TARGET_OUT_OF_RANGE, COMBAT_RESULT_OUT_OF_RANGE);
                 return false;
@@ -2269,7 +2284,14 @@ public class healing extends script.base_script
             }
             int poison_reduced = dot.reduceDotTypeStrength(valid_target, dot_type, (int) removal_skill);
             if (poison_reduced != -1) {
-                if (isPlayer(valid_target)) {
+                if (heal_type.equals(HEAL_TYPE_MEDICAL_CURE_POISON) ||
+                    heal_type.equals(HEAL_TYPE_MEDICAL_CURE_FIRE) ||
+                    heal_type.equals(HEAL_TYPE_MEDICAL_CURE_DISEASE)) {
+                    if (medic != valid_target &&
+                        isPlayer(valid_target)) {
+                        xp.grant(medic, xp.MEDICAL, 50);
+                    }
+                } else if (isPlayer(valid_target)) {
                     if (isIdValid(med_obj) && isAreaMedicine(med_obj)) {
                         poison_reduced *= 0.3f;
                     }
@@ -2324,9 +2346,10 @@ public class healing extends script.base_script
             return false;
         }
         float healing_range = getHealingRange(med_obj);
-        float healing_range_mod = getSkillStatMod(medic, "dot_efficiency");
-        healing_range = healing_range + ((100.0f + healing_range_mod) / 15.0f);
-        float strength_mod = getSkillStatMod(medic, "dot_efficiency");
+        float healing_range_mod = getSkillStatMod(medic, "healing_range");
+        healing_range = healing_range + healing_range_mod * 14.0f / 100.0f;
+        float strength_mod =
+            getSkillStatMod(medic, "combat_medic_effectiveness");
         if (getDistance(medic, target) > healing_range)
         {
             sendMedicalSpam(medic, consumable.SID_TARGET_OUT_OF_RANGE, COMBAT_RESULT_OUT_OF_RANGE);
@@ -2478,6 +2501,10 @@ public class healing extends script.base_script
         {
             return false;
         }
+        if (!isPlayer(target) || !isDead(target))
+        {
+            return false;
+        }
         if (!isIdValid(pack))
         {
             pack = getRevivePack(medic);
@@ -2521,7 +2548,7 @@ public class healing extends script.base_script
             sendMedicalSpam(medic, SID_GROUP_OR_CONSENT_FROM_TARGET, COMBAT_RESULT_MEDICAL);
             return false;
         }
-        if (!canPayHealingCost(medic, HEAL_TYPE_MEDICAL_BUFF, 1.0f))
+        if (!canPayHealingCost(medic, HEAL_TYPE_MEDICAL_REVIVE, 1.0f))
         {
             sendMedicalSpam(medic, SID_MIND_TOO_DRAINED, COMBAT_RESULT_MEDICAL);
             return false;
@@ -2531,30 +2558,79 @@ public class healing extends script.base_script
         {
             return false;
         }
-        if (consumable.consumeItem(medic, target, pack))
+        int[] primary =
+        {
+            HEALTH,
+            ACTION,
+            MIND
+        };
+        int[] damageBefore = new int[primary.length];
+        int[] woundBefore = new int[primary.length];
+        for (int index = 0; index < primary.length; ++index)
+        {
+            damageBefore[index] = getAttrib(target, primary[index]);
+            woundBefore[index] = getAttribWound(target, primary[index]);
+        }
+        if (consumable.consumeItem(
+                medic,
+                target,
+                pack,
+                true,
+                7.0f))
         {
             applyHealingCost(medic, HEAL_TYPE_MEDICAL_REVIVE, 1.0f);
-            int[] att = new int[WILLPOWER + 1];
-            for (attrib_mod attrib_mod : am) {
-                int attrib = attrib_mod.getAttribute();
-                float attack = attrib_mod.getAttack();
-                float decay = attrib_mod.getDecay();
-                int val = attrib_mod.getValue();
-                if (attack == AM_HEAL_WOUND) {
-                    val *= 2.5;
-                } else if (decay == MOD_POOL) {
-                    val /= 4;
-                }
-                if (val > 0) {
-                    att[attrib] += val;
-                }
+            int actualHealing = 0;
+            for (int index = 0; index < primary.length; ++index)
+            {
+                actualHealing += Math.max(
+                    0,
+                    getAttrib(target, primary[index]) -
+                        damageBefore[index]);
+                actualHealing += Math.max(
+                    0,
+                    woundBefore[index] -
+                        getAttribWound(target, primary[index]));
             }
-            grantHealingExperience(att, medic, target, HEAL_TYPE_MEDICAL_REVIVE);
+            int medicalXp =
+                Math.round((actualHealing + 250) * 0.5f);
+            if (medicalXp > 0)
+            {
+                xp.grant(medic, xp.MEDICAL, medicalXp);
+            }
             pvpHelpPerformed(medic, target);
+            applyReviveGrogginess(target);
             messageTo(target, "handlePlayerResuscitated", null, 0, true);
             return true;
         }
         return false;
+    }
+    public static boolean applyReviveGrogginess(obj_id target)
+        throws InterruptedException
+    {
+        if (!isIdValid(target) || !isPlayer(target))
+        {
+            return false;
+        }
+        boolean applied = true;
+        for (int attribute = HEALTH;
+            attribute <= WILLPOWER;
+            ++attribute)
+        {
+            applied =
+                addAttribModifier(
+                    target,
+                    "precu_private_groggy_" + attribute,
+                    attribute,
+                    -100,
+                    60.0f,
+                    0.0f,
+                    0.0f,
+                    false,
+                    false,
+                    false) &&
+                applied;
+        }
+        return applied;
     }
     public static boolean resuscitatePlayer(obj_id medic, obj_id target) throws InterruptedException
     {
@@ -3703,25 +3779,22 @@ public class healing extends script.base_script
             setObjVar(player, VAR_HEALING_CAN_HEALDAMAGE, 0);
         }
         int healing_roundtime = getIntObjVar(player, VAR_HEALING_CAN_HEALDAMAGE);
-        if (healing_roundtime != 0)
+        int time_remaining = healing_roundtime - getGameTime();
+        if (healing_roundtime != 0 && time_remaining > 0)
         {
             if (verbose)
             {
-                int time_remaining = (healing_roundtime - getGameTime());
-                if (time_remaining > 0)
-                {
-                    int[] conv_time = player_structure.convertSecondsTime(time_remaining);
-                    String time_str = player_structure.assembleTimeRemaining(conv_time);
-                    prose_package ppNoTime = prose.getPackage(SID_CANNOT_DO_THAT_TIME);
-                    prose.setTO(ppNoTime, time_str);
-                    sendMedicalSpam(player, ppNoTime, COMBAT_RESULT_MEDICAL);
-                }
-                else 
-                {
-                    sendMedicalSpam(player, SID_YOU_MUST_WAIT, COMBAT_RESULT_MEDICAL);
-                }
+                int[] conv_time = player_structure.convertSecondsTime(time_remaining);
+                String time_str = player_structure.assembleTimeRemaining(conv_time);
+                prose_package ppNoTime = prose.getPackage(SID_CANNOT_DO_THAT_TIME);
+                prose.setTO(ppNoTime, time_str);
+                sendMedicalSpam(player, ppNoTime, COMBAT_RESULT_MEDICAL);
             }
             return false;
+        }
+        if (healing_roundtime != 0)
+        {
+            setObjVar(player, VAR_HEALING_CAN_HEALDAMAGE, 0);
         }
         int injury_skill = getSkillStatMod(player, "healing_injury_treatment");
         if (injury_skill == 0)
@@ -3780,25 +3853,22 @@ public class healing extends script.base_script
             setObjVar(player, VAR_HEALING_CAN_HEALWOUND, 0);
         }
         int healing_roundtime = getIntObjVar(player, VAR_HEALING_CAN_HEALWOUND);
-        if (healing_roundtime != 0)
+        int time_remaining = healing_roundtime - getGameTime();
+        if (healing_roundtime != 0 && time_remaining > 0)
         {
             if (verbose)
             {
-                int time_remaining = (healing_roundtime - getGameTime());
-                if (time_remaining > 0)
-                {
-                    int[] conv_time = player_structure.convertSecondsTime(time_remaining);
-                    String time_str = player_structure.assembleTimeRemaining(conv_time);
-                    prose_package ppNoTime = prose.getPackage(SID_CANNOT_DO_THAT_TIME);
-                    prose.setTO(ppNoTime, time_str);
-                    sendMedicalSpam(player, ppNoTime, COMBAT_RESULT_MEDICAL);
-                }
-                else 
-                {
-                    sendMedicalSpam(player, SID_MUST_WAIT_TO_HEAL_OR_ENHANCE, COMBAT_RESULT_MEDICAL);
-                }
+                int[] conv_time = player_structure.convertSecondsTime(time_remaining);
+                String time_str = player_structure.assembleTimeRemaining(conv_time);
+                prose_package ppNoTime = prose.getPackage(SID_CANNOT_DO_THAT_TIME);
+                prose.setTO(ppNoTime, time_str);
+                sendMedicalSpam(player, ppNoTime, COMBAT_RESULT_MEDICAL);
             }
             return false;
+        }
+        if (healing_roundtime != 0)
+        {
+            setObjVar(player, VAR_HEALING_CAN_HEALWOUND, 0);
         }
         int injury_skill = getSkillStatMod(player, "healing_wound_treatment");
         if (injury_skill == 0)
@@ -3877,6 +3947,23 @@ public class healing extends script.base_script
                 return false;
         }
         cost = (int)(cost * modifier);
+        if (heal_type.equals(HEAL_TYPE_MEDICAL_APPLY_POISON) ||
+            heal_type.equals(HEAL_TYPE_MEDICAL_APPLY_DISEASE))
+        {
+            cost = getCombatMedicMindCost(player, cost);
+        }
+        else if (heal_type.equals(HEAL_TYPE_MEDICAL_DAMAGE) ||
+            heal_type.equals(HEAL_TYPE_MEDICAL_WOUND) ||
+            heal_type.equals(HEAL_TYPE_MEDICAL_BUFF) ||
+            heal_type.equals(HEAL_TYPE_MEDICAL_REVIVE) ||
+            heal_type.equals(HEAL_TYPE_MEDICAL_CURE_POISON) ||
+            heal_type.equals(HEAL_TYPE_MEDICAL_CURE_FIRE) ||
+            heal_type.equals(HEAL_TYPE_MEDICAL_CURE_DISEASE) ||
+            heal_type.equals(HEAL_TYPE_MEDICAL_TEND_WOUND) ||
+            heal_type.equals(HEAL_TYPE_MEDICAL_TEND_DAMAGE))
+        {
+            cost = getMedicalMindCost(player, cost);
+        }
         if (mind < cost)
         {
             return false;
@@ -3892,7 +3979,6 @@ public class healing extends script.base_script
         {
             return -1.0f;
         }
-        float newroundtime = 0.0f;
         if (!hasObjVar(player, VAR_HEALING_CAN_HEALDAMAGE))
         {
             setObjVar(player, VAR_HEALING_CAN_HEALDAMAGE, 0);
@@ -3901,11 +3987,14 @@ public class healing extends script.base_script
         {
             setObjVar(player, VAR_HEALING_CAN_HEALDAMAGE, 0);
         }
-        else 
+        else
         {
-            setObjVar(player, VAR_HEALING_CAN_HEALDAMAGE, getGameTime() + (int)newroundtime);
+            setObjVar(
+                player,
+                VAR_HEALING_CAN_HEALDAMAGE,
+                getGameTime() + roundtime);
         }
-        return newroundtime;
+        return roundtime;
     }
     public static boolean setCanHealWound(obj_id player, int roundtime) throws InterruptedException
     {
@@ -4369,6 +4458,17 @@ public class healing extends script.base_script
     }
     public static int findLargestTendWound(obj_id patient) throws InterruptedException
     {
+        if (!isIdValid(patient))
+        {
+            return -1;
+        }
+        for (int attribute = HEALTH; attribute < MIND; ++attribute)
+        {
+            if (getAttribWound(patient, attribute) > 0)
+            {
+                return attribute;
+            }
+        }
         return -1;
     }
     public static int findWorstState(obj_id patient, obj_id doctor) throws InterruptedException
@@ -4382,6 +4482,10 @@ public class healing extends script.base_script
         {
             attribute_int = HEALTH;
         }
+        if (attribute_str.equals("STRENGTH"))
+        {
+            attribute_int = STRENGTH;
+        }
         if (attribute_str.equals("CONSTITUTION"))
         {
             attribute_int = CONSTITUTION;
@@ -4390,6 +4494,10 @@ public class healing extends script.base_script
         {
             attribute_int = ACTION;
         }
+        if (attribute_str.equals("QUICKNESS"))
+        {
+            attribute_int = QUICKNESS;
+        }
         if (attribute_str.equals("STAMINA"))
         {
             attribute_int = STAMINA;
@@ -4397,6 +4505,10 @@ public class healing extends script.base_script
         if (attribute_str.equals("MIND"))
         {
             attribute_int = MIND;
+        }
+        if (attribute_str.equals("FOCUS"))
+        {
+            attribute_int = FOCUS;
         }
         if (attribute_str.equals("WILLPOWER"))
         {
@@ -4414,20 +4526,21 @@ public class healing extends script.base_script
     }
     public static String attributeToString(int attribute_int) throws InterruptedException
     {
-        if ((attribute_int < 0) || (attribute_int >= NUM_ATTRIBUTES + 2))
+        if ((attribute_int < 0) || (attribute_int >= NUM_ATTRIBUTES))
         {
             return null;
         }
         String[] names = 
         {
             "HEALTH",
+            "STRENGTH",
             "CONSTITUTION",
             "ACTION",
+            "QUICKNESS",
             "STAMINA",
             "MIND",
-            "WILLPOWER",
-            "POISON",
-            "DISEASE"
+            "FOCUS",
+            "WILLPOWER"
         };
         return names[attribute_int];
     }
@@ -4468,7 +4581,13 @@ public class healing extends script.base_script
         };
         return names[state_type - 12];
     }
-    public static boolean performMedicalHealDamage(obj_id medic, obj_id target, obj_id med_obj, boolean pay_cost) throws InterruptedException
+    public static boolean performMedicalHealDamage(
+        obj_id medic,
+        obj_id target,
+        obj_id med_obj,
+        boolean pay_cost,
+        float maximumNormalMedicineRange)
+        throws InterruptedException
     {
         if (!isIdValid(medic))
         {
@@ -4493,22 +4612,34 @@ public class healing extends script.base_script
                 return false;
             }
         }
-        int health_before = getAttrib(target, HEALTH);
-        if (consumable.consumeItem(medic, target, med_obj))
+        int[] attribs =
+        {
+            HEALTH,
+            ACTION,
+            MIND
+        };
+        int[] before =
+        {
+            getAttrib(target, HEALTH),
+            getAttrib(target, ACTION),
+            getAttrib(target, MIND)
+        };
+        if (consumable.consumeItem(
+                medic,
+                target,
+                med_obj,
+                true,
+                maximumNormalMedicineRange))
         {
             if (pay_cost)
             {
                 applyHealingCost(medic, HEAL_TYPE_MEDICAL_DAMAGE, 1.0f);
             }
-            int health_after = getAttrib(target, HEALTH);
-            int health_delta = health_after - health_before;
-            int[] attribs = 
+            int[] delta =
             {
-                HEALTH
-            };
-            int[] delta = 
-            {
-                health_delta
+                getAttrib(target, HEALTH) - before[0],
+                getAttrib(target, ACTION) - before[1],
+                getAttrib(target, MIND) - before[2]
             };
             String[] heal_message = assembleHealingMessage(attribs, delta, medic, target, med_obj);
             if (heal_message != null)
@@ -4517,8 +4648,18 @@ public class healing extends script.base_script
             }
             if ((!isPetMed) && (!isDroidPetMed))
             {
-                grantHealingExperience(delta, medic, target, HEAL_TYPE_MEDICAL_DAMAGE);
+                int[] medicalXpDelta =
+                {
+                    delta[0],
+                    delta[1]
+                };
+                grantHealingExperience(
+                    medicalXpDelta,
+                    medic,
+                    target,
+                    HEAL_TYPE_MEDICAL_DAMAGE);
             }
+            setCanHealDamage(medic, getHealDamageRoundTime(medic));
             if (medic != target)
             {
                 if (heal_message != null)
@@ -4532,9 +4673,453 @@ public class healing extends script.base_script
         }
         return false;
     }
+    public static boolean performMedicalHealDamage(obj_id medic, obj_id target, obj_id med_obj, boolean pay_cost) throws InterruptedException
+    {
+        return performMedicalHealDamage(
+            medic,
+            target,
+            med_obj,
+            pay_cost,
+            consumable.MAX_AFFECT_DISTANCE);
+    }
     public static boolean performMedicalHealDamage(obj_id medic, obj_id target, obj_id med_obj) throws InterruptedException
     {
         return performMedicalHealDamage(medic, target, med_obj, true);
+    }
+    public static int getHealWoundMedicineAttribute(obj_id med_obj) throws InterruptedException
+    {
+        if (!isIdValid(med_obj) ||
+            !hasObjVar(med_obj, consumable.VAR_CONSUMABLE_MODS))
+        {
+            return -1;
+        }
+        attrib_mod[] modifiers =
+            getAttribModArrayObjVar(
+                med_obj,
+                consumable.VAR_CONSUMABLE_MODS);
+        if (modifiers == null)
+        {
+            return -1;
+        }
+        for (attrib_mod modifier : modifiers)
+        {
+            int attribute = modifier.getAttribute();
+            if (modifier.getAttack() == AM_HEAL_WOUND &&
+                attribute >= HEALTH && attribute <= STAMINA)
+            {
+                return attribute;
+            }
+        }
+        return -1;
+    }
+    public static int getHealEnhanceMedicineAttribute(obj_id med_obj)
+        throws InterruptedException
+    {
+        if (!isIdValid(med_obj) || !isBuffMedicine(med_obj))
+        {
+            return -1;
+        }
+        attrib_mod[] modifiers =
+            getAttribModArrayObjVar(
+                med_obj,
+                consumable.VAR_CONSUMABLE_MODS);
+        if (modifiers == null)
+        {
+            return -1;
+        }
+        for (attrib_mod modifier : modifiers)
+        {
+            int attribute = modifier.getAttribute();
+            if (modifier.getDuration() >= 1.0f &&
+                attribute >= HEALTH && attribute < MIND)
+            {
+                return attribute;
+            }
+        }
+        return -1;
+    }
+    public static int getHealWoundRoundTime(obj_id medic)
+        throws InterruptedException
+    {
+        if (!isIdValid(medic))
+        {
+            return 20;
+        }
+        int woundSpeed = getSkillStatMod(medic, "healing_wound_speed");
+        int roundTime = Math.round(woundSpeed * -2.0f / 25.0f + 20.0f);
+        return Math.max(3, roundTime);
+    }
+    public static int getHealEnhanceRoundTime(obj_id medic)
+        throws InterruptedException
+    {
+        if (!isIdValid(medic))
+        {
+            return 20;
+        }
+        int woundSpeed =
+            getSkillStatMod(medic, "healing_wound_speed");
+        int roundTime =
+            Math.round(woundSpeed * -2.0f / 25.0f + 20.0f);
+        int recovery =
+            getSkillStatMod(medic, "heal_recovery");
+        if (recovery > 0)
+        {
+            roundTime =
+                Math.round(
+                    roundTime *
+                        (100.0f - recovery) /
+                        100.0f);
+        }
+        return Math.max(3, roundTime);
+    }
+    public static int getHealDamageRoundTime(obj_id medic)
+        throws InterruptedException
+    {
+        if (!isIdValid(medic))
+        {
+            return 20;
+        }
+        int injurySpeed =
+            getSkillStatMod(medic, "healing_injury_speed");
+        int roundTime = Math.round(20.0f - injurySpeed / 5.0f);
+        return Math.max(4, roundTime);
+    }
+    public static int getMedicalMindCost(obj_id medic, int baseCost)
+        throws InterruptedException
+    {
+        if (!isIdValid(medic) || baseCost < 0)
+        {
+            return -1;
+        }
+        float cost = baseCost;
+        cost -=
+            ((getAttrib(medic, FOCUS) - 300.0f) / 1200.0f) * cost;
+        return Math.max(0, (int)cost);
+    }
+    public static int getCombatMedicMindCost(obj_id medic, int baseCost)
+        throws InterruptedException
+    {
+        if (!isIdValid(medic) || baseCost < 0)
+        {
+            return -1;
+        }
+        int focus = Math.max(0, getAttrib(medic, FOCUS));
+        return Math.max(0,
+            baseCost - (int)(baseCost * Math.min(1500, focus) / 1500.0f));
+    }
+    public static int getHealWoundMindCost(obj_id medic, int baseCost)
+        throws InterruptedException
+    {
+        return getMedicalMindCost(medic, baseCost);
+    }
+    public static int getTendMindCost(obj_id medic, boolean tendWound)
+        throws InterruptedException
+    {
+        return getMedicalMindCost(
+            medic,
+            tendWound ? VAR_TEND_WOUND_COST : VAR_TEND_DAMAGE_COST);
+    }
+    public static int getTendTreatmentPower(
+        obj_id medic,
+        obj_id target,
+        boolean tendWound)
+        throws InterruptedException
+    {
+        if (!isIdValid(medic) || !isIdValid(target))
+        {
+            return 0;
+        }
+        String skillMod = tendWound
+            ? "healing_wound_treatment"
+            : "healing_injury_treatment";
+        float power =
+            getSkillStatMod(medic, skillMod) / 3.0f +
+            (tendWound
+                ? VAR_TEND_WOUND_BASE_POWER
+                : VAR_TEND_DAMAGE_BASE_POWER);
+        return Math.max(
+            0,
+            Math.round(applyShockWoundModifier(power, target)));
+    }
+    public static boolean performTendDamage(
+        obj_id medic,
+        obj_id target,
+        boolean payCost)
+        throws InterruptedException
+    {
+        if (!isIdValid(medic) || !isIdValid(target) ||
+            getSkillStatMod(medic, "healing_injury_treatment") <= 0)
+        {
+            return false;
+        }
+        int healthBefore = getAttrib(target, HEALTH);
+        int actionBefore = getAttrib(target, ACTION);
+        if (healthBefore >= getWoundedMaxAttrib(target, HEALTH) &&
+            actionBefore >= getWoundedMaxAttrib(target, ACTION))
+        {
+            return false;
+        }
+        if (payCost &&
+            !canPayHealingCost(
+                medic,
+                HEAL_TYPE_MEDICAL_TEND_DAMAGE,
+                1.0f))
+        {
+            sendMedicalSpam(
+                medic,
+                SID_NOT_ENOUGH_MIND,
+                COMBAT_RESULT_MEDICAL);
+            return false;
+        }
+
+        int power = getTendTreatmentPower(medic, target, false);
+        if (healthBefore < getWoundedMaxAttrib(target, HEALTH))
+        {
+            utils.addAttribMod(
+                target,
+                utils.createHealDamageAttribMod(HEALTH, power));
+        }
+        if (actionBefore < getWoundedMaxAttrib(target, ACTION))
+        {
+            utils.addAttribMod(
+                target,
+                utils.createHealDamageAttribMod(ACTION, power));
+        }
+        int healthHealed = getAttrib(target, HEALTH) - healthBefore;
+        int actionHealed = getAttrib(target, ACTION) - actionBefore;
+        if (healthHealed <= 0 && actionHealed <= 0)
+        {
+            return false;
+        }
+        if (payCost &&
+            !applyHealingCost(
+                medic,
+                HEAL_TYPE_MEDICAL_TEND_DAMAGE,
+                1.0f))
+        {
+            return false;
+        }
+        addWound(medic, FOCUS, VAR_TEND_DAMAGE_WOUND_COST);
+        addWound(medic, WILLPOWER, VAR_TEND_DAMAGE_WOUND_COST);
+
+        int[] attributes = { HEALTH, ACTION };
+        int[] delta = { healthHealed, actionHealed };
+        String[] healMessage =
+            assembleHealingMessage(attributes, delta, medic, target, null);
+        if (healMessage != null)
+        {
+            sendCombatSpamMessageOob(
+                medic,
+                target,
+                healMessage[0],
+                true,
+                false,
+                false,
+                COMBAT_RESULT_MEDICAL);
+        }
+        if (medic != target)
+        {
+            if (healMessage != null)
+            {
+                sendCombatSpamMessageOob(
+                    medic,
+                    target,
+                    healMessage[1],
+                    false,
+                    true,
+                    false,
+                    COMBAT_RESULT_MEDICAL);
+            }
+            pvpHelpPerformed(medic, target);
+            addHealingKillCredit(medic, target, delta);
+        }
+        return true;
+    }
+    public static boolean performTendWound(
+        obj_id medic,
+        obj_id target,
+        int attribute,
+        boolean payCost)
+        throws InterruptedException
+    {
+        if (!isIdValid(medic) || !isIdValid(target) ||
+            getSkillStatMod(medic, "healing_wound_treatment") <= 0 ||
+            attribute < HEALTH || attribute >= MIND)
+        {
+            return false;
+        }
+        int woundBefore = getAttribWound(target, attribute);
+        if (woundBefore <= 0)
+        {
+            return false;
+        }
+        if (payCost &&
+            !canPayHealingCost(
+                medic,
+                HEAL_TYPE_MEDICAL_TEND_WOUND,
+                1.0f))
+        {
+            sendMedicalSpam(
+                medic,
+                SID_NOT_ENOUGH_MIND,
+                COMBAT_RESULT_MEDICAL);
+            return false;
+        }
+
+        int power = getTendTreatmentPower(medic, target, true);
+        healWound(target, attribute, Math.min(power, woundBefore));
+        int woundHealed =
+            woundBefore - getAttribWound(target, attribute);
+        if (woundHealed <= 0)
+        {
+            return false;
+        }
+        if (payCost &&
+            !applyHealingCost(
+                medic,
+                HEAL_TYPE_MEDICAL_TEND_WOUND,
+                1.0f))
+        {
+            return false;
+        }
+        addWound(medic, FOCUS, VAR_TEND_WOUND_WOUND_COST);
+        addWound(medic, WILLPOWER, VAR_TEND_WOUND_WOUND_COST);
+
+        String[] healMessage =
+            assembleHealingMessage(
+                attribute,
+                woundHealed,
+                medic,
+                target,
+                2);
+        if (healMessage != null)
+        {
+            sendCombatSpamMessageOob(
+                medic,
+                target,
+                healMessage[0],
+                true,
+                false,
+                false,
+                COMBAT_RESULT_MEDICAL);
+        }
+        if (medic != target)
+        {
+            if (healMessage != null)
+            {
+                sendCombatSpamMessageOob(
+                    medic,
+                    target,
+                    healMessage[1],
+                    false,
+                    true,
+                    false,
+                    COMBAT_RESULT_MEDICAL);
+            }
+            grantHealingExperience(
+                woundHealed,
+                medic,
+                target,
+                HEAL_TYPE_MEDICAL_TEND_WOUND);
+            pvpHelpPerformed(medic, target);
+            addHealingKillCredit(
+                medic,
+                target,
+                new int[] { woundHealed });
+        }
+        return true;
+    }
+    public static boolean performMedicalHealWound(
+        obj_id medic,
+        obj_id target,
+        obj_id med_obj,
+        boolean pay_cost)
+        throws InterruptedException
+    {
+        if (!isIdValid(medic) || !isIdValid(target) || !isIdValid(med_obj))
+        {
+            return false;
+        }
+        int attribute = getHealWoundMedicineAttribute(med_obj);
+        if (attribute < HEALTH || getAttribWound(target, attribute) <= 0)
+        {
+            return false;
+        }
+        if (pay_cost &&
+            !canPayHealingCost(medic, HEAL_TYPE_MEDICAL_WOUND, 1.0f))
+        {
+            sendMedicalSpam(
+                medic,
+                SID_MIND_TOO_DRAINED,
+                COMBAT_RESULT_MEDICAL);
+            return false;
+        }
+
+        int woundBefore = getAttribWound(target, attribute);
+        if (!consumable.consumeItem(medic, target, med_obj, false))
+        {
+            return false;
+        }
+        int woundAfter = getAttribWound(target, attribute);
+        int healed = woundBefore - woundAfter;
+        if (healed <= 0)
+        {
+            return false;
+        }
+
+        if (pay_cost &&
+            !applyHealingCost(medic, HEAL_TYPE_MEDICAL_WOUND, 1.0f))
+        {
+            return false;
+        }
+        setCanHealWound(medic, getHealWoundRoundTime(medic));
+        playHealWoundEffect(getLocation(target));
+
+        int[] attributes = { attribute };
+        int[] delta = { healed };
+        String[] healMessage =
+            assembleHealingMessage(attribute, healed, medic, target, 2);
+        if (healMessage != null)
+        {
+            sendCombatSpamMessageOob(
+                medic,
+                target,
+                healMessage[0],
+                true,
+                false,
+                false,
+                COMBAT_RESULT_MEDICAL);
+        }
+        if (medic != target)
+        {
+            if (healMessage != null)
+            {
+                sendCombatSpamMessageOob(
+                    medic,
+                    target,
+                    healMessage[1],
+                    false,
+                    true,
+                    false,
+                    COMBAT_RESULT_MEDICAL);
+            }
+            grantHealingExperience(
+                healed,
+                medic,
+                target,
+                HEAL_TYPE_MEDICAL_WOUND);
+            pvpHelpPerformed(medic, target);
+            addHealingKillCredit(medic, target, delta);
+        }
+        return true;
+    }
+    public static boolean performMedicalHealWound(
+        obj_id medic,
+        obj_id target,
+        obj_id med_obj)
+        throws InterruptedException
+    {
+        return performMedicalHealWound(medic, target, med_obj, true);
     }
     public static obj_id[] getHealableTargetsInArea(obj_id medic, location loc, int radius) throws InterruptedException
     {
@@ -4668,6 +5253,23 @@ public class healing extends script.base_script
                 return false;
         }
         cost = (int)(cost * modifier);
+        if (heal_type.equals(HEAL_TYPE_MEDICAL_APPLY_POISON) ||
+            heal_type.equals(HEAL_TYPE_MEDICAL_APPLY_DISEASE))
+        {
+            cost = getCombatMedicMindCost(player, cost);
+        }
+        else if (heal_type.equals(HEAL_TYPE_MEDICAL_DAMAGE) ||
+            heal_type.equals(HEAL_TYPE_MEDICAL_WOUND) ||
+            heal_type.equals(HEAL_TYPE_MEDICAL_BUFF) ||
+            heal_type.equals(HEAL_TYPE_MEDICAL_REVIVE) ||
+            heal_type.equals(HEAL_TYPE_MEDICAL_CURE_POISON) ||
+            heal_type.equals(HEAL_TYPE_MEDICAL_CURE_FIRE) ||
+            heal_type.equals(HEAL_TYPE_MEDICAL_CURE_DISEASE) ||
+            heal_type.equals(HEAL_TYPE_MEDICAL_TEND_WOUND) ||
+            heal_type.equals(HEAL_TYPE_MEDICAL_TEND_DAMAGE))
+        {
+            cost = getMedicalMindCost(player, cost);
+        }
         if (mind < cost)
         {
             return false;
@@ -4692,19 +5294,28 @@ public class healing extends script.base_script
         {
             return false;
         }
+        int medicineAttribute =
+            getHealEnhanceMedicineAttribute(med_obj);
+        if (medicineAttribute < HEALTH ||
+            medicineAttribute >= MIND)
+        {
+            return false;
+        }
         if (!canPayHealingCost(medic, HEAL_TYPE_MEDICAL_BUFF, 1.0f))
         {
             LOG("HEALING_MESSAGE_ERROR", medic + " ->Your mind is too drained to do that.");
             sendMedicalSpam(medic, SID_MIND_TOO_DRAINED, COMBAT_RESULT_MEDICAL);
             return false;
         }
-        if (consumable.consumeItem(medic, target, med_obj))
+        if (consumable.consumeItem(
+                medic,
+                target,
+                med_obj,
+                true,
+                7.0f))
         {
             applyHealingCost(medic, HEAL_TYPE_MEDICAL_BUFF, 1.0f);
-            int[] attribute = 
-            {
-                HEALTH
-            };
+            int[] attribute = { medicineAttribute };
             int duration = 0;
             String attribute_string = "";
             String objvar_name = "";
@@ -4738,9 +5349,13 @@ public class healing extends script.base_script
                 }
                 if (net_buff_amount > 0)
                 {
-                    if (x == 0)
+                    if (x == 0 && medic != target)
                     {
-                        grantHealingExperience(buff_amount, medic, target, HEAL_TYPE_MEDICAL_BUFF);
+                        grantHealingExperience(
+                            net_buff_amount,
+                            medic,
+                            target,
+                            HEAL_TYPE_MEDICAL_BUFF);
                     }
                 }
                 string_id attribute_string_id = new string_id("att_n", attribute_string.toLowerCase());

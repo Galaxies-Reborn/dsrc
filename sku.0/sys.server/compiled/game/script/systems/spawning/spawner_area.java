@@ -15,6 +15,13 @@ public class spawner_area extends script.base_script
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        if (spawning.isRetiredEmpireDaySpawner(self) || spawning.isRetiredLoveDaySpawner(self))
+        {
+            spawning.cleanupRetiredSpawnerChildren(self);
+            OnDestroy(self);
+            detachScript(self, "systems.spawning.spawner_area");
+            return SCRIPT_CONTINUE;
+        }
         if (!hasObjVar(self, "registerWithController"))
         {
             setObjVar(self, "registerWithController", 1);
@@ -31,6 +38,13 @@ public class spawner_area extends script.base_script
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        if (spawning.isRetiredEmpireDaySpawner(self) || spawning.isRetiredLoveDaySpawner(self))
+        {
+            spawning.cleanupRetiredSpawnerChildren(self);
+            OnDestroy(self);
+            detachScript(self, "systems.spawning.spawner_area");
+            return SCRIPT_CONTINUE;
+        }
         if (!hasObjVar(self, "registerWithController"))
         {
             setObjVar(self, "registerWithController", 1);
@@ -47,6 +61,10 @@ public class spawner_area extends script.base_script
     }
     public int doSpawnEvent(obj_id self, dictionary params) throws InterruptedException
     {
+        if (spawning.isRetiredEmpireDaySpawner(self) || spawning.isRetiredLoveDaySpawner(self))
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (!spawning.checkSpawnCount(self))
         {
             return SCRIPT_CONTINUE;
@@ -149,6 +167,10 @@ public class spawner_area extends script.base_script
     }
     public void createMob(String strId, obj_id objLocationObject, location locLocation, float fltRadius, obj_id self) throws InterruptedException
     {
+        if (spawning.isRetiredEmpireDaySpawner(self) || spawning.isRetiredLoveDaySpawner(self))
+        {
+            return;
+        }
         if (!spawning.checkSpawnCount(self))
         {
             return;
@@ -196,6 +218,14 @@ public class spawner_area extends script.base_script
     }
     public int OnLocationReceived(obj_id self, String strId, obj_id objLocationObject, location locLocation, float fltRadius) throws InterruptedException
     {
+        if (spawning.isRetiredEmpireDaySpawner(self) || spawning.isRetiredLoveDaySpawner(self))
+        {
+            if (isIdValid(objLocationObject))
+            {
+                destroyObject(objLocationObject);
+            }
+            return SCRIPT_CONTINUE;
+        }
         if (isIdValid(objLocationObject))
         {
             createMob(strId, objLocationObject, locLocation, fltRadius, self);
@@ -208,6 +238,10 @@ public class spawner_area extends script.base_script
     }
     public int spawnDestroyed(obj_id self, dictionary params) throws InterruptedException
     {
+        if (spawning.isRetiredEmpireDaySpawner(self) || spawning.isRetiredLoveDaySpawner(self))
+        {
+            return SCRIPT_CONTINUE;
+        }
         int intCurrentSpawnCount = utils.getIntScriptVar(self, "intCurrentSpawnCount");
         intCurrentSpawnCount--;
         if (intCurrentSpawnCount >= 0)

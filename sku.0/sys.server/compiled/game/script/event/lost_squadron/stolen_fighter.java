@@ -210,7 +210,7 @@ public class stolen_fighter extends script.base_script
             return SCRIPT_CONTINUE;
         }
         utils.setScriptVar(self, "already_spawned", 1);
-        int playerLevel = getLevel(whoTriggeredMe);
+        int playerLevel = script.library.skill.getPrecuEncounterDifficulty(whoTriggeredMe);
         int numThugs = rand(1, 3);
         int randThug = rand(0, 2);
         int wittyPhrase = rand(1, 3);

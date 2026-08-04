@@ -190,22 +190,24 @@ public class rebel_remembrance_day_rieekan extends script.base_script
     public boolean rebel_remembrance_day_rieekan_condition_isStructuresTrader(obj_id player, obj_id npc) throws InterruptedException
     {
         faceTo(npc, player);
-        return hasSkill(player, "class_structures_phase1_novice");
+        return hasSkill(player, "crafting_architect_novice");
     }
     public boolean rebel_remembrance_day_rieekan_condition_isEngineeringTrader(obj_id player, obj_id npc) throws InterruptedException
     {
         faceTo(npc, player);
-        return hasSkill(player, "class_engineering_phase1_novice");
+        return hasSkill(player, "crafting_droidengineer_novice");
     }
     public boolean rebel_remembrance_day_rieekan_condition_isMunitionsTrader(obj_id player, obj_id npc) throws InterruptedException
     {
         faceTo(npc, player);
-        return hasSkill(player, "class_munitions_phase1_novice");
+        return hasSkill(player, "crafting_weaponsmith_novice") ||
+            hasSkill(player, "crafting_armorsmith_novice");
     }
     public boolean rebel_remembrance_day_rieekan_condition_isDomesticsTrader(obj_id player, obj_id npc) throws InterruptedException
     {
         faceTo(npc, player);
-        return hasSkill(player, "class_domestics_phase1_novice");
+        return hasSkill(player, "crafting_chef_novice") ||
+            hasSkill(player, "crafting_tailor_novice");
     }
     public boolean rebel_remembrance_day_rieekan_condition_hasCompletedFirstMission(obj_id player, obj_id npc) throws InterruptedException
     {

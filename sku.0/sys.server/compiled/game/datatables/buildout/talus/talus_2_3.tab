@@ -13,7 +13,7 @@ i	i	h	i	f	f	f	f	f	f	f	s	p
 -2088573624	0	object/static/structure/military/military_column_med_imperial_style_01.iff	0	1194.68	66.0138	1009.52	0.0115046	0	0.999934	0		$|
 -2086123377	0	object/static/structure/general/cloning_tube.iff	0	1040.55	50	598.707	0.847255	0	-0.531186	0		$|
 -2077916246	0	object/static/item/item_container_inorganic_minerals.iff	0	1036.14	50	612.282	-0.207681	0	0.978197	0		$|
--2064109315	0	object/tangible/gcw/static_base/invisible_cloner_rebel.iff	0	1031.73	50	599.671	1	0	0	0	structure.municipal.cloning_facility	$|
+-2064109315	0	object/tangible/gcw/static_base/invisible_cloner_rebel.iff	0	1031.73	50	599.671	1	0	0	0		$|
 -2064094108	0	object/static/structure/corellia/corl_power_connector.iff	0	1173.8	69.159	997.526	1	0	0	0		$|
 -2060848964	0	object/static/structure/corellia/corl_power_transformer_s02.iff	0	1182.33	66	960.748	1	0	0	0		$|
 -2054867437	0	object/static/structure/military/military_wall_med_imperial_32_style_01.iff	0	1498.72	18.5912	878.79	0.430817	0	0.902439	0		$|
@@ -32,7 +32,7 @@ i	i	h	i	f	f	f	f	f	f	f	s	p
 -1962561905	0	object/static/structure/military/military_column_med_imperial_style_01.iff	0	1509.12	18.6014	891.641	0.942755	0	0.333487	0		$|
 -1956968294	0	object/tangible/ground_spawning/patrol_waypoint.iff	0	1553.54	19.0494	873.648	1	0	0	0	systems.spawning.patrol_point_setup	ignoreInBuildoutArray|0|1|pointName|4|talus_lag_enf_srgt_pat_gs1_11356743_14|registerWithController|0|1|$|
 -1931692047	0	object/static/structure/military/military_column_med_imperial_style_01.iff	0	1363.72	88.0806	1431.85	0.932328	0	0.361615	0		$|
--1916708911	0	object/building/general/corellia_gcw_bunker.iff	0	1185.92	66	971.83	0.707107	0	0.707107	0	systems.gcw.static_base.base_master:systems.gcw.static_base.base_spawner	gcw.static_base.master|6|11900201|gcw.static_base.terminal_ids|7|30484620:30484624:30484628:30484632:|gcw.static_base.terminal_status|1|0:0:0:0:|portalProperty.crc|0|-2111613717|$|
+-1916708911	0	object/building/general/corellia_gcw_bunker.iff	0	1185.92	66	971.83	0.707107	0	0.707107	0		portalProperty.crc|0|-2111613717|$|
 -1916708910	-1916708911	object/cell/cell.iff	1	0	0	0	1	0	0	0		$|
 -1916708909	-1916708911	object/cell/cell.iff	2	0	0	0	1	0	0	0		$|
 -1916708908	-1916708911	object/cell/cell.iff	3	0	0	0	1	0	0	0		$|
@@ -42,7 +42,7 @@ i	i	h	i	f	f	f	f	f	f	f	s	p
 -1916708904	-1916708911	object/cell/cell.iff	7	0	0	0	1	0	0	0		$|
 -1916708903	-1916708911	object/cell/cell.iff	8	0	0	0	1	0	0	0		$|
 -1916708902	-1916708911	object/cell/cell.iff	9	0	0	0	1	0	0	0		$|
--1610009447	-1916708902	object/tangible/collection/col_gcw_static_base_talus.iff	9	12.8614	-13.3399	3.77843	0.955337	0	-0.29552	0	systems.collections.consume_click	collection.gcw_control_check|4|1|collection.slotName|4|col_gcw_insurgency:col_gcw_insurgency_talus|$|
+-1610009447	-1916708902	object/tangible/collection/col_gcw_static_base_talus.iff	9	12.8614	-13.3399	3.77843	0.955337	0	-0.29552	0		$|
 -1916708901	-1916708911	object/cell/cell.iff	10	0	0	0	1	0	0	0		$|
 -1905196900	0	object/static/structure/military/military_wall_med_imperial_style_01.iff	0	1523.56	18.6309	841.444	-0.668878	0	0.743372	0		$|
 -1888485544	0	object/static/item/item_container_plain_s04.iff	0	1035.13	50.8792	612.656	0.986418	0	0.164252	0		$|
@@ -50,7 +50,7 @@ i	i	h	i	f	f	f	f	f	f	f	s	p
 -1867977855	0	object/static/structure/corellia/corl_power_transformer_s02.iff	0	1541.27	18	865.621	0.998201	0	-0.059964	0		$|
 -1866584130	0	object/tangible/ground_spawning/patrol_waypoint.iff	0	1491.62	18.0157	859.601	1	0	0	0	systems.spawning.patrol_point_setup	ignoreInBuildoutArray|0|1|pointName|4|talus_lag_enf_srgt_pat_gs1_11356743_2|registerWithController|0|1|$|
 -1853173621	0	object/static/structure/military/military_column_med_imperial_style_01.iff	0	1545.12	18.6231	862.074	0.902439	0	-0.430817	0		$|
--1839426456	0	object/tangible/gcw/static_base/invisible_beacon.iff	0	1031.31	50	608.607	1	0	0	0	structure.municipal.starport	travel.air_time|0|60|travel.arrival_location|8|-5112.689941 50.000000 -3487.393066 talus 0|travel.cost|0|100|travel.ground_time|0|300|travel.is_shuttleport|0|1|travel.point_name|4|@gcw:gcwstaticbaserebel|travel.shuttle_available|0|1|travel.shuttle_timestamp|0|3125347|travel.version|0|3|$|
+-1839426456	0	object/tangible/gcw/static_base/invisible_beacon.iff	0	1031.31	50	608.607	1	0	0	0		$|
 -1836462925	0	object/static/particle/pt_smoke.iff	0	1207.92	73.8375	1023.69	-0.115538	0	0.993303	0		$|
 -1831619868	0	object/static/structure/military/military_column_med_imperial_style_01.iff	0	1189.32	66.0032	1003.86	0.0115046	0	0.999934	0		$|
 -1812807304	0	object/static/structure/general/landing_pad_shuttle.iff	0	1018.95	50	603.94	0.988012	0	0.15438	0		$|
@@ -71,7 +71,7 @@ i	i	h	i	f	f	f	f	f	f	f	s	p
 -1698312927	0	object/static/installation/mockup_factory_organic_style_1.iff	0	1243.98	66	995.565	1	0	0	0		$|
 -1686914098	0	object/static/installation/mockup_factory_organic_style_1.iff	0	1243.03	66	994.377	0	0	1	0		$|
 -1682904784	0	object/static/structure/military/military_column_med_imperial_style_01.iff	0	1527.04	18.6	850.201	0.942755	0	0.333487	0		$|
--1682065689	0	object/tangible/gcw/static_base/invisible_beacon.iff	0	1354.35	86	1402.3	1	0	0	0	structure.municipal.starport	travel.air_time|0|60|travel.arrival_location|8|-4789.649902 86.000000 -2693.699951 talus 0|travel.cost|0|100|travel.ground_time|0|300|travel.is_shuttleport|0|1|travel.point_name|4|@gcw:gcwstaticbaseimperial|travel.shuttle_available|0|1|travel.shuttle_timestamp|0|3125350|travel.version|0|3|$|
+-1682065689	0	object/tangible/gcw/static_base/invisible_beacon.iff	0	1354.35	86	1402.3	1	0	0	0		$|
 -1670480787	0	object/static/structure/general/banner_imperial_style_01.iff	0	1340.79	86	1418.38	-0.382683	0	0.92388	0		$|
 -1669082058	0	object/tangible/ground_spawning/area_spawner.iff	0	1499.91	18	875.605	0.399236	0	0.916848	0	systems.spawning.spawner_area	fltMaxSpawnTime|2|180.000000|fltMinSpawnTime|2|120.000000|fltRadius|2|2.000000|intDefaultBehavior|0|2|intGoodLocationSpawner|0|0|intSpawnCount|0|3|intSpawnSystem|0|1|registerWithController|0|1|strName|4|talus_lag_enforcer_camp_gs4|strSpawnerType|4|area|strSpawns|4|talus_dearic_coa_lag_enforcer|$|
 -1657896352	0	object/static/structure/military/bunker_crate_style_01.iff	0	1343.68	86	1422.04	0	0	1	0		$|
@@ -194,9 +194,9 @@ i	i	h	i	f	f	f	f	f	f	f	s	p
 -397785208	0	object/tangible/ground_spawning/area_spawner.iff	0	1527.69	18	854.81	0.891971	0	-0.452092	0	systems.spawning.spawner_area	fltMaxSpawnTime|2|180.000000|fltMinSpawnTime|2|120.000000|fltRadius|2|2.000000|intDefaultBehavior|0|2|intGoodLocationSpawner|0|0|intSpawnCount|0|3|intSpawnSystem|0|1|registerWithController|0|1|strName|4|talus_lag_enforcer_camp_gs5|strSpawnerType|4|area|strSpawns|4|talus_dearic_coa_lag_enforcer|$|
 -387594489	0	object/static/structure/military/military_column_med_imperial_style_01.iff	0	1327.32	86.1234	1408.38	0.932328	0	0.361615	0		$|
 -380044272	0	object/static/installation/mockup_factory_organic_style_1.iff	0	1200.33	65.9438	946.667	1	0	0	0		$|
--376575756	0	object/tangible/gcw/static_base/invisible_cloner_imperial.iff	0	1343.55	86	1414.21	1	0	0	0	structure.municipal.cloning_facility	$|
+-376575756	0	object/tangible/gcw/static_base/invisible_cloner_imperial.iff	0	1343.55	86	1414.21	1	0	0	0		$|
 -371239905	0	object/static/structure/military/military_column_med_imperial_style_01.iff	0	1518	18.611	892.58	0.942755	0	0.333487	0		$|
--336486068	0	object/tangible/theme_park/invisible_object.iff	0	1185.92	66	971.83	0.707107	0	0.707107	0	theme_park.controller_initialize	scriptString|4|systems.gcw.static_base.master|$|
+-336486068	0	object/tangible/theme_park/invisible_object.iff	0	1185.92	66	971.83	0.707107	0	0.707107	0		$|
 -299705653	0	object/static/structure/military/military_wall_med_imperial_style_01.iff	0	1192.35	66.0127	1007.13	0.393286	0	0.919416	0		$|
 -294860919	0	object/static/particle/pt_smoke.iff	0	1218.98	73.7364	951.763	1	0	0	0		$|
 -260517358	0	object/static/structure/corellia/corl_power_transformer_s02.iff	0	1171.69	66.9773	1022.98	0.707107	0	0.707107	0		$|

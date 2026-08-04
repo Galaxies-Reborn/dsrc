@@ -15,7 +15,7 @@ public class naboo_24_azure_cabal_loruna_01 extends script.base_script
     }
     public boolean naboo_24_azure_cabal_loruna_01_condition_canTakeQuestAC_01(obj_id player, obj_id npc) throws InterruptedException
     {
-        if ((combat.getLevel(player)) < 80)
+        if ((script.library.skill.getPrecuEncounterDifficulty(player)) < 80)
         {
             return false;
         }

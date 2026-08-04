@@ -44,7 +44,7 @@ public class delivery_chardle extends script.base_script
     }
     public boolean delivery_chardle_condition_tooLowLevel(obj_id player, obj_id npc) throws InterruptedException
     {
-        return getLevel(player) < 60;
+        return script.library.skill.getPrecuEncounterDifficulty(player) < 60;
     }
     public void delivery_chardle_action_giveQuest(obj_id player, obj_id npc) throws InterruptedException
     {

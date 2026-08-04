@@ -14,7 +14,6 @@ public class skillmod_click_item extends script.base_script
     public static final string_id SID_NOT_YET = new string_id("base_player", "not_yet");
     public static final string_id SID_NOT_LINKED = new string_id("base_player", "not_linked");
     public static final string_id SID_NOT_LINKED_TO_HOLDER = new string_id("base_player", "not_linked_to_holder");
-    public static final string_id SID_ITEM_LEVEL_TOO_LOW = new string_id("base_player", "level_too_low");
     public static final string_id SID_ITEM_NOT_IN_INVENTORY = new string_id("base_player", "not_in_your_inventory");
     public static final string_id SID_MUST_BIO_LINK_FROM_INVENTORY = new string_id("base_player", "must_biolink_to_use_from_inventory");
     public static final string_id SID_BIOLINK_OTHER_PLAYER = new string_id("base_player", "wrong_player_per_biolink");
@@ -105,7 +104,6 @@ public class skillmod_click_item extends script.base_script
                 return SCRIPT_CONTINUE;
             }
             String skillMod = itemData.getString("skill_mods");
-            int requiredLevel = itemData.getInt("required_level_for_effect");
             String requiredSkill = itemData.getString("required_skill");
             String clientEffect = itemData.getString("client_effect");
             String clientAnimation = itemData.getString("client_animation");
@@ -141,22 +139,11 @@ public class skillmod_click_item extends script.base_script
             {
                 hideSkillMod = getBooleanObjVar(self, "hide_skill_mod");
             }
-            if (!static_item.validateLevelRequired(player, requiredLevel))
+            if (requiredSkill != null && !requiredSkill.equals("") &&
+                !utils.meetsProfessionRequirement(player, requiredSkill))
             {
-                sendSystemMessage(player, SID_ITEM_LEVEL_TOO_LOW);
+                sendSystemMessage(player, SID_ITEM_WRONG_SKILL);
                 return SCRIPT_CONTINUE;
-            }
-            if (requiredSkill != null && !requiredSkill.equals(""))
-            {
-                String classTemplate = getSkillTemplate(player);
-                if (classTemplate != null && !classTemplate.equals(""))
-                {
-                    if (!classTemplate.startsWith(requiredSkill))
-                    {
-                        sendSystemMessage(player, SID_ITEM_WRONG_SKILL);
-                        return SCRIPT_CONTINUE;
-                    }
-                }
             }
             blog("skillmod_click_item.OnObjectMenuSelect: Applying skillmod: " + skillModName + " with a value of: " + skillModValue);
             blog("skillmod_click_item.OnObjectMenuSelect: Entire skillmod string: " + skillMod);

@@ -638,11 +638,11 @@ public class space_combat extends script.base_script
                             String disableGroundXp = getConfigSetting("GameServer", "disableGroundXpInSpace");
                             if (disableGroundXp == null || disableGroundXp.equals("false") || disableGroundXp.equals("0")) {
                                 if (!utils.isProfession(((obj_id) objPlayer), utils.TRADER) && !utils.isProfession(((obj_id) objPlayer), utils.ENTERTAINER)) {
-                                    int combatLevel = getLevel(((obj_id) objPlayer));
+                                    int combatLevel = script.library.skill.getPrecuEncounterDifficulty(((obj_id) objPlayer));
                                     if (combatLevel < 90) {
                                         float fltGroundXp = intAmount * GROUND_XP_PERCENT;
                                         int intGroundXp = (int) fltGroundXp;
-                                        xp.grant(((obj_id) objPlayer), "combat_general", intGroundXp);
+                                        xp.grantCombatStyleXp(((obj_id) objPlayer), xp.COMBAT_GENERAL, intGroundXp);
                                     }
                                 }
                             }
@@ -984,7 +984,7 @@ public class space_combat extends script.base_script
         {
             return;
         }
-        if (isIdValid(objPilot) && (utils.getPlayerProfession(objPilot) == utils.SMUGGLER))
+        if (isIdValid(objPilot) && utils.isProfession(objPilot, utils.SMUGGLER))
         {
             smuggler.spaceContrabandDropCheck(objPilot);
         }
@@ -999,15 +999,7 @@ public class space_combat extends script.base_script
             if (strItems.length > 0)
             {
                 int intRoll2 = rand(0, strItems.length - 1);
-                String itemTemplateName;
-                if (getConfigSetting("GameServer", "enableLevelUpLoot") != null && (rand(1, 10000) == 1))
-                {
-                    itemTemplateName = "object/tangible/loot/quest/levelup_lifeday_orb.iff";
-                }
-                else 
-                {
-                    itemTemplateName = strItems[intRoll2];
-                }
+                String itemTemplateName = strItems[intRoll2];
                 if (space_battlefield.isInBattlefield(objAttacker))
                 {
                     CustomerServiceLog("battlefield", "%TU Created " + itemTemplateName + " in " + objContainer + " contained by " + objAttacker, getOwner(objAttacker));

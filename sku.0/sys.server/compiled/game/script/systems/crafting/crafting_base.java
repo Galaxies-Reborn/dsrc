@@ -511,6 +511,10 @@ public class crafting_base extends script.base_script
     }
     public int getInspirationBuffXpBonus(obj_id self, int category, int amt) throws InterruptedException
     {
+        if (buff.isPostNgeBuffProgressionRetired())
+        {
+            return 0;
+        }
         if (utils.hasScriptVar(self, "buff.general_inspiration.value"))
         {
             float mod = utils.getFloatScriptVar(self, "buff.general_inspiration.value");

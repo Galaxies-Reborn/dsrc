@@ -250,6 +250,28 @@ public class gcw extends script.base_script
     public static final String CITY_DEARIC = "dearic";
     public static final String CITY_BESTINE = "bestine";
     public static final String CITY_KEREN = "keren";
+    public static boolean isPostNgeCityInvasionRetired()
+    {
+        // The recurring Bestine/Dearic/Keren construction-and-assault cycle is
+        // a later GCW layer.  PRE-CU keeps faction standing/rank, static faction
+        // bases, battlefields, and the reusable city assets without scheduling
+        // this NGE event controller.
+        return true;
+    }
+    public static boolean isPostNgeQueuedBattlefieldRetired()
+    {
+        // Game Update 10 added the four level-gated, queued, warped, and
+        // token-rewarded battlefields. PRE-CU retains the older open-world
+        // systems.battlefield implementation and faction-standing authority.
+        return true;
+    }
+    public static boolean isPostNgeFixedStaticBaseRetired()
+    {
+        // Chapter 2 added the fixed Corellia, Talus, and Naboo four-terminal
+        // control loop. PRE-CU retains player-placed faction headquarters,
+        // faction standing/rank, and open-world battlefields instead.
+        return true;
+    }
     public static final String GCW_TUTORIAL_FLAG = "gcw_tutorial_flag.has_received_tutorial";
     public static final String COLOR_REBELS = "\\" + colors_hex.COLOR_REBELS;
     public static final String COLOR_IMPERIALS = "\\" + colors_hex.COLOR_IMPERIALS;
@@ -830,15 +852,27 @@ public class gcw extends script.base_script
     }
     public static obj_id getPub30StaticBaseControllerId(obj_id subject) throws InterruptedException
     {
+        if (isPostNgeFixedStaticBaseRetired())
+        {
+            return obj_id.NULL_ID;
+        }
         return getFirstObjectWithScript(getLocation(trial.getTop(subject)), 500.0f, "systems.gcw.static_base.master");
     }
     public static int getPub30StaticBaseControllingFaction(obj_id subject) throws InterruptedException
     {
+        if (isPostNgeFixedStaticBaseRetired())
+        {
+            return NO_CONTROL;
+        }
         obj_id controller = getPub30StaticBaseControllerId(subject);
         return getIntObjVar(controller, "gcw.static_base.base_status");
     }
     public static int getPub30StaticBaseTimeSinceLastCapture(obj_id subject) throws InterruptedException
     {
+        if (isPostNgeFixedStaticBaseRetired())
+        {
+            return -1;
+        }
         obj_id controller = getPub30StaticBaseControllerId(subject);
         if (!hasObjVar(controller, "gcw.static_base.last_capture"))
         {
@@ -851,6 +885,10 @@ public class gcw extends script.base_script
     }
     public static void setPub30StaticBaseTimeSinceLastCapture(obj_id subject, int time) throws InterruptedException
     {
+        if (isPostNgeFixedStaticBaseRetired())
+        {
+            return;
+        }
         obj_id controller = getPub30StaticBaseControllerId(subject);
         setObjVar(controller, "gcw.static_base.last_capture", time);
     }
@@ -860,6 +898,10 @@ public class gcw extends script.base_script
     public static final int PHASE_2 = 14400;
     public static int getPub30StaticBaseCapturePhase(obj_id subject) throws InterruptedException
     {
+        if (isPostNgeFixedStaticBaseRetired())
+        {
+            return 0;
+        }
         int lastCapture = getPub30StaticBaseTimeSinceLastCapture(subject);
         if (lastCapture == -1)
         {
@@ -886,6 +928,10 @@ public class gcw extends script.base_script
     }
     public static int getPub30TimeToNextPhaseInt(obj_id subject) throws InterruptedException
     {
+        if (isPostNgeFixedStaticBaseRetired())
+        {
+            return -1;
+        }
         int lastCapture = getPub30StaticBaseTimeSinceLastCapture(subject);
         int inPhase = getPub30StaticBaseCapturePhase(subject);
         switch (inPhase)
@@ -909,6 +955,10 @@ public class gcw extends script.base_script
     }
     public static int advancePub30StaticBaseCapturePhase(obj_id subject) throws InterruptedException
     {
+        if (isPostNgeFixedStaticBaseRetired())
+        {
+            return 0;
+        }
         int currentPhase = getPub30StaticBaseCapturePhase(subject);
         if (currentPhase == 5)
         {
@@ -939,6 +989,10 @@ public class gcw extends script.base_script
     }
     public static int regressPub30StaticBaseCapturePhase(obj_id subject) throws InterruptedException
     {
+        if (isPostNgeFixedStaticBaseRetired())
+        {
+            return 0;
+        }
         int currentPhase = getPub30StaticBaseCapturePhase(subject);
         if (currentPhase == 1)
         {
@@ -1279,32 +1333,12 @@ public class gcw extends script.base_script
     }
     public static void _grantGcwPoints(obj_id victim, obj_id attacker, int pointValue, boolean pvpKill, int pointType, String information) throws InterruptedException
     {
-        if (!isIdValid(attacker) || !exists(attacker) || pointValue < 1 || pet_lib.isPet(victim))
-        {
-            return;
-        }
-        float multiplier = utils.stringToFloat(getConfigSetting("GameServer", "gcwPointBonus"));
-        if (multiplier > 1)
-        {
-            pointValue *= multiplier;
-        }
-        pvpModifyCurrentGcwPoints(attacker, pointValue);
-        prose_package pp = new prose_package();
-        pp.target.set(getName(victim));
-        pp.digitInteger = pointValue;
-        if (pvpKill)
-        {
-            pp.stringId = SID_PVP_KILL_POINT_GRANT;
-            sendSystemMessageProse(attacker, pp);
-        }
-        else
-        {
-            pp.stringId = SID_GENERIC_POINT_GRANT;
-            sendSystemMessageProse(attacker, pp);
-        }
-        doGcwPointCsLogging(attacker, pointValue, pointType, information);
-        gcwInvasionCreditForGCW(attacker, pointValue);
-        grantGcwPointsToRegion(attacker, pointValue, pointType);
+        // Publish 14 faction standing and faction rank are authoritative.  The
+        // current/lifetime GCW point pipeline, weekly rating conversion, rank
+        // decay, invasion credit, and regional score propagation are later-era
+        // progression and must not run in PRE-CU.  Callers retain their separate
+        // mission credits, faction standing, quest rewards, and physical tokens.
+        return;
     }
     public static void doGcwPointCsLogging(obj_id player, int pointValue, int pointType, String information) throws InterruptedException
     {
@@ -1495,6 +1529,10 @@ public class gcw extends script.base_script
     }
     public static int getModifiedGcwPointValue(obj_id player, int passedValue) throws InterruptedException
     {
+        if (buff.isPostNgeBuffProgressionRetired())
+        {
+            return passedValue;
+        }
         float mod = 1.0f;
         if (utils.hasScriptVar(player, "buff.xpBonus.value"))
         {
@@ -2558,8 +2596,8 @@ public class gcw extends script.base_script
             }
         }
         playerFaction = factionColor + playerFaction;
-        String playerProfession = "@ui_roadmap:" + skill.getProfessionName(getSkillTemplate(who));
-        int playerLevel = getLevel(who);
+        String playerProfession = "Publish 14.1 skills";
+        int playerLevel = 0;
         if (currentData != null)
         {
             playerGCW = currentData.playerGCW + playerGCW;
@@ -2689,10 +2727,6 @@ public class gcw extends script.base_script
         if (cityConfig == null || (!cityConfig.equals("1") && !cityConfig.toLowerCase().equals("true")))
         {
             CustomerServiceLog("gcw_city_invasion", "gcw.gcwIsInvasionCityOn: GCW City: " + city + " is not configured to run a city invasion. Function returning False.");
-            return false;
-        }
-        if (city.equalsIgnoreCase("dearic") && utils.checkConfigFlag("GameServer", "lifeday")) {
-            CustomerServiceLog("gcw_city_invasion", "gcw.gcwIsInvasionCityOn: GCW City: " + city + " is not running because life day is turned on.");
             return false;
         }
         return true;

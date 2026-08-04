@@ -100,7 +100,7 @@ public class loveday_reward_crossbow extends script.base_script
         if (isIdValid(target))
         {
             obj_id[] thoseWhoHateMe = getHateList(player);
-            int playerLevel = getLevel(player);
+            int playerLevel = script.library.skill.getPrecuEncounterDifficulty(player);
             if (thoseWhoHateMe.length != 0)
             {
                 float hateReduction;

@@ -181,7 +181,7 @@ public class smuggler extends script.base_script
             float cashMultiplier = 1.0f;
             if (fence)
             {
-                int playerLevel = getLevel(player);
+                int playerLevel = script.library.skill.getPrecuEncounterDifficulty(player);
                 cashMultiplier = FENCE_MULTIPLIER_LOW;
                 if (playerLevel > 55)
                 {
@@ -287,7 +287,7 @@ public class smuggler extends script.base_script
         float cashMultiplier = 1.0f;
         if (fence)
         {
-            int playerLevel = getLevel(player);
+            int playerLevel = script.library.skill.getPrecuEncounterDifficulty(player);
             cashMultiplier = FENCE_MULTIPLIER_LOW;
             if (playerLevel > 55)
             {

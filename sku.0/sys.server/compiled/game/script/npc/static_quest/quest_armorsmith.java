@@ -441,7 +441,7 @@ public class quest_armorsmith extends script.base_script
         {
             return -1;
         }
-        if (!hasSkill(player, "class_munitions_phase4_master"))
+        if (!hasSkill(player, "crafting_armorsmith_master"))
         {
             return -1;
         }

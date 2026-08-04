@@ -10,7 +10,6 @@ public class stimpack_crafted extends script.base_script
     public stimpack_crafted()
     {
     }
-    public static final string_id SID_ITEM_LEVEL_TOO_LOW = new string_id("healing", "item_level_too_low");
     public static final string_id SID_STIMPACK_TOO_SOON = new string_id("healing", "channel_heal_stimpack_too_soon");
     public int OnGetAttributes(obj_id self, obj_id player, String[] names, String[] attribs) throws InterruptedException
     {
@@ -23,17 +22,6 @@ public class stimpack_crafted extends script.base_script
         {
             names[idx] = "healing_power";
             int value = getIntObjVar(self, "healing.power");
-            attribs[idx] = Integer.toString(value);
-            idx++;
-            if (idx >= names.length)
-            {
-                return SCRIPT_CONTINUE;
-            }
-        }
-        if (hasObjVar(self, "healing.combat_level_required"))
-        {
-            names[idx] = "healing_combat_level_required";
-            int value = getIntObjVar(self, "healing.combat_level_required");
             attribs[idx] = Integer.toString(value);
             idx++;
             if (idx >= names.length)
@@ -75,17 +63,7 @@ public class stimpack_crafted extends script.base_script
         }
         if (item == menu_info_types.ITEM_USE)
         {
-            int level = getLevel(player);
-            int requiredLevel = getIntObjVar(self, "healing.combat_level_required");
-            if (level < requiredLevel)
-            {
-                sendSystemMessage(player, SID_ITEM_LEVEL_TOO_LOW);
-                return SCRIPT_OVERRIDE;
-            }
-            else 
-            {
-                boolean worked = healing.useChannelHealItem(player, self);
-            }
+            boolean worked = healing.useChannelHealItem(player, self);
         }
         return SCRIPT_CONTINUE;
     }

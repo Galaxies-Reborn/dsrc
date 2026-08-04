@@ -113,7 +113,30 @@ public class combat_engine
 			dat.hateAdd 						= d.getInt("hateAdd");
 			dat.hateAddTime 					= d.getInt("hateAddTime");
 			dat.hateReduce						= d.getInt("hateReduce");
+			dat.healthCost 						= d.getFloat("healthCost");
 			dat.actionCost 						= d.getFloat("actionCost");
+			dat.mindCost 						= d.getFloat("mindCost");
+			dictionary precu = base_class.dataTableGetRow("datatables/combat/precu_combat_overrides.iff", actionName);
+			if (precu != null)
+			{
+				dat.precuHamCostModel			= 1;
+				dat.precuTargetPool				= precu.getInt("targetPool");
+				dat.precuAnimationType			= precu.getInt("animationType");
+				dat.precuDotAttribute			= precu.getInt("dotAttribute");
+				dat.precuPostureDownChance		= precu.getInt("postureDownChance");
+				dat.precuKnockdownChance		= precu.getInt("knockdownChance");
+				dat.precuPoolDamageRolls			= precu.getInt("poolDamageRolls");
+				dat.precuPoolDamageIncrement		= precu.getFloat("poolDamageIncrement");
+				dat.precuHealthDamageMultiplier	= precu.getFloat("healthDamageMultiplier");
+				dat.precuActionDamageMultiplier	= precu.getFloat("actionDamageMultiplier");
+				dat.precuMindDamageMultiplier		= precu.getFloat("mindDamageMultiplier");
+				dat.precuHitIncapacitatedTarget	= precu.getInt("hitIncapacitatedTarget");
+				dat.precuFixedMinDamage			= precu.getInt("fixedMinDamage");
+				dat.precuFixedMaxDamage			= precu.getInt("fixedMaxDamage");
+				dat.healthCost					= precu.getFloat("healthCostMultiplier");
+				dat.actionCost					= precu.getFloat("actionCostMultiplier");
+				dat.mindCost					= precu.getFloat("mindCostMultiplier");
+			}
 			dat.vigorCost 						= d.getFloat("vigorCost");
 			dat.scaleByDefenderWeaponSpeed				= d.getFloat("scaleByDefenderWeaponSpeed");
 			dat.dotType 						= d.getString("dotType");
@@ -221,7 +244,23 @@ public class combat_engine
 			dict.put("hateAdd", actionData.hateAdd);
 			dict.put("hateAddTime", actionData.hateAddTime);
 			dict.put("hateReduce", actionData.hateReduce);
+			dict.put("healthCost", actionData.healthCost);
 			dict.put("actionCost", actionData.actionCost);
+			dict.put("mindCost", actionData.mindCost);
+			dict.put("precuHamCostModel", actionData.precuHamCostModel);
+			dict.put("precuTargetPool", actionData.precuTargetPool);
+			dict.put("precuAnimationType", actionData.precuAnimationType);
+			dict.put("precuDotAttribute", actionData.precuDotAttribute);
+			dict.put("precuPostureDownChance", actionData.precuPostureDownChance);
+			dict.put("precuKnockdownChance", actionData.precuKnockdownChance);
+			dict.put("precuPoolDamageRolls", actionData.precuPoolDamageRolls);
+			dict.put("precuPoolDamageIncrement", actionData.precuPoolDamageIncrement);
+			dict.put("precuHealthDamageMultiplier", actionData.precuHealthDamageMultiplier);
+			dict.put("precuActionDamageMultiplier", actionData.precuActionDamageMultiplier);
+			dict.put("precuMindDamageMultiplier", actionData.precuMindDamageMultiplier);
+			dict.put("precuHitIncapacitatedTarget", actionData.precuHitIncapacitatedTarget);
+			dict.put("precuFixedMinDamage", actionData.precuFixedMinDamage);
+			dict.put("precuFixedMaxDamage", actionData.precuFixedMaxDamage);
 			dict.put("vigorCost", actionData.vigorCost);
 			dict.put("scaleByDefenderWeaponSpeed", actionData.scaleByDefenderWeaponSpeed);
 			dict.put("dotType", actionData.dotType);
@@ -321,7 +360,23 @@ public class combat_engine
 				dat.hateAdd 						= dict.getInt("hateAdd");
 				dat.hateAddTime 					= dict.getInt("hateAddTime");
 				dat.hateReduce						= dict.getInt("hateReduce");
+				dat.healthCost 						= dict.getFloat("healthCost");
 				dat.actionCost 						= dict.getFloat("actionCost");
+				dat.mindCost 						= dict.getFloat("mindCost");
+				dat.precuHamCostModel				= dict.getInt("precuHamCostModel");
+				dat.precuTargetPool					= dict.getInt("precuTargetPool");
+				dat.precuAnimationType				= dict.getInt("precuAnimationType");
+				dat.precuDotAttribute				= dict.getInt("precuDotAttribute");
+				dat.precuPostureDownChance			= dict.getInt("precuPostureDownChance");
+				dat.precuKnockdownChance			= dict.getInt("precuKnockdownChance");
+				dat.precuPoolDamageRolls				= dict.getInt("precuPoolDamageRolls");
+				dat.precuPoolDamageIncrement			= dict.getFloat("precuPoolDamageIncrement");
+				dat.precuHealthDamageMultiplier		= dict.getFloat("precuHealthDamageMultiplier");
+				dat.precuActionDamageMultiplier		= dict.getFloat("precuActionDamageMultiplier");
+				dat.precuMindDamageMultiplier			= dict.getFloat("precuMindDamageMultiplier");
+				dat.precuHitIncapacitatedTarget		= dict.getInt("precuHitIncapacitatedTarget");
+				dat.precuFixedMinDamage				= dict.getInt("precuFixedMinDamage");
+				dat.precuFixedMaxDamage				= dict.getInt("precuFixedMaxDamage");
 				dat.vigorCost 						= dict.getFloat("vigorCost");
 				dat.scaleByDefenderWeaponSpeed		= dict.getFloat("scaleByDefenderWeaponSpeed");
 				dat.dotType 						= dict.getString("dotType");
@@ -439,7 +494,23 @@ public class combat_engine
 			public int 		hateAdd 						= 0;
 			public int 		hateAddTime 					= 0;
 			public int		hateReduce						= 0;
+			public float	healthCost 						= 0;
 			public float	actionCost 						= 0;
+			public float	mindCost 						= 0;
+			public int		precuHamCostModel				= 0;
+			public int		precuTargetPool					= -1;
+			public int		precuAnimationType				= 0;
+			public int		precuDotAttribute				= -1;
+			public int		precuPostureDownChance			= 0;
+			public int		precuKnockdownChance			= 0;
+			public int		precuPoolDamageRolls				= 0;
+			public float	precuPoolDamageIncrement			= 0.0f;
+			public float	precuHealthDamageMultiplier		= 0.0f;
+			public float	precuActionDamageMultiplier		= 0.0f;
+			public float	precuMindDamageMultiplier			= 0.0f;
+			public int		precuHitIncapacitatedTarget		= 0;
+			public int		precuFixedMinDamage				= -1;
+			public int		precuFixedMaxDamage				= -1;
 			public float 	vigorCost						= 0;
 			public float	scaleByDefenderWeaponSpeed				= 0;
 			public String 	dotType 						= "";
@@ -547,6 +618,9 @@ public class combat_engine
 		public float evadeAmmount = 0.0f;	// % of damage avoided
 		public boolean blockResult = false; // Chance to soak damage
 		public int block = 0;				// Ammount of damage mitigated on a block
+		public boolean precuBlock = false;	// Core3 block: retain the hit and halve damage
+		public boolean precuCounter = false;	// Core3 counter: negate damage and queue a basic response
+		public boolean precuRicochet = false;	// Core3 saber block: negate a ranged hit without NGE reflect logic
 	}
 
 	public static class combatant_data

@@ -10,6 +10,7 @@ import java.util.Vector;
 
 public class gcw_city extends script.base_script
 {
+    public static final String SCRIPT_NAME = "systems.gcw.gcw_city";
     public gcw_city()
     {
     }
@@ -21,6 +22,53 @@ public class gcw_city extends script.base_script
     public static final float DEARIC_ANNOUNCEMENT_RADIUS = 650.0f;
     public static final String COLOR_REBELS = "\\" + colors_hex.COLOR_REBELS;
     public static final String COLOR_IMPERIALS = "\\" + colors_hex.COLOR_IMPERIALS;
+
+    private void retirePostNgeCityInvasion(obj_id self) throws InterruptedException
+    {
+        if (!isIdValid(self) || !exists(self))
+        {
+            return;
+        }
+        trial.clearNonInstanceFactionParticipants(self);
+        utils.removeScriptVarTree(self, "gcw");
+        utils.removeScriptVar(self, "phase");
+        utils.removeScriptVar(self, "currentOccupyFaction");
+        utils.removeScriptVar(self, "announcementOrigin");
+        utils.removeScriptVar(self, "announcementRadius");
+        utils.removeScriptVar(self, "cityObject");
+        utils.removeScriptVar(self, "defendingGeneral");
+        utils.removeScriptVar(self, "planetName");
+        utils.removeScriptVar(self, "cityName");
+
+        obj_id planet = getPlanetByName("tatooine");
+        if (isIdValid(planet) && exists(planet))
+        {
+            for (String cityName : gcw.INVASION_CITIES)
+            {
+                utils.removeScriptVar(planet, "gcw.lastTrackTime." + cityName);
+                utils.removeScriptVar(planet, "gcw.time." + cityName);
+                utils.removeScriptVar(planet, "gcw.object." + cityName);
+                utils.removeScriptVar(planet, "gcw.calendar_time." + cityName);
+                utils.removeScriptVar(planet, "gcw.invasionRunning." + cityName);
+                utils.removeScriptVar(planet, "gcw.factionDefending." + cityName);
+            }
+        }
+
+        // sequence_controller owns the spawned children and remains attached,
+        // so it can remove any assets left by an invasion interrupted at deploy.
+        messageTo(self, "cleanupSpawn", null, 1.0f, false);
+        detachScript(self, SCRIPT_NAME);
+    }
+
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            retirePostNgeCityInvasion(self);
+            return SCRIPT_CONTINUE;
+        }
+        return SCRIPT_CONTINUE;
+    }
 
     /*
     CITY_OBJECT_BESTINE 9835358 tatooine(-1292.5868, 12.0, -3590.0999)
@@ -57,6 +105,11 @@ public class gcw_city extends script.base_script
     }
     public int OnHearSpeech(obj_id self, obj_id objSpeaker, String strText) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            retirePostNgeCityInvasion(self);
+            return SCRIPT_CONTINUE;
+        }
         if (!isGod(objSpeaker))
         {
             return SCRIPT_CONTINUE;
@@ -239,12 +292,22 @@ public class gcw_city extends script.base_script
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            retirePostNgeCityInvasion(self);
+            return SCRIPT_CONTINUE;
+        }
         CustomerServiceLog("gcw_city_invasion", "gcw_city.OnInitialize: The city sequencer object is starting for the fist time.");
         messageTo(self, "checkForInvasion", null, 1.0f, false);
         return SCRIPT_CONTINUE;
     }
     public int checkForInvasion(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            retirePostNgeCityInvasion(self);
+            return SCRIPT_CONTINUE;
+        }
         if (!isIdValid(self) || !exists(self))
         {
             return SCRIPT_CONTINUE;
@@ -284,6 +347,11 @@ public class gcw_city extends script.base_script
     */
     public int beginInvasion(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            retirePostNgeCityInvasion(self);
+            return SCRIPT_CONTINUE;
+        }
         LOG("gcw_announcement", "beginInvasion init");
         if (!isIdValid(self) || !exists(self))
         {

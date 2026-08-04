@@ -11,7 +11,7 @@ public class crafting_stimpack_chemistry extends script.systems.crafting.chemist
     public static final String VERSION = "v0.00.00";
     public static final String[] REQUIRED_SKILLS = 
     {
-        "class_domestics_phase1_novice"
+        "crafting_artisan_domestic_04"
     };
     public static final String[] ASSEMBLY_SKILL_MODS = 
     {

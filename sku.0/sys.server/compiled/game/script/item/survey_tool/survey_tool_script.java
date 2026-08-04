@@ -16,7 +16,8 @@ public class survey_tool_script extends script.base_script
     public static final int MIN_SURVEY_TOOL_DELAY = 10;
     public static final int SURVEY_MIND_COST = 0;
     public static final int SAMPLE_MIND_COST = 0;
-    public static final int SAMPLE_ACTION_COST = 105;
+    public static final int PRECU_SAMPLE_ACTION_BASE_COST = 124;
+    public static final float PRECU_SAMPLE_QUICKNESS_DIVISOR = 12.5f;
     public static final int MIN_SURVEY_MISSION_DISTANCE = 1024;
     public static final string_id SID_TOOL_OPTIONS = new string_id("sui", "tool_options");
     public static final string_id SID_TOOL_RANGE = new string_id("sui", "survey_range");
@@ -668,8 +669,8 @@ public class survey_tool_script extends script.base_script
             resource.cleanupTool(player, self);
             return SCRIPT_CONTINUE;
         }
-        int action = getAttrib(player, ACTION);
-        int actioncost = SAMPLE_ACTION_COST * (getLevel(player) / 2);
+        int actioncost = Math.max(0, PRECU_SAMPLE_ACTION_BASE_COST -
+            (int)(getAttrib(player, QUICKNESS) / PRECU_SAMPLE_QUICKNESS_DIVISOR));
         if (!drainAttributes(player, actioncost, 0))
         {
             sendSystemMessage(player, SID_SAMPLE_MIND);

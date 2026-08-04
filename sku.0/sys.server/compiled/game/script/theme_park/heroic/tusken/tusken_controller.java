@@ -25,8 +25,7 @@ public class tusken_controller extends script.base_script
         CustomerServiceLog("instance-heroic_tusken_army", "Group (" + group + ") consists of: ");
         for (int i = 0; i < players.length; ++i)
         {
-            String strProfession = skill.getProfessionName(getSkillTemplate(players[i]));
-            CustomerServiceLog("instance-heroic_tusken_army", "Group (" + group + ") member " + i + " " + getFirstName(players[i]) + "'s(" + players[i] + ") profession is " + strProfession + ".");
+            CustomerServiceLog("instance-heroic_tusken_army", "Group (" + group + ") member " + i + " " + getFirstName(players[i]) + "'s(" + players[i] + ") progression is Publish 14.1 skills.");
         }
         return SCRIPT_CONTINUE;
     }

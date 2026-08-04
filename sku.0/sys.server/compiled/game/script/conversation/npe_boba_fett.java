@@ -15,7 +15,7 @@ public class npe_boba_fett extends script.base_script
     }
     public boolean npe_boba_fett_condition_isAtLeastLevel5(obj_id player, obj_id npc) throws InterruptedException
     {
-        int level = getLevel(player);
+        int level = script.library.skill.getPrecuEncounterDifficulty(player);
         if (level >= 5)
         {
             return true;

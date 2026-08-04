@@ -69,6 +69,7 @@ armorBreak_1	armorBreak			3	command.armorBreak	20	private_armor_break	100		0		0	
 armorBreak_2	armorBreak			4	command.armorBreak	30	private_armor_break	150		0		0		0		0	STATE_NONE	none			0	1		1	1	1	0	1	1	0	1	1	1
 berserk	berserk			1	command.berserk	20	private_melee_dmg_bonus	25		0		0		0		0	STATE_BERSERK	none			1	0		1	1	1	0	1	1	0	1	1	1
 berserk_1	berserk			2	command.berserk	20	private_melee_dmg_bonus	50		0		0		0		0	STATE_BERSERK	none			1	0		1	1	1	0	1	1	0	1	1	1
+precu_berserk_status	precuBerserkStatus			1	command.berserk	0		0		0		0		0		0	STATE_NONE	none			1	0		0	1	0	0	1	0	0	1	1	1
 startleShot	startleShot			1	command.startleShot	5	private_posture_override	1		0		0		0		0	STATE_NONE	none			0	1		1	1	1	0	1	1	0	1	1	1
 startleShot_1	startleShot			2	command.startleShot	5	private_posture_override	1		0		0		0		0	STATE_NONE	none			0	1		1	1	1	0	1	1	0	1	1	1
 startleShot_2	startleShot	daze		3	command.startleShot	5	private_posture_override	1	delay_attack	0		0		0		0	STATE_NONE	dazeRecourse			0	1		1	1	1	0	1	1	0	1	1	1
@@ -290,7 +291,7 @@ foraged_vegetable_3	food			0	buffs.foodVegetable	300	constitution_modified	10	ag
 foraged_vegetable_4	food			0	buffs.foodVegetable	300	stamina_modified	10	luck_modified	10		0		0		0	STATE_NONE	none			1	0		1	1	1	0	1	1	0	1	1	1
 foraged_vegetable_5	food			0	buffs.foodVegetable	300	agility_modified	10	stamina_modified	10		0		0		0	STATE_NONE	none			1	0		1	1	1	0	1	1	0	1	1	1
 enragePet	enragePet			1	command.enragepets	60	private_melee_dmg_bonus	25	private_defense_penalty	40		0		0		0	STATE_BERSERK	none			1	0		0	1	1	0	1	1	0	1	1	1
-emboldenPet	emboldenPet			1	command.emboldenpets	300	healthPercent	15		0		0		0		0	STATE_NONE	none			1	0		0	1	1	0	1	1	0	1	1	1
+emboldenPet	emboldenPet			1	command.emboldenpets	60	healthPercent	15	actionPercent	15	mindPercent	15		0		0	STATE_NONE	none			1	0		0	1	1	0	1	1	0	1	1	1
 perform_inspire_1	performance			1	buffs.genericBuff	300	script_var	0		0		0		0		0	STATE_NONE	none			1	0		0	1	1	0	1	1	0	1	1	1
 cyborgStrengthBuff	cyborgStrengthBuff			99	command.cyborgStrengthBuff	60	strength_modified	200	stamina_modified	100		0		0		0	STATE_NONE	none			1	0		0	1	1	0	1	1	0	1	1	1
 cyberneticLegs	cyborgLegBoost			1	command.burstRun	-1	movement	0		0		0		0		0	STATE_NONE	none			1	0		0	1	1	0	1	1	0	1	1	1
@@ -1832,7 +1833,7 @@ costume_monkey_lizard	shapechange	costume		1	buffs.costume	3600	storyteller_cost
 costume_toydarian	shapechange	costume		1	buffs.costume	3600	storyteller_costume	2		0		0		0		0	STATE_NONE	none			1	0		0	1	1	1	1	1	0	1	1	1
 tcg_series3_general_grievous_gutsack	exp_buff			20	buffs.tcg_series3_general_grievous_gutsack	3600	tcg_xp_bonus	20		0		0		0		0	STATE_NONE	none			1	0		0	0	1	0	1	1	0	1	1	1
 tcg_series3_hh_15_torpedo_warhead	gcw_exp_buff			10	buffs.tcg_series3_hh_15_torpedo_warhead	3600	tcg_gcw_bonus	10		0		0		0		0	STATE_NONE	none			1	0		0	0	1	0	1	1	0	1	1	1
-tcg_series3_wookiee_ceremonial_pipe	collection			20		1	random_collection_item	0		0		0		0		0	STATE_NONE	none			1	0		1	0	1	0	1	1	0	1	1	1
+tcg_series3_wookiee_ceremonial_pipe	collection			20	buffs.genericBuff	1	random_collection_item	0		0		0		0		0	STATE_NONE	none			1	0		1	0	1	0	1	1	0	1	1	1
 tcg_series3_hands_of_seduction	hands_effect			10	buffs.batSwarm	-1	looping_hands_particle	0		0		0		0		0	STATE_NONE	none	appearance/pt_tcg_hand_effect_01.prt,appearance/pt_tcg_hand_effect_01.prt	hold_l,hold_r	0	0		0	0	0	0	1	1	0	0	0	1
 costume_4lom	shapechange	costume		1	buffs.costume	3600	storyteller_costume	12	movement	0		0		0		0	STATE_NONE	none			1	0		0	1	1	1	1	1	0	1	1	1
 costume_dantari_m	shapechange	costume		1	buffs.costume	3600	storyteller_costume	13		0		0		0		0	STATE_NONE	none			1	0		0	1	1	1	1	1	0	1	1	1
@@ -1991,3 +1992,4 @@ en_sprint	en_sprint			10	command.en_sprint	30	movement	0	movement_resist_snare	1
 event_halloween_costume_skeleton1	shapechange	halloween_shapechange		1	buffs.costume	1800	movement	0	event_halloween_costume	51		0		0		0	STATE_NONE	none			1	0		0	1	1	1	1	1	0	1	1	1
 costume_hutt_female	shapechange	halloween_shapechange		1	buffs.costume	1800	movement	0	event_halloween_costume	3		0		0		0	STATE_NONE	none			1	0		0	1	1	1	1	1	0	1	1	1
 gcw_rocket_turret	gcw_mini_turret			1		1	gcw_mini_turret	1		0		0		0		0	STATE_NONE	none			0	0		1	1	1	0	1	1	0	1	1	1
+centerofbeing	centerOfBeing			1	command.centerOfBeing	0	private_center_of_being	0		0		0		0		0	STATE_NONE	handlePrecuCenterOfBeingExpired			1	0		0	1	1	0	1	0	0	1	1	1

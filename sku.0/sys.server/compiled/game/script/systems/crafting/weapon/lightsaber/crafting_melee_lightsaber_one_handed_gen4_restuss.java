@@ -11,7 +11,7 @@ public class crafting_melee_lightsaber_one_handed_gen4_restuss extends script.sy
     public static final String VERSION = "v0.00.00";
     public static final String[] REQUIRED_SKILLS = 
     {
-        "class_forcesensitive_phase1_novice"
+        "jedi_padawan_novice"
     };
     public static final String[] ASSEMBLY_SKILL_MODS = 
     {

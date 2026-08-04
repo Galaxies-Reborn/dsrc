@@ -19,7 +19,7 @@ public class jedi_robe_collection_giver extends script.base_script
     {
         if (utils.isProfession(player, utils.FORCE_SENSITIVE))
         {
-            if (getLevel(player) >= 85)
+            if (script.library.skill.getPrecuEncounterDifficulty(player) >= 85)
             {
                 if (!hasCompletedCollectionSlot(player, "jedi_robe_01_01"))
                 {
@@ -37,7 +37,7 @@ public class jedi_robe_collection_giver extends script.base_script
     {
         if (utils.isProfession(player, utils.FORCE_SENSITIVE))
         {
-            if (getLevel(player) < 85)
+            if (script.library.skill.getPrecuEncounterDifficulty(player) < 85)
             {
                 return true;
             }

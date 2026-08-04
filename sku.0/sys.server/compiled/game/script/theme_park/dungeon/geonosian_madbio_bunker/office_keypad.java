@@ -130,7 +130,7 @@ public class office_keypad extends script.base_script
     public boolean hasSlicingSkill(obj_id player) throws InterruptedException
     {
         boolean hadIt = false;
-        if (hasSkill(player, "class_smuggler_phase1_novice"))
+        if (hasSkill(player, "combat_smuggler_slicing_01"))
         {
             hadIt = true;
         }

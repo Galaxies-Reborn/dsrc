@@ -34,7 +34,7 @@ public class vana_sage extends script.base_script
     public boolean vana_sage_condition_playerIsHighLvl(obj_id player, obj_id npc) throws InterruptedException
     {
         faceTo(npc, player);
-        return getLevel(player) >= 56;
+        return script.library.skill.getPrecuEncounterDifficulty(player) >= 56;
     }
     public boolean vana_sage_condition_hasMetChoster(obj_id player, obj_id npc) throws InterruptedException
     {

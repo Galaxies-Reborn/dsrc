@@ -219,7 +219,7 @@ public class imperial_trouble extends script.base_script
                     }
                     if (factions.getFaction(player).equals(harassFaction)) {
                         if (!checkForPercentage(player)) {
-                            if (getLevel(player) > 10) {
+                            if (script.library.skill.getPrecuEncounterDifficulty(player) > 10) {
                                 chat.chat(self, new string_id(CONVO, "attacking_" + getFactionName(self)));
                                 if (!isJedi(player) && factions.isOnLeave(player)) {
                                     pvpMakeCovert(player);
@@ -266,19 +266,19 @@ public class imperial_trouble extends script.base_script
     public int getSmugglerPercentage(obj_id thisMember) throws InterruptedException
     {
         int chance = 90;
-        if (hasSkill(thisMember, "class_smuggler_phase1_novice"))
+        if (hasSkill(thisMember, "combat_smuggler_underworld_01"))
         {
             chance = 80;
         }
-        if (hasSkill(thisMember, "class_smuggler_phase2_novice"))
+        if (hasSkill(thisMember, "combat_smuggler_underworld_02"))
         {
             chance = 60;
         }
-        if (hasSkill(thisMember, "class_smuggler_phase3_novice"))
+        if (hasSkill(thisMember, "combat_smuggler_underworld_03"))
         {
             chance = 40;
         }
-        if (hasSkill(thisMember, "class_smuggler_phase4_novice"))
+        if (hasSkill(thisMember, "combat_smuggler_underworld_04"))
         {
             chance = 20;
         }

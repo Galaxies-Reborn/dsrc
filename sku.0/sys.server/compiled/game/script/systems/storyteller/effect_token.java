@@ -12,12 +12,12 @@ public class effect_token extends script.base_script
     public static final String EFFECT_CONTROL_SCRIPT = "systems.storyteller.effect_controller";
     public int OnAttach(obj_id self) throws InterruptedException
     {
-        storyteller.resetTokenDailyCount(self);
+        detachScript(self, "systems.storyteller.effect_token");
         return SCRIPT_CONTINUE;
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
-        storyteller.resetTokenDailyCount(self);
+        detachScript(self, "systems.storyteller.effect_token");
         return SCRIPT_CONTINUE;
     }
     public int storytellerEffectTokenDailyAlarm(obj_id self, dictionary params) throws InterruptedException

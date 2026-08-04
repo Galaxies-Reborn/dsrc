@@ -15,9 +15,14 @@ public class quest_holocron extends script.base_script
     public static final int MENU_EDIT_RECIPE = menu_info_types.SERVER_MENU5;
     public static final int MENU_SHARE_QUEST = menu_info_types.SERVER_MENU6;
     public static final int MENU_BUILD_HOLOCRON = menu_info_types.SERVER_MENU7;
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        detachScript(self, "quest.task.pgc.quest_holocron");
+        return SCRIPT_CONTINUE;
+    }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
-        messageTo(self, "handleCheckCompletedHolocron", null, 2, false);
+        detachScript(self, "quest.task.pgc.quest_holocron");
         return SCRIPT_CONTINUE;
     }
     public int handleCheckCompletedHolocron(obj_id self, dictionary params) throws InterruptedException
@@ -29,6 +34,8 @@ public class quest_holocron extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info menuInfo) throws InterruptedException
     {
+        return SCRIPT_CONTINUE;
+        /*
         int rootMenu = 0;
         obj_id playerInventory = utils.getInventoryContainer(player);
         if (utils.isNestedWithin(self, playerInventory))
@@ -82,10 +89,12 @@ public class quest_holocron extends script.base_script
                 rootMenu = menuInfo.addRootMenu(MENU_SHARE_QUEST, new string_id("saga_system", "holocron_menu_share_quest"));
             }
         }
-        return SCRIPT_CONTINUE;
+        */
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int menu_item) throws InterruptedException
     {
+        return SCRIPT_CONTINUE;
+        /*
         obj_id playerInventory = utils.getInventoryContainer(player);
         if (utils.isNestedWithin(self, playerInventory))
         {
@@ -258,7 +267,7 @@ public class quest_holocron extends script.base_script
                 }
             }
         }
-        return SCRIPT_CONTINUE;
+        */
     }
     public boolean hasRewardItems(obj_id questHolocron) throws InterruptedException
     {

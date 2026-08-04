@@ -154,7 +154,7 @@ public class jedi_saber_component extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
-        if (!jedi.isForceSensitiveLevelRequired(player, jedi.MIN_CRYSTAL_TUNE_PLAYER_LEVEL))
+        if (!jedi.canTuneLightsaberCrystal(player))
         {
             return SCRIPT_CONTINUE;
         }
@@ -181,7 +181,7 @@ public class jedi_saber_component extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
-        if (!jedi.isForceSensitiveLevelRequired(player, jedi.MIN_CRYSTAL_TUNE_PLAYER_LEVEL))
+        if (!jedi.canTuneLightsaberCrystal(player))
         {
             return SCRIPT_CONTINUE;
         }

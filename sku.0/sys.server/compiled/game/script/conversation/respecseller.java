@@ -9,6 +9,10 @@ public class respecseller extends script.base_script
     {
     }
     public static String c_stringFile = "conversation/respecseller";
+    private static boolean isNgeRespecSellerEnabled()
+    {
+        return false;
+    }
     public boolean respecseller_condition__defaultCondition(obj_id player, obj_id npc) throws InterruptedException
     {
         return true;
@@ -840,6 +844,12 @@ public class respecseller extends script.base_script
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        if (!isNgeRespecSellerEnabled())
+        {
+            clearCondition(self, CONDITION_CONVERSABLE);
+            detachScript(self, "conversation.respecseller");
+            return SCRIPT_CONTINUE;
+        }
         if ((!isTangible(self)) || (isPlayer(self)))
         {
             detachScript(self, "conversation.respecseller");
@@ -849,11 +859,22 @@ public class respecseller extends script.base_script
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        if (!isNgeRespecSellerEnabled())
+        {
+            clearCondition(self, CONDITION_CONVERSABLE);
+            detachScript(self, "conversation.respecseller");
+            return SCRIPT_CONTINUE;
+        }
         setCondition(self, CONDITION_CONVERSABLE);
         return SCRIPT_CONTINUE;
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info menuInfo) throws InterruptedException
     {
+        if (!isNgeRespecSellerEnabled())
+        {
+            clearCondition(self, CONDITION_CONVERSABLE);
+            return SCRIPT_CONTINUE;
+        }
         int menu = menuInfo.addRootMenu(menu_info_types.CONVERSE_START, null);
         menu_info_data menuInfoData = menuInfo.getMenuItemById(menu);
         menuInfoData.setServerNotify(false);
@@ -874,6 +895,11 @@ public class respecseller extends script.base_script
     }
     public int OnStartNpcConversation(obj_id self, obj_id player) throws InterruptedException
     {
+        if (!isNgeRespecSellerEnabled())
+        {
+            utils.removeScriptVar(player, "conversation.respecseller.branchId");
+            return SCRIPT_OVERRIDE;
+        }
         obj_id npc = self;
         if (ai_lib.isInCombat(npc) || ai_lib.isInCombat(player))
         {
@@ -954,6 +980,11 @@ public class respecseller extends script.base_script
     }
     public int OnNpcConversationResponse(obj_id self, String conversationId, obj_id player, string_id response) throws InterruptedException
     {
+        if (!isNgeRespecSellerEnabled())
+        {
+            utils.removeScriptVar(player, "conversation.respecseller.branchId");
+            return SCRIPT_CONTINUE;
+        }
         if (!conversationId.equals("respecseller"))
         {
             return SCRIPT_CONTINUE;

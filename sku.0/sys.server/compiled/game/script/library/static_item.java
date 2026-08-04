@@ -21,7 +21,6 @@ public class static_item extends script.base_script
     public static final string_id SID_NOT_LINKED_TO_HOLDER = new string_id("base_player", "not_linked_to_holder");
     public static final string_id ALREADY_HAVE_SIMILAR_BUFF = new string_id("base_player", "already_have_similar_buff");
     public static final string_id BUFF_APPLIED = new string_id("base_player", "buff_applied");
-    public static final string_id SID_ITEM_LEVEL_TOO_LOW = new string_id("base_player", "level_too_low_for_effect");
     public static final string_id SID_UNIQUE_NO_CREATE = new string_id("base_player", "unique_failed_create");
     public static final string_id SID_ITEM_NOT_ENOUGH_SKILL = new string_id("base_player", "not_correct_skill");
     public static final String STATIC_ITEM_NAME = "static_item_n";
@@ -467,41 +466,16 @@ public class static_item extends script.base_script
     }
     public static boolean validateLevelRequired(obj_id player, int requiredLevel) throws InterruptedException
     {
-        return getLevel(player) >= requiredLevel;
+        // Retained post-era items may still carry a compatibility column, but
+        // Publish 14.1 players have no combat level with which to satisfy it.
+        return true;
     }
     public static boolean validateLevelRequired(obj_id player, obj_id item) throws InterruptedException
     {
-        int playerLevel = getLevel(player);
-        dictionary itemData = getMasterItemDictionary(item);
-        if (itemData != null)
-        {
-            int requiredLevel = itemData.getInt("required_level");
-            if (requiredLevel > 0)
-            {
-                if (playerLevel < requiredLevel)
-                {
-                    return false;
-                }
-            }
-        }
         return true;
     }
     public static boolean validateLevelRequiredForWornEffect(obj_id player, obj_id item) throws InterruptedException
     {
-        int playerLevel = getLevel(player);
-        String itemName = getStaticItemName(item);
-        dictionary itemData = getStaticObjectTypeDictionary(itemName);
-        if (itemData != null)
-        {
-            int requiredLevel = itemData.getInt("required_level_for_effect");
-            if (requiredLevel > 0)
-            {
-                if (playerLevel < requiredLevel)
-                {
-                    return false;
-                }
-            }
-        }
         return true;
     }
     public static void decrementStaticItem(obj_id item) throws InterruptedException
@@ -801,10 +775,8 @@ public class static_item extends script.base_script
                     if (itemData != null) {
                         String buffName = itemData.getString("buff_name");
                         if (buffName != null && !buffName.equals("")) {
-                            if (validateLevelRequiredForWornEffect(player, (equipSlot))) {
-                                applyWornBuffs(equipSlot, getContainedBy(equipSlot));
-                                checkForAddSetBonus(equipSlot, getContainedBy(equipSlot));
-                            }
+                            applyWornBuffs(equipSlot, getContainedBy(equipSlot));
+                            checkForAddSetBonus(equipSlot, getContainedBy(equipSlot));
                         }
                     }
                 }
@@ -845,23 +817,15 @@ public class static_item extends script.base_script
             LOG("create", "Worn Buff Name is bad");
             return;
         }
-        if (static_item.validateLevelRequired(player, itemData.getInt("required_level_for_effect")))
+        if (buff.canApplyBuff(player, buffName))
         {
-            if (buff.canApplyBuff(player, buffName))
-            {
-                buff.applyBuff(player, player, buffName);
-                playClientEffectObj(player, itemData.getString("client_effect"), player, "");
-            }
-            else 
-            {
-                utils.setScriptVar(self, "buffNotApplied", true);
-                sendSystemMessage(player, ALREADY_HAVE_SIMILAR_BUFF);
-            }
+            buff.applyBuff(player, player, buffName);
+            playClientEffectObj(player, itemData.getString("client_effect"), player, "");
         }
         else 
         {
             utils.setScriptVar(self, "buffNotApplied", true);
-            sendSystemMessage(player, SID_ITEM_LEVEL_TOO_LOW);
+            sendSystemMessage(player, ALREADY_HAVE_SIMILAR_BUFF);
         }
     }
     public static void removeWornBuffs(obj_id self, obj_id player) throws InterruptedException
@@ -1076,11 +1040,6 @@ public class static_item extends script.base_script
         String at = "@obj_attr_n:";
         int free = 0;
         dictionary itemData = static_item.getMergedItemDictionary(staticItemName);
-        int levelRequired = itemData.getInt("required_level");
-        names[free] = "healing_combat_level_required";
-        attribs[free++] = "" + levelRequired;
-        names[free] = "tooltip.healing_combat_level_required";
-        attribs[free++] = "" + levelRequired;
         String skillRequired = itemData.getString("required_skill");
         String skillRequiredAttribute;
         if (skillRequired != null && !skillRequired.equals(""))
@@ -1156,11 +1115,6 @@ public class static_item extends script.base_script
         String at = "@obj_attr_n:";
         int free = 0;
         dictionary itemData = static_item.getMergedItemDictionary(staticItemName);
-        int levelRequired = itemData.getInt("required_level");
-        names[free] = "healing_combat_level_required";
-        attribs[free++] = "" + levelRequired;
-        names[free] = "tooltip.healing_combat_level_required";
-        attribs[free++] = "" + levelRequired;
         String skillRequired = itemData.getString("required_skill");
         String skillRequiredAttribute;
         if (skillRequired != null && !skillRequired.equals(""))
@@ -1219,14 +1173,6 @@ public class static_item extends script.base_script
         String at = "@obj_attr_n:";
         int free = 0;
         dictionary itemData = static_item.getMergedItemDictionary(item_name);
-        int requiredLevelToEquip = itemData.getInt("required_level");
-        if (requiredLevelToEquip != 0)
-        {
-            names[free] = utils.packStringId(new string_id("proc/proc", "required_combat_level"));
-            attribs[free++] = "" + requiredLevelToEquip;
-            names[free] = utils.packStringId(new string_id("proc/proc", "tooltip.required_combat_level"));
-            attribs[free++] = "" + requiredLevelToEquip;
-        }
         String requiredSkillToEquip = itemData.getString("required_skill");
         if (requiredSkillToEquip != null && !requiredSkillToEquip.equals(""))
         {
@@ -1264,14 +1210,6 @@ public class static_item extends script.base_script
                 attribs[free] = utils.assembleTimeRemainToUse(time_remaining);
             }
             free++;
-        }
-        int requiredLevelForEffect = itemData.getInt("required_level_for_effect");
-        if (requiredLevelForEffect != 0)
-        {
-            names[free] = utils.packStringId(new string_id("proc/proc", "effect_level"));
-            attribs[free++] = "" + requiredLevelForEffect;
-            names[free] = utils.packStringId(new string_id("proc/proc", "tooltip.effect_level"));
-            attribs[free++] = "" + requiredLevelForEffect;
         }
         String buffName = itemData.getString("buff_name");
         if (buffName != null && !buffName.equals(""))
@@ -1994,20 +1932,10 @@ public class static_item extends script.base_script
         dictionary itemData = static_item.getMasterItemDictionary(item);
         String requiredSkill = itemData.getString("required_skill");
         boolean canEquip = true;
-        if (!static_item.validateLevelRequired(player, itemData.getInt("required_level")))
+        if (requiredSkill != null && !requiredSkill.equals("") &&
+            !utils.meetsProfessionRequirement(player, requiredSkill))
         {
             canEquip = false;
-        }
-        if (requiredSkill != null && !requiredSkill.equals(""))
-        {
-            String classTemplate = getSkillTemplate(player);
-            if (classTemplate != null && !classTemplate.equals(""))
-            {
-                if (!classTemplate.startsWith(requiredSkill))
-                {
-                    canEquip = false;
-                }
-            }
         }
         return canEquip;
     }

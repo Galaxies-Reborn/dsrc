@@ -156,6 +156,11 @@ public class faction_recruiter extends script.base_script
                 {
                     attachScript(self, "systems.gcw.gcw_data_updater");
                 }
+                if (hasScript(self, "npc.vendor.vendor"))
+                {
+                    detachScript(self, "npc.vendor.vendor");
+                }
+                removeObjVar(self, "item.vendor.vendor_table");
                 String strScript = "conversation.faction_recruiter_" + toLower(faction);
                 if (!hasScript(self, strScript))
                 {
@@ -163,19 +168,6 @@ public class faction_recruiter extends script.base_script
                 }
                 pvpSetAlignedFaction(self, faction_id);
                 pvpMakeDeclared(self);
-                if (isInvulnerable(self))
-                {
-                    if (faction_id == getFactionId(factions.FACTION_REBEL))
-                    {
-                        setObjVar(self, "item.vendor.vendor_table", "gcw_rebel_recruiter_vendor");
-                        attachScript(self, "npc.vendor.vendor");
-                    }
-                    else if (faction_id == getFactionId(factions.FACTION_IMPERIAL))
-                    {
-                        setObjVar(self, "item.vendor.vendor_table", "gcw_imperial_recruiter_vendor");
-                        attachScript(self, "npc.vendor.vendor");
-                    }
-                }
             }
         }
         requestPreloadCompleteTrigger(self);
@@ -187,6 +179,11 @@ public class faction_recruiter extends script.base_script
         {
             attachScript(self, "systems.gcw.gcw_data_updater");
         }
+        if (hasScript(self, "npc.vendor.vendor"))
+        {
+            detachScript(self, "npc.vendor.vendor");
+        }
+        removeObjVar(self, "item.vendor.vendor_table");
         if (hasScript(self, "conversation.faction_recruiter_general"))
         {
             detachScript(self, "conversation.faction_recruiter_general");
@@ -397,11 +394,11 @@ public class faction_recruiter extends script.base_script
             responses = utils.addElement(responses, SID_NOTHING);
             break;
         }
-        if (hasSkill(player, "class_smuggler_phase3_novice"))
+        if (hasSkill(player, "combat_smuggler_underworld_03"))
         {
             responses = utils.addElement(responses, SID_SELL_SECRETS);
         }
-        if (hasSkill(player, "class_smuggler_phase4_novice"))
+        if (hasSkill(player, "combat_smuggler_underworld_04"))
         {
             responses = utils.addElement(responses, SID_BUY_FACTION);
         }
@@ -532,19 +529,24 @@ public class faction_recruiter extends script.base_script
         int idx = sui.getListboxSelectedRow(params);
         String scriptvar_path = "recruiter.item_rank." + player;
         String oldPidVar = scriptvar_path + ".pid";
-        String ranksVar = scriptvar_path + ".ranks";
+        String categoriesVar = scriptvar_path + ".categories";
+        String[] categories = utils.getStringBatchScriptVar(self, categoriesVar);
         if (utils.hasScriptVar(self, oldPidVar))
         {
             utils.removeScriptVar(self, oldPidVar);
         }
+        utils.removeBatchScriptVar(self, categoriesVar);
         if (btn == sui.BP_CANCEL)
         {
             return SCRIPT_CONTINUE;
         }
-        int rankSelected = pvpGetCurrentGcwRank(player) - idx;
+        if (categories == null || idx < 0 || idx >= categories.length)
+        {
+            return SCRIPT_CONTINUE;
+        }
         int playerFactionId = pvpGetAlignedFaction(player);
         String playerGcwFaction = factions.getFactionNameByHashCode(playerFactionId);
-        faction_perk.displayItemPurchaseSUI(player, rankSelected, playerGcwFaction, self);
+        faction_perk.displayItemPurchaseSUI(player, categories[idx], playerGcwFaction, self);
         return SCRIPT_CONTINUE;
     }
     public int OnGiveItem(obj_id self, obj_id item, obj_id player) throws InterruptedException

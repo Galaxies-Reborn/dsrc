@@ -799,10 +799,14 @@ public class dot extends script.base_script
         expertiseDamageReduction = expertiseDamageReduction > 100 ? 100 : expertiseDamageReduction;
         tempDamageFloat = tempDamageFloat * (1.0f - (expertiseDamageReduction / 100.0f));
         strength = (int)tempDamageFloat;
-        int current_attrib = getAttrib(target, HEALTH);
+        int dotAttribute = getDotAttribute(target, dot_id);
+        if (dotAttribute < HEALTH || dotAttribute > WILLPOWER)
+        {
+            dotAttribute = type.equals(DOT_DISEASE) ? ACTION : HEALTH;
+        }
+        int dotPool = dotAttribute / 3;
         if (type.equals(DOT_DISEASE))
         {
-            current_attrib = getAttrib(target, ACTION);
             strength = Math.round(strength / 3.0f);
         }
         obj_id attacker = dot.getDotAttacker(target, dot_id);
@@ -942,14 +946,7 @@ public class dot extends script.base_script
                 default:
                     return false;
             }
-            if (!type.equals(DOT_DISEASE))
-            {
-                doDamage(attacker, target, hit);
-            }
-            else 
-            {
-                drainAttributes(target, strength, 0);
-            }
+            doDamageToPool(attacker, target, hit, dotPool);
             if (isIdValid(attacker) && isIdValid(target) && exists(attacker) && exists(target))
             {
                 startCombat(attacker, target);

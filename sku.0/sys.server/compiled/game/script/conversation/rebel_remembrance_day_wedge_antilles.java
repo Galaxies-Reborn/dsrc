@@ -29,7 +29,7 @@ public class rebel_remembrance_day_wedge_antilles extends script.base_script
     }
     public boolean rebel_remembrance_day_wedge_antilles_condition_isBelow60thLevel(obj_id player, obj_id npc) throws InterruptedException
     {
-        return (60 > getLevel(player));
+        return (60 > script.library.skill.getPrecuEncounterDifficulty(player));
     }
     public boolean rebel_remembrance_day_wedge_antilles_condition_hasAMisionActive(obj_id player, obj_id npc) throws InterruptedException
     {
@@ -159,7 +159,7 @@ public class rebel_remembrance_day_wedge_antilles extends script.base_script
         for (int i = 0; i < 3; i++)
         {
             location guardLocation = groundquests.getRandom2DLocationAroundLocation(npc, 1, 1, 5, 12);
-            int mobLevel = getLevel(player);
+            int mobLevel = script.library.skill.getPrecuEncounterDifficulty(player);
             obj_id guard = create.object("rebel_emperorsday_ceremony_sentry", guardLocation, mobLevel);
             attachScript(guard, "event.emp_day.factional_guard_self_destruct");
             startCombat(guard, player);

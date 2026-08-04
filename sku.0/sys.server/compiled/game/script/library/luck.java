@@ -19,31 +19,24 @@ public class luck extends script.base_script
     }
     public static boolean isLucky(obj_id player, float mod, boolean showFlyText) throws InterruptedException
     {
+        // Retained NGE consumers use this generic level-capped primary-stat
+        // proc. Publish 14 Luck is system-specific, so fail this ABI closed.
+        return false;
+    }
+    public static int getPrecuCraftingLuckRoll(obj_id player) throws InterruptedException
+    {
         if (!isPlayer(player))
         {
-            return false;
+            return 0;
         }
-        int level = getLevel(player);
-        int cap = level * 5;
-        float chance = rand(1, (cap * 1000));
-        chance /= 1000.0f;
-        float luck = getSkillStatisticModifier(player, "luck");
-        float luckBonus = getEnhancedSkillStatisticModifierUncapped(player, "luck_modified");
-        luck += luckBonus;
-        if (luck > cap)
+        int luckSkill = Math.max(0, getSkillStatisticModifier(player, "luck"));
+        int forceLuckSkill = Math.max(0, getSkillStatisticModifier(player, "force_luck"));
+        int totalLuck = luckSkill + forceLuckSkill;
+        if (totalLuck <= 0)
         {
-            luck = cap;
+            return 0;
         }
-        luck *= mod;
-        if (chance < luck)
-        {
-            if (showFlyText)
-            {
-                showLuckyFlyText(player);
-            }
-            return true;
-        }
-        return false;
+        return rand(0, totalLuck);
     }
     public static void showLuckyFlyText(obj_id player) throws InterruptedException
     {

@@ -69,24 +69,24 @@ public class terminal_crafting_display extends script.base_script
     }
     public void grantBuff(obj_id player) throws InterruptedException
     {
-        if (hasSkill(player, "class_domestics_phase1_novice"))
+        if (hasSkill(player, "crafting_chef_novice") || hasSkill(player, "crafting_tailor_novice"))
         {
             buff.applyBuff(player, "crafting_display_domestic_buff");
         }
-        else if (hasSkill(player, "class_engineering_phase1_novice"))
+        else if (hasSkill(player, "crafting_droidengineer_novice"))
         {
             buff.applyBuff(player, "crafting_display_engineering_buff");
         }
-        else if (hasSkill(player, "class_munitions_phase1_novice"))
+        else if (hasSkill(player, "crafting_armorsmith_novice") || hasSkill(player, "crafting_weaponsmith_novice"))
         {
             buff.applyBuff(player, "crafting_display_munitions_buff");
         }
-        else if (hasSkill(player, "class_structures_phase1_novice"))
+        else if (hasSkill(player, "crafting_architect_novice") || hasSkill(player, "crafting_shipwright_novice"))
         {
             buff.applyBuff(player, "crafting_display_structure_buff");
             buff.applyBuff(player, "crafting_display_shipwright_buff");
         }
-        else if (hasSkill(player, "class_forcesensitive_phase1_novice"))
+        else if (hasSkill(player, "force_sensitive_crafting_mastery_novice"))
         {
             buff.applyBuff(player, "crafting_display_jedi_buff");
         }

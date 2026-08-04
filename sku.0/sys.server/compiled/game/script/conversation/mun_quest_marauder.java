@@ -126,7 +126,7 @@ public class mun_quest_marauder extends script.base_script
     }
     public boolean mun_quest_marauder_condition_isMunCrafterLvl86(obj_id player, obj_id npc) throws InterruptedException
     {
-        return hasSkill(player, "class_munitions_phase4_05");
+        return hasSkill(player, "crafting_armorsmith_master");
     }
     public boolean mun_quest_marauder_condition_hasHighQualityQ1(obj_id player, obj_id npc) throws InterruptedException
     {

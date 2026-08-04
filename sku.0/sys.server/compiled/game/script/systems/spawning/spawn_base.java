@@ -149,14 +149,7 @@ public class spawn_base extends script.base_script
     }
     public int getPlayerSpawnDiffibculty(obj_id objPlayer) throws InterruptedException
     {
-        if (!isIdValid(getGroupObject(objPlayer)))
-        {
-            return getLevel(objPlayer);
-        }
-        else 
-        {
-            return skill.getGroupLevel(objPlayer);
-        }
+        return skill.getGroupLevel(objPlayer);
     }
     public obj_id createTemplate(location locSpawnLocation, dictionary params, obj_id objPlayer) throws InterruptedException
     {

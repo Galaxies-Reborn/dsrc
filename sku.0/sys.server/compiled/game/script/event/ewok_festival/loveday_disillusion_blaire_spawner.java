@@ -14,16 +14,20 @@ public class loveday_disillusion_blaire_spawner extends script.base_script
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
-        messageTo(self, "spawnDisillusionedCupid", null, 4, false);
+        retireDisillusionSpawner(self);
         return SCRIPT_CONTINUE;
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
-        messageTo(self, "spawnDisillusionedCupid", null, 9, false);
+        retireDisillusionSpawner(self);
         return SCRIPT_CONTINUE;
     }
     public int spawnDisillusionedCupid(obj_id self, dictionary params) throws InterruptedException
     {
+        if (!hasScript(self, "event.ewok_festival.loveday_disillusion_blaire_spawner"))
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (!utils.hasScriptVar(self, "spawnedDisillusionedCupid"))
         {
             location spawnerLoc = getLocation(self);
@@ -82,5 +86,26 @@ public class loveday_disillusion_blaire_spawner extends script.base_script
             messageTo(self, "spawnDisillusionedCupid", null, 1, false);
         }
         return SCRIPT_CONTINUE;
+    }
+    private void retireDisillusionSpawner(obj_id self) throws InterruptedException
+    {
+        destroyNearbyTemplate(self, "object/mobile/loveday_ewok_mister_disillusion.iff");
+        destroyNearbyTemplate(self, "object/tangible/quest/content/holiday_loveday_disillusion_crossbow.iff");
+        utils.removeScriptVar(self, "spawnedDisillusionedCupid");
+        detachScript(self, "event.ewok_festival.loveday_disillusion_blaire_spawner");
+    }
+    private void destroyNearbyTemplate(obj_id self, String templateName) throws InterruptedException
+    {
+        obj_id[] objects = getAllObjectsWithTemplate(getLocation(self), 5.0f, templateName);
+        if (objects != null)
+        {
+            for (obj_id object : objects)
+            {
+                if (isIdValid(object) && exists(object))
+                {
+                    destroyObject(object);
+                }
+            }
+        }
     }
 }

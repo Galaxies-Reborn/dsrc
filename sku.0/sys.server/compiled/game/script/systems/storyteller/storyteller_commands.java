@@ -13,6 +13,16 @@ public class storyteller_commands extends script.base_script
     public storyteller_commands()
     {
     }
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        detachScript(self, "systems.storyteller.storyteller_commands");
+        return SCRIPT_CONTINUE;
+    }
+    public int OnInitialize(obj_id self) throws InterruptedException
+    {
+        detachScript(self, "systems.storyteller.storyteller_commands");
+        return SCRIPT_CONTINUE;
+    }
     public static final string_id SID_STORYTELLER_HELP = new string_id("storyteller", "storyteller_help");
     public static final string_id SID_STORYTELLER_TITLE = new string_id("storyteller", "storyteller_title");
     public static final string_id SID_STORYTELLER_MENU_CMDS = new string_id("storyteller", "storyteller_menu_commands");

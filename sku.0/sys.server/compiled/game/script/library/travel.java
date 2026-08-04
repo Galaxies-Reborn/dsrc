@@ -1142,6 +1142,11 @@ public class travel extends script.base_script
     }
     public static boolean movePlayerToDestination(obj_id player, String planet, String point, boolean groupPickupPointTravel) throws InterruptedException
     {
+        if (groupPickupPointTravel)
+        {
+            LOG("LOG_CHANNEL", "travel::movePlayerToDestination -- rejected retired NGE group-pickup travel");
+            return false;
+        }
         if (!isIdValid(player))
         {
             LOG("LOG_CHANNEL", "travel::movePlayerToDestination -- player is not valid");
@@ -1157,27 +1162,24 @@ public class travel extends script.base_script
             LOG("LOG_CHANNEL", "travel::movePlayerToDestination -- point is null");
             return false;
         }
-        if (!groupPickupPointTravel)
+        if (isTravelBlocked(player, false))
         {
-            if (isTravelBlocked(player, false))
+            return false;
+        }
+        if (planet.equals("mustafar"))
+        {
+            if (!features.hasMustafarExpansionRetail(player))
             {
+                sendSystemMessage(player, SID_MUSTAFAR_UNAUTHORIZED);
                 return false;
             }
-            if (planet.equals("mustafar"))
+        }
+        else if (planet.equals("kashyyyk_main"))
+        {
+            if (!features.hasEpisode3Expansion(player))
             {
-                if (!features.hasMustafarExpansionRetail(player))
-                {
-                    sendSystemMessage(player, SID_MUSTAFAR_UNAUTHORIZED);
-                    return false;
-                }
-            }
-            else if (planet.equals("kashyyyk_main"))
-            {
-                if (!features.hasEpisode3Expansion(player))
-                {
-                    sendSystemMessage(player, SID_KASHYYYK_UNAUTHORIZED);
-                    return false;
-                }
+                sendSystemMessage(player, SID_KASHYYYK_UNAUTHORIZED);
+                return false;
             }
         }
         location loc = getPlanetTravelPointLocation(planet, point);
@@ -1200,14 +1202,7 @@ public class travel extends script.base_script
             {
                 performance.holographicCleanup(player);
             }
-            if (groupPickupPointTravel)
-            {
-                warpPlayer(player, planet, arrival.x, arrival.y, arrival.z, null, 0.0f, 0.0f, 0.0f);
-            }
-            else 
-            {
-                warpPlayer(player, planet, arrival.x, arrival.y, arrival.z, null, 0.0f, 0.0f, 0.0f, "msgTravelComplete");
-            }
+            warpPlayer(player, planet, arrival.x, arrival.y, arrival.z, null, 0.0f, 0.0f, 0.0f, "msgTravelComplete");
         }
         else 
         {
@@ -1330,35 +1325,8 @@ public class travel extends script.base_script
     }
     public static boolean instantTravel(obj_id player, String planet1, String point1, String planet2, String point2, boolean roundtrip, obj_id starport) throws InterruptedException
     {
-        LOG("LOG_CHANNEL", "travel::instantTravel");
-        if (player == null || player == obj_id.NULL_ID)
-        {
-            return false;
-        }
-        if (utils.hasScriptVar(player, VAR_PURCHASING_TICKET))
-        {
-            LOG("LOG_CHANNEL", player + " ->You already have an outstanding ticket purchase request. Please wait for it to complete.");
-            sui.msgbox(player, new string_id("travel", "travel_pending"));
-            return false;
-        }
-        if (!planet1.equals(planet2))
-        {
-            LOG("LOG_CHANNEL", player + " ->Shuttleports do not offer interplanetary transportation.");
-            sui.msgbox(player, new string_id("travel", "instant_interplanet_fail"));
-            return false;
-        }
-        int city_id = findCityByName(point2);
-        if (city.isCityBanned(player, city_id))
-        {
-            sendSystemMessage(player, new string_id("travel", "banned_travel"));
-            return false;
-        }
-        if (callable.hasAnyCallable(player))
-        {
-            sendSystemMessage(player, new string_id("beast", "beast_cant_travel"));
-            return false;
-        }
-        return movePlayerToDestination(player, planet2, point2);
+        LOG("LOG_CHANNEL", "Rejected retired NGE instant travel for " + player);
+        return false;
     }
     public static boolean isTravelBlocked(obj_id player, boolean isLaunch) throws InterruptedException
     {

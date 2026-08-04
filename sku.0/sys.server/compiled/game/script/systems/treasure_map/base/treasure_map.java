@@ -611,11 +611,11 @@ public class treasure_map extends script.base_script
             sendSystemMessage(player, "The treasure map failed to set the group level.", null);
             return false;
         }
-        int intPlayerLevel = getLevel(player);
+        int intPlayerLevel = skill.getPrecuEncounterDifficulty(player);
         if (intPlayerLevel == -1 || intPlayerLevel == 0)
         {
-            CustomerServiceLog("treasureMap", "a treasure map failed to use the player's correct combat level. [ setPlayerGroupLevel() ]");
-            sendSystemMessage(player, "The treasure map failed to retrieve your current level.", null);
+            CustomerServiceLog("treasureMap", "a treasure map failed to use the player's PRE-CU combat-skill difficulty. [ setPlayerGroupLevel() ]");
+            sendSystemMessage(player, "The treasure map failed to retrieve your combat-skill difficulty.", null);
             intPlayerLevel = 5;
             return false;
         }
@@ -645,7 +645,7 @@ public class treasure_map extends script.base_script
                 if (dist > MIN_DISTANCE_TO_MAP_OWNER) {
                     continue;
                 }
-                int groupMemberLevel = getLevel(groupOid);
+                int groupMemberLevel = skill.getPrecuEncounterDifficulty(groupOid);
                 if (groupMemberLevel > intPlayerLevel) {
                     intPlayerLevel = groupMemberLevel;
                 }
@@ -710,7 +710,7 @@ public class treasure_map extends script.base_script
             {
                 break;
             }
-            int playerNearLevel = getLevel(playersNear[i]);
+            int playerNearLevel = skill.getPrecuEncounterDifficulty(playersNear[i]);
             if (playerNearLevel > intPlayerLevel)
             {
                 exploiterLevel = playerNearLevel;

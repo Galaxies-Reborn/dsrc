@@ -77,30 +77,6 @@ public class flip_banner_onpole extends script.systems.gcw.flip_banner
     }
     public void spawnBanner(obj_id self, String faction) throws InterruptedException
     {
-        String empiredayRunning = getConfigSetting("GameServer", "empireday_ceremony");
-        if (empiredayRunning != null)
-        {
-            if (empiredayRunning.equals("true") || empiredayRunning.equals("1"))
-            {
-                location here = getLocation(self);
-                String city = locations.getCityName(here);
-                if (city == null)
-                {
-                    city = locations.getGuardSpawnerRegionName(here);
-                }
-                if (city != null && city.length() > 0)
-                {
-                    if (city.equals("coronet"))
-                    {
-                        faction = "rebel";
-                    }
-                    else if (city.equals("theed"))
-                    {
-                        faction = "imperial";
-                    }
-                }
-            }
-        }
         transform t = getTransform_o2w(self);
         obj_id banner = createObject("object/tangible/gcw/flip_banner_onpole_" + faction + ".iff", t, null);
         if (!isIdValid(banner))

@@ -808,22 +808,6 @@ public class combat_actions extends script.systems.combat.combat_base
         }
         return SCRIPT_CONTINUE;
     }
-    public int sm_double_fire_recourse(obj_id self, dictionary params) throws InterruptedException
-    {
-        if (!buff.hasBuff(self, "sm_double_fire_recourse"))
-        {
-            buff.applyBuff(self, self, "sm_double_fire_recourse");
-        }
-        return SCRIPT_CONTINUE;
-    }
-    public int sm_false_hope_recourse(obj_id self, dictionary params) throws InterruptedException
-    {
-        if (!buff.hasBuff(self, "sm_false_hope_recourse"))
-        {
-            buff.applyBuff(self, self, "sm_false_hope_recourse");
-        }
-        return SCRIPT_CONTINUE;
-    }
     public int sm_break_the_deal_recourse(obj_id self, dictionary params) throws InterruptedException
     {
         if (!buff.hasBuff(self, "sm_break_the_deal_recourse"))
@@ -7470,6 +7454,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int steal(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeSpyPlayerAction(self, "steal"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!stealth.hasInvisibleBuff(self) && !buff.hasBuff(self, "sp_smoke_mirrors"))
         {
             return SCRIPT_OVERRIDE;
@@ -7609,6 +7597,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int sp_buff_stealth_1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeSpyPlayerAction(self, "sp_buff_stealth_1"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         String invis = stealth.getInvisBuff(self);
         if (invis != null && invis.equals("invis_sp_buff_stealth_1"))
         {
@@ -7629,6 +7621,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int sp_decoy(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeSpyPlayerAction(self, "sp_decoy"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!stealth.canPerformSmokeGrenade(self))
         {
             return SCRIPT_OVERRIDE;
@@ -8447,6 +8443,7 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int failSpecialAttack(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        combat.revealPrecuFeignDeath(self, "failedCombatCommand");
         return SCRIPT_CONTINUE;
     }
     public int failProc(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
@@ -9672,10 +9669,88 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int centerOfBeing(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
-        if (!combatStandardAction("centerOfBeing", self, target, params, "", ""))
+        if (!isIdValid(self) || !exists(self) || !isPlayer(self) ||
+            isDead(self) || isIncapacitated(self) ||
+            !hasSkill(self, "combat_brawler_novice"))
         {
-            return SCRIPT_OVERRIDE;
+            return SCRIPT_CONTINUE;
         }
+        if (buff.hasBuff(self, "centerofbeing"))
+        {
+            sendSystemMessage(self,
+                new string_id("combat_effects", "already_centered"));
+            return SCRIPT_CONTINUE;
+        }
+
+        obj_id weapon = getCurrentWeapon(self);
+        if (!isIdValid(weapon))
+        {
+            return SCRIPT_CONTINUE;
+        }
+
+        String durationModifier = null;
+        String efficacyModifier = null;
+        switch (getWeaponType(weapon))
+        {
+            case WEAPON_TYPE_UNARMED:
+                durationModifier = "center_of_being_duration_unarmed";
+                efficacyModifier = "unarmed_center_of_being_efficacy";
+                break;
+            case WEAPON_TYPE_1HAND_MELEE:
+                durationModifier = "center_of_being_duration_onehandmelee";
+                efficacyModifier = "onehandmelee_center_of_being_efficacy";
+                break;
+            case WEAPON_TYPE_2HAND_MELEE:
+                durationModifier = "center_of_being_duration_twohandmelee";
+                efficacyModifier = "twohandmelee_center_of_being_efficacy";
+                break;
+            case WEAPON_TYPE_POLEARM:
+                durationModifier = "center_of_being_duration_polearm";
+                efficacyModifier = "polearm_center_of_being_efficacy";
+                break;
+            default:
+                return SCRIPT_CONTINUE;
+        }
+
+        int duration = getEnhancedSkillStatisticModifierUncapped(
+            self, durationModifier);
+        int efficacy = getEnhancedSkillStatisticModifierUncapped(
+            self, efficacyModifier);
+        combat_data actionData = combat_engine.getCombatData("centerOfBeing");
+        weapon_data weaponData = getWeaponData(weapon);
+        if (duration <= 0 || efficacy <= 0 || actionData == null ||
+            weaponData == null || !isIdValid(weaponData.id))
+        {
+            return SCRIPT_CONTINUE;
+        }
+
+        int[] actionCost = combat.getActionCost(self, weaponData, actionData);
+        boolean usePrecuHam = actionData.precuHamCostModel > 0;
+        if (!combat.canDrainCombatActionAttributes(
+            self, actionCost, usePrecuHam))
+        {
+            showFlyTextPrivate(self, self,
+                new string_id("combat_effects", "action_too_tired"),
+                1.5f, colors.GOLDENROD);
+            return SCRIPT_CONTINUE;
+        }
+        if (!buff.applyBuff(
+            self, self, "centerofbeing", duration, efficacy))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        if (!combat.drainCombatActionAttributes(
+            self, actionCost, usePrecuHam))
+        {
+            buff.removeBuff(self, "centerofbeing");
+            return SCRIPT_CONTINUE;
+        }
+
+        sendSystemMessage(self,
+            new string_id("combat_effects", "center_start"));
+        showFlyText(self,
+            new string_id("combat_effects", "center_start_fly"),
+            1.0f, colors.GREEN);
         return SCRIPT_CONTINUE;
     }
     public int forceFocus(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
@@ -10501,6 +10576,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int bm_paralytic_poison_recourse(obj_id self, dictionary params) throws InterruptedException
     {
+        if (beast_lib.isRetiredPostNgeBeastMasterPlayer(self))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!buff.hasBuff(self, "bm_paralytic_poison_recourse"))
         {
             buff.applyBuff(self, self, "bm_paralytic_poison_recourse");
@@ -10510,10 +10589,15 @@ public class combat_actions extends script.systems.combat.combat_base
     public int handlePostureRestore(obj_id self, dictionary params) throws InterruptedException
     {
         stopClientEffectObjByLabel(self, "state_knockdown");
-        if (getPosture(self) == POSTURE_KNOCKED_DOWN)
+        if (getPosture(self) == POSTURE_KNOCKED_DOWN &&
+            utils.hasScriptVar(self, PRECU_KNOCKDOWN_ORIGINAL_POSTURE))
         {
-            setPostureClientImmediate(self, utils.getIntScriptVar(self, "combat.intKnockdownTime.posture"));
+            setPostureClientImmediate(
+                self,
+                utils.getIntScriptVar(
+                    self, PRECU_KNOCKDOWN_ORIGINAL_POSTURE));
         }
+        utils.removeScriptVar(self, PRECU_KNOCKDOWN_ORIGINAL_POSTURE);
         return SCRIPT_CONTINUE;
     }
     public int performHateTick(obj_id self, dictionary params) throws InterruptedException
@@ -14538,6 +14622,1811 @@ public class combat_actions extends script.systems.combat.combat_base
             return SCRIPT_OVERRIDE;
         }
         if (!combatStandardAction("fs_saber_intercept_1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int headShot1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("headShot1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int bodyShot1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("bodyShot1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int disarmingShot1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("disarmingShot1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int doubleTap(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("doubleTap", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int stoppingShot(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("stoppingShot", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int cripplingShot(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("cripplingShot", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int pointBlankSingle1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("pointBlankSingle1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int pointBlankSingle2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("pointBlankSingle2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int pointBlankArea1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("pointBlankArea1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int pointBlankArea2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("pointBlankArea2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int multiTargetPistolShot(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("multiTargetPistolShot", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int disarmingShot2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("disarmingShot2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int fanShot(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("fanShot", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int bodyShot2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("bodyShot2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int bodyShot3(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("bodyShot3", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int legShot1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+      if (!combatStandardAction("legShot1", self, target, params, "", ""))
+      {
+         return SCRIPT_OVERRIDE;
+      }
+      return SCRIPT_CONTINUE;
+    }
+    public int legShot2(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction(
+            "legShot2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int legShot3(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction(
+            "legShot3", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int fullAutoSingle1(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction(
+            "fullAutoSingle1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int fullAutoSingle2(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction(
+            "fullAutoSingle2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int fullAutoArea1(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction(
+            "fullAutoArea1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int fullAutoArea2(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction(
+            "fullAutoArea2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int chargeShot1(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction(
+            "chargeShot1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int chargeShot2(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction(
+            "chargeShot2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int strafeShot1(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction(
+            "strafeShot1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int strafeShot2(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction(
+            "strafeShot2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int startleShot1(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction(
+            "startleShot1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int startleShot2(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction(
+            "startleShot2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int flushingShot1(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction(
+            "flushingShot1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int flushingShot2(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction(
+            "flushingShot2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int scatterShot1(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction(
+            "scatterShot1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int scatterShot2(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction(
+            "scatterShot2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int burstShot1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+      if (!combatStandardAction("burstShot1", self, target, params, "", ""))
+      {
+          return SCRIPT_OVERRIDE;
+      }
+      return SCRIPT_CONTINUE;
+    }
+    public int burstShot2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+      if (!combatStandardAction("burstShot2", self, target, params, "", ""))
+      {
+          return SCRIPT_OVERRIDE;
+      }
+      return SCRIPT_CONTINUE;
+    }
+    public int polearmLegHit1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("polearmLegHit1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int polearmLunge1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("polearmLunge1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int unarmedLunge1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("unarmedLunge1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int melee1hLunge1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee1hLunge1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int melee2hLunge1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee2hLunge1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int polearmLunge2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("polearmLunge2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int unarmedLunge2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("unarmedLunge2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int melee1hLunge2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee1hLunge2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int melee2hLunge2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee2hLunge2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int taunt(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        boolean eligible = isIdValid(target) && exists(target) &&
+            isMob(target) && !isPlayer(target) &&
+            !isIdValid(getMaster(target)) && ai_lib.isTauntable(target);
+        recordPrecuLiveDiagnostic(self, "taunt.target",
+            isIdValid(target) ? target.toString() : "0");
+        recordPrecuLiveDiagnostic(self, "taunt.eligible", eligible ? 1 : 0);
+        if (!eligible)
+        {
+            recordPrecuLiveDiagnostic(self, "taunt.result", "INELIGIBLE");
+            return SCRIPT_OVERRIDE;
+        }
+        if (!combatStandardAction("taunt", self, target, params, "", ""))
+        {
+            recordPrecuLiveDiagnostic(self, "taunt.result", "ACTION_FAILED");
+            return SCRIPT_OVERRIDE;
+        }
+
+        int tauntMod = Math.max(0, getSkillStatisticModifier(self, "taunt"));
+        int attackerLevel = Math.max(0, xp.getPrecuCombatLevel(self));
+        int targetLevel = Math.max(0, xp.getPrecuCombatLevel(target));
+        int levelCombine = Math.max(1, attackerLevel + targetLevel);
+        int upperBound = levelCombine + tauntMod;
+        int lowerBound = Math.max(0, levelCombine - tauntMod);
+        int upperRoll = rand(0, upperBound);
+        int lowerRoll = rand(0, lowerBound);
+        float hateBefore = getHate(target, self);
+        obj_id topBefore = getHateTarget(target);
+        float topHateBefore = isIdValid(topBefore) ?
+            getHate(target, topBefore) : 0.0f;
+        boolean success = upperRoll >= lowerRoll;
+        int duration = tauntMod;
+        int aggro = tauntMod * 10;
+        float appliedDelta = 0.0f;
+
+        if (success)
+        {
+            float forcedHate = Math.max(
+                hateBefore + (float)aggro,
+                topHateBefore + 1.0f);
+            appliedDelta = Math.max(0.0f, forcedHate - hateBefore);
+            setHate(target, self, forcedHate);
+            int generation = hasObjVar(target, "combat.precuTaunt.generation") ?
+                getIntObjVar(target, "combat.precuTaunt.generation") + 1 : 1;
+            int expiresAt = getGameTime() + duration;
+            setObjVar(target, "combat.precuTaunt.owner", self);
+            setObjVar(target, "combat.precuTaunt.generation", generation);
+            setObjVar(target, "combat.precuTaunt.expiresAt", expiresAt);
+            dictionary expiration = new dictionary();
+            expiration.put("target", target);
+            expiration.put("delta", appliedDelta);
+            expiration.put("generation", generation);
+            messageTo(self, "precuTauntExpire", expiration,
+                (float)duration, false);
+            sendPrecuTauntOutcome(self, target, true);
+        }
+        else
+        {
+            sendPrecuTauntOutcome(self, target, false);
+        }
+
+        obj_id topAfter = getHateTarget(target);
+        recordPrecuLiveDiagnostic(self, "taunt.mod", tauntMod);
+        recordPrecuLiveDiagnostic(self, "taunt.attackerLevel", attackerLevel);
+        recordPrecuLiveDiagnostic(self, "taunt.targetLevel", targetLevel);
+        recordPrecuLiveDiagnostic(self, "taunt.levelCombine", levelCombine);
+        recordPrecuLiveDiagnostic(self, "taunt.upperBound", upperBound);
+        recordPrecuLiveDiagnostic(self, "taunt.lowerBound", lowerBound);
+        recordPrecuLiveDiagnostic(self, "taunt.upperRoll", upperRoll);
+        recordPrecuLiveDiagnostic(self, "taunt.lowerRoll", lowerRoll);
+        recordPrecuLiveDiagnostic(self, "taunt.duration", duration);
+        recordPrecuLiveDiagnostic(self, "taunt.aggro", aggro);
+        recordPrecuLiveDiagnostic(self, "taunt.hateBefore", hateBefore);
+        recordPrecuLiveDiagnostic(self, "taunt.topHateBefore", topHateBefore);
+        recordPrecuLiveDiagnostic(self, "taunt.appliedDelta", appliedDelta);
+        recordPrecuLiveDiagnostic(self, "taunt.hateAfter",
+            getHate(target, self));
+        recordPrecuLiveDiagnostic(self, "taunt.topBefore",
+            isIdValid(topBefore) ? topBefore.toString() : "0");
+        recordPrecuLiveDiagnostic(self, "taunt.topAfter",
+            isIdValid(topAfter) ? topAfter.toString() : "0");
+        recordPrecuLiveDiagnostic(self, "taunt.result",
+            success ? "SUCCESS" : "FAIL");
+        return SCRIPT_CONTINUE;
+    }
+
+    private void sendPrecuTauntOutcome(obj_id self, obj_id target,
+        boolean success) throws InterruptedException
+    {
+        prose_package message = new prose_package();
+        message = prose.setStringId(message, new string_id(
+            "cbt_spam", success ? "taunt_success_single" :
+                "taunt_fail_single"));
+        message = prose.setTU(message, self);
+        message = prose.setTT(message, target);
+        sendCombatSpamMessageProse(self, target, message, true, true, true,
+            success ? COMBAT_RESULT_HIT : COMBAT_RESULT_MISS);
+    }
+
+    public int precuTauntExpire(obj_id self, dictionary params)
+        throws InterruptedException
+    {
+        obj_id target = params == null ? obj_id.NULL_ID :
+            params.getObjId("target");
+        float appliedDelta = params == null ? 0.0f :
+            params.getFloat("delta");
+        int generation = params == null ? 0 : params.getInt("generation");
+        if (isIdValid(target) && exists(target))
+        {
+            float hateBefore = getHate(target, self);
+            float hateAfter = Math.max(0.0f, hateBefore - appliedDelta);
+            if (hateAfter > 0.0f)
+            {
+                setHate(target, self, hateAfter);
+            }
+            else
+            {
+                removeHateTarget(target, self);
+            }
+            if (hasObjVar(target, "combat.precuTaunt.generation") &&
+                getIntObjVar(target, "combat.precuTaunt.generation") == generation)
+            {
+                removeObjVar(target, "combat.precuTaunt");
+            }
+            obj_id topAfter = getHateTarget(target);
+            recordPrecuLiveDiagnostic(self, "taunt.expired", 1);
+            recordPrecuLiveDiagnostic(self, "taunt.hateBeforeExpiry",
+                hateBefore);
+            recordPrecuLiveDiagnostic(self, "taunt.hateAfterExpiry",
+                getHate(target, self));
+            recordPrecuLiveDiagnostic(self, "taunt.topAfterExpiry",
+                isIdValid(topAfter) ? topAfter.toString() : "0");
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int melee1hDizzyHit1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee1hDizzyHit1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int melee1hBlindHit1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee1hBlindHit1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int melee1hBlindHit2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee1hBlindHit2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int melee1hScatterHit1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee1hScatterHit1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int melee1hDizzyHit2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee1hDizzyHit2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int melee1hScatterHit2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee1hScatterHit2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int melee1hHealthHit1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee1hHealthHit1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int melee1hSpinAttack2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee1hSpinAttack2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int melee1hHealthHit2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee1hHealthHit2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int melee2hSweep1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee2hSweep1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int melee2hSweep2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee2hSweep2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int melee2hMindHit1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee2hMindHit1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int melee2hMindHit2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee2hMindHit2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int melee2hHit3(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee2hHit3", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int unarmedKnockdown1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("unarmedKnockdown1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int unarmedKnockdown2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("unarmedKnockdown2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int polearmStun1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("polearmStun1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int unarmedBlind1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("unarmedBlind1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int unarmedStun1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("unarmedStun1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int intimidate1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("intimidate1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int intimidate2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("intimidate2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int warcry1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("warcry1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int warcry2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("warcry2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int unarmedHeadHit1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("unarmedHeadHit1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int unarmedHit1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("unarmedHit1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int unarmedHit2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("unarmedHit2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int unarmedHit3(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("unarmedHit3", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int underHandShot(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("underHandShot", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int knockdownFire(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("knockdownFire", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int confusionShot(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("confusionShot", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int bleedingShot(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("bleedingShot", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int eyeShot(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("eyeShot", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int torsoShot(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("torsoShot", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int sprayShot(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("sprayShot", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int fastBlast(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("fastBlast", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int coneDelay(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("panicShot", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int lowBlow(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("lowBlow", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int lastDitch(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("lastDitch", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int unarmedBodyHit1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("unarmedBodyHit1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int unarmedLegHit1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("unarmedLegHit1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int unarmedSpinAttack1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("unarmedSpinAttack1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int unarmedSpinAttack2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("unarmedSpinAttack2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int overChargeShot1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("overChargeShot1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int aim(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        combat_data actionData = combat_engine.getCombatData("aim");
+        weapon_data weaponData = getWeaponData(getCurrentWeapon(self));
+        if (actionData == null || weaponData == null ||
+            !isIdValid(weaponData.id) ||
+            combat.getWeaponCategory(weaponData.weaponType) != combat.RANGED_WEAPON)
+        {
+            combat.sendCombatSpamMessage(
+                self, new string_id("cbt_spam", "invalid_weapon"));
+            return SCRIPT_OVERRIDE;
+        }
+        int weaponRow = dataTableSearchColumnForString(
+            getTemplateName(weaponData.id), "templateName", PRECU_WEAPON_PROFILES);
+        if (weaponRow < 0)
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        int[] actionCost = combat.getActionCost(self, weaponData, actionData);
+        if (!combat.canDrainCombatActionAttributes(self, actionCost, true))
+        {
+            combat.sendCombatSpamMessage(
+                self, new string_id("cbt_spam", "pool_drain_fail"));
+            return SCRIPT_OVERRIDE;
+        }
+        boolean alreadyAiming = getState(self, STATE_AIMING) != 0 ||
+            hasSkillModModifier(self, PRECU_AIM_MODIFIER);
+        int aimBonus = getEnhancedSkillStatisticModifierUncapped(self, "aim");
+        String weaponFamily = dataTableGetString(
+            PRECU_WEAPON_PROFILES, weaponRow, "weaponFamily");
+        aimBonus += getEnhancedSkillStatisticModifierUncapped(
+            self, weaponFamily + "_aim");
+        if (!alreadyAiming &&
+            !addSkillModModifier(
+                self, PRECU_AIM_MODIFIER, "private_aim", aimBonus, 5.0f, true, false))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        if (!combat.drainCombatActionAttributes(self, actionCost, true))
+        {
+            if (!alreadyAiming)
+            {
+                removeAttribOrSkillModModifier(self, PRECU_AIM_MODIFIER);
+                setState(self, STATE_AIMING, false);
+            }
+            return SCRIPT_OVERRIDE;
+        }
+        if (!alreadyAiming)
+        {
+            setState(self, STATE_AIMING, true);
+        }
+        recordPrecuLiveDiagnostic(self, "aim.bonus", aimBonus);
+        recordPrecuLiveDiagnostic(self, "aim.healthCost", actionCost[0]);
+        recordPrecuLiveDiagnostic(self, "aim.alreadyActive", alreadyAiming ? 1 : 0);
+        recordPrecuLiveDiagnostic(self, "aim.consumed", 0);
+        if (isIdValid(target) && target != self)
+        {
+            combat.sendCombatSpamMessage(
+                self, target, new string_id("cbt_spam", "aim"), true, true, true);
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int OnSkillModDone(obj_id self, String modName, boolean isDead) throws InterruptedException
+    {
+        if (PRECU_AIM_MODIFIER.equals(modName))
+        {
+            setState(self, STATE_AIMING, false);
+            recordPrecuLiveDiagnostic(self, "aim.expired", 1);
+        }
+        if (PRECU_TUMBLE_MELEE_MODIFIER.equals(modName) ||
+            PRECU_TUMBLE_RANGED_MODIFIER.equals(modName))
+        {
+            if (!hasSkillModModifier(self, PRECU_TUMBLE_MELEE_MODIFIER) &&
+                !hasSkillModModifier(self, PRECU_TUMBLE_RANGED_MODIFIER))
+            {
+                setState(self, STATE_TUMBLING, false);
+                recordPrecuLiveDiagnostic(self, "tumble.expired", 1);
+                recordPrecuLiveDiagnostic(
+                    self, "tumble.state", getState(self, STATE_TUMBLING));
+            }
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int threatenShot(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("threatenShot", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int warningShot(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("warningShot", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int suppressionFire1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("suppressionFire1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int suppressionFire2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("suppressionFire2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int wildShot1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("wildShot1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int wildShot2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("wildShot2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    private void applyPrecuAcrobaticPosture(obj_id self, int posture, String action) throws InterruptedException
+    {
+        int startPosture = getPosture(self);
+        int endPosture = posture;
+        String result = "APPLIED";
+        if (getState(self, STATE_DIZZY) > 0 && rand(0, 100) < 85)
+        {
+            endPosture = POSTURE_KNOCKED_DOWN;
+            result = "DIZZY_FALL";
+            combat.sendCombatSpamMessage(
+                self, self, new string_id("cbt_spam", "dizzy_fall_down_single"),
+                true, true, true);
+        }
+        boolean applied = setPostureClientImmediate(self, endPosture);
+        recordPrecuLiveDiagnostic(self, "attackerPosture.action", action);
+        recordPrecuLiveDiagnostic(self, "attackerPosture.start", startPosture);
+        recordPrecuLiveDiagnostic(self, "attackerPosture.end", endPosture);
+        recordPrecuLiveDiagnostic(
+            self, "attackerPosture.result", applied ? result : "FAILED");
+    }
+    public int rollShot(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("rollShot", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        applyPrecuAcrobaticPosture(self, POSTURE_CROUCHED, "rollShot");
+        return SCRIPT_CONTINUE;
+    }
+    public int diveShot(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("diveShot", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        applyPrecuAcrobaticPosture(self, POSTURE_PRONE, "diveShot");
+        return SCRIPT_CONTINUE;
+    }
+    public int kipUpShot(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("kipUpShot", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        applyPrecuAcrobaticPosture(self, POSTURE_UPRIGHT, "kipUpShot");
+        return SCRIPT_CONTINUE;
+    }
+    private int calculatePrecuTakeCoverActionCost(obj_id self) throws InterruptedException
+    {
+        float cost = 50.0f -
+            (((float)(getAttrib(self, QUICKNESS) - 300) / 1200.0f) * 50.0f);
+        return (int)Math.max(0.0f, cost);
+    }
+    private void recordPrecuTakeCoverDiagnostic(obj_id self, int actionCost,
+        int actionBefore, int chance, int roll, String result)
+        throws InterruptedException
+    {
+        recordPrecuLiveDiagnostic(self, "takeCover.actionCost", actionCost);
+        recordPrecuLiveDiagnostic(self, "takeCover.actionBefore", actionBefore);
+        recordPrecuLiveDiagnostic(
+            self, "takeCover.actionAfter", getAttrib(self, ACTION));
+        recordPrecuLiveDiagnostic(self, "takeCover.chance", chance);
+        recordPrecuLiveDiagnostic(self, "takeCover.roll", roll);
+        recordPrecuLiveDiagnostic(self, "takeCover.result", result);
+        recordPrecuLiveDiagnostic(
+            self, "takeCover.coverState", getState(self, STATE_COVER));
+    }
+    private void sendPrecuTakeCoverFailure(obj_id self)
+        throws InterruptedException
+    {
+        sendSystemMessage(self, new string_id("cbt_spam", "cover_fail_single"));
+        combat.sendCombatSpamMessage(
+            self, self, new string_id("cbt_spam", "cover_fail"),
+            true, true, true);
+    }
+    public int takeCover(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        int actionCost = calculatePrecuTakeCoverActionCost(self);
+        int actionBefore = getAttrib(self, ACTION);
+        boolean inCombat = combat.isInCombat(self);
+        int chance = inCombat ?
+            10 + getSkillStatisticModifier(self, "take_cover") : 100;
+        int roll = -1;
+        if (actionBefore < actionCost)
+        {
+            sendPrecuTakeCoverFailure(self);
+            recordPrecuTakeCoverDiagnostic(
+                self, actionCost, actionBefore, chance, roll,
+                "INSUFFICIENT_ACTION");
+            return SCRIPT_OVERRIDE;
+        }
+
+        setAttrib(self, ACTION, actionBefore - actionCost);
+        if (getState(self, STATE_DIZZY) > 0 && rand(0, 100) < 85)
+        {
+            boolean fell =
+                setPostureClientImmediate(self, POSTURE_KNOCKED_DOWN);
+            combat.sendCombatSpamMessage(
+                self, self,
+                new string_id("cbt_spam", "dizzy_fall_down_single"),
+                true, true, true);
+            recordPrecuTakeCoverDiagnostic(
+                self, actionCost, actionBefore, chance, roll,
+                fell ? "DIZZY_FALL" : "DIZZY_FALL_FAILED");
+            return SCRIPT_CONTINUE;
+        }
+
+        if (inCombat)
+        {
+            roll = rand(0, 100);
+            if (roll > chance)
+            {
+                sendPrecuTakeCoverFailure(self);
+                recordPrecuTakeCoverDiagnostic(
+                    self, actionCost, actionBefore, chance, roll,
+                    "CHANCE_FAILED");
+                return SCRIPT_OVERRIDE;
+            }
+        }
+
+        setState(self, STATE_COVER, true);
+        combat.sendCombatSpamMessage(
+            self, self, new string_id("cbt_spam", "cover_success"),
+            true, true, true);
+        recordPrecuTakeCoverDiagnostic(
+            self, actionCost, actionBefore, chance, roll, "SUCCESS");
+        return SCRIPT_CONTINUE;
+    }
+    private int calculatePrecuTumbleActionCost(obj_id self)
+        throws InterruptedException
+    {
+        float cost = 100.0f -
+            (((float)(getAttrib(self, QUICKNESS) - 300) / 1200.0f) * 100.0f);
+        return (int)Math.max(0.0f, cost);
+    }
+    private int performPrecuTumble(obj_id self, obj_id target, int posture,
+        String commandName, String spamKey) throws InterruptedException
+    {
+        int actionCost = calculatePrecuTumbleActionCost(self);
+        int actionBefore = getAttrib(self, ACTION);
+        int startPosture = getPosture(self);
+        int meleeDefenseBefore =
+            getEnhancedSkillStatisticModifierUncapped(self, "melee_defense");
+        int rangedDefenseBefore =
+            getEnhancedSkillStatisticModifierUncapped(self, "ranged_defense");
+        int dizzyRoll = -1;
+        boolean meleeApplied = false;
+        boolean rangedApplied = false;
+        String animation = isIdValid(target) && target != self ?
+            "tumble_facing" : "tumble";
+        String result = "SUCCESS";
+
+        if (actionBefore <= actionCost)
+        {
+            result = "INSUFFICIENT_ACTION";
+        }
+        else
+        {
+            setAttrib(self, ACTION, actionBefore - actionCost);
+            boolean postureApplied = setPostureClientImmediate(self, posture);
+            doAnimationAction(self, animation);
+            if (!postureApplied)
+            {
+                result = "POSTURE_FAILED";
+            }
+            else if (getState(self, STATE_DIZZY) > 0 &&
+                (dizzyRoll = rand(0, 100)) < 85)
+            {
+                boolean fell =
+                    setPostureClientImmediate(self, POSTURE_KNOCKED_DOWN);
+                combat.sendCombatSpamMessage(
+                    self, self,
+                    new string_id("cbt_spam", "dizzy_fall_down_single"),
+                    true, true, true);
+                result = fell ? "DIZZY_FALL" : "DIZZY_FALL_FAILED";
+            }
+            else
+            {
+                if (hasSkillModModifier(self, PRECU_TUMBLE_MELEE_MODIFIER))
+                {
+                    removeAttribOrSkillModModifier(
+                        self, PRECU_TUMBLE_MELEE_MODIFIER);
+                }
+                if (hasSkillModModifier(self, PRECU_TUMBLE_RANGED_MODIFIER))
+                {
+                    removeAttribOrSkillModModifier(
+                        self, PRECU_TUMBLE_RANGED_MODIFIER);
+                }
+                meleeApplied = addSkillModModifier(
+                    self, PRECU_TUMBLE_MELEE_MODIFIER, "melee_defense",
+                    50, 1.0f, true, false);
+                rangedApplied = addSkillModModifier(
+                    self, PRECU_TUMBLE_RANGED_MODIFIER, "ranged_defense",
+                    50, 1.0f, true, false);
+                if (meleeApplied && rangedApplied)
+                {
+                    setState(self, STATE_TUMBLING, true);
+                    combat.sendCombatSpamMessage(
+                        self, self, new string_id("cbt_spam", spamKey),
+                        true, true, true);
+                }
+                else
+                {
+                    removeAttribOrSkillModModifier(
+                        self, PRECU_TUMBLE_MELEE_MODIFIER);
+                    removeAttribOrSkillModModifier(
+                        self, PRECU_TUMBLE_RANGED_MODIFIER);
+                    setState(self, STATE_TUMBLING, false);
+                    result = "BUFF_FAILED";
+                }
+            }
+        }
+
+        recordPrecuLiveDiagnostic(self, "tumble.command", commandName);
+        recordPrecuLiveDiagnostic(self, "tumble.actionCost", actionCost);
+        recordPrecuLiveDiagnostic(self, "tumble.actionBefore", actionBefore);
+        recordPrecuLiveDiagnostic(
+            self, "tumble.actionAfter", getAttrib(self, ACTION));
+        recordPrecuLiveDiagnostic(self, "tumble.startPosture", startPosture);
+        recordPrecuLiveDiagnostic(
+            self, "tumble.endPosture", getPosture(self));
+        recordPrecuLiveDiagnostic(self, "tumble.animation", animation);
+        recordPrecuLiveDiagnostic(self, "tumble.dizzyRoll", dizzyRoll);
+        recordPrecuLiveDiagnostic(self, "tumble.result", result);
+        recordPrecuLiveDiagnostic(
+            self, "tumble.meleeDefenseBefore", meleeDefenseBefore);
+        recordPrecuLiveDiagnostic(
+            self, "tumble.meleeDefenseAfter",
+            getEnhancedSkillStatisticModifierUncapped(self, "melee_defense"));
+        recordPrecuLiveDiagnostic(
+            self, "tumble.rangedDefenseBefore", rangedDefenseBefore);
+        recordPrecuLiveDiagnostic(
+            self, "tumble.rangedDefenseAfter",
+            getEnhancedSkillStatisticModifierUncapped(self, "ranged_defense"));
+        recordPrecuLiveDiagnostic(
+            self, "tumble.modifiersApplied",
+            meleeApplied && rangedApplied ? 1 : 0);
+        recordPrecuLiveDiagnostic(self, "tumble.meleeDefenseBonus", 50);
+        recordPrecuLiveDiagnostic(self, "tumble.rangedDefenseBonus", 50);
+        recordPrecuLiveDiagnostic(
+            self, "tumble.initialState", getState(self, STATE_TUMBLING));
+        recordPrecuLiveDiagnostic(
+            self, "tumble.state", getState(self, STATE_TUMBLING));
+        recordPrecuLiveDiagnostic(self, "tumble.buffSeconds", 1.0f);
+        recordPrecuLiveDiagnostic(self, "tumble.expired", 0);
+        return result.equals("INSUFFICIENT_ACTION") ||
+            result.endsWith("FAILED") ? SCRIPT_OVERRIDE : SCRIPT_CONTINUE;
+    }
+    public int tumbleToProne(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        return performPrecuTumble(
+            self, target, POSTURE_PRONE, "tumbleToProne", "tum_prone");
+    }
+    public int tumbleToKneeling(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        return performPrecuTumble(
+            self, target, POSTURE_CROUCHED, "tumbleToKneeling", "tum_kneel");
+    }
+    public int tumbleToStanding(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        return performPrecuTumble(
+            self, target, POSTURE_UPRIGHT, "tumbleToStanding", "tum_standing");
+    }
+    public int overChargeShot2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("overChargeShot2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    private boolean hasPrecuCommandWeaponTemplate(obj_id self, String expectedTemplate) throws InterruptedException
+    {
+        obj_id weapon = getCurrentWeapon(self);
+        return isIdValid(weapon) && expectedTemplate.equals(getTemplateName(weapon));
+    }
+    public int fireAcidSingle1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!hasPrecuCommandWeaponTemplate(self, "object/weapon/ranged/heavy/heavy_acid_beam.iff") ||
+            !combatStandardAction("fireAcidSingle1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int fireAcidCone1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!hasPrecuCommandWeaponTemplate(self, "object/weapon/ranged/heavy/heavy_acid_beam.iff") ||
+            !combatStandardAction("fireAcidCone1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int fireAcidCone2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!hasPrecuCommandWeaponTemplate(self, "object/weapon/ranged/heavy/heavy_acid_beam.iff") ||
+            !combatStandardAction("fireAcidCone2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int fireAcidSingle2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!hasPrecuCommandWeaponTemplate(self, "object/weapon/ranged/heavy/heavy_acid_beam.iff") ||
+            !combatStandardAction("fireAcidSingle2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int flameSingle1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!hasPrecuCommandWeaponTemplate(self, "object/weapon/ranged/rifle/rifle_flame_thrower.iff") ||
+            !combatStandardAction("flameSingle1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int flameSingle2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!hasPrecuCommandWeaponTemplate(self, "object/weapon/ranged/rifle/rifle_flame_thrower.iff") ||
+            !combatStandardAction("flameSingle2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int flameCone1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!hasPrecuCommandWeaponTemplate(self, "object/weapon/ranged/rifle/rifle_flame_thrower.iff") ||
+            !combatStandardAction("flameCone1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int flameCone2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!hasPrecuCommandWeaponTemplate(self, "object/weapon/ranged/rifle/rifle_flame_thrower.iff") ||
+            !combatStandardAction("flameCone2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int healthShot1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("healthShot1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int healthShot2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("healthShot2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int pistolMeleeDefense1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("pistolMeleeDefense1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int pistolMeleeDefense2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("pistolMeleeDefense2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int actionShot1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("actionShot1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int actionShot2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("actionShot2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int mindShot2(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("mindShot2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int surpriseShot(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("surpriseShot", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int concealShot(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("concealShot", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int flurryShot1(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("flurryShot1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int flurryShot2(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("flurryShot2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int sniperShot(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        if (!isIdValid(target) || target == self || !isPlayer(target))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        if (isDead(target))
+        {
+            sendSystemMessageProse(
+                self,
+                prose.getPackage(pclib.PROSE_TARGET_ALREADY_DEAD, target));
+            return SCRIPT_OVERRIDE;
+        }
+        if (!combatStandardAction("sniperShot", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        if (isIncapacitated(target) &&
+            getState(target, STATE_FEIGN_DEATH) == 0)
+        {
+            pclib.killPlayer(target, self, true);
+        }
+        else if (!isDead(target))
+        {
+            sendSystemMessage(self, pclib.SID_TARGET_NOT_INCAPACITATED);
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int mindShot1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("mindShot1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int fireLightningSingle1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!hasPrecuCommandWeaponTemplate(self, "object/weapon/ranged/rifle/rifle_lightning.iff") ||
+            !combatStandardAction("fireLightningSingle1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int fireLightningCone1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!hasPrecuCommandWeaponTemplate(self, "object/weapon/ranged/rifle/rifle_lightning.iff") ||
+            !combatStandardAction("fireLightningCone1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int fireLightningCone2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!hasPrecuCommandWeaponTemplate(self, "object/weapon/ranged/rifle/rifle_lightning.iff") ||
+            !combatStandardAction("fireLightningCone2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int fireLightningSingle2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!hasPrecuCommandWeaponTemplate(self, "object/weapon/ranged/rifle/rifle_lightning.iff") ||
+            !combatStandardAction("fireLightningSingle2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int polearmSpinAttack1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("polearmSpinAttack1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int melee1hSpinAttack1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee1hSpinAttack1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int melee2hSpinAttack1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee2hSpinAttack1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int headShot2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("headShot2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int headShot3(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("headShot3", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int melee1hBodyHit1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee1hBodyHit1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int melee1hBodyHit2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee1hBodyHit2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int melee1hBodyHit3(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee1hBodyHit3", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int melee2hHeadHit1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee2hHeadHit1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int melee2hHeadHit2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee2hHeadHit2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int melee2hHeadHit3(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee2hHeadHit3", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int melee1hHit1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee1hHit1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int melee1hHit2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee1hHit2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int melee1hHit3(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee1hHit3", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int melee2hHit1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee2hHit1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int melee2hHit2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee2hHit2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int polearmLegHit2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("polearmLegHit2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int polearmLegHit3(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("polearmLegHit3", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int polearmHit1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("polearmHit1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int polearmStun2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("polearmStun2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int polearmSpinAttack2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("polearmSpinAttack2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int polearmArea2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("polearmArea2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int polearmSweep1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("polearmSweep1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int polearmSweep2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("polearmSweep2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int polearmActionHit1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("polearmActionHit1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int polearmActionHit2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("polearmActionHit2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int polearmHit2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("polearmHit2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int polearmHit3(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("polearmHit3", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int polearmArea1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("polearmArea1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int melee2hSpinAttack2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee2hSpinAttack2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int melee2hArea1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee2hArea1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int melee2hArea2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee2hArea2", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int melee2hArea3(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("melee2hArea3", self, target, params, "", ""))
         {
             return SCRIPT_OVERRIDE;
         }

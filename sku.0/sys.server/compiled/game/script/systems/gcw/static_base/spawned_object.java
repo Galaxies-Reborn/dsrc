@@ -1,6 +1,7 @@
 package script.systems.gcw.static_base;
 
 import script.dictionary;
+import script.library.gcw;
 import script.location;
 import script.obj_id;
 
@@ -9,8 +10,32 @@ public class spawned_object extends script.base_script
     public spawned_object()
     {
     }
+    public void cleanupRetiredFixedStaticBaseSpawn(obj_id self) throws InterruptedException
+    {
+        if (!gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            return;
+        }
+        detachScript(self, "systems.gcw.static_base.spawned_object");
+        destroyObject(self);
+    }
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        cleanupRetiredFixedStaticBaseSpawn(self);
+        return SCRIPT_CONTINUE;
+    }
+    public int OnInitialize(obj_id self) throws InterruptedException
+    {
+        cleanupRetiredFixedStaticBaseSpawn(self);
+        return SCRIPT_CONTINUE;
+    }
     public int OnIncapacitated(obj_id self, obj_id killer) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBaseSpawn(self);
+            return SCRIPT_CONTINUE;
+        }
         location loc = getLocation(self);
         String datatable = "datatables/gcw/static_base/base_spawn_" + loc.area + ".iff";
         obj_id master = getObjIdObjVar(self, "master");
@@ -34,6 +59,11 @@ public class spawned_object extends script.base_script
     }
     public int OnObjectDisabled(obj_id self, obj_id killer) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBaseSpawn(self);
+            return SCRIPT_CONTINUE;
+        }
         location loc = getLocation(self);
         String datatable = "datatables/gcw/static_base/base_spawn_" + loc.area + ".iff";
         obj_id master = getObjIdObjVar(self, "master");

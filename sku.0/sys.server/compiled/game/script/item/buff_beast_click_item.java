@@ -19,7 +19,6 @@ public class buff_beast_click_item extends script.base_script
     public static final string_id BUFF_REMOVED = new string_id("base_player", "buff_removed");
     public static final string_id SID_BEAST_DEAD = new string_id("base_player", "beast_buff_beast_dead");
     public static final string_id SID_BUFF_NOT_OWNER = new string_id("base_player", "beast_buff_not_owner");
-    public static final string_id SID_ITEM_LEVEL_TOO_LOW = new string_id("base_player", "beast_buff_level_too_low");
     public static final string_id CANT_APPLY_BUFF = new string_id("base_player", "beast_buff_cant_apply_buff");
     public static final string_id SID_NO_ACTIVE_BEAST = new string_id("base_player", "beast_buff_no_active_beast");
     public static final String OWNER_OID = "owner";
@@ -124,57 +123,48 @@ public class buff_beast_click_item extends script.base_script
             String clientEffect = itemData.getString("client_effect");
             String clientAnimation = itemData.getString("client_animation");
             int reuseTime = itemData.getInt("reuse_time");
-            int requiredLevel = itemData.getInt("required_level_for_effect");
             String varName = "clickItem." + coolDownGroup;
             int buffTime = getIntObjVar(player, varName);
-            int beastLevel = getLevel(activeBeast);
             if (buff.hasBuff(activeBeast, buffName))
             {
                 buff.removeBuff(activeBeast, buffName);
                 sendSystemMessage(player, BUFF_REMOVED);
                 return SCRIPT_CONTINUE;
             }
-            if (static_item.validateLevelRequired(activeBeast, requiredLevel))
+            if (getGameTime() > buffTime || getGameTime() < buffTime && isGod(player))
             {
-                if (getGameTime() > buffTime || getGameTime() < buffTime && isGod(player))
+                if (buff.canApplyBuff(activeBeast, buffName))
                 {
-                    if (buff.canApplyBuff(activeBeast, buffName))
+                    if (getGameTime() < buffTime && isGod(player))
                     {
-                        if (getGameTime() < buffTime && isGod(player))
-                        {
-                            sendSystemMessage(player, "The Buff was applied because you were in god mode.", null);
-                        }
-                        CustomerServiceLog("buff", "buff_click_item object self: " + self + " Static Item Name: " + itemName + " providing buff: " + buffName + " being used by player: " + player + " Name: " + getName(player) + " on their beast: " + activeBeast + " of beast level: " + beastLevel);
-                        sendSystemMessage(player, BUFF_APPLIED);
-                        utils.setScriptVar(activeBeast, beast_lib.getBeastBuffItemVar(buffName), self);
-                        buff.applyBuff(activeBeast, player, buffName);
-                        setObjVar(player, varName, (getGameTime() + (reuseTime)));
-                        sendCooldownGroupTimingOnly(player, getStringCrc(coolDownGroup.toLowerCase()), reuseTime);
-                        doAnimationAction(activeBeast, clientAnimation);
-                        playClientEffectObj(activeBeast, clientEffect, player, "");
-                        if (getCount(self) > 0)
-                        {
-                            CustomerServiceLog("buff", "buff_click_item object self: " + self + " Static Item Name: " + itemName + " providing buff: " + buffName + " being used by player: " + player + " Name: " + getName(player) + " on their beast: " + activeBeast + ". Object is being decremented by ONE.");
-                            static_item.decrementStaticItem(self);
-                        }
+                        sendSystemMessage(player, "The Buff was applied because you were in god mode.", null);
                     }
-                    else 
+                    CustomerServiceLog("buff", "buff_click_item object self: " + self + " Static Item Name: " + itemName + " providing buff: " + buffName + " being used by player: " + player + " Name: " + getName(player) + " on their beast: " + activeBeast);
+                    sendSystemMessage(player, BUFF_APPLIED);
+                    utils.setScriptVar(activeBeast, beast_lib.getBeastBuffItemVar(buffName), self);
+                    buff.applyBuff(activeBeast, player, buffName);
+                    setObjVar(player, varName, (getGameTime() + (reuseTime)));
+                    sendCooldownGroupTimingOnly(player, getStringCrc(coolDownGroup.toLowerCase()), reuseTime);
+                    doAnimationAction(activeBeast, clientAnimation);
+                    playClientEffectObj(activeBeast, clientEffect, player, "");
+                    if (getCount(self) > 0)
                     {
-                        sendSystemMessage(player, CANT_APPLY_BUFF);
-                        return SCRIPT_CONTINUE;
+                        CustomerServiceLog("buff", "buff_click_item object self: " + self + " Static Item Name: " + itemName + " providing buff: " + buffName + " being used by player: " + player + " Name: " + getName(player) + " on their beast: " + activeBeast + ". Object is being decremented by ONE.");
+                        static_item.decrementStaticItem(self);
                     }
                 }
                 else 
                 {
-                    int timeDiff = buffTime - getGameTime();
-                    prose_package pp = prose.getPackage(SID_NOT_YET, timeDiff);
-                    sendSystemMessageProse(player, pp);
+                    sendSystemMessage(player, CANT_APPLY_BUFF);
                     return SCRIPT_CONTINUE;
                 }
             }
             else 
             {
-                sendSystemMessage(player, SID_ITEM_LEVEL_TOO_LOW);
+                int timeDiff = buffTime - getGameTime();
+                prose_package pp = prose.getPackage(SID_NOT_YET, timeDiff);
+                sendSystemMessageProse(player, pp);
+                return SCRIPT_CONTINUE;
             }
         }
         return SCRIPT_CONTINUE;

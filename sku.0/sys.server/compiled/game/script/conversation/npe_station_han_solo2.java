@@ -130,7 +130,7 @@ public class npe_station_han_solo2 extends script.base_script
     }
     public boolean npe_station_han_solo2_condition_isAtLeastLevel5(obj_id player, obj_id npc) throws InterruptedException
     {
-        int level = getLevel(player);
+        int level = script.library.skill.getPrecuEncounterDifficulty(player);
         if (npe_station_han_solo2_condition_playerisEntertainer(player, npc) || npe_station_han_solo2_condition_playerisTrader(player, npc))
         {
             return true;

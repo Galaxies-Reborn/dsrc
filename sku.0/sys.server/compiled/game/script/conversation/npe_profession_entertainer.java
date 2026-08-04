@@ -23,15 +23,7 @@ public class npe_profession_entertainer extends script.base_script
     }
     public boolean npe_profession_entertainer_condition_isEntertainer(obj_id player, obj_id npc) throws InterruptedException
     {
-        String pTemplate = getSkillTemplate(player);
-        if (pTemplate.contains("entertainer"))
-        {
-            return true;
-        }
-        else 
-        {
-            return false;
-        }
+        return false;
     }
     public boolean npe_profession_entertainer_condition_onEntertainer1quest(obj_id player, obj_id npc) throws InterruptedException
     {

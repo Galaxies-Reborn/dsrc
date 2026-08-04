@@ -70,7 +70,7 @@ public class collections_collector extends script.base_script
     public boolean collections_collector_condition_collectorHintAurilia(obj_id player, obj_id npc) throws InterruptedException
     {
         String planetName = getCurrentSceneName();
-        int playerLevel = getLevel(player);
+        int playerLevel = script.library.skill.getPrecuEncounterDifficulty(player);
         if (planetName.equals("dathomir") || playerLevel < 70)
         {
             return false;

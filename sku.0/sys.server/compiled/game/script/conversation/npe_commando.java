@@ -19,15 +19,7 @@ public class npe_commando extends script.base_script
     }
     public boolean npe_commando_condition_isCommandoTemplate(obj_id player, obj_id npc) throws InterruptedException
     {
-        String playerTemplate = getSkillTemplate(player);
-        if (playerTemplate.contains("commando"))
-        {
-            return true;
-        }
-        else 
-        {
-            return false;
-        }
+        return false;
     }
     public boolean npe_commando_condition_fromBrawler(obj_id player, obj_id npc) throws InterruptedException
     {

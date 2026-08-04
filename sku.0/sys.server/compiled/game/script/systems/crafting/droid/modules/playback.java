@@ -87,7 +87,7 @@ public class playback extends script.base_script
         {
             return SCRIPT_CONTINUE;
         }
-        if (hasSkill(player, "class_entertainer_phase1_novice"))
+        if (hasSkill(player, "social_entertainer_novice"))
         {
             int modules = getIntObjVar(self, MODULE_OBJVAR + ".modules");
             if (modules < 1)

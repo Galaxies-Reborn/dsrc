@@ -1,6 +1,7 @@
 package script.structure.municipal;
 
 import script.dictionary;
+import script.library.gcw;
 import script.library.player_structure;
 import script.library.travel;
 import script.location;
@@ -11,8 +12,28 @@ public class starport extends script.base_script
     public starport()
     {
     }
+    public boolean isRetiredFixedStaticBaseBeacon(obj_id self) throws InterruptedException
+    {
+        return gcw.isPostNgeFixedStaticBaseRetired() && "object/tangible/gcw/static_base/invisible_beacon.iff".equals(getTemplateName(self));
+    }
+    public void cleanupRetiredFixedStaticBaseBeacon(obj_id self) throws InterruptedException
+    {
+        if (!isRetiredFixedStaticBaseBeacon(self))
+        {
+            return;
+        }
+        travel.destroyBaseObjects(self);
+        travel.removeTravelPoint(self);
+        removeObjVar(self, travel.VAR_TRAVEL);
+        detachScript(self, "structure.municipal.starport");
+    }
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        if (isRetiredFixedStaticBaseBeacon(self))
+        {
+            cleanupRetiredFixedStaticBaseBeacon(self);
+            return SCRIPT_CONTINUE;
+        }
         LOG("LOG_CHANNEL", "starport::OnAttach -- " + self);
         if (player_structure.isCivic(self))
         {
@@ -29,6 +50,11 @@ public class starport extends script.base_script
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        if (isRetiredFixedStaticBaseBeacon(self))
+        {
+            cleanupRetiredFixedStaticBaseBeacon(self);
+            return SCRIPT_CONTINUE;
+        }
         LOG("LOG_CHANNEL", "starport::OnIntialize -- " + self);
         if (player_structure.isCivic(self))
         {
@@ -59,6 +85,11 @@ public class starport extends script.base_script
     }
     public int msgArrivalLocation(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isRetiredFixedStaticBaseBeacon(self))
+        {
+            cleanupRetiredFixedStaticBaseBeacon(self);
+            return SCRIPT_CONTINUE;
+        }
         LOG("LOG_CHANNEL", "starport::msgArrivalLocation -- " + self + "  " + params);
         location loc = travel.getArrivalLocation(self);
         obj_id player = params.getObjId("player");
@@ -69,6 +100,11 @@ public class starport extends script.base_script
     }
     public int msgRestartShuttle(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isRetiredFixedStaticBaseBeacon(self))
+        {
+            cleanupRetiredFixedStaticBaseBeacon(self);
+            return SCRIPT_CONTINUE;
+        }
         LOG("LOG_CHANNEL", "starport::msgRestartShuttle -- " + self);
         obj_id shuttle = params.getObjId("shuttle");
         if (shuttle == null || shuttle == obj_id.NULL_ID)
@@ -88,6 +124,11 @@ public class starport extends script.base_script
     }
     public int retryInitializeStarport(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isRetiredFixedStaticBaseBeacon(self))
+        {
+            cleanupRetiredFixedStaticBaseBeacon(self);
+            return SCRIPT_CONTINUE;
+        }
         String planet = getCurrentSceneName();
         String travel_point = travel.getTravelPointName(self);
         if ((planet != null) && (travel_point != null))
@@ -114,6 +155,11 @@ public class starport extends script.base_script
     }
     public void doInitializeStarport(obj_id self) throws InterruptedException
     {
+        if (isRetiredFixedStaticBaseBeacon(self))
+        {
+            cleanupRetiredFixedStaticBaseBeacon(self);
+            return;
+        }
         if (player_structure.isCivic(self))
         {
             return;

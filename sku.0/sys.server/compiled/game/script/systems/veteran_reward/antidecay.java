@@ -29,6 +29,10 @@ public class antidecay extends script.base_script
     public static final string_id SID_USE_KIT_CONFIRM_PROMPT_ONE = new string_id(VETERAN_STRING_TABLE, "use_kit_confirm_prompt_one");
     public static final string_id SID_USE_KIT_CONFIRM_PROMPT_TWO = new string_id(VETERAN_STRING_TABLE, "use_kit_confirm_prompt_two");
     public static final string_id SID_USE_KIT_CONFIRM_TITLE = new string_id(VETERAN_STRING_TABLE, "use_kit_confirm_title");
+    private static boolean isNgeAntidecayRespecEnabled()
+    {
+        return false;
+    }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
         if (hasObjVar(self, OBJVAR_GROUP_REWARDED))
@@ -73,12 +77,20 @@ public class antidecay extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info item) throws InterruptedException
     {
+        if (!isNgeAntidecayRespecEnabled())
+        {
+            return SCRIPT_CONTINUE;
+        }
         item.addRootMenu(menu_info_types.ITEM_USE, null);
         setName(self, "");
         return SCRIPT_CONTINUE;
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (!isNgeAntidecayRespecEnabled())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (item == menu_info_types.ITEM_USE)
         {
             obj_id[] kitContents = getContents(self);

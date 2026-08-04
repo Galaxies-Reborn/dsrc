@@ -159,7 +159,7 @@ public class dead_npc_script extends script.base_script
             spawnCount = getIntObjVar(self, "spawnCount");
             return false;
         }
-        int combatLevel = getLevel(player);
+        int combatLevel = script.library.skill.getPrecuEncounterDifficulty(player);
         if (combatLevel < 0 || combatLevel > 90)
         {
             CustomerServiceLog("outbreak_themepark", "dead_npc_script.spawnEnemy()  Player " + player + " has a level that is invalid. Player level is: " + combatLevel + ". Aborting the camp defense.");

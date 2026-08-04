@@ -7,6 +7,7 @@ import java.util.Vector;
 
 public class pvp_battlefield extends script.base_script
 {
+    public static final String SCRIPT_NAME = "systems.gcw.pvp_battlefield";
     public pvp_battlefield()
     {
     }
@@ -37,6 +38,33 @@ public class pvp_battlefield extends script.base_script
     public static final int BATTLEFIELD_MAXIMUM_TEAM_SIZE = 16;
     public static final int BATTLEFIELD_PLAYER_KILL_VALUE = 10;
     public static final int BATTLEFIELD_TERMINAL_CAPTURE_VALUE = 500;
+    private void retirePostNgeQueuedBattlefield(obj_id controller) throws InterruptedException
+    {
+        if (!isIdValid(controller))
+        {
+            return;
+        }
+        bfActiveKickOutPlayers(controller);
+        bfQueueClear(controller);
+        String battlefieldName = getStringObjVar(controller, "battlefieldName");
+        if (battlefieldName != null && battlefieldName.length() > 0)
+        {
+            removeClusterWideData("pvp", battlefieldName, 0);
+        }
+        location here = getLocation(controller);
+        if (here != null)
+        {
+            obj_id planet = getPlanetByName(here.area);
+            if (isIdValid(planet))
+            {
+                utils.removeScriptVar(planet, gcw.REGION_CONTROLLER + "." + gcw.getBattlefieldRegionName(controller));
+                utils.removeScriptVar(planet, gcw.REGION_CONTROLLER + "." + gcw.getPushbackRegionName(controller));
+            }
+        }
+        utils.removeBatchScriptVar(controller, PVP_AREA_RECORD);
+        utils.removeScriptVarTree(controller, "battlefield");
+        detachScript(controller, SCRIPT_NAME);
+    }
     public void doLogging(String section, String message) throws InterruptedException
     {
     }
@@ -100,6 +128,13 @@ public class pvp_battlefield extends script.base_script
     }
     public int OnClusterWideDataResponse(obj_id self, String manage_name, String name, int request_id, String[] element_name_list, dictionary[] data, int lock_key) throws InterruptedException
     {
+        if (gcw.isPostNgeQueuedBattlefieldRetired())
+        {
+            removeClusterWideData(manage_name, name, lock_key);
+            releaseClusterWideDataLock(manage_name, lock_key);
+            retirePostNgeQueuedBattlefield(self);
+            return SCRIPT_CONTINUE;
+        }
         String battlefieldName = getStringObjVar(self, "battlefieldName");
         if (battlefieldName == null || battlefieldName.length() < 1)
         {
@@ -128,12 +163,22 @@ public class pvp_battlefield extends script.base_script
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeQueuedBattlefieldRetired())
+        {
+            retirePostNgeQueuedBattlefield(self);
+            return SCRIPT_CONTINUE;
+        }
         detachScript(self, "quest.task.ground.retrieve_item_on_item");
         setupBattlefield(self);
         return SCRIPT_CONTINUE;
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeQueuedBattlefieldRetired())
+        {
+            retirePostNgeQueuedBattlefield(self);
+            return SCRIPT_CONTINUE;
+        }
         blog(self, "pvp_battlefield OnInitialize");
         detachScript(self, "quest.task.ground.retrieve_item_on_item");
         setupBattlefield(self);
@@ -141,6 +186,11 @@ public class pvp_battlefield extends script.base_script
     }
     public int checkBattlefieldState(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeQueuedBattlefieldRetired())
+        {
+            retirePostNgeQueuedBattlefield(self);
+            return SCRIPT_CONTINUE;
+        }
         int bfState = utils.getIntScriptVar(self, "battlefield.state");
         int stateTime = utils.getIntScriptVar(self, "battlefield.stateTime");
         int bfType = utils.getIntScriptVar(self, "battlefieldType");

@@ -344,7 +344,7 @@ public class combat_mine extends script.base_script
     }
     public boolean isCommando(obj_id subject) throws InterruptedException
     {
-        return (hasSkill(subject, "class_commando_phase1_novice") || hasSkill(subject, "class_munitions_phase3_master"));
+        return (hasSkill(subject, "combat_commando_novice") || hasSkill(subject, "crafting_weaponsmith_munitions_04"));
     }
     public boolean isSmuggler(obj_id subject) throws InterruptedException
     {

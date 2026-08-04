@@ -10,7 +10,6 @@ public class stimpack extends script.base_script
     public stimpack()
     {
     }
-    public static final string_id SID_ITEM_LEVEL_TOO_LOW = new string_id("healing", "item_level_too_low");
     public int OnGetAttributes(obj_id self, obj_id player, String[] names, String[] attribs) throws InterruptedException
     {
         int idx = utils.getValidAttributeIndex(names);
@@ -22,17 +21,6 @@ public class stimpack extends script.base_script
         {
             names[idx] = "healing_power";
             int value = getIntObjVar(self, "healing.power");
-            attribs[idx] = Integer.toString(value);
-            idx++;
-            if (idx >= names.length)
-            {
-                return SCRIPT_CONTINUE;
-            }
-        }
-        if (hasObjVar(self, "healing.combat_level_required"))
-        {
-            names[idx] = "healing_combat_level_required";
-            int value = getIntObjVar(self, "healing.combat_level_required");
             attribs[idx] = Integer.toString(value);
             idx++;
             if (idx >= names.length)
@@ -69,24 +57,14 @@ public class stimpack extends script.base_script
         }
         if (item == menu_info_types.ITEM_USE)
         {
-            int level = getLevel(player);
-            int requiredLevel = getIntObjVar(self, "healing.combat_level_required");
-            if (level < requiredLevel)
+            if (hasObjVar(self, "healing.pool"))
             {
-                sendSystemMessage(player, SID_ITEM_LEVEL_TOO_LOW);
-                return SCRIPT_OVERRIDE;
+                int attrib = getIntObjVar(self, "healing.pool");
+                boolean worked = healing.useHealDamageItem(player, self, attrib);
             }
             else 
             {
-                if (hasObjVar(self, "healing.pool"))
-                {
-                    int attrib = getIntObjVar(self, "healing.pool");
-                    boolean worked = healing.useHealDamageItem(player, self, attrib);
-                }
-                else 
-                {
-                    boolean worked = healing.useHealDamageItem(player, self);
-                }
+                boolean worked = healing.useHealDamageItem(player, self);
             }
         }
         return SCRIPT_CONTINUE;

@@ -10,7 +10,6 @@ public class static_item_base extends script.base_script
     public static_item_base()
     {
     }
-    public static final string_id SID_ITEM_LEVEL_TOO_LOW = new string_id("base_player", "level_too_low");
     public static final string_id SID_ITEM_NOT_ENOUGH_SKILL = new string_id("base_player", "not_correct_skill");
     public static final string_id SID_ITEM_MUST_NOT_BE_EQUIP = new string_id("base_player", "not_while_equipped");
     public static final string_id SID_ITEM_NO_UNIQUE_TRANSFER = new string_id("base_player", "unique_no_transfer");
@@ -52,24 +51,13 @@ public class static_item_base extends script.base_script
                     transferer = getContainedBy(destContainer);
                 }
             }
-            int requiredLevel = itemData.getInt("required_level");
             String requiredSkill = itemData.getString("required_skill");
-            if (!static_item.validateLevelRequired(transferer, requiredLevel))
+            int itemType = itemData.getInt("type");
+            if (itemType != 1 && requiredSkill != null && !requiredSkill.equals("") &&
+                !utils.meetsProfessionRequirement(transferer, requiredSkill))
             {
-                sendSystemMessage(transferer, SID_ITEM_LEVEL_TOO_LOW);
+                sendSystemMessage(transferer, SID_ITEM_NOT_ENOUGH_SKILL);
                 canTransfer = false;
-            }
-            if (requiredSkill != null && !requiredSkill.equals(""))
-            {
-                String classTemplate = getSkillTemplate(transferer);
-                if (classTemplate != null && !classTemplate.equals(""))
-                {
-                    if (!classTemplate.startsWith(requiredSkill))
-                    {
-                        sendSystemMessage(transferer, SID_ITEM_NOT_ENOUGH_SKILL);
-                        canTransfer = false;
-                    }
-                }
             }
             if (hasObjVar(self, "armor.fake_armor"))
             {
@@ -173,12 +161,6 @@ public class static_item_base extends script.base_script
             LOG("static_item_base", getStaticItemName(self) + ": typeData is null. Could not find this item in its static item stats datatable.");
             return SCRIPT_CONTINUE;
         }
-        int requiredLevelToEquip = itemData.getInt("required_level");
-        if (requiredLevelToEquip != 0 && !hasScript(self, "systems.combat.combat_weapon"))
-        {
-            names[free] = utils.packStringId(new string_id("proc/proc", "required_combat_level"));
-            attribs[free++] = Integer.toString(requiredLevelToEquip);
-        }
         String requiredSkillToEquip = itemData.getString("required_skill");
         if (requiredSkillToEquip != null && !requiredSkillToEquip.equals("") && !hasScript(self, "systems.combat.combat_weapon"))
         {
@@ -225,12 +207,6 @@ public class static_item_base extends script.base_script
             {
                 return SCRIPT_CONTINUE;
             }
-        }
-        int requiredLevelForEffect = typeData.getInt("required_level_for_effect");
-        if (requiredLevelForEffect != 0)
-        {
-            names[free] = utils.packStringId(new string_id("proc/proc", "effect_level"));
-            attribs[free++] = Integer.toString(requiredLevelForEffect);
         }
         String buffName = typeData.getString("buff_name");
         if (buffName != null && !buffName.equals("") && buffIdentity == 0)

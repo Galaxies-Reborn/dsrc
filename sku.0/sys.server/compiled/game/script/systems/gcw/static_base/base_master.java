@@ -2,6 +2,7 @@ package script.systems.gcw.static_base;
 
 import script.dictionary;
 import script.library.create;
+import script.library.gcw;
 import script.library.utils;
 import script.location;
 import script.obj_id;
@@ -25,8 +26,51 @@ public class base_master extends script.base_script
     public static final String VAR_ACCESS_DELAY = "gcw.static_base.access_delay";
     public static final String SCRIPT_VAR_VALIDATION = "gcw.static_base.validation";
     public static final String TABLE_TERMINAL_SPAWN = "datatables/gcw/static_base/terminal_spawn.iff";
+    public void cleanupRetiredFixedStaticBase(obj_id self) throws InterruptedException
+    {
+        if (!gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            return;
+        }
+        if (hasObjVar(self, VAR_TERMINAL_IDS))
+        {
+            obj_id[] terminals = getObjIdArrayObjVar(self, VAR_TERMINAL_IDS);
+            if (terminals != null)
+            {
+                for (obj_id terminal : terminals)
+                {
+                    if (!isIdValid(terminal))
+                    {
+                        continue;
+                    }
+                    if (terminal.isLoaded())
+                    {
+                        removePlanetaryMapLocation(terminal);
+                        destroyObject(terminal);
+                    }
+                    else
+                    {
+                        messageTo(terminal, "handleTerminalDestructionRequest", null, 0.0f, false);
+                    }
+                }
+            }
+        }
+        removeObjVar(self, "gcw.static_base");
+        utils.removeScriptVarTree(self, "gcw.static_base");
+        obj_id planet = getPlanetByName(getLocation(self).area);
+        if (isIdValid(planet))
+        {
+            utils.removeScriptVarTree(planet, "gcw.static_base");
+        }
+        detachScript(self, "systems.gcw.static_base.base_master");
+    }
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBase(self);
+            return SCRIPT_CONTINUE;
+        }
         obj_id master = findMasterObject(self);
         if (!isIdValid(master))
         {
@@ -42,6 +86,11 @@ public class base_master extends script.base_script
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBase(self);
+            return SCRIPT_CONTINUE;
+        }
         obj_id master = findMasterObject(self);
         if (!isIdValid(master))
         {
@@ -57,6 +106,10 @@ public class base_master extends script.base_script
     }
     public obj_id findMasterObject(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            return obj_id.NULL_ID;
+        }
         obj_id[] objects = getObjectsInRange(getLocation(self), 100.0f);
         if (objects == null || objects.length == 0)
         {
@@ -73,6 +126,11 @@ public class base_master extends script.base_script
     }
     public void initializeBase(obj_id self, obj_id master) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBase(self);
+            return;
+        }
         if (isIdValid(master))
         {
             setObjVar(self, VAR_MASTER, master);
@@ -96,6 +154,11 @@ public class base_master extends script.base_script
     }
     public void beginTerminalSpawnSequence(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBase(self);
+            return;
+        }
         float spawnTime = 10.0f;
         if (hasObjVar(self, VAR_TERMINAL_IDS))
         {
@@ -106,6 +169,11 @@ public class base_master extends script.base_script
     }
     public void validateTerminals(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBase(self);
+            return;
+        }
         if (!hasObjVar(self, VAR_TERMINAL_IDS))
         {
             return;
@@ -131,6 +199,11 @@ public class base_master extends script.base_script
     }
     public void destroyTerminals(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBase(self);
+            return;
+        }
         if (!hasObjVar(self, VAR_TERMINAL_IDS))
         {
             return;
@@ -152,6 +225,11 @@ public class base_master extends script.base_script
     }
     public void testBaseStatusChange(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBase(self);
+            return;
+        }
         int status = NO_CONTROL;
         if (hasObjVar(self, VAR_BASE_STATUS))
         {
@@ -180,6 +258,11 @@ public class base_master extends script.base_script
     }
     public void beginBaseFactionSwitcheroo(obj_id self, int status) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBase(self);
+            return;
+        }
         setObjVar(self, VAR_BASE_STATUS, status);
         setPlanetaryBaseStatus(self, status);
         String faction = "imperial_";
@@ -215,6 +298,11 @@ public class base_master extends script.base_script
     }
     public int handleBaseInitializationRetry(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBase(self);
+            return SCRIPT_CONTINUE;
+        }
         int tries = params.getInt("tries");
         obj_id master = findMasterObject(self);
         if (!isIdValid(master) && tries < 5)
@@ -232,6 +320,11 @@ public class base_master extends script.base_script
     }
     public int handleTerminalSetup(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBase(self);
+            return SCRIPT_CONTINUE;
+        }
         if (!hasObjVar(self, VAR_TERMINAL_IDS))
         {
             beginTerminalSpawnSequence(self);
@@ -244,6 +337,11 @@ public class base_master extends script.base_script
     }
     public int handleTerminalSpawnRequest(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBase(self);
+            return SCRIPT_CONTINUE;
+        }
         int status = NO_CONTROL;
         if (hasObjVar(self, VAR_BASE_STATUS))
         {
@@ -302,6 +400,11 @@ public class base_master extends script.base_script
     }
     public int handleTerminalValidationResponse(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBase(self);
+            return SCRIPT_CONTINUE;
+        }
         int response = params.getInt("response");
         int id = params.getInt("id");
         int[] validate = utils.getIntArrayScriptVar(self, SCRIPT_VAR_VALIDATION);
@@ -319,6 +422,11 @@ public class base_master extends script.base_script
     }
     public int handleTerminalValidation(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBase(self);
+            return SCRIPT_CONTINUE;
+        }
         int[] validate = utils.getIntArrayScriptVar(self, SCRIPT_VAR_VALIDATION);
         if (validate == null || validate.length == 0)
         {
@@ -334,6 +442,11 @@ public class base_master extends script.base_script
     }
     public int handleControlUpdate(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            cleanupRetiredFixedStaticBase(self);
+            return SCRIPT_CONTINUE;
+        }
         int id = params.getInt("id");
         int control = params.getInt("control");
         int[] terminalStatus = null;
@@ -377,6 +490,10 @@ public class base_master extends script.base_script
     }
     public boolean setPlanetaryTerminalStatus(obj_id object, int[] terminalStatus) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            return false;
+        }
         if (!isValidId(object))
         {
             return false;
@@ -392,6 +509,10 @@ public class base_master extends script.base_script
     }
     public boolean setPlanetaryBaseStatus(obj_id object, int baseStatus) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            return false;
+        }
         if (!isValidId(object))
         {
             return false;
@@ -407,6 +528,10 @@ public class base_master extends script.base_script
     }
     public boolean setPlanetaryCaptureTime(obj_id object) throws InterruptedException
     {
+        if (gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            return false;
+        }
         if (!isValidId(object))
         {
             return false;

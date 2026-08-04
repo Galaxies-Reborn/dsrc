@@ -30,7 +30,7 @@ public class door_lock_crafting_de extends script.base_script
                 messageTo(self, "unlockTerminal", null, 30, false);
                 return SCRIPT_CONTINUE;
             }
-            if (hasSkill(player, "class_engineering_phase4_master"))
+            if (hasSkill(player, "crafting_droidengineer_master"))
             {
                 if (checkForIngredients(player))
                 {

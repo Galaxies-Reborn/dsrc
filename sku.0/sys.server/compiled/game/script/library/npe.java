@@ -1255,7 +1255,7 @@ public class npe extends script.base_script
     {
         if (hasObjVar(player, "npe"))
         {
-            if (getLevel(player) >= LEVEL_CAP)
+            if (script.library.skill.getPrecuEncounterDifficulty(player) >= LEVEL_CAP)
             {
                 return true;
             }

@@ -30,6 +30,10 @@ public class pet_deed extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (utils.isNestedWithinAPlayer(self))
         {
             if (beast_lib.isBeastMaster(player))
@@ -41,6 +45,10 @@ public class pet_deed extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (item == menu_info_types.SERVER_MENU1 && utils.isNestedWithinAPlayer(self))
         {
             if (beast_lib.isBeastMaster(player))
@@ -63,6 +71,10 @@ public class pet_deed extends script.base_script
             return SCRIPT_CONTINUE;
         }
         obj_id player = sui.getPlayerId(params);
+        if (incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return SCRIPT_CONTINUE;
+        }
         obj_id petItem = self;
         if (beast_lib.isBeastMaster(player))
         {

@@ -30,7 +30,7 @@ public class som_kenobi_moral_exec extends script.base_script
     }
     public boolean som_kenobi_moral_exec_condition_levelTooLow(obj_id player, obj_id npc) throws InterruptedException
     {
-        int playerLevel = getLevel(player);
+        int playerLevel = script.library.skill.getPrecuEncounterDifficulty(player);
         if (playerLevel > 60)
         {
             return true;

@@ -120,7 +120,6 @@ officer_1a	class_officer_phase4_03	appearance/eqp_tool_sensor_frequency_jammer.a
 officer_1a	class_officer_phase4_04						
 officer_1a	class_officer_phase4_05						
 officer_1a	class_officer_phase4_master	appearance/armor_zam_wesell_belt_f.sat	@ui_roadmap:officer_belt	item_roadmap_belt_officer_01_02			***Class Specific: Belt
-medic_1a	science_doctor_prereq_novice						
 medic_1a	class_medic_phase1_novice						
 medic_1a	class_medic_phase1_02						
 medic_1a	class_medic_phase1_03						

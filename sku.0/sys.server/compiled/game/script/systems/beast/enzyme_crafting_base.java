@@ -1,6 +1,7 @@
 package script.systems.beast;
 
 import script.library.hue;
+import script.library.incubator;
 import script.library.utils;
 import script.obj_id;
 import script.string_id;
@@ -43,8 +44,21 @@ public class enzyme_crafting_base extends script.base_script
     public static final String PROCESS_TRAITS = "system.enzyme_traits";
     public static final string_id ERROR_ON_START = new string_id("beast", "error_on_start");
     public static final string_id NOT_BEASTMASTER = new string_id("beast", "beast_master_use_only");
+    public int OnInitialize(obj_id self) throws InterruptedException
+    {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            terminateProcess();
+        }
+        return SCRIPT_CONTINUE;
+    }
     public int OnAboutToBeTransferred(obj_id self, obj_id destContainer, obj_id transferer) throws InterruptedException
     {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            terminateProcess();
+            return containsItems() ? SCRIPT_OVERRIDE : SCRIPT_CONTINUE;
+        }
         if (!canBeTransfered())
         {
             return SCRIPT_OVERRIDE;
@@ -53,6 +67,11 @@ public class enzyme_crafting_base extends script.base_script
     }
     public int OnAboutToLoseItem(obj_id self, obj_id destContainer, obj_id transferer, obj_id item) throws InterruptedException
     {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            terminateProcess();
+            return SCRIPT_CONTINUE;
+        }
         if (isInOperation())
         {
             return SCRIPT_OVERRIDE;
@@ -61,6 +80,11 @@ public class enzyme_crafting_base extends script.base_script
     }
     public int OnAboutToReceiveItem(obj_id self, obj_id srcContainer, obj_id transferer, obj_id item) throws InterruptedException
     {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            terminateProcess();
+            return isPlayer(transferer) ? SCRIPT_OVERRIDE : SCRIPT_CONTINUE;
+        }
         if (isInOperation() && (isIdValid(transferer) && isPlayer(transferer)))
         {
             return SCRIPT_OVERRIDE;
@@ -94,10 +118,20 @@ public class enzyme_crafting_base extends script.base_script
     }
     public boolean isInOperation() throws InterruptedException
     {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            terminateProcess();
+            return false;
+        }
         return hasObjVar(getSelf(), FINISH_TIME);
     }
     public void completeAnyOperations() throws InterruptedException
     {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            terminateProcess();
+            return;
+        }
         if (!hasObjVar(getSelf(), FINISH_TIME))
         {
             return;
@@ -210,6 +244,10 @@ public class enzyme_crafting_base extends script.base_script
     }
     public boolean isReadyToOperate() throws InterruptedException
     {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            return false;
+        }
         int machineType = getMachineType();
         if (!containsItems())
         {
@@ -304,6 +342,11 @@ public class enzyme_crafting_base extends script.base_script
     }
     public int startProcess(obj_id player, int time) throws InterruptedException
     {
+        if (incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            terminateProcess();
+            return -1;
+        }
         int machineType = getMachineType();
         switch (machineType)
         {
@@ -318,6 +361,11 @@ public class enzyme_crafting_base extends script.base_script
     }
     public void completeProcess() throws InterruptedException
     {
+        if (incubator.isPostNgeBeastMasterCreationPlayerRuntimeRetired())
+        {
+            terminateProcess();
+            return;
+        }
         int machineType = getMachineType();
         switch (machineType)
         {
@@ -334,6 +382,10 @@ public class enzyme_crafting_base extends script.base_script
     }
     public int startCentrifuge(obj_id player, int time) throws InterruptedException
     {
+        if (incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return -1;
+        }
         obj_id tray = getObjIdByTemplate(CENTRIFUGE_USE);
         float machinePurity = getFloatObjVar(getSelf(), CRAFTED_PURITY) / 2.0f;
         float trayPurity = getFloatObjVar(tray, CRAFTED_PURITY) * 1.5f;
@@ -356,6 +408,10 @@ public class enzyme_crafting_base extends script.base_script
     }
     public int startProcessor(obj_id player, int time) throws InterruptedException
     {
+        if (incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return -1;
+        }
         obj_id capsule = getObjIdByTemplate(PROCESSOR_USE);
         float machinePurity = getFloatObjVar(getSelf(), CRAFTED_PURITY) / 2.0f;
         float capsulePurity = getFloatObjVar(capsule, CRAFTED_PURITY) * 1.5f;
@@ -378,6 +434,10 @@ public class enzyme_crafting_base extends script.base_script
     }
     public int startCombiner(obj_id player, int time) throws InterruptedException
     {
+        if (incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return -1;
+        }
         obj_id mold = getObjIdByTemplate(COMBINER_USE);
         float machinePurity = getFloatObjVar(getSelf(), CRAFTED_PURITY) / 2.0f;
         float moldPurity = getFloatObjVar(mold, CRAFTED_PURITY) * 1.5f;

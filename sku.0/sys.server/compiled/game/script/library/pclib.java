@@ -32,6 +32,9 @@ public class pclib extends script.base_script
     public static final String VAR_REVIVE_CLONE = "revive.cloneLocs";
     public static final String VAR_REVIVE_SPAWN = "revive.spawnLocs";
     public static final String VAR_REVIVE_DAMAGE = "revive.damage";
+    public static final String VAR_REVIVE_SELECTION = "revive.selectedRow";
+    public static final String VAR_PRECU_CLONE_WOUND =
+        "revive.precuCloneWound";
     public static final String VAR_SUI_CLONE = "sui.clone";
     public static final String VAR_CONSENT_TO_BASE = "consentTo";
     public static final String VAR_CONSENT_TO_ID = "consentTo.id";
@@ -107,6 +110,10 @@ public class pclib extends script.base_script
     public static final String VAR_BEEN_COUPDEGRACED = "beenCoupDeGraced";
     public static final String VAR_DEATHBLOW_KILLER = VAR_BEEN_COUPDEGRACED + ".killer";
     public static final String VAR_DEATHBLOW_STAMP = VAR_BEEN_COUPDEGRACED + ".stamp";
+    public static final String VAR_PRECU_INCAPACITATION_TIMES =
+        "combat.precuIncapacitationTimes";
+    public static final int PRECU_INCAPACITATION_WINDOW = 600;
+    public static final int PRECU_INCAPACITATION_LIMIT = 3;
     public static final String DATATABLE_AI_SPECIES = "datatables/ai/species.iff";
     public static final String DATATABLE_COL_SKELETON = "Skeleton";
     public static final String SKELETON_HUMAN = "human";
@@ -156,39 +163,24 @@ public class pclib extends script.base_script
     public static final String OBJVAR_JEDI_SKILL_REQUIREMENTS = "jedi.skillsNeeded";
     public static final float DECAY_RATE = 0.002f;
     public static final String DECAY_REMAINDER = "decay.remainder";
-    public static final float MIN_CLONING_SICKNESS_COST = 100;
-    public static final float MAX_CLONING_SICKNESS_COST = 5000;
     public static int getCloningSicknessCureCost(obj_id player) throws InterruptedException
     {
-        float minCost = MIN_CLONING_SICKNESS_COST;
-        float maxCost = MAX_CLONING_SICKNESS_COST;
-        int city_id = city.checkCity(player, false);
-        if (city_id > 0 && city.cityHasSpec(city_id, city.SF_SPEC_CLONING))
-        {
-            minCost = MIN_CLONING_SICKNESS_COST / 2;
-            maxCost = MAX_CLONING_SICKNESS_COST / 2;
-        }
-        return (int) (minCost + ((maxCost - minCost) * (getLevel(player) / 90.0f)));
+        return 0;
     }
     public static boolean canAffordCloningSicknessCure(obj_id player) throws InterruptedException
     {
-        return getCloningSicknessCureCost(player) <= getTotalMoney(player);
+        return true;
     }
     public static void cureCloningSickness(obj_id player) throws InterruptedException
     {
-        if (!canAffordCloningSicknessCure(player))
+        if (!isIdValid(player) || !isPlayer(player))
         {
-            sendSystemMessage(player, new string_id("spam", "not_enough_cash_4_cure"));
             return;
         }
-        int cost = getCloningSicknessCureCost(player);
-        if (cost > 0)
+        if (buff.hasBuff(player, "cloning_sickness"))
         {
-            money.requestPayment(player, money.ACCT_CLONING, cost, "none", null, false);
+            buff.removeBuff(player, "cloning_sickness");
         }
-        playClientEffectObj(player, "appearance/pt_cure_cloning_sickness.prt", player, "");
-        buff.removeBuff(player, "cloning_sickness");
-        playMusic(player, "sound/vo_meddroid_01.snd");
     }
     public static obj_id grantWayPoint(obj_id player, obj_id target) throws InterruptedException
     {
@@ -559,6 +551,111 @@ public class pclib extends script.base_script
         }
         return new location(0.0f, 0.0f, 0.0f, "tatooine");
     }
+    public static int calculatePrecuIncapacitationTimer(int condition)
+        throws InterruptedException
+    {
+        int value = -condition;
+        if (value < 5)
+        {
+            return 5;
+        }
+        int recoveryTime = value / 5;
+        return recoveryTime > 60 ? 60 : recoveryTime;
+    }
+    public static int getPrecuIncapacitationCount(obj_id player)
+        throws InterruptedException
+    {
+        if (!isIdValid(player) ||
+            !hasObjVar(player, VAR_PRECU_INCAPACITATION_TIMES))
+        {
+            return 0;
+        }
+        int[] timestamps =
+            getIntArrayObjVar(
+                player,
+                VAR_PRECU_INCAPACITATION_TIMES);
+        if (timestamps == null || timestamps.length == 0)
+        {
+            return 0;
+        }
+        int now = getGameTime();
+        int oldestAllowed =
+            now - PRECU_INCAPACITATION_WINDOW;
+        int count = 0;
+        for (int timestamp : timestamps)
+        {
+            if (timestamp > oldestAllowed &&
+                timestamp <= now)
+            {
+                ++count;
+            }
+        }
+        return count;
+    }
+    public static int addPrecuIncapacitationTime(obj_id player)
+        throws InterruptedException
+    {
+        if (!isIdValid(player))
+        {
+            return 0;
+        }
+        int[] existing =
+            hasObjVar(
+                player,
+                VAR_PRECU_INCAPACITATION_TIMES)
+                ? getIntArrayObjVar(
+                    player,
+                    VAR_PRECU_INCAPACITATION_TIMES)
+                : null;
+        int now = getGameTime();
+        int oldestAllowed =
+            now - PRECU_INCAPACITATION_WINDOW;
+        int active = 0;
+        if (existing != null)
+        {
+            for (int timestamp : existing)
+            {
+                if (timestamp > oldestAllowed &&
+                    timestamp <= now)
+                {
+                    ++active;
+                }
+            }
+        }
+        int[] updated = new int[active + 1];
+        int index = 0;
+        if (existing != null)
+        {
+            for (int timestamp : existing)
+            {
+                if (timestamp > oldestAllowed &&
+                    timestamp <= now)
+                {
+                    updated[index++] = timestamp;
+                }
+            }
+        }
+        updated[index] = now;
+        setObjVar(
+            player,
+            VAR_PRECU_INCAPACITATION_TIMES,
+            updated);
+        return updated.length;
+    }
+    public static void clearPrecuIncapacitationTimes(obj_id player)
+        throws InterruptedException
+    {
+        if (!isIdValid(player))
+        {
+            return;
+        }
+        removeObjVar(
+            player,
+            VAR_PRECU_INCAPACITATION_TIMES);
+        removeObjVar(
+            player,
+            "combat.intIncapacitationCount");
+    }
     public static void killPlayer(obj_id player, obj_id killer) throws InterruptedException
     {
         killPlayer(player, killer, true);
@@ -624,7 +721,6 @@ public class pclib extends script.base_script
             setObjVar(victim, VAR_DEATHBLOW_KILLER, killer);
             setObjVar(victim, VAR_DEATHBLOW_STAMP, getGameTime());
         }
-        gcw.releaseGcwPointCredit(victim);
         obj_id master;
         obj_id pvpKiller = killer;
         if (!isPlayer(killer))
@@ -770,7 +866,6 @@ public class pclib extends script.base_script
         {
             sendSystemMessageProse(player, prose.getPackage(PROSE_VICTIM_DEAD, killer));
         }
-        float factionMod = 1.0f;
         if (!isPlayer(killer) && isMob(killer) && isIdValid(getMaster(killer)))
         {
             killer = getMaster(killer);
@@ -788,7 +883,7 @@ public class pclib extends script.base_script
             }
             else 
             {
-                if ((getTotalMoney(player) >= bounty_hunter.MIN_BOUNTY_SET) && (!dueling) && (getLevel(killer) >= 20))
+                if ((getTotalMoney(player) >= bounty_hunter.MIN_BOUNTY_SET) && (!dueling) && (skill.getPrecuEncounterDifficulty(killer) >= 20))
                 {
                     bounty_hunter.showSetBountySUI(player, killer);
                 }
@@ -799,7 +894,12 @@ public class pclib extends script.base_script
                 guildUpdateGuildWarKillTracking(killer, player);
             }
         }
-        factions.grantCombatFaction(killer, player, factionMod);
+        if (!dueling)
+        {
+            factions.grantCombatFaction(killer, player, 1.0f);
+        }
+        clearPrecuIncapacitationTimes(player);
+        utils.removeScriptVar(player, "incap.timeStamp");
         dot.removeAllDots(player);
         clearAllHate(player);
         playMusic(player, "sound/music_player_death.snd");
@@ -845,11 +945,24 @@ public class pclib extends script.base_script
         {
             return false;
         }
+        utils.setScriptVar(
+            player,
+            VAR_PRECU_CLONE_WOUND,
+            Math.max(0, damage));
         setObjVar(player, "fullHealClone", true);
         if (!sendToCloneSpawn(player, HANDLER_CLONE_RESPAWN, reviveLoc, spawnLoc))
         {
             sendSystemMessage(player, cloninglib.SID_RESPAWN_CURRENT_LOCATION);
             messageTo(player, HANDLER_CLONE_RESPAWN, null, 2, true);
+        }
+        else
+        {
+            // Same-scene clone transfers on the legacy client/server seam can
+            // complete the warp without delivering its callback. Keep the
+            // normal callback authoritative, but schedule the same handler as
+            // a persistent fallback. The handler consumes the pending marker
+            // and is idempotent when the engine callback wins the race.
+            messageTo(player, HANDLER_CLONE_RESPAWN, null, 5, true);
         }
         return true;
     }
@@ -1089,9 +1202,29 @@ public class pclib extends script.base_script
     }
     public static void damageAndDecayItem(obj_id item, float percent) throws InterruptedException
     {
+        if (!isIdValid(item) || percent <= 0.0f)
+        {
+            return;
+        }
+        int maxHitpoints = getMaxHitpoints(item);
+        if (maxHitpoints <= 0)
+        {
+            return;
+        }
+        damageAndDecayItem(item, (int)(maxHitpoints * percent));
     }
     public static void damageAndDecayItem(obj_id item, int amount) throws InterruptedException
     {
+        if (!isIdValid(item) || amount <= 0)
+        {
+            return;
+        }
+        int hitpoints = getHitpoints(item);
+        if (hitpoints <= 0)
+        {
+            return;
+        }
+        setHitpoints(item, Math.max(0, hitpoints - amount));
     }
     public static boolean sendToCloneSpawn(obj_id player, String callback, location world, location spawn) throws InterruptedException
     {
@@ -1099,6 +1232,7 @@ public class pclib extends script.base_script
         {
             return false;
         }
+        utils.setScriptVar(player, "waitingOnCloneRespawn", 1);
         if (spawn == null)
         {
             warpPlayer(player, world.area, world.x, world.y, world.z, null, world.x, world.y, world.z, callback);

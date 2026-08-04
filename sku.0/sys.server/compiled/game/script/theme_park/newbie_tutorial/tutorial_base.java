@@ -853,62 +853,44 @@ public class tutorial_base extends script.base_script
         utils.setScriptVar(player, "jtlNewbieStartLoc", origin);
         utils.setScriptVar(player, "jtlNewbieTrainerLoc", destination);
     }
-    public void sendToStartLocation(obj_id self, String name) throws InterruptedException
+    public boolean sendToStartLocation(obj_id self, String name) throws InterruptedException
     {
-        boolean available = true;
-        newbieTutorialSendStartingLocationSelectionResult(self, name, available);
-        if (!available)
+        location currentLocation = getLocation(self);
+        location loc = null;
+        if (currentLocation != null && "tutorial".equals(currentLocation.area) && name != null && name.length() > 0 && isStartingLocationAvailable(name))
         {
-            return;
+            loc = getStartingLocationInfo(name);
         }
+        if (loc == null)
+        {
+            newbieTutorialSendStartingLocationSelectionResult(self, name, false);
+            return false;
+        }
+        newbieTutorialSendStartingLocationSelectionResult(self, name, true);
         float radius = dataTableGetFloat("datatables/creation/starting_locations.iff", name, "radius");
         float heading = dataTableGetFloat("datatables/creation/starting_locations.iff", name, "heading");
-        location loc = getStartingLocationInfo(name);
-        if (loc != null)
+        if (radius != 0.0f)
         {
-            if (radius != 0.0f)
-            {
-                loc.x += rand(-radius, radius);
-                loc.z += rand(-radius, radius);
-            }
-            if (heading != 0.0f)
-            {
-                setYaw(self, heading);
-            }
-            if (loc.cell != null && loc.cell != obj_id.NULL_ID)
-            {
-                warpPlayer(self, loc.area, 0.0f, 0.0f, 0.0f, loc.cell, loc.x, loc.y, loc.z);
-            }
-            else 
-            {
-                warpPlayer(self, loc.area, loc.x, loc.y, loc.z, null, 0.0f, 0.0f, 0.0f);
-            }
+            loc.x += rand(-radius, radius);
+            loc.z += rand(-radius, radius);
         }
+        if (heading != 0.0f)
+        {
+            setYaw(self, heading);
+        }
+        if (loc.cell != null && loc.cell != obj_id.NULL_ID)
+        {
+            warpPlayer(self, loc.area, 0.0f, 0.0f, 0.0f, loc.cell, loc.x, loc.y, loc.z);
+        }
+        else
+        {
+            warpPlayer(self, loc.area, loc.x, loc.y, loc.z, null, 0.0f, 0.0f, 0.0f);
+        }
+        return true;
     }
     public void sendThoseStartLocs(obj_id player) throws InterruptedException
     {
-        String limitStartingLocations = getConfigSetting("New_Player", "LimitStartingLocations");
-        if (limitStartingLocations != null && limitStartingLocations.equals("true"))
-        {
-            String planet = "tatooine";
-            float locX = 3528.0f + rand(-2.5f, 2.5f);
-            float locY = 5.0f;
-            float locZ = -4804.0f + rand(-2.5f, 2.5f);
-            setYaw(player, 180.0f);
-            newbieTutorialRequest(player, "clientReady");
-            warpPlayer(player, planet, locX, locY, locZ, null, 0.0f, 0.0f, 0.0f);
-            return;
-        }
         String[] startLocs = getStartingLocations();
         newbieTutorialSendStartingLocationsToPlayer(player, startLocs);
-    }
-    public void grantAllNoviceSkills(obj_id player) throws InterruptedException
-    {
-        skill.grantSkillToPlayer(player, "combat_marksman_novice");
-        skill.grantSkillToPlayer(player, "combat_brawler_novice");
-        skill.grantSkillToPlayer(player, "science_medic_novice");
-        skill.grantSkillToPlayer(player, "outdoors_scout_novice");
-        skill.grantSkillToPlayer(player, "crafting_artisan_novice");
-        skill.grantSkillToPlayer(player, "social_entertainer_novice");
     }
 }

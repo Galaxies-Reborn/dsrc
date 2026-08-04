@@ -31,15 +31,6 @@ public class guard_spawner extends script.base_script
                     attachScript(self, "city.bestine.politician_event_npc");
                 }
             }
-            else if (city.equals("theed"))
-            {
-                String empiredayRunning = getConfigSetting("GameServer", "empireday_ceremony");
-                if (empiredayRunning != null && (empiredayRunning.equals("true") || empiredayRunning.equals("1")))
-                {
-                    utils.setScriptVar(self, "OFF", "DUE TO EMPIRE DAY");
-                    return SCRIPT_CONTINUE;
-                }
-            }
         }
         if (hasObjVar(self, "current"))
         {
@@ -292,25 +283,6 @@ public class guard_spawner extends script.base_script
         if ((city != null) && (planet.equals("tatooine") || planet.equals("naboo") || planet.equals("corellia")))
         {
             String test_city = city;
-            if (planet.equals("naboo") || planet.equals("corellia"))
-            {
-                String empiredayRunning = getConfigSetting("GameServer", "empireday_ceremony");
-                if (empiredayRunning != null)
-                {
-                    if (empiredayRunning.equals("true") || empiredayRunning.equals("1"))
-                    {
-                        if (city.equals("coronet"))
-                        {
-                            return test_city + "_rebel_hard";
-                        }
-                        else if (city.equals("theed"))
-                        {
-                            return test_city + "_imperial_hard";
-                        }
-                    }
-                }
-            }
-
             float imp_r = gcw.getImperialPercentileByRegion(self);
             float reb_r = gcw.getRebelPercentileByRegion(self);
             if (imp_r >= reb_r)

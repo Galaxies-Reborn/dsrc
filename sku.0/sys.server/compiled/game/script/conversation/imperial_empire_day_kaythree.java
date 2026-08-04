@@ -183,22 +183,24 @@ public class imperial_empire_day_kaythree extends script.base_script
     public boolean imperial_empire_day_kaythree_condition_isStructuresTrader(obj_id player, obj_id npc) throws InterruptedException
     {
         faceTo(npc, player);
-        return hasSkill(player, "class_structures_phase1_novice");
+        return hasSkill(player, "crafting_architect_novice");
     }
     public boolean imperial_empire_day_kaythree_condition_isEngineeringTrader(obj_id player, obj_id npc) throws InterruptedException
     {
         faceTo(npc, player);
-        return hasSkill(player, "class_engineering_phase1_novice");
+        return hasSkill(player, "crafting_droidengineer_novice");
     }
     public boolean imperial_empire_day_kaythree_condition_isMunitionsTrader(obj_id player, obj_id npc) throws InterruptedException
     {
         faceTo(npc, player);
-        return hasSkill(player, "class_munitions_phase1_novice");
+        return hasSkill(player, "crafting_weaponsmith_novice") ||
+            hasSkill(player, "crafting_armorsmith_novice");
     }
     public boolean imperial_empire_day_kaythree_condition_isDomesticsTrader(obj_id player, obj_id npc) throws InterruptedException
     {
         faceTo(npc, player);
-        return hasSkill(player, "class_domestics_phase1_novice");
+        return hasSkill(player, "crafting_chef_novice") ||
+            hasSkill(player, "crafting_tailor_novice");
     }
     public void imperial_empire_day_kaythree_action_grantDomesticsMissionOne(obj_id player, obj_id npc) throws InterruptedException
     {
@@ -229,7 +231,7 @@ public class imperial_empire_day_kaythree extends script.base_script
         for (int i = 0; i < 3; i++)
         {
             location guardLocation = groundquests.getRandom2DLocationAroundLocation(npc, 1, 1, 5, 12);
-            int mobLevel = getLevel(player);
+            int mobLevel = script.library.skill.getPrecuEncounterDifficulty(player);
             obj_id guard = create.object("imperial_emperorsday_ceremony_sentry", guardLocation, mobLevel);
             attachScript(guard, "event.emp_day.factional_guard_self_destruct");
             startCombat(guard, player);

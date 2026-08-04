@@ -12,8 +12,103 @@ public class base_player extends script.base_script
     public base_player()
     {
     }
+    private void retirePostNgeQueuedBattlefieldPlayerState(obj_id self) throws InterruptedException
+    {
+        buff.removeBuff(self, "battlefield_communication_run");
+        buff.removeBuff(self, "battlefield_radar_invisibility");
+        utils.removeScriptVarTree(self, "battlefield");
+        if (hasScript(self, "systems.gcw.player_pvp"))
+        {
+            detachScript(self, "systems.gcw.player_pvp");
+        }
+    }
     public static final int TIME_DEATH = 5;
-    public static final float RANGE_COUP_DE_GRACE = 3.0f;
+    public static final int PRECU_HEAL_MIND_COST = 250;
+    public static final float PRECU_HEAL_MIND_RANGE = 5.0f;
+    private static final long PRECU_HEAL_MIND_PLAYER_OID = 44003778L;
+    private static final int PRECU_HEAL_MIND_STATION_ID = 91001;
+    private static final int PRECU_HEAL_MIND_PROTOCOL_VERSION = 1;
+    private static final String PRECU_HEAL_MIND_FIXTURE_ROOT =
+        "precu.healMindCommandFixture";
+    public static final int PRECU_BERSERK_ONE_HEALTH_COST = 100;
+    public static final int PRECU_BERSERK_ONE_ACTION_COST = 100;
+    public static final int PRECU_BERSERK_ONE_MIND_COST = 50;
+    public static final int PRECU_BERSERK_DURATION_SECONDS = 20;
+    private static final String PRECU_BERSERK_EXPIRY =
+        "precu.berserk.expiresAt";
+    private static final String PRECU_BERSERK_STATUS_BUFF =
+        "precu_berserk_status";
+    private static final long PRECU_BERSERK_ONE_PLAYER_OID = 44003778L;
+    private static final int PRECU_BERSERK_ONE_STATION_ID = 91001;
+    private static final int PRECU_BERSERK_ONE_PROTOCOL_VERSION = 1;
+    private static final String PRECU_BERSERK_ONE_FIXTURE_ROOT =
+        "precu.b1Fixture";
+    public static final int PRECU_BERSERK_TWO_HEALTH_COST = 100;
+    public static final int PRECU_BERSERK_TWO_ACTION_COST = 100;
+    public static final int PRECU_BERSERK_TWO_MIND_COST = 50;
+    public static final int PRECU_BERSERK_TWO_DURATION_SECONDS = 40;
+    private static final long PRECU_BERSERK_TWO_PLAYER_OID = 44003778L;
+    private static final int PRECU_BERSERK_TWO_STATION_ID = 91001;
+    private static final int PRECU_BERSERK_TWO_PROTOCOL_VERSION = 1;
+    private static final String PRECU_BERSERK_TWO_FIXTURE_ROOT =
+        "precu.b2Fixture";
+    public static final int PRECU_FORMUP_BASE_COST = 50;
+    private static final long PRECU_FORMUP_LEADER_OID = 44003778L;
+    private static final int PRECU_FORMUP_LEADER_STATION_ID = 91001;
+    private static final long PRECU_FORMUP_MEMBER_OID = 207005062L;
+    private static final int PRECU_FORMUP_MEMBER_STATION_ID = 1391050504;
+    private static final int PRECU_FORMUP_PROTOCOL_VERSION = 1;
+    private static final String PRECU_FORMUP_FIXTURE_ROOT =
+        "precu.formupFixture";
+    public static final int PRECU_BOOST_MORALE_BASE_COST = 100;
+    private static final long PRECU_BOOST_MORALE_LEADER_OID = 44003778L;
+    private static final int PRECU_BOOST_MORALE_LEADER_STATION_ID = 91001;
+    private static final long PRECU_BOOST_MORALE_MEMBER_OID = 207005062L;
+    private static final int PRECU_BOOST_MORALE_MEMBER_STATION_ID = 1391050504;
+    private static final int PRECU_BOOST_MORALE_PROTOCOL_VERSION = 1;
+    private static final String PRECU_BOOST_MORALE_FIXTURE_ROOT =
+        "precu.boostMoraleFixture";
+    public static final int PRECU_STEADY_AIM_BASE_COST = 100;
+    public static final int PRECU_STEADY_AIM_DURATION_SECONDS = 300;
+    public static final String PRECU_STEADY_AIM_MODIFIER =
+        "precu_steady_aim";
+    private static final long PRECU_STEADY_AIM_LEADER_OID = 44003778L;
+    private static final int PRECU_STEADY_AIM_LEADER_STATION_ID = 91001;
+    private static final long PRECU_STEADY_AIM_MEMBER_OID = 207005062L;
+    private static final int PRECU_STEADY_AIM_MEMBER_STATION_ID = 1391050504;
+    private static final int PRECU_STEADY_AIM_PROTOCOL_VERSION = 1;
+    private static final String PRECU_STEADY_AIM_FIXTURE_ROOT =
+        "precu.steadyAimFixture";
+    public static final float PRECU_AREA_TRACK_RANGE = 512.0f;
+    public static final float PRECU_AREA_TRACK_MOVE_LIMIT = 1.0f;
+    public static final int PRECU_AREA_TRACK_DELAY_SECONDS = 6;
+    private static final String PRECU_AREA_TRACK_OPTIONS_PID =
+        "precu.areaTrack.options";
+    private static final String PRECU_AREA_TRACK_RESULTS_PID =
+        "precu.areaTrack.results";
+    private static final String PRECU_AREA_TRACK_PENDING =
+        "precu.areaTrack.pending";
+    private static final String PRECU_AREA_TRACK_COOLDOWN =
+        "precu.areaTrack.cooldownUntil";
+    private static final long PRECU_AREA_TRACK_PLAYER_OID = 44003778L;
+    private static final int PRECU_AREA_TRACK_STATION_ID = 91001;
+    private static final String PRECU_AREA_TRACK_FIXTURE_ROOT =
+        "precu.areaTrackCommandFixture";
+    public static final int PRECU_RETREAT_BASE_COST = 100;
+    public static final int PRECU_RETREAT_DURATION_SECONDS = 30;
+    public static final float PRECU_RETREAT_SPEED_STRENGTH = 82.2f;
+    public static final float PRECU_RETREAT_ACCEL_MULTIPLIER = 1.822f;
+    private static final String PRECU_RETREAT_MODIFIER = "retreat";
+    private static final String PRECU_RETREAT_EFFECT_ROOT =
+        "precu.retreatEffect";
+    private static final long PRECU_RETREAT_LEADER_OID = 44003778L;
+    private static final int PRECU_RETREAT_LEADER_STATION_ID = 91001;
+    private static final long PRECU_RETREAT_MEMBER_OID = 207005062L;
+    private static final int PRECU_RETREAT_MEMBER_STATION_ID = 1391050504;
+    private static final int PRECU_RETREAT_PROTOCOL_VERSION = 1;
+    private static final String PRECU_RETREAT_FIXTURE_ROOT =
+        "precu.retreatFixture";
+    public static final float RANGE_COUP_DE_GRACE = 5.0f;
     public static final String JEDI_CLOAK_TEMPLATE = "object/tangible/wearable/robe/robe_s05.iff";
     public static final String MSG_REVIVE_TITLE = "@base_player:revive_title";
     public static final String MSG_REVIVE_MSG = "@base_player:revive_msg";
@@ -141,8 +236,7 @@ public class base_player extends script.base_script
     public static final string_id SID_CIVIC_ONLY = new string_id("city/city", "civic_only");
     public static final String[] ZONING_RIGHTS_ARRAY = new String[]
     {
-        "@city/city:full_zoning_rights",
-        "@city/city:st_zoning_rights"
+        "@city/city:full_zoning_rights"
     };
     public static final string_id SID_ST_RIGHTS_GRANTED = new string_id("city/city", "st_rights_granted");
     public static final string_id SID_ST_GRANT_RIGHTS_FAIL = new string_id("city/city", "st_grant_rights_fail");
@@ -335,7 +429,6 @@ public class base_player extends script.base_script
             "carbine_cdef"
         };
         setObjVar(self, pclib.VAR_NEWBIE_DEATH, 1);
-        skill.setPlayerStatsForLevel(self, 1);
         return SCRIPT_CONTINUE;
     }
     public int OnSkillAboutToBeRevoked(obj_id self, String skill) throws InterruptedException
@@ -357,30 +450,13 @@ public class base_player extends script.base_script
     }
     public int OnCombatLevelChanged(obj_id self, int oldCombatLevel, int newCombatLevel) throws InterruptedException
     {
-        if (newCombatLevel <= 1 || oldCombatLevel >= newCombatLevel)
+        // Combat level is not a Publish 14.1 progression axis.  Keep command
+        // availability synchronized without granting NGE stats or rewards.
+        if (utils.hasScriptVar(self, "respec.conceal"))
         {
-            return SCRIPT_CONTINUE;
-        }
-        if (!utils.hasScriptVar(self, "respec.conceal"))
-        {
-            skill.doPlayerLeveling(self, oldCombatLevel, newCombatLevel);
-        }
-        else 
-        {
-            skill.setPlayerStatsForLevel(self, newCombatLevel);
             utils.removeScriptVar(self, "respec.conceal");
         }
-        if ((utils.isProfession(self, utils.TRADER)) && (!hasSkill(self, "class_trader")))
-        {
-            grantSkill(self, "class_trader");
-        }
-        if ((!hasSkill(self, "expertise")) && (newCombatLevel == 10))
-        {
-            expertise.autoAllocateExpertiseByLevel(self, true);
-        }
         recomputeCommandSeries(self);
-        grantLevelSpecificRewards(self, newCombatLevel);
-        skill.sendlevelUpStatChangeSystemMessages(self, oldCombatLevel, newCombatLevel);
         return SCRIPT_CONTINUE;
     }
     public void grantLevelSpecificRewards(obj_id player, int newCombatLevel) throws InterruptedException{
@@ -417,6 +493,51 @@ public class base_player extends script.base_script
     }
     public int OnSkillRevoked(obj_id self, String strSkill) throws InterruptedException
     {
+        if (strSkill.startsWith("force_sensitive_"))
+        {
+            jedi.recalculateForcePower(self);
+        }
+        if (strSkill.equals("combat_bountyhunter_investigation_03"))
+        {
+            // Investigation III owns access to player/Jedi bounty missions.
+            // Match the Core3 surrender boundary by failing any live mission
+            // as the skill leaves the character.
+            obj_id bountyMission = bounty_hunter.getBountyMission(self);
+            if (isIdValid(bountyMission))
+            {
+                messageTo(bountyMission, "abortMission", null, 0, false);
+            }
+        }
+        if (strSkill.startsWith("outdoors_squadleader_"))
+        {
+            // SOE's retained group defense path reads the leader's live skill
+            // modifiers, so the native revoke removes passive leadership
+            // immediately.  Explicitly retire the stateful command surfaces.
+            if (!hasSkill(self, "outdoors_squadleader_offense_03"))
+            {
+                obj_id group = getGroupObject(self);
+                if (isIdValid(group))
+                {
+                    if (utils.hasScriptVar(group, combat.VAR_GROUP_VOLLEY_TARGET))
+                    {
+                        obj_id volleyTarget = utils.getObjIdScriptVar(group, combat.VAR_GROUP_VOLLEY_TARGET);
+                        if (isIdValid(volleyTarget))
+                        {
+                            dictionary cleanup = new dictionary();
+                            cleanup.put("objGroup", group);
+                            messageTo(volleyTarget, "msgUnmarkedByGroup", cleanup, 0, false);
+                        }
+                    }
+                    utils.removeScriptVar(group, combat.VAR_GROUP_VOLLEY_TARGET);
+                    utils.removeScriptVar(group, combat.VAR_GROUP_LAST_VOLLEY_TIME);
+                }
+            }
+            if (!hasSkill(self, "outdoors_squadleader_novice"))
+            {
+                squad_leader.clearRallyPoint(self);
+                xp.notifySquadLeaderXp(self);
+            }
+        }
         if (strSkill.equals("pilot_rebel_navy_novice") || strSkill.equals("pilot_imperial_navy_novice") || strSkill.equals("pilot_neutral_novice"))
         {
             space_flags.clearSpaceTrack(self);
@@ -487,22 +608,13 @@ public class base_player extends script.base_script
         trial.bumpSession(self, "displayDefensiveMods");
         messageTo(self, "setDisplayOnlyDefensiveMods", trial.getSessionDict(self, "displayDefensiveMods"), 5, false);
         recomputeCommandSeries(self);
-        beast_lib.verifyAndUpdateCalledBeastStats(self);
+        beast_lib.retirePostNgeBeastMasterPlayerState(self);
+        incubator.retirePostNgeBeastMasterCreationPlayerState(self);
         return SCRIPT_CONTINUE;
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
-        if ((utils.isProfession(self, utils.TRADER)) && (!hasSkill(self, "class_trader")))
-        {
-            grantSkill(self, "class_trader");
-        }
-        if (!hasSkill(self, "expertise"))
-        {
-            expertise.autoAllocateExpertiseByLevel(self, false);
-        }
         city.initCitizen(self);
-        respecNewEntertainerSkills(self);
-        respecNewCrafterSkills(self);
         boolean setting = utils.checkConfigFlag("TestCenterPlayer", "ApplyTCMark");
         if (setting)
         {
@@ -514,11 +626,6 @@ public class base_player extends script.base_script
             {
                 setJediState(self, JEDI_STATE_FORCE_SENSITIVE);
             }
-        }
-        if (hasSkill(self, "jedi_padawan_novice"))
-        {
-            setSkillTemplate(self, "a");
-            attachScript(self, "player.player_jedi_conversion");
         }
         if (!isJedi(self))
         {
@@ -592,6 +699,7 @@ public class base_player extends script.base_script
         recalculateLevel(self);
         removeObjVar(self, "clickRespec");
         removeObjVar(self, "npcRespec");
+        script.player.live_conversions.retirePostNgePlayerMigrationState(self);
         detachScript(self, group.SCRIPT_GROUP_MEMBER);
         if (!hasScript(self, dot.SCRIPT_PLAYER_DOT))
         {
@@ -698,11 +806,9 @@ public class base_player extends script.base_script
                 }
             }
         }
-        int fatigue = getShockWound(self);
-        if (fatigue > 0)
-        {
-            setShockWound(self, 0);
-        }
+        // Publish 14.1 battle fatigue is persistent character state.  The NGE
+        // login path cleared shock wounds here, which erased battle fatigue
+        // immediately after the creature was reconstructed from the database.
         obj_var_list buffList = getObjVarList(self, "clickItem");
         if (buffList != null)
         {
@@ -719,16 +825,23 @@ public class base_player extends script.base_script
                 }
             }
         }
-        if (!hasScript(self, "player.live_conversions"))
+        // The NGE live-conversion and Chronicles scripts do not belong on a
+        // Publish 14.1 player.  Retire persisted copies instead of reattaching
+        // them during every initialization.
+        if (hasScript(self, "player.live_conversions"))
         {
-            attachScript(self, "player.live_conversions");
+            detachScript(self, "player.live_conversions");
         }
+        if (hasScript(self, "player.player_saga_quest"))
+        {
+            detachScript(self, "player.player_saga_quest");
+        }
+        beast_lib.retirePostNgeBeastMasterPlayerState(self);
+        incubator.retirePostNgeBeastMasterCreationPlayerState(self);
         if (!hasScript(self, "systems.skills.stealth.player_stealth"))
         {
             attachScript(self, "systems.skills.stealth.player_stealth");
         }
-        skill_template.validateWorkingSkill(self);
-        skill.setPlayerStatsForLevel(self, getLevel(self));
         LOG("base_player - OnInitialize", "calling armor.recalculateArmorForPlayer(self); with a 'self' of:  " + self);
         armor.recalculateArmorForPlayer(self);
         obj_id objWeapon = getDefaultWeapon(self);
@@ -1010,7 +1123,19 @@ public class base_player extends script.base_script
     }
     public int OnIncapacitated(obj_id self, obj_id killer) throws InterruptedException
     {
+        if ((getState(self, STATE_FEIGN_DEATH) == 1 ||
+                hasObjVar(self, combat.PRECU_FEIGN_FINALIZING)) &&
+            buff.hasBuff(self, "feign_death"))
+        {
+            stopCombat(self);
+            clearAllAiEnemyFlags(self);
+            return SCRIPT_CONTINUE;
+        }
         utils.setScriptVar(self, "lastKiller", killer);
+        if (!isIdValid(killer))
+        {
+            killer = self;
+        }
         if (hasScript(killer, "ai.smuggler_spawn_enemy"))
         {
             int exceptionSmuggler = 0;
@@ -1043,29 +1168,28 @@ public class base_player extends script.base_script
         }
         if (buff.hasBuff(self, "incapWeaken"))
         {
+            buff.removeBuff(self, "incapWeaken");
+        }
+        removeObjVar(self, "combat.intIncapacitationCount");
+        int incapacitationCount =
+            pclib.addPrecuIncapacitationTime(self);
+        if (incapacitationCount >=
+            pclib.PRECU_INCAPACITATION_LIMIT)
+        {
+            pclib.clearPrecuIncapacitationTimes(self);
+            utils.removeScriptVar(self, "incap.timeStamp");
             pclib.killPlayer(self, killer, true);
             return SCRIPT_CONTINUE;
         }
-        else 
-        {
-            buff.applyBuff(self, "incapWeaken");
-        }
-        int recapacitateTimer = 10;
-        float recapacitateModified = getEnhancedSkillStatisticModifierUncapped(self, "resistance_incapacitation");
-        if (recapacitateModified > 0)
-        {
-            recapacitateTimer -= recapacitateModified;
-            if (recapacitateTimer <= 2)
-            {
-                recapacitateTimer = 2;
-            }
-            sendSystemMessage(self, SID_INCAPACITATION_DURATION_REDUCED);
-        }
+        int condition = getAttrib(self, HEALTH);
+        condition =
+            Math.min(condition, getAttrib(self, ACTION));
+        condition =
+            Math.min(condition, getAttrib(self, MIND));
+        int recapacitateTimer =
+            pclib.calculatePrecuIncapacitationTimer(
+                condition);
         CustomerServiceLog("player_death", "Player %TU is incapacitated by %TT", self, killer);
-        if (!isIdValid(killer))
-        {
-            killer = self;
-        }
         if (killer == self)
         {
             sendSystemMessage(self, SID_VICTIM_INCAPACITATED);
@@ -1081,11 +1205,25 @@ public class base_player extends script.base_script
             sendSystemMessageProse(killer, ppToKiller);
         }
         utils.removeScriptVar(self, COUPE_DE_GRACE_TARGET);
-        utils.setScriptVar(self, "incap.timeStamp", (getGameTime() + recapacitateTimer));
+        int recoveryTime =
+            getGameTime() + recapacitateTimer;
+        utils.setScriptVar(
+            self,
+            "incap.timeStamp",
+            recoveryTime);
         setCount(self, recapacitateTimer);
-        setHealth(self, 0);
         combat.doCombatDebuffs(self);
-        messageTo(self, "recapacitationDelay", null, recapacitateTimer, false);
+        dictionary recoveryParams =
+            new dictionary();
+        recoveryParams.put(
+            "recoveryTime",
+            recoveryTime);
+        messageTo(
+            self,
+            "recapacitationDelay",
+            recoveryParams,
+            recapacitateTimer,
+            false);
         clearAllAiEnemyFlags(self);
         dot.removeAllDots(self);
         if (stealth.hasInvisibleBuff(self))
@@ -1114,12 +1252,46 @@ public class base_player extends script.base_script
         {
             return SCRIPT_CONTINUE;
         }
-        if (!combat.clearCombatDebuffs(self))
+        if (params == null ||
+            !params.containsKey("recoveryTime") ||
+            !utils.hasScriptVar(self, "incap.timeStamp") ||
+            params.getInt("recoveryTime") !=
+                utils.getIntScriptVar(
+                    self,
+                    "incap.timeStamp"))
         {
-            messageTo(self, "recapacitationDelay", null, 1, false);
             return SCRIPT_CONTINUE;
         }
-        setHealth(self, 1);
+        if (!combat.clearCombatDebuffs(self))
+        {
+            messageTo(
+                self,
+                "recapacitationDelay",
+                params,
+                1,
+                false);
+            return SCRIPT_CONTINUE;
+        }
+        setState(
+            self,
+            STATE_FEIGN_DEATH,
+            false);
+        if (getAttrib(self, HEALTH) <= 0)
+        {
+            setAttrib(self, HEALTH, 1);
+        }
+        if (getAttrib(self, ACTION) <= 0)
+        {
+            setAttrib(self, ACTION, 1);
+        }
+        if (getAttrib(self, MIND) <= 0)
+        {
+            setAttrib(self, MIND, 1);
+        }
+        utils.removeScriptVar(
+            self,
+            "incap.timeStamp");
+        setCount(self, 0);
         return SCRIPT_CONTINUE;
     }
     public int requestMissionLocations(obj_id self, dictionary params) throws InterruptedException
@@ -1305,6 +1477,18 @@ public class base_player extends script.base_script
     }
     public int OnLogin(obj_id self) throws InterruptedException
     {
+        script.player.live_conversions.retirePostNgePlayerMigrationState(self);
+        if (gcw.isPostNgeQueuedBattlefieldRetired())
+        {
+            retirePostNgeQueuedBattlefieldPlayerState(self);
+        }
+        if (buff.hasBuff(self, "cloning_sickness"))
+        {
+            buff.removeBuff(self, "cloning_sickness");
+        }
+        restorePrecuBerserkState(self);
+        restorePrecuRetreatState(self);
+        combat.restorePrecuFeignDeathOnLoad(self);
         boolean ctsDisconnectRequested = false;
         if (hasObjVar(self, "disableLoginCtsInProgress"))
         {
@@ -1368,18 +1552,6 @@ public class base_player extends script.base_script
         {
             removeObjVar(self, "comingFromTutorial");
             attachScript(self, "theme_park.newbie_tutorial.new_player_ribbon");
-        }
-        if (!hasObjVar(self, "combatLevel") && hasObjVar(self, "clickRespec.combatLevel"))
-        {
-            setObjVar(self, "combatLevel", getIntObjVar(self, "clickRespec.combatLevel"));
-            removeObjVar(self, "clickRespec.combatLevel");
-        }
-        if (getConfigSetting("GameServer", "combatUpgradeReward") != null)
-        {
-            if (!hasScript(self, "cureward.cureward"))
-            {
-                attachScript(self, "cureward.cureward");
-            }
         }
         obj_id bldg = getTopMostContainer(self);
         if (isIdValid(bldg))
@@ -1626,10 +1798,7 @@ public class base_player extends script.base_script
         {
             badge.grantBadge(self, "bdg_kash_avatar_zssik");
         }
-        if (!utils.hasScriptVar(self, "performance.buildabuff.buffComponentKeys") && buff.hasBuff(self, "buildabuff_inspiration"))
-        {
-            buff.removeBuff(self, "buildabuff_inspiration");
-        }
+        buff.retirePostNgeBuffProgression(self);
         if (getLocation(self).area == "dungeon1")
         {
             if (trial.getTop(self) == self)
@@ -1922,96 +2091,13 @@ public class base_player extends script.base_script
             {
                 detachScript(self, "systems.respec.click_combat_respec");
             }
-            String skillTemplate = getSkillTemplate(self);
-            String workingSkill = getWorkingSkill(self);
-            if (skillTemplate == null || skillTemplate.equals("") || skillTemplate.equals("a"))
+            if (hasObjVar(self, "clickRespec.npeRespec"))
             {
-                int combatLevel = respec.getOldCombatLevel(self);
-                obj_id respecDevice = utils.getStaticItemInBankOrInventory(self, "item_respec_token_01_01");
-                if (hasObjVar(self, "combatLevel"))
-                {
-                    combatLevel = getIntObjVar(self, "combatLevel");
-                }
-                else 
-                {
-                    if (isIdValid(respecDevice))
-                    {
-                        combatLevel = getIntObjVar(respecDevice, "combatLevel");
-                    }
-                }
-                if (combatLevel > 80)
-                {
-                    combatLevel = 80;
-                }
-                setObjVar(self, "combatLevel", combatLevel);
-                setObjVar(self, "clickRespec.combatLevel", combatLevel);
-                setObjVar(self, "clickRespec.npeRespec", 1);
-                if (!isIdValid(respecDevice))
-                {
-                    respecDevice = static_item.createNewItemFunction("item_respec_token_01_01", self);
-                    if (isIdValid(respecDevice))
-                    {
-                        setObjVar(respecDevice, "combatLevel", combatLevel);
-                        setObjVar(respecDevice, "highestLevel", true);
-                    }
-                }
-                attachScript(self, "systems.respec.click_combat_respec");
-                messageTo(self, "delayRespecInstructions", null, 1, false);
+                removeObjVar(self, "clickRespec");
             }
             if (hasObjVar(self, "npe.skippingTutorial"))
             {
-                location origin = getLocation(self);
-                location fighting = new location(3521.0f, 0.0f, -4821.0f, origin.area);
-                location crafty = new location(3309.0f, 6.0f, -4785.0f, origin.area);
-                String profession = getSkillTemplate(self);
-                obj_id objInv = utils.getInventoryContainer(self);
-                String questNewbieStart = "quest/speeder_quest";
-                String questNewbieStartBH = "quest/speeder_quest";
-                String questCrafterEntertainer = "quest/tatooine_eisley_noncombat";
-                int crafter = profession.indexOf("trader");
-                int entertainer = profession.indexOf("entertainer");
-                int bountyhunter = profession.indexOf("bounty_hunter");
-                if (crafter > -1 || entertainer > -1)
-                {
-                    if (!groundquests.isQuestActiveOrComplete(self, questCrafterEntertainer))
-                    {
-                        groundquests.grantQuest(self, questCrafterEntertainer);
-                    }
-                }
-                else if (bountyhunter > -1)
-                {
-                    if (groundquests.hasCompletedQuest(self, questNewbieStartBH) || groundquests.isQuestActive(self, questNewbieStartBH))
-                    {
-                        detachScript(self, "npe.handoff_to_tatooine");
-                    }
-                    else 
-                    {
-                        groundquests.requestGrantQuest(self, questNewbieStartBH);
-                    }
-                }
-                else 
-                {
-                    if (groundquests.hasCompletedQuest(self, questNewbieStart) || groundquests.isQuestActive(self, questNewbieStart))
-                    {
-                        detachScript(self, "npe.handoff_to_tatooine");
-                    }
-                    else 
-                    {
-                        groundquests.requestGrantQuest(self, questNewbieStart);
-                    }
-                }
-                if (crafter > -1)
-                {
-                    messageTo(self, "handleSurveyToolbarSetup", null, 5, false);
-                }
-                static_item.createNewItemFunction("item_npe_uniform_crate_01_01", objInv);
-                npe.giveProfessionWeapon(self);
                 removeObjVar(self, "npe.skippingTutorial");
-                int combatLevel = getLevel(self);
-                if (combatLevel < 5)
-                {
-                    respec.autoLevelPlayer(self, 5, false);
-                }
             }
         }
         return SCRIPT_CONTINUE;
@@ -2107,18 +2193,27 @@ public class base_player extends script.base_script
                 aname = "health";
                 break;
                 case 1:
-                aname = "constitution";
+                aname = "strength";
                 break;
                 case 2:
-                aname = "action";
+                aname = "constitution";
                 break;
                 case 3:
-                aname = "stamina";
+                aname = "action";
                 break;
                 case 4:
-                aname = "mind";
+                aname = "quickness";
                 break;
                 case 5:
+                aname = "stamina";
+                break;
+                case 6:
+                aname = "mind";
+                break;
+                case 7:
+                aname = "focus";
+                break;
+                case 8:
                 aname = "willpower";
                 break;
             }
@@ -2156,7 +2251,11 @@ public class base_player extends script.base_script
         {
             removeObjVar(self, "building_ejection_point");
         }
-        if (utils.hasScriptVar(self, "battlefield.queue"))
+        if (gcw.isPostNgeQueuedBattlefieldRetired())
+        {
+            retirePostNgeQueuedBattlefieldPlayerState(self);
+        }
+        else if (utils.hasScriptVar(self, "battlefield.queue"))
         {
             String battlefieldName = utils.getStringScriptVar(self, "battlefield.queue");
             obj_id controller = null;
@@ -2871,7 +2970,7 @@ public class base_player extends script.base_script
         obj_id bound = getObjIdObjVar(self, cloninglib.VAR_BIND_FACILITY);
         boolean isBindListed = false;
         obj_id controller = utils.getObjIdScriptVar(self, "battlefield.active");
-        if (isIdValid(controller) && exists(controller))
+        if (!gcw.isPostNgeQueuedBattlefieldRetired() && isIdValid(controller) && exists(controller))
         {
             location cloneLoc = null;
             String cloneName = "Clone Center";
@@ -2889,6 +2988,7 @@ public class base_player extends script.base_script
             options = utils.addElement(options, cloneName);
             cloneLocs = utils.addElement(cloneLocs, cloneLoc);
             spawnLocs = utils.addElement(spawnLocs, cloneLoc);
+            damage = utils.addElement(damage, 0);
         }
         else 
         {
@@ -2932,14 +3032,7 @@ public class base_player extends script.base_script
                     options = utils.addElement(options, bindName);
                     cloneLocs = utils.addElement(cloneLocs, bindLoc);
                     spawnLocs = utils.addElement(spawnLocs, spawnLoc);
-                    if (pvp.isPvpDeath(self) || isNewbieDeath)
-                    {
-                        damage = utils.addElement(damage, 0);
-                    }
-                    else 
-                    {
-                        damage = utils.addElement(damage, cloninglib.CLONE_DAMAGE_LOW);
-                    }
+                    damage = utils.addElement(damage, 0);
                     isBindListed = true;
                 }
             }
@@ -2948,8 +3041,6 @@ public class base_player extends script.base_script
                 if (utils.hasScriptVar(planet, cloninglib.VAR_PLANET_CLONE_LOC))
                 {
                     Vector cloneList = cloninglib.getAvailableCloningFacilities(self);
-                    int playerFaction = factions.getFactionFlag(self);
-                    obj_id tatooinePlanet = getPlanetByName("tatooine");
                     for (Object o : cloneList) {
                         dictionary cloneData = (dictionary) o;
                         obj_id facility = cloneData.getObjId("faciltyId");
@@ -2963,29 +3054,14 @@ public class base_player extends script.base_script
                         if (cloneName.equals("@naboo_region_names:theed") && cloneLoc.z > 4100) {
                             cloneName += "_north";
                         }
-                        if (playerFaction == factions.FACTION_FLAG_IMPERIAL || playerFaction == factions.FACTION_FLAG_REBEL) {
-                            if (cloneName.equals("@tatooine_region_names:bestine") && utils.hasScriptVar(tatooinePlanet, "gcw.invasionRunning.bestine")) {
-                                int factionDefending = utils.getIntScriptVar(tatooinePlanet, "gcw.factionDefending.bestine");
-                                if ((factionDefending == factions.FACTION_FLAG_IMPERIAL || factionDefending == factions.FACTION_FLAG_REBEL) && playerFaction != factionDefending) {
-                                    continue;
-                                }
-                            }
-                            if (cloneName.equals("@talus_region_names:dearic") && utils.hasScriptVar(tatooinePlanet, "gcw.invasionRunning.dearic")) {
-                                int factionDefending = utils.getIntScriptVar(tatooinePlanet, "gcw.factionDefending.dearic");
-                                if ((factionDefending == factions.FACTION_FLAG_IMPERIAL || factionDefending == factions.FACTION_FLAG_REBEL) && playerFaction != factionDefending) {
-                                    continue;
-                                }
-                            }
-                            if (cloneName.equals("@naboo_region_names:keren") && utils.hasScriptVar(tatooinePlanet, "gcw.invasionRunning.keren")) {
-                                int factionDefending = utils.getIntScriptVar(tatooinePlanet, "gcw.factionDefending.keren");
-                                if ((factionDefending == factions.FACTION_FLAG_IMPERIAL || factionDefending == factions.FACTION_FLAG_REBEL) && playerFaction != factionDefending) {
-                                    continue;
-                                }
-                            }
-                        }
                         options = utils.addElement(options, cloneName);
                         cloneLocs = utils.addElement(cloneLocs, cloneLoc);
                         spawnLocs = utils.addElement(spawnLocs, spawnLoc);
+                        damage = utils.addElement(
+                            damage,
+                            facility == bound
+                                ? 0
+                                : cloninglib.PRECU_CLONE_WOUND_AMOUNT);
                     }
                 }
             }
@@ -3004,6 +3080,8 @@ public class base_player extends script.base_script
         utils.setScriptVar(self, pclib.VAR_REVIVE_OPTIONS, options);
         utils.setScriptVar(self, pclib.VAR_REVIVE_CLONE, cloneLocs);
         utils.setScriptVar(self, pclib.VAR_REVIVE_SPAWN, spawnLocs);
+        utils.setScriptVar(self, pclib.VAR_REVIVE_DAMAGE, damage);
+        utils.removeScriptVar(self, pclib.VAR_REVIVE_SELECTION);
         dictionary hrem = new dictionary();
         hrem.put("time", healing.REVIVE_TIMER);
         hrem.put("sui", suiClone);
@@ -3042,6 +3120,19 @@ public class base_player extends script.base_script
         }
         int pid = utils.getIntScriptVar(self, pclib.VAR_SUI_CLONE);
         int idx = sui.getListboxSelectedRow(params);
+        String[] options =
+            utils.getStringArrayScriptVar(self, pclib.VAR_REVIVE_OPTIONS);
+        location[] cloneLocs =
+            utils.getLocationArrayScriptVar(self, pclib.VAR_REVIVE_CLONE);
+        location[] spawnLocs =
+            utils.getLocationArrayScriptVar(self, pclib.VAR_REVIVE_SPAWN);
+        if (idx < 0 || options == null || cloneLocs == null ||
+            spawnLocs == null || idx >= options.length ||
+            idx >= cloneLocs.length || idx >= spawnLocs.length)
+        {
+            return SCRIPT_CONTINUE;
+        }
+        utils.setScriptVar(self, pclib.VAR_REVIVE_SELECTION, idx);
         String prompt = buildCloningPrompt(self, idx);
         setSUIProperty(pid, sui.LISTBOX_PROMPT, sui.PROP_TEXT, prompt);
         flushSUIPage(pid);
@@ -3118,6 +3209,7 @@ public class base_player extends script.base_script
         if (remaining_time <= 0)
         {
             sendSystemMessage(self, new string_id("base_player", "revive_expired"));
+            utils.removeScriptVar(self, pclib.VAR_REVIVE_SELECTION);
             forceCloseSUIPage(sui_id);
             if (space_dungeon.isCloningInstance(self))
             {
@@ -3128,7 +3220,13 @@ public class base_player extends script.base_script
             location[] spawnLocs = utils.getLocationArrayScriptVar(self, pclib.VAR_REVIVE_SPAWN);
             location clone = cloneLocs[0];
             location spawn = spawnLocs[0];
-            if (!pclib.playerRevive(self, clone, spawn, 0))
+            int[] cloneDamage =
+                utils.getIntArrayScriptVar(self, pclib.VAR_REVIVE_DAMAGE);
+            int damage =
+                cloneDamage != null && cloneDamage.length > 0
+                    ? cloneDamage[0]
+                    : 0;
+            if (!pclib.playerRevive(self, clone, spawn, damage))
             {
                 messageTo(self, pclib.HANDLER_CLONE_RESPAWN, null, 1, true);
             }
@@ -3272,15 +3370,36 @@ public class base_player extends script.base_script
         if (params != null)
         {
             idx = sui.getListboxSelectedRow(params);
+            if (idx < 0 &&
+                utils.hasScriptVar(self, pclib.VAR_REVIVE_SELECTION))
+            {
+                idx =
+                    utils.getIntScriptVar(
+                        self,
+                        pclib.VAR_REVIVE_SELECTION);
+            }
             if (idx > -1)
             {
                 location[] cloneLocs = utils.getLocationArrayScriptVar(self, pclib.VAR_REVIVE_CLONE);
                 location[] spawnLocs = utils.getLocationArrayScriptVar(self, pclib.VAR_REVIVE_SPAWN);
-                clone = cloneLocs[idx];
-                spawn = spawnLocs[idx];
+                int[] cloneDamage =
+                    utils.getIntArrayScriptVar(
+                        self,
+                        pclib.VAR_REVIVE_DAMAGE);
+                if (cloneLocs != null && spawnLocs != null &&
+                    idx < cloneLocs.length && idx < spawnLocs.length)
+                {
+                    clone = cloneLocs[idx];
+                    spawn = spawnLocs[idx];
+                    damage =
+                        cloneDamage != null && idx < cloneDamage.length
+                            ? cloneDamage[idx]
+                            : cloninglib.PRECU_CLONE_WOUND_AMOUNT;
+                }
                 location deathLoc = getLocation(self);
                 region[] respawnRegions = getRegionsWithPvPAtPoint(deathLoc, regions.PVP_REGION_TYPE_ADVANCED);
-                if ((respawnRegions != null && respawnRegions.length > 0) || utils.hasScriptVar(self, "battlefield.active"))
+                if ((respawnRegions != null && respawnRegions.length > 0) ||
+                    (!gcw.isPostNgeQueuedBattlefieldRetired() && utils.hasScriptVar(self, "battlefield.active")))
                 {
                     delayedClone = 15;
                     utils.setScriptVar(self, "no_cloning_sickness", 1);
@@ -3291,6 +3410,7 @@ public class base_player extends script.base_script
                 sendSystemMessage(self, SID_CLONE_FAIL_SELECTION);
             }
         }
+        utils.removeScriptVar(self, pclib.VAR_REVIVE_SELECTION);
         if (clone != null && clone.compareTo(new location()) != 0 && spawn != null && spawn.compareTo(new location()) != 0)
         {
             if (delayedClone > 0)
@@ -3310,7 +3430,7 @@ public class base_player extends script.base_script
                     return SCRIPT_CONTINUE;
                 }
             }
-            else if (pclib.playerRevive(self, clone, spawn, 0))
+            else if (pclib.playerRevive(self, clone, spawn, damage))
             {
                 return SCRIPT_CONTINUE;
             }
@@ -3352,11 +3472,34 @@ public class base_player extends script.base_script
     }
     public int handleCloneRespawn(obj_id self, dictionary params) throws InterruptedException
     {
+        // Both the engine warp callback and pclib's persistent same-scene
+        // fallback target this handler. Whichever arrives first consumes the
+        // pending lifecycle; a later duplicate must not heal, penalize, decay,
+        // or animate the player twice.
+        if (!isDead(self) &&
+            !utils.hasScriptVar(self, "waitingOnCloneRespawn") &&
+            !utils.hasScriptVar(self, pclib.VAR_PRECU_CLONE_WOUND) &&
+            !hasObjVar(self, "fullHealClone"))
+        {
+            return SCRIPT_CONTINUE;
+        }
         utils.removeScriptVar(self, pclib.VAR_SUI_CLONE);
         utils.removeScriptVar(self, pclib.VAR_REVIVE_OPTIONS);
         utils.removeScriptVar(self, pclib.VAR_REVIVE_CLONE);
         utils.removeScriptVar(self, pclib.VAR_REVIVE_SPAWN);
+        utils.removeScriptVar(self, pclib.VAR_REVIVE_DAMAGE);
+        utils.removeScriptVar(self, pclib.VAR_REVIVE_SELECTION);
         utils.removeScriptVar(self, "waitingOnCloneRespawn");
+        boolean hasClonePenalty =
+            utils.hasScriptVar(self, pclib.VAR_PRECU_CLONE_WOUND);
+        int cloneWound =
+            hasClonePenalty
+                ? utils.getIntScriptVar(
+                    self,
+                    pclib.VAR_PRECU_CLONE_WOUND)
+                : 0;
+        utils.removeScriptVar(self, pclib.VAR_PRECU_CLONE_WOUND);
+        boolean decayItems = !utils.hasScriptVar(self, "pvp_death");
         removeObjVar(self, pclib.VAR_BEEN_COUPDEGRACED);
         pvpRemoveAllTempEnemyFlags(self);
         int intGuildId = getGuildId(self);
@@ -3390,16 +3533,23 @@ public class base_player extends script.base_script
             healing.healClone(self, true);
         }
         setPosture(self, POSTURE_UPRIGHT);
+        if (hasClonePenalty)
+        {
+            cloninglib.applyPrecuClonePenalties(
+                self,
+                cloneWound == 0,
+                decayItems);
+        }
         utils.removeScriptVar(self, "pvp_death");
         queueCommand(self, (-1465754503), self, "", COMMAND_PRIORITY_IMMEDIATE);
         playClientEffectObj(self, "clienteffect/player_clone_compile.cef", self, null);
-        if (!utils.hasScriptVar(self, "no_cloning_sickness") && !instance.isInInstanceArea(self))
-        {
-            buff.applyBuff(self, "cloning_sickness");
-        }
-        else if (utils.hasScriptVar(self, "no_cloning_sickness"))
+        if (utils.hasScriptVar(self, "no_cloning_sickness"))
         {
             utils.removeScriptVar(self, "no_cloning_sickness");
+        }
+        if (buff.hasBuff(self, "cloning_sickness"))
+        {
+            buff.removeBuff(self, "cloning_sickness");
         }
         if (0 == pvpGetAlignedFaction(self))
         {
@@ -3578,6 +3728,1443 @@ public class base_player extends script.base_script
         }
         consumable.consumeItem(self, target);
         return SCRIPT_CONTINUE;
+    }
+    public int healMind(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        boolean fixture = isPrecuHealMindFixture(self, target);
+        if (fixture)
+        {
+            setObjVar(self, PRECU_HEAL_MIND_FIXTURE_ROOT + ".handlerEntered", 1);
+            setObjVar(self, PRECU_HEAL_MIND_FIXTURE_ROOT + ".handlerCalls",
+                readPrecuHealMindInt(self, ".handlerCalls") + 1);
+            setObjVar(self, PRECU_HEAL_MIND_FIXTURE_ROOT + ".outcome", "entered");
+        }
+        if (!isIdValid(self) || !exists(self) || !isPlayer(self) ||
+            isDead(self) || isIncapacitated(self) ||
+            !hasSkill(self, "science_combatmedic_healing_range_speed_04"))
+        {
+            recordPrecuHealMindOutcome(self, fixture, "playerRejected");
+            return SCRIPT_CONTINUE;
+        }
+        if (!isIdValid(target) || !exists(target) || target == self ||
+            isDead(target) || isIncapacitated(target) ||
+            ai_lib.isDroid(target) || ai_lib.isAndroid(target) ||
+            (!isPlayer(target) && !pet_lib.isCreaturePet(target)))
+        {
+            sendSystemMessage(self,
+                new string_id("healing", "heal_mind_invalid_target"));
+            recordPrecuHealMindOutcome(self, fixture, "targetRejected");
+            return SCRIPT_CONTINUE;
+        }
+        if (!pvpCanHelp(self, target))
+        {
+            sendSystemMessage(self, new string_id("healing", "pvp_no_help"));
+            recordPrecuHealMindOutcome(self, fixture, "pvpRejected");
+            return SCRIPT_CONTINUE;
+        }
+        if (getAttrib(self, MIND) < PRECU_HEAL_MIND_COST)
+        {
+            sendSystemMessage(self,
+                new string_id("healing_response", "not_enough_mind"));
+            recordPrecuHealMindOutcome(self, fixture, "notEnoughMind");
+            return SCRIPT_CONTINUE;
+        }
+        if (getAttrib(target, MIND) <= 0 ||
+            getAttrib(target, MIND) >= getWoundedMaxAttrib(target, MIND))
+        {
+            sendSystemMessage(self,
+                new string_id("healing", "no_mind_to_heal_target"));
+            recordPrecuHealMindOutcome(self, fixture, "noMindDamage");
+            return SCRIPT_CONTINUE;
+        }
+        if (getDistance(self, target) > PRECU_HEAL_MIND_RANGE)
+        {
+            sendSystemMessage(self, SID_TARGET_OUT_OF_RANGE);
+            recordPrecuHealMindOutcome(self, fixture, "rangeRejected");
+            return SCRIPT_CONTINUE;
+        }
+        if (!canSee(self, target))
+        {
+            sendSystemMessage(self,
+                new string_id("healing", "no_line_of_sight"));
+            recordPrecuHealMindOutcome(self, fixture, "lineOfSightRejected");
+            return SCRIPT_CONTINUE;
+        }
+
+        int randomRoll = fixture ? 0 : rand(0, 500);
+        int effectiveness = getSkillStatMod(self, "combat_medic_effectiveness");
+        int rawPower = (int)((randomRoll + 800) * effectiveness / 100.0f);
+        int healPower = Math.max(0,
+            (int)healing.applyShockWoundModifier(rawPower, self));
+        int healerMindBefore = getAttrib(self, MIND);
+        int targetMindBefore = getAttrib(target, MIND);
+        int healedMind = healing.healDamage(self, target, MIND, healPower);
+        if (healedMind <= 0)
+        {
+            recordPrecuHealMindOutcome(self, fixture, "healRejected");
+            return SCRIPT_CONTINUE;
+        }
+
+        int woundCost = (int)(healedMind * 0.05f);
+        addWound(self, MIND, woundCost);
+        addWound(self, FOCUS, woundCost);
+        addWound(self, WILLPOWER, woundCost);
+        addShockWound(self, woundCost);
+        doAnimationAction(self, "heal_other");
+        playClientEffectObj(self,
+            "clienteffect/healing_healenhance.cef", target, "");
+        pvpHelpPerformed(self, target);
+
+        if (fixture)
+        {
+            setObjVar(self, PRECU_HEAL_MIND_FIXTURE_ROOT + ".randomRoll",
+                randomRoll);
+            setObjVar(self, PRECU_HEAL_MIND_FIXTURE_ROOT + ".effectiveness",
+                effectiveness);
+            setObjVar(self, PRECU_HEAL_MIND_FIXTURE_ROOT + ".rawPower",
+                rawPower);
+            setObjVar(self, PRECU_HEAL_MIND_FIXTURE_ROOT + ".healPower",
+                healPower);
+            setObjVar(self, PRECU_HEAL_MIND_FIXTURE_ROOT + ".healedMind",
+                healedMind);
+            setObjVar(self, PRECU_HEAL_MIND_FIXTURE_ROOT + ".targetMindBefore",
+                targetMindBefore);
+            setObjVar(self, PRECU_HEAL_MIND_FIXTURE_ROOT + ".targetMindAfter",
+                getAttrib(target, MIND));
+            setObjVar(self, PRECU_HEAL_MIND_FIXTURE_ROOT + ".healerMindBefore",
+                healerMindBefore);
+            setObjVar(self,
+                PRECU_HEAL_MIND_FIXTURE_ROOT + ".healerMindAfterWounds",
+                getAttrib(self, MIND));
+            setObjVar(self, PRECU_HEAL_MIND_FIXTURE_ROOT + ".woundCost",
+                woundCost);
+            setObjVar(self, PRECU_HEAL_MIND_FIXTURE_ROOT + ".completedAt",
+                getGameTime());
+        }
+        recordPrecuHealMindOutcome(self, fixture, "passed");
+        return SCRIPT_CONTINUE;
+    }
+    private boolean isPrecuHealMindFixture(obj_id player, obj_id target)
+        throws InterruptedException
+    {
+        return isIdValid(player) && exists(player) && isPlayer(player) &&
+            player.getValue() == PRECU_HEAL_MIND_PLAYER_OID &&
+            getPlayerStationId(player) == PRECU_HEAL_MIND_STATION_ID &&
+            hasObjVar(player, PRECU_HEAL_MIND_FIXTURE_ROOT + ".protocol") &&
+            getIntObjVar(player, PRECU_HEAL_MIND_FIXTURE_ROOT + ".protocol") ==
+                PRECU_HEAL_MIND_PROTOCOL_VERSION &&
+            hasObjVar(player, PRECU_HEAL_MIND_FIXTURE_ROOT + ".prepared") &&
+            getIntObjVar(player, PRECU_HEAL_MIND_FIXTURE_ROOT + ".prepared") == 1 &&
+            hasObjVar(player, PRECU_HEAL_MIND_FIXTURE_ROOT + ".pet") &&
+            isIdValid(target) && target.equals(getObjIdObjVar(
+                player, PRECU_HEAL_MIND_FIXTURE_ROOT + ".pet"));
+    }
+    private int readPrecuHealMindInt(obj_id player, String suffix)
+        throws InterruptedException
+    {
+        String path = PRECU_HEAL_MIND_FIXTURE_ROOT + suffix;
+        return hasObjVar(player, path) ? getIntObjVar(player, path) : 0;
+    }
+    private void recordPrecuHealMindOutcome(obj_id player, boolean fixture,
+        String outcome) throws InterruptedException
+    {
+        if (fixture)
+        {
+            setObjVar(player,
+                PRECU_HEAL_MIND_FIXTURE_ROOT + ".outcome", outcome);
+        }
+    }
+    public int handlePrecuCenterOfBeingExpired(obj_id self,
+        dictionary params) throws InterruptedException
+    {
+        if (!isIdValid(self) || !exists(self))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        sendSystemMessage(self,
+            new string_id("combat_effects", "center_stop"));
+        showFlyText(self,
+            new string_id("combat_effects", "center_stop_fly"),
+            1.0f, colors.RED);
+        return SCRIPT_CONTINUE;
+    }
+    public int berserk1(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        boolean fixture = isPrecuBerserkOneFixture(self);
+        if (fixture)
+        {
+            setObjVar(self, PRECU_BERSERK_ONE_FIXTURE_ROOT + ".handlerEntered", 1);
+            setObjVar(self, PRECU_BERSERK_ONE_FIXTURE_ROOT + ".handlerCalls",
+                readPrecuBerserkOneInt(self, ".handlerCalls") + 1);
+            setObjVar(self, PRECU_BERSERK_ONE_FIXTURE_ROOT + ".outcome",
+                "entered");
+        }
+        if (!isIdValid(self) || !exists(self) || !isPlayer(self) ||
+            isDead(self) || isIncapacitated(self) ||
+            !hasSkill(self, "combat_brawler_novice") ||
+            getState(self, STATE_BERSERK) == 1 ||
+            buff.hasBuff(self, PRECU_BERSERK_STATUS_BUFF))
+        {
+            recordPrecuBerserkOneOutcome(self, fixture, "playerRejected");
+            return SCRIPT_CONTINUE;
+        }
+
+        obj_id weapon = getCurrentWeapon(self);
+        if (!isIdValid(weapon) ||
+            (!combat.isMeleeWeapon(weapon) &&
+                getWeaponType(weapon) != WEAPON_TYPE_UNARMED))
+        {
+            sendSystemMessage(self,
+                new string_id("cbt_spam", "berserk_fail_single"));
+            recordPrecuBerserkOneOutcome(self, fixture, "weaponRejected");
+            return SCRIPT_CONTINUE;
+        }
+
+        int berserkModifier = getSkillStatMod(self, "berserk");
+        int randomRoll = fixture ? 25 : rand(0, 100);
+        int chanceTotal = randomRoll + berserkModifier;
+        if (chanceTotal < 25)
+        {
+            sendSystemMessage(self,
+                new string_id("cbt_spam", "berserk_fail_single"));
+            recordPrecuBerserkOneOutcome(self, fixture, "chanceFailed");
+            return SCRIPT_CONTINUE;
+        }
+
+        int healthCost = calculatePrecuBerserkCost(
+            getAttrib(self, STRENGTH), PRECU_BERSERK_ONE_HEALTH_COST);
+        int actionCost = calculatePrecuBerserkCost(
+            getAttrib(self, QUICKNESS), PRECU_BERSERK_ONE_ACTION_COST);
+        int mindCost = calculatePrecuBerserkCost(
+            getAttrib(self, FOCUS), PRECU_BERSERK_ONE_MIND_COST);
+        if (getAttrib(self, HEALTH) <= healthCost ||
+            getAttrib(self, ACTION) <= actionCost ||
+            getAttrib(self, MIND) <= mindCost)
+        {
+            sendSystemMessage(self,
+                new string_id("cbt_spam", "berserk_fail_single"));
+            recordPrecuBerserkOneOutcome(self, fixture, "hamRejected");
+            return SCRIPT_CONTINUE;
+        }
+
+        if (!buff.applyBuff(self, self, PRECU_BERSERK_STATUS_BUFF,
+            PRECU_BERSERK_DURATION_SECONDS))
+        {
+            recordPrecuBerserkOneOutcome(self, fixture, "buffApplyFailed");
+            return SCRIPT_CONTINUE;
+        }
+        int healthBefore = getAttrib(self, HEALTH);
+        int actionBefore = getAttrib(self, ACTION);
+        int mindBefore = getAttrib(self, MIND);
+        if (!drainCombatAttributes(self, healthCost, actionCost, mindCost))
+        {
+            buff.removeBuff(self, PRECU_BERSERK_STATUS_BUFF);
+            recordPrecuBerserkOneOutcome(self, fixture, "hamDrainFailed");
+            return SCRIPT_CONTINUE;
+        }
+        int expiresAt = getGameTime() + PRECU_BERSERK_DURATION_SECONDS;
+        setObjVar(self, PRECU_BERSERK_EXPIRY, expiresAt);
+        setState(self, STATE_BERSERK, true);
+        schedulePrecuBerserkExpiry(self, expiresAt);
+        sendSystemMessage(self,
+            new string_id("cbt_spam", "berserk_success_single"));
+
+        if (fixture)
+        {
+            setObjVar(self, PRECU_BERSERK_ONE_FIXTURE_ROOT + ".randomRoll",
+                randomRoll);
+            setObjVar(self, PRECU_BERSERK_ONE_FIXTURE_ROOT + ".berserkModifier",
+                berserkModifier);
+            setObjVar(self, PRECU_BERSERK_ONE_FIXTURE_ROOT + ".chanceTotal",
+                chanceTotal);
+            setObjVar(self, PRECU_BERSERK_ONE_FIXTURE_ROOT + ".healthCost",
+                healthCost);
+            setObjVar(self, PRECU_BERSERK_ONE_FIXTURE_ROOT + ".actionCost",
+                actionCost);
+            setObjVar(self, PRECU_BERSERK_ONE_FIXTURE_ROOT + ".mindCost",
+                mindCost);
+            setObjVar(self, PRECU_BERSERK_ONE_FIXTURE_ROOT + ".healthBefore",
+                healthBefore);
+            setObjVar(self, PRECU_BERSERK_ONE_FIXTURE_ROOT + ".healthAfter",
+                getAttrib(self, HEALTH));
+            setObjVar(self, PRECU_BERSERK_ONE_FIXTURE_ROOT + ".actionBefore",
+                actionBefore);
+            setObjVar(self, PRECU_BERSERK_ONE_FIXTURE_ROOT + ".actionAfter",
+                getAttrib(self, ACTION));
+            setObjVar(self, PRECU_BERSERK_ONE_FIXTURE_ROOT + ".mindBefore",
+                mindBefore);
+            setObjVar(self, PRECU_BERSERK_ONE_FIXTURE_ROOT + ".mindAfter",
+                getAttrib(self, MIND));
+            setObjVar(self, PRECU_BERSERK_ONE_FIXTURE_ROOT + ".expiresAt",
+                expiresAt);
+            setObjVar(self, PRECU_BERSERK_ONE_FIXTURE_ROOT + ".activatedAt",
+                getGameTime());
+        }
+        recordPrecuBerserkOneOutcome(self, fixture, "passed");
+        return SCRIPT_CONTINUE;
+    }
+    public int berserk2(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        boolean fixture = isPrecuBerserkTwoFixture(self);
+        if (fixture)
+        {
+            setObjVar(self, PRECU_BERSERK_TWO_FIXTURE_ROOT + ".handlerEntered", 1);
+            setObjVar(self, PRECU_BERSERK_TWO_FIXTURE_ROOT + ".handlerCalls",
+                readPrecuBerserkTwoInt(self, ".handlerCalls") + 1);
+            setObjVar(self, PRECU_BERSERK_TWO_FIXTURE_ROOT + ".outcome",
+                "entered");
+        }
+        if (!isIdValid(self) || !exists(self) || !isPlayer(self) ||
+            isDead(self) || isIncapacitated(self) ||
+            !hasSkill(self, "combat_brawler_master") ||
+            getState(self, STATE_BERSERK) == 1 ||
+            buff.hasBuff(self, PRECU_BERSERK_STATUS_BUFF))
+        {
+            recordPrecuBerserkTwoOutcome(self, fixture, "playerRejected");
+            return SCRIPT_CONTINUE;
+        }
+
+        obj_id weapon = getCurrentWeapon(self);
+        if (!isIdValid(weapon) ||
+            (!combat.isMeleeWeapon(weapon) &&
+                getWeaponType(weapon) != WEAPON_TYPE_UNARMED))
+        {
+            sendSystemMessage(self,
+                new string_id("cbt_spam", "berserk_fail_single"));
+            recordPrecuBerserkTwoOutcome(self, fixture, "weaponRejected");
+            return SCRIPT_CONTINUE;
+        }
+
+        int berserkModifier = getSkillStatMod(self, "berserk");
+        int randomRoll = fixture ? 5 : rand(0, 100);
+        int chanceTotal = randomRoll + berserkModifier;
+        if (chanceTotal < 25)
+        {
+            sendSystemMessage(self,
+                new string_id("cbt_spam", "berserk_fail_single"));
+            recordPrecuBerserkTwoOutcome(self, fixture, "chanceFailed");
+            return SCRIPT_CONTINUE;
+        }
+
+        int healthCost = calculatePrecuBerserkCost(
+            getAttrib(self, STRENGTH), PRECU_BERSERK_TWO_HEALTH_COST);
+        int actionCost = calculatePrecuBerserkCost(
+            getAttrib(self, QUICKNESS), PRECU_BERSERK_TWO_ACTION_COST);
+        int mindCost = calculatePrecuBerserkCost(
+            getAttrib(self, FOCUS), PRECU_BERSERK_TWO_MIND_COST);
+        if (getAttrib(self, HEALTH) <= healthCost ||
+            getAttrib(self, ACTION) <= actionCost ||
+            getAttrib(self, MIND) <= mindCost)
+        {
+            sendSystemMessage(self,
+                new string_id("cbt_spam", "berserk_fail_single"));
+            recordPrecuBerserkTwoOutcome(self, fixture, "hamRejected");
+            return SCRIPT_CONTINUE;
+        }
+
+        if (!buff.applyBuff(self, self, PRECU_BERSERK_STATUS_BUFF,
+            PRECU_BERSERK_TWO_DURATION_SECONDS))
+        {
+            recordPrecuBerserkTwoOutcome(self, fixture, "buffApplyFailed");
+            return SCRIPT_CONTINUE;
+        }
+        int healthBefore = getAttrib(self, HEALTH);
+        int actionBefore = getAttrib(self, ACTION);
+        int mindBefore = getAttrib(self, MIND);
+        if (!drainCombatAttributes(self, healthCost, actionCost, mindCost))
+        {
+            buff.removeBuff(self, PRECU_BERSERK_STATUS_BUFF);
+            recordPrecuBerserkTwoOutcome(self, fixture, "hamDrainFailed");
+            return SCRIPT_CONTINUE;
+        }
+        int expiresAt = getGameTime() + PRECU_BERSERK_TWO_DURATION_SECONDS;
+        setObjVar(self, PRECU_BERSERK_EXPIRY, expiresAt);
+        setState(self, STATE_BERSERK, true);
+        schedulePrecuBerserkExpiry(self, expiresAt);
+        sendSystemMessage(self,
+            new string_id("cbt_spam", "berserk_success_single"));
+
+        if (fixture)
+        {
+            setObjVar(self, PRECU_BERSERK_TWO_FIXTURE_ROOT + ".randomRoll",
+                randomRoll);
+            setObjVar(self, PRECU_BERSERK_TWO_FIXTURE_ROOT + ".berserkModifier",
+                berserkModifier);
+            setObjVar(self, PRECU_BERSERK_TWO_FIXTURE_ROOT + ".chanceTotal",
+                chanceTotal);
+            setObjVar(self, PRECU_BERSERK_TWO_FIXTURE_ROOT + ".healthCost",
+                healthCost);
+            setObjVar(self, PRECU_BERSERK_TWO_FIXTURE_ROOT + ".actionCost",
+                actionCost);
+            setObjVar(self, PRECU_BERSERK_TWO_FIXTURE_ROOT + ".mindCost",
+                mindCost);
+            setObjVar(self, PRECU_BERSERK_TWO_FIXTURE_ROOT + ".healthBefore",
+                healthBefore);
+            setObjVar(self, PRECU_BERSERK_TWO_FIXTURE_ROOT + ".healthAfter",
+                getAttrib(self, HEALTH));
+            setObjVar(self, PRECU_BERSERK_TWO_FIXTURE_ROOT + ".actionBefore",
+                actionBefore);
+            setObjVar(self, PRECU_BERSERK_TWO_FIXTURE_ROOT + ".actionAfter",
+                getAttrib(self, ACTION));
+            setObjVar(self, PRECU_BERSERK_TWO_FIXTURE_ROOT + ".mindBefore",
+                mindBefore);
+            setObjVar(self, PRECU_BERSERK_TWO_FIXTURE_ROOT + ".mindAfter",
+                getAttrib(self, MIND));
+            setObjVar(self, PRECU_BERSERK_TWO_FIXTURE_ROOT + ".expiresAt",
+                expiresAt);
+            setObjVar(self, PRECU_BERSERK_TWO_FIXTURE_ROOT + ".activatedAt",
+                getGameTime());
+        }
+        recordPrecuBerserkTwoOutcome(self, fixture, "passed");
+        return SCRIPT_CONTINUE;
+    }
+    public int formup(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        boolean fixture = isPrecuFormupFixture(self);
+        if (fixture)
+        {
+            setObjVar(self, PRECU_FORMUP_FIXTURE_ROOT + ".handlerEntered", 1);
+            setObjVar(self, PRECU_FORMUP_FIXTURE_ROOT + ".handlerCalls",
+                readPrecuFormupInt(self, ".handlerCalls") + 1);
+            setObjVar(self, PRECU_FORMUP_FIXTURE_ROOT + ".outcome", "entered");
+        }
+        if (!isIdValid(self) || !exists(self) || !isPlayer(self) ||
+            isDead(self) || isIncapacitated(self) ||
+            !hasSkill(self, "outdoors_squadleader_defense_01"))
+        {
+            recordPrecuFormupOutcome(self, fixture, "playerRejected");
+            return SCRIPT_CONTINUE;
+        }
+
+        obj_id groupId = getGroupObject(self);
+        if (!isIdValid(groupId) || !self.equals(getGroupLeaderId(groupId)))
+        {
+            sendSystemMessage(self, new string_id("error_message",
+                isIdValid(groupId) ? "not_group_leader" : "not_grouped"));
+            recordPrecuFormupOutcome(self, fixture, "leaderRejected");
+            return SCRIPT_CONTINUE;
+        }
+        obj_id[] members = getGroupMemberIds(groupId);
+        if (members == null || members.length == 0)
+        {
+            recordPrecuFormupOutcome(self, fixture, "groupRejected");
+            return SCRIPT_CONTINUE;
+        }
+
+        int adjustedBaseCost = (int)(PRECU_FORMUP_BASE_COST *
+            (1.0f + members.length / 20.0f));
+        int healthCost = calculatePrecuBerserkCost(
+            getAttrib(self, STRENGTH), adjustedBaseCost);
+        int actionCost = calculatePrecuBerserkCost(
+            getAttrib(self, QUICKNESS), adjustedBaseCost);
+        int mindCost = calculatePrecuBerserkCost(
+            getAttrib(self, FOCUS), adjustedBaseCost);
+        if (getAttrib(self, HEALTH) <= healthCost ||
+            getAttrib(self, ACTION) <= actionCost ||
+            getAttrib(self, MIND) <= mindCost)
+        {
+            recordPrecuFormupOutcome(self, fixture, "hamRejected");
+            return SCRIPT_CONTINUE;
+        }
+
+        int healthBefore = getAttrib(self, HEALTH);
+        int actionBefore = getAttrib(self, ACTION);
+        int mindBefore = getAttrib(self, MIND);
+        if (!drainCombatAttributes(self, healthCost, actionCost, mindCost))
+        {
+            recordPrecuFormupOutcome(self, fixture, "hamDrainFailed");
+            return SCRIPT_CONTINUE;
+        }
+
+        int membersApplied = 0;
+        for (obj_id member : members)
+        {
+            if (!isValidPrecuSquadTarget(self, member))
+            {
+                continue;
+            }
+            setState(member, STATE_DIZZY, false);
+            setState(member, STATE_STUNNED, false);
+            pvpHelpPerformed(self, member);
+            ++membersApplied;
+        }
+
+        if (fixture)
+        {
+            obj_id fixtureMember = obj_id.getObjId(PRECU_FORMUP_MEMBER_OID);
+            setObjVar(self, PRECU_FORMUP_FIXTURE_ROOT + ".groupSize",
+                members.length);
+            setObjVar(self, PRECU_FORMUP_FIXTURE_ROOT + ".adjustedBaseCost",
+                adjustedBaseCost);
+            setObjVar(self, PRECU_FORMUP_FIXTURE_ROOT + ".healthCost",
+                healthCost);
+            setObjVar(self, PRECU_FORMUP_FIXTURE_ROOT + ".actionCost",
+                actionCost);
+            setObjVar(self, PRECU_FORMUP_FIXTURE_ROOT + ".mindCost", mindCost);
+            setObjVar(self, PRECU_FORMUP_FIXTURE_ROOT + ".healthBefore",
+                healthBefore);
+            setObjVar(self, PRECU_FORMUP_FIXTURE_ROOT + ".healthAfter",
+                getAttrib(self, HEALTH));
+            setObjVar(self, PRECU_FORMUP_FIXTURE_ROOT + ".actionBefore",
+                actionBefore);
+            setObjVar(self, PRECU_FORMUP_FIXTURE_ROOT + ".actionAfter",
+                getAttrib(self, ACTION));
+            setObjVar(self, PRECU_FORMUP_FIXTURE_ROOT + ".mindBefore",
+                mindBefore);
+            setObjVar(self, PRECU_FORMUP_FIXTURE_ROOT + ".mindAfter",
+                getAttrib(self, MIND));
+            setObjVar(self, PRECU_FORMUP_FIXTURE_ROOT + ".membersApplied",
+                membersApplied);
+            setObjVar(self, PRECU_FORMUP_FIXTURE_ROOT + ".leaderDizzyAfter",
+                getState(self, STATE_DIZZY));
+            setObjVar(self, PRECU_FORMUP_FIXTURE_ROOT + ".leaderStunnedAfter",
+                getState(self, STATE_STUNNED));
+            setObjVar(self, PRECU_FORMUP_FIXTURE_ROOT + ".memberDizzyAfter",
+                getState(fixtureMember, STATE_DIZZY));
+            setObjVar(self, PRECU_FORMUP_FIXTURE_ROOT + ".memberStunnedAfter",
+                getState(fixtureMember, STATE_STUNNED));
+            setObjVar(self, PRECU_FORMUP_FIXTURE_ROOT + ".completedAt",
+                getGameTime());
+        }
+        recordPrecuFormupOutcome(self, fixture, "passed");
+        return SCRIPT_CONTINUE;
+    }
+    private boolean isValidPrecuSquadTarget(obj_id leader, obj_id member)
+        throws InterruptedException
+    {
+        if (!isIdValid(member) || !exists(member) || !member.isLoaded() ||
+            !isPlayer(member) || isDead(member) || isIncapacitated(member))
+        {
+            return false;
+        }
+        if (leader.equals(member))
+        {
+            return true;
+        }
+        location leaderLocation = getLocation(leader);
+        location memberLocation = getLocation(member);
+        if (leaderLocation == null || memberLocation == null ||
+            !leaderLocation.area.equals(memberLocation.area) ||
+            !hasSamePrecuBuildingContext(leader, member))
+        {
+            return false;
+        }
+        return pvpCanHelp(leader, member);
+    }
+    private boolean hasSamePrecuBuildingContext(obj_id first, obj_id second)
+        throws InterruptedException
+    {
+        obj_id firstTop = getTopMostContainer(first);
+        obj_id secondTop = getTopMostContainer(second);
+        boolean firstOutdoors = !isIdValid(firstTop) || first.equals(firstTop);
+        boolean secondOutdoors = !isIdValid(secondTop) || second.equals(secondTop);
+        return (firstOutdoors && secondOutdoors) ||
+            (!firstOutdoors && !secondOutdoors && firstTop.equals(secondTop));
+    }
+    public int boostmorale(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        boolean fixture = isPrecuBoostMoraleFixture(self);
+        if (fixture)
+        {
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT +
+                ".handlerEntered", 1);
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT +
+                ".handlerCalls", readPrecuBoostMoraleInt(self,
+                    ".handlerCalls") + 1);
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT + ".outcome",
+                "entered");
+        }
+        if (!isIdValid(self) || !exists(self) || !isPlayer(self) ||
+            isDead(self) || isIncapacitated(self) ||
+            !hasSkill(self, "outdoors_squadleader_defense_04"))
+        {
+            recordPrecuBoostMoraleOutcome(self, fixture, "playerRejected");
+            return SCRIPT_CONTINUE;
+        }
+
+        obj_id groupId = getGroupObject(self);
+        if (!isIdValid(groupId) || !self.equals(getGroupLeaderId(groupId)))
+        {
+            sendSystemMessage(self, new string_id("error_message",
+                isIdValid(groupId) ? "not_group_leader" : "not_grouped"));
+            recordPrecuBoostMoraleOutcome(self, fixture, "leaderRejected");
+            return SCRIPT_CONTINUE;
+        }
+        obj_id[] members = getGroupMemberIds(groupId);
+        if (members == null || members.length == 0)
+        {
+            recordPrecuBoostMoraleOutcome(self, fixture, "groupRejected");
+            return SCRIPT_CONTINUE;
+        }
+
+        int adjustedBaseCost = (int)(PRECU_BOOST_MORALE_BASE_COST *
+            (1.0f + members.length / 20.0f));
+        int strengthBefore = getAttrib(self, STRENGTH);
+        int quicknessBefore = getAttrib(self, QUICKNESS);
+        int focusBefore = getAttrib(self, FOCUS);
+        int healthCost = calculatePrecuBerserkCost(
+            strengthBefore, adjustedBaseCost);
+        int actionCost = calculatePrecuBerserkCost(
+            quicknessBefore, adjustedBaseCost);
+        int mindCost = calculatePrecuBerserkCost(
+            focusBefore, adjustedBaseCost);
+        if (getAttrib(self, HEALTH) <= healthCost ||
+            getAttrib(self, ACTION) <= actionCost ||
+            getAttrib(self, MIND) <= mindCost)
+        {
+            recordPrecuBoostMoraleOutcome(self, fixture, "hamRejected");
+            return SCRIPT_CONTINUE;
+        }
+
+        int healthBefore = getAttrib(self, HEALTH);
+        int actionBefore = getAttrib(self, ACTION);
+        int mindBefore = getAttrib(self, MIND);
+        if (!drainCombatAttributes(self, healthCost, actionCost, mindCost))
+        {
+            recordPrecuBoostMoraleOutcome(self, fixture, "hamDrainFailed");
+            return SCRIPT_CONTINUE;
+        }
+
+        Vector<obj_id> eligible = new Vector<obj_id>();
+        int totalWounds = 0;
+        for (obj_id member : members)
+        {
+            if (!isValidPrecuSquadTarget(self, member))
+            {
+                continue;
+            }
+            eligible.add(member);
+            for (int attribute = HEALTH; attribute <= WILLPOWER; ++attribute)
+            {
+                int wounds = getAttribWound(member, attribute);
+                totalWounds += wounds;
+                if (wounds > 0)
+                {
+                    healWound(member, attribute, wounds);
+                }
+            }
+        }
+        if (eligible.size() == 0)
+        {
+            recordPrecuBoostMoraleOutcome(self, fixture, "noEligibleMembers");
+            return SCRIPT_CONTINUE;
+        }
+
+        int woundsPerMember = (int)Math.ceil(
+            totalWounds / (float)eligible.size());
+        int woundsPerAttribute = (int)Math.ceil(woundsPerMember / 9.0f);
+        int totalWoundsApplied = 0;
+        for (obj_id member : eligible)
+        {
+            int memberWoundsApplied = 0;
+            for (int attribute = HEALTH; attribute <= WILLPOWER; ++attribute)
+            {
+                int woundsToApply = woundsPerAttribute;
+                if (memberWoundsApplied + woundsToApply > woundsPerMember)
+                {
+                    woundsToApply = woundsPerMember - memberWoundsApplied;
+                }
+                if (totalWoundsApplied + woundsToApply > totalWounds)
+                {
+                    woundsToApply = totalWounds - totalWoundsApplied;
+                }
+                if (woundsToApply > 0)
+                {
+                    addWound(member, attribute, woundsToApply);
+                }
+                memberWoundsApplied += woundsToApply;
+                totalWoundsApplied += woundsToApply;
+                if (memberWoundsApplied >= woundsPerMember ||
+                    totalWoundsApplied >= totalWounds)
+                {
+                    break;
+                }
+            }
+            pvpHelpPerformed(self, member);
+            if (totalWoundsApplied >= totalWounds)
+            {
+                break;
+            }
+        }
+
+        if (fixture)
+        {
+            obj_id fixtureMember = obj_id.getObjId(
+                PRECU_BOOST_MORALE_MEMBER_OID);
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT + ".groupSize",
+                members.length);
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT +
+                ".adjustedBaseCost", adjustedBaseCost);
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT + ".healthCost",
+                healthCost);
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT + ".actionCost",
+                actionCost);
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT + ".mindCost",
+                mindCost);
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT +
+                ".strengthBefore", strengthBefore);
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT +
+                ".quicknessBefore", quicknessBefore);
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT +
+                ".focusBefore", focusBefore);
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT +
+                ".healthBefore", healthBefore);
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT +
+                ".healthAfter", getAttrib(self, HEALTH));
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT +
+                ".actionBefore", actionBefore);
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT +
+                ".actionAfter", getAttrib(self, ACTION));
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT + ".mindBefore",
+                mindBefore);
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT + ".mindAfter",
+                getAttrib(self, MIND));
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT +
+                ".membersApplied", eligible.size());
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT +
+                ".totalWounds", totalWounds);
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT +
+                ".woundsPerMember", woundsPerMember);
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT +
+                ".woundsPerAttribute", woundsPerAttribute);
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT +
+                ".totalWoundsApplied", totalWoundsApplied);
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT +
+                ".leaderWoundsAfter", getPrecuTotalWounds(self));
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT +
+                ".memberWoundsAfter", getPrecuTotalWounds(fixtureMember));
+            setObjVar(self, PRECU_BOOST_MORALE_FIXTURE_ROOT +
+                ".completedAt", getGameTime());
+        }
+        recordPrecuBoostMoraleOutcome(self, fixture,
+            totalWoundsApplied == totalWounds ? "passed" :
+                "distributionFailed");
+        return SCRIPT_CONTINUE;
+    }
+    private int getPrecuTotalWounds(obj_id player)
+        throws InterruptedException
+    {
+        int total = 0;
+        for (int attribute = HEALTH; attribute <= WILLPOWER; ++attribute)
+        {
+            total += getAttribWound(player, attribute);
+        }
+        return total;
+    }
+    public int steadyaim(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        boolean fixture = isPrecuSteadyAimFixture(self);
+        if (fixture)
+        {
+            setObjVar(self, PRECU_STEADY_AIM_FIXTURE_ROOT +
+                ".handlerEntered", 1);
+            setObjVar(self, PRECU_STEADY_AIM_FIXTURE_ROOT + ".handlerCalls",
+                readPrecuSteadyAimInt(self, ".handlerCalls") + 1);
+            setObjVar(self, PRECU_STEADY_AIM_FIXTURE_ROOT + ".outcome",
+                "entered");
+        }
+        if (!isIdValid(self) || !exists(self) || !isPlayer(self) ||
+            isDead(self) || isIncapacitated(self) ||
+            !hasSkill(self, "outdoors_squadleader_offense_01"))
+        {
+            recordPrecuSteadyAimOutcome(self, fixture, "playerRejected");
+            return SCRIPT_CONTINUE;
+        }
+        obj_id groupId = getGroupObject(self);
+        if (!isIdValid(groupId) || !self.equals(getGroupLeaderId(groupId)))
+        {
+            sendSystemMessage(self, new string_id("error_message",
+                isIdValid(groupId) ? "not_group_leader" : "not_grouped"));
+            recordPrecuSteadyAimOutcome(self, fixture, "leaderRejected");
+            return SCRIPT_CONTINUE;
+        }
+        obj_id[] members = getGroupMemberIds(groupId);
+        if (members == null || members.length < 2)
+        {
+            recordPrecuSteadyAimOutcome(self, fixture, "groupRejected");
+            return SCRIPT_CONTINUE;
+        }
+
+        int skillMod = (int)getSkillStatisticModifier(self, "steadyaim");
+        int reducedBaseCost = (int)(PRECU_STEADY_AIM_BASE_COST *
+            (1.0f - Math.min(100, skillMod) / 100.0f));
+        int adjustedBaseCost = (int)(reducedBaseCost *
+            (1.0f + members.length / 20.0f));
+        int healthCost = calculatePrecuBerserkCost(
+            getAttrib(self, STRENGTH), adjustedBaseCost);
+        int actionCost = calculatePrecuBerserkCost(
+            getAttrib(self, QUICKNESS), adjustedBaseCost);
+        int mindCost = calculatePrecuBerserkCost(
+            getAttrib(self, FOCUS), adjustedBaseCost);
+        if (getAttrib(self, HEALTH) <= healthCost ||
+            getAttrib(self, ACTION) <= actionCost ||
+            getAttrib(self, MIND) <= mindCost)
+        {
+            recordPrecuSteadyAimOutcome(self, fixture, "hamRejected");
+            return SCRIPT_CONTINUE;
+        }
+        int healthBefore = getAttrib(self, HEALTH);
+        int actionBefore = getAttrib(self, ACTION);
+        int mindBefore = getAttrib(self, MIND);
+        if (!drainCombatAttributes(self, healthCost, actionCost, mindCost))
+        {
+            recordPrecuSteadyAimOutcome(self, fixture, "hamDrainFailed");
+            return SCRIPT_CONTINUE;
+        }
+
+        int amount = 5 + skillMod;
+        int membersApplied = 0;
+        for (obj_id member : members)
+        {
+            if (!isValidPrecuSquadTarget(self, member) ||
+                !combat.isRangedWeapon(getCurrentWeapon(member)))
+            {
+                continue;
+            }
+            if (hasSkillModModifier(member, PRECU_STEADY_AIM_MODIFIER))
+            {
+                removeAttribOrSkillModModifier(member,
+                    PRECU_STEADY_AIM_MODIFIER);
+            }
+            if (addSkillModModifier(member, PRECU_STEADY_AIM_MODIFIER,
+                "private_aim", amount, PRECU_STEADY_AIM_DURATION_SECONDS,
+                false, true))
+            {
+                pvpHelpPerformed(self, member);
+                ++membersApplied;
+            }
+        }
+
+        if (fixture)
+        {
+            obj_id fixtureMember = obj_id.getObjId(PRECU_STEADY_AIM_MEMBER_OID);
+            setObjVar(self, PRECU_STEADY_AIM_FIXTURE_ROOT + ".groupSize",
+                members.length);
+            setObjVar(self, PRECU_STEADY_AIM_FIXTURE_ROOT + ".skillMod",
+                skillMod);
+            setObjVar(self, PRECU_STEADY_AIM_FIXTURE_ROOT +
+                ".adjustedBaseCost", adjustedBaseCost);
+            setObjVar(self, PRECU_STEADY_AIM_FIXTURE_ROOT + ".healthCost",
+                healthCost);
+            setObjVar(self, PRECU_STEADY_AIM_FIXTURE_ROOT + ".actionCost",
+                actionCost);
+            setObjVar(self, PRECU_STEADY_AIM_FIXTURE_ROOT + ".mindCost",
+                mindCost);
+            setObjVar(self, PRECU_STEADY_AIM_FIXTURE_ROOT + ".healthBefore",
+                healthBefore);
+            setObjVar(self, PRECU_STEADY_AIM_FIXTURE_ROOT + ".healthAfter",
+                getAttrib(self, HEALTH));
+            setObjVar(self, PRECU_STEADY_AIM_FIXTURE_ROOT + ".actionBefore",
+                actionBefore);
+            setObjVar(self, PRECU_STEADY_AIM_FIXTURE_ROOT + ".actionAfter",
+                getAttrib(self, ACTION));
+            setObjVar(self, PRECU_STEADY_AIM_FIXTURE_ROOT + ".mindBefore",
+                mindBefore);
+            setObjVar(self, PRECU_STEADY_AIM_FIXTURE_ROOT + ".mindAfter",
+                getAttrib(self, MIND));
+            setObjVar(self, PRECU_STEADY_AIM_FIXTURE_ROOT + ".amount", amount);
+            setObjVar(self, PRECU_STEADY_AIM_FIXTURE_ROOT +
+                ".membersApplied", membersApplied);
+            setObjVar(self, PRECU_STEADY_AIM_FIXTURE_ROOT +
+                ".leaderPrivateAim", (int)getSkillStatisticModifier(self,
+                    "private_aim"));
+            setObjVar(self, PRECU_STEADY_AIM_FIXTURE_ROOT +
+                ".memberPrivateAim", (int)getSkillStatisticModifier(
+                    fixtureMember, "private_aim"));
+        }
+        recordPrecuSteadyAimOutcome(self, fixture,
+            membersApplied > 0 ? "passed" : "noRangedMembers");
+        return SCRIPT_CONTINUE;
+    }
+    public int retreat(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        boolean fixture = isPrecuRetreatFixture(self);
+        if (fixture)
+        {
+            setObjVar(self, PRECU_RETREAT_FIXTURE_ROOT + ".handlerEntered", 1);
+            setObjVar(self, PRECU_RETREAT_FIXTURE_ROOT + ".handlerCalls",
+                readPrecuRetreatInt(self, ".handlerCalls") + 1);
+            setObjVar(self, PRECU_RETREAT_FIXTURE_ROOT + ".outcome", "entered");
+        }
+        if (!isIdValid(self) || !exists(self) || !isPlayer(self) ||
+            isDead(self) || isIncapacitated(self) ||
+            !hasSkill(self, "outdoors_squadleader_support_03"))
+        {
+            recordPrecuRetreatOutcome(self, fixture, "playerRejected");
+            return SCRIPT_CONTINUE;
+        }
+
+        obj_id groupId = getGroupObject(self);
+        if (!isIdValid(groupId) || !self.equals(getGroupLeaderId(groupId)))
+        {
+            sendSystemMessage(self, new string_id("error_message",
+                isIdValid(groupId) ? "not_group_leader" : "not_grouped"));
+            recordPrecuRetreatOutcome(self, fixture, "leaderRejected");
+            return SCRIPT_CONTINUE;
+        }
+        obj_id[] members = getGroupMemberIds(groupId);
+        if (members == null || members.length < 2)
+        {
+            recordPrecuRetreatOutcome(self, fixture, "groupRejected");
+            return SCRIPT_CONTINUE;
+        }
+
+        float groupBurstRunMod = Math.min(100.0f,
+            getSkillStatisticModifier(self, "group_burst_run"));
+        int baseCost = (int)(PRECU_RETREAT_BASE_COST *
+            (1.0f - groupBurstRunMod / 100.0f));
+        int adjustedBaseCost = (int)(baseCost *
+            (1.0f + members.length / 20.0f));
+        int actionCost = calculatePrecuBerserkCost(
+            getAttrib(self, QUICKNESS), adjustedBaseCost);
+        int mindCost = calculatePrecuBerserkCost(
+            getAttrib(self, FOCUS), adjustedBaseCost);
+        if (getAttrib(self, ACTION) <= actionCost ||
+            getAttrib(self, MIND) <= mindCost)
+        {
+            recordPrecuRetreatOutcome(self, fixture, "hamRejected");
+            return SCRIPT_CONTINUE;
+        }
+
+        int actionBefore = getAttrib(self, ACTION);
+        int mindBefore = getAttrib(self, MIND);
+        if (!drainCombatAttributes(self, 0, actionCost, mindCost))
+        {
+            recordPrecuRetreatOutcome(self, fixture, "hamDrainFailed");
+            return SCRIPT_CONTINUE;
+        }
+
+        int membersApplied = 0;
+        for (obj_id member : members)
+        {
+            if (self.equals(member) || !isValidPrecuRetreatTarget(self, member))
+            {
+                continue;
+            }
+            if (applyPrecuRetreatEffect(member))
+            {
+                sendSystemMessage(member,
+                    new string_id("cbt_spam", "burstrun_start_single"));
+                pvpHelpPerformed(self, member);
+                ++membersApplied;
+            }
+        }
+
+        if (fixture)
+        {
+            obj_id fixtureMember = obj_id.getObjId(PRECU_RETREAT_MEMBER_OID);
+            setObjVar(self, PRECU_RETREAT_FIXTURE_ROOT + ".groupSize",
+                members.length);
+            setObjVar(self, PRECU_RETREAT_FIXTURE_ROOT + ".groupBurstRunMod",
+                groupBurstRunMod);
+            setObjVar(self, PRECU_RETREAT_FIXTURE_ROOT + ".baseCost", baseCost);
+            setObjVar(self, PRECU_RETREAT_FIXTURE_ROOT + ".adjustedBaseCost",
+                adjustedBaseCost);
+            setObjVar(self, PRECU_RETREAT_FIXTURE_ROOT + ".actionCost",
+                actionCost);
+            setObjVar(self, PRECU_RETREAT_FIXTURE_ROOT + ".mindCost", mindCost);
+            setObjVar(self, PRECU_RETREAT_FIXTURE_ROOT + ".actionBefore",
+                actionBefore);
+            setObjVar(self, PRECU_RETREAT_FIXTURE_ROOT + ".actionAfter",
+                getAttrib(self, ACTION));
+            setObjVar(self, PRECU_RETREAT_FIXTURE_ROOT + ".mindBefore",
+                mindBefore);
+            setObjVar(self, PRECU_RETREAT_FIXTURE_ROOT + ".mindAfter",
+                getAttrib(self, MIND));
+            setObjVar(self, PRECU_RETREAT_FIXTURE_ROOT + ".membersApplied",
+                membersApplied);
+            setObjVar(self, PRECU_RETREAT_FIXTURE_ROOT + ".leaderHasEffect",
+                hasPrecuRetreatEffect(self) ? 1 : 0);
+            setObjVar(self, PRECU_RETREAT_FIXTURE_ROOT + ".memberHasEffect",
+                hasPrecuRetreatEffect(fixtureMember) ? 1 : 0);
+            setObjVar(self, PRECU_RETREAT_FIXTURE_ROOT + ".memberMovementAfter",
+                getMovementPercent(fixtureMember));
+            setObjVar(self, PRECU_RETREAT_FIXTURE_ROOT + ".memberAccelAfter",
+                getAccelPercent(fixtureMember));
+            setObjVar(self, PRECU_RETREAT_FIXTURE_ROOT + ".completedAt",
+                getGameTime());
+        }
+        recordPrecuRetreatOutcome(self, fixture,
+            membersApplied > 0 ? "passed" : "noEligibleMembers");
+        return SCRIPT_CONTINUE;
+    }
+    private boolean isValidPrecuRetreatTarget(obj_id leader, obj_id member)
+        throws InterruptedException
+    {
+        if (!isValidPrecuSquadTarget(leader, member) ||
+            isIdValid(getMountId(member)) ||
+            getState(member, STATE_RIDING_MOUNT) != 0)
+        {
+            return false;
+        }
+        location memberLocation = getLocation(member);
+        if (memberLocation == null || "dungeon1".equals(memberLocation.area))
+        {
+            return false;
+        }
+        expireStalePrecuRetreatEffect(member);
+        return !hasPrecuRetreatEffect(member) &&
+            !movement.hasMovementModifier(member, "burstRun") &&
+            !movement.hasMovementModifier(member, "forceRun_1") &&
+            !movement.hasMovementModifier(member, "forceRun_2") &&
+            !movement.hasMovementModifier(member, "fs_force_run") &&
+            !buff.hasBuff(member, "burstRun") &&
+            !buff.hasBuff(member, "forceRun") &&
+            !buff.hasBuff(member, "forceRun_1") &&
+            !buff.hasBuff(member, "forceRun_2") &&
+            !buff.hasBuff(member, "fs_force_run");
+    }
+    private boolean applyPrecuRetreatEffect(obj_id member)
+        throws InterruptedException
+    {
+        if (!movement.applyMovementModifier(member, PRECU_RETREAT_MODIFIER))
+        {
+            return false;
+        }
+        float baseAcceleration = getAccelPercent(member);
+        int expiresAt = getGameTime() + PRECU_RETREAT_DURATION_SECONDS;
+        setObjVar(member, PRECU_RETREAT_EFFECT_ROOT + ".expiresAt", expiresAt);
+        setObjVar(member, PRECU_RETREAT_EFFECT_ROOT + ".baseAcceleration",
+            baseAcceleration);
+        if (!setAccelPercent(member,
+            baseAcceleration * PRECU_RETREAT_ACCEL_MULTIPLIER))
+        {
+            movement.removeMovementModifier(member, PRECU_RETREAT_MODIFIER);
+            removeObjVar(member, PRECU_RETREAT_EFFECT_ROOT);
+            return false;
+        }
+        if (isPrecuRetreatMemberFixture(member))
+        {
+            setObjVar(member,
+                PRECU_RETREAT_FIXTURE_ROOT + ".baseAcceleration",
+                baseAcceleration);
+            setObjVar(member, PRECU_RETREAT_FIXTURE_ROOT + ".expiresAt",
+                expiresAt);
+            setObjVar(member, PRECU_RETREAT_FIXTURE_ROOT + ".movementActive",
+                getMovementPercent(member));
+            setObjVar(member, PRECU_RETREAT_FIXTURE_ROOT + ".accelActive",
+                getAccelPercent(member));
+        }
+        schedulePrecuRetreatExpiry(member, expiresAt);
+        return true;
+    }
+    public int handlePrecuRetreatExpiry(obj_id self, dictionary params)
+        throws InterruptedException
+    {
+        if (!hasPrecuRetreatEffect(self) || params == null)
+        {
+            return SCRIPT_CONTINUE;
+        }
+        int scheduledExpiry = params.getInt("expiresAt");
+        int currentExpiry = getIntObjVar(self,
+            PRECU_RETREAT_EFFECT_ROOT + ".expiresAt");
+        if (scheduledExpiry != currentExpiry)
+        {
+            return SCRIPT_CONTINUE;
+        }
+        if (currentExpiry > getGameTime())
+        {
+            schedulePrecuRetreatExpiry(self, currentExpiry);
+            return SCRIPT_CONTINUE;
+        }
+        cleanupPrecuRetreatEffect(self, true);
+        return SCRIPT_CONTINUE;
+    }
+    private void expireStalePrecuRetreatEffect(obj_id player)
+        throws InterruptedException
+    {
+        if (hasPrecuRetreatEffect(player) &&
+            getIntObjVar(player, PRECU_RETREAT_EFFECT_ROOT + ".expiresAt") <=
+                getGameTime())
+        {
+            cleanupPrecuRetreatEffect(player, false);
+        }
+    }
+    private boolean hasPrecuRetreatEffect(obj_id player)
+        throws InterruptedException
+    {
+        return isIdValid(player) && exists(player) &&
+            hasObjVar(player, PRECU_RETREAT_EFFECT_ROOT + ".expiresAt");
+    }
+    private void cleanupPrecuRetreatEffect(obj_id player, boolean notify)
+        throws InterruptedException
+    {
+        float baseAcceleration = hasObjVar(player,
+            PRECU_RETREAT_EFFECT_ROOT + ".baseAcceleration") ?
+                getFloatObjVar(player,
+                    PRECU_RETREAT_EFFECT_ROOT + ".baseAcceleration") : 1.0f;
+        if (movement.hasMovementModifier(player, PRECU_RETREAT_MODIFIER))
+        {
+            movement.removeMovementModifier(player, PRECU_RETREAT_MODIFIER);
+        }
+        setAccelPercent(player, baseAcceleration);
+        removeObjVar(player, PRECU_RETREAT_EFFECT_ROOT);
+        if (notify)
+        {
+            sendSystemMessage(player,
+                new string_id("cbt_spam", "burstrun_stop_single"));
+        }
+        if (isPrecuRetreatMemberFixture(player))
+        {
+            setObjVar(player, PRECU_RETREAT_FIXTURE_ROOT + ".expiredAt",
+                getGameTime());
+            setObjVar(player,
+                PRECU_RETREAT_FIXTURE_ROOT + ".movementAfterExpiry",
+                getMovementPercent(player));
+            setObjVar(player, PRECU_RETREAT_FIXTURE_ROOT + ".accelAfterExpiry",
+                getAccelPercent(player));
+            setObjVar(player, PRECU_RETREAT_FIXTURE_ROOT + ".outcome",
+                "expired");
+        }
+    }
+    private void restorePrecuRetreatState(obj_id player)
+        throws InterruptedException
+    {
+        if (!hasPrecuRetreatEffect(player))
+        {
+            return;
+        }
+        int expiresAt = getIntObjVar(player,
+            PRECU_RETREAT_EFFECT_ROOT + ".expiresAt");
+        if (expiresAt <= getGameTime())
+        {
+            cleanupPrecuRetreatEffect(player, false);
+            return;
+        }
+        if (movement.hasMovementModifier(player, PRECU_RETREAT_MODIFIER))
+        {
+            movement.removeMovementModifier(player, PRECU_RETREAT_MODIFIER,
+                false);
+        }
+        movement.applyMovementModifier(player, PRECU_RETREAT_MODIFIER);
+        float baseAcceleration = getFloatObjVar(player,
+            PRECU_RETREAT_EFFECT_ROOT + ".baseAcceleration");
+        setAccelPercent(player,
+            baseAcceleration * PRECU_RETREAT_ACCEL_MULTIPLIER);
+        schedulePrecuRetreatExpiry(player, expiresAt);
+    }
+    private void schedulePrecuRetreatExpiry(obj_id player, int expiresAt)
+        throws InterruptedException
+    {
+        dictionary expiry = new dictionary();
+        expiry.put("expiresAt", expiresAt);
+        float delay = Math.max(0.1f, expiresAt - getGameTime());
+        messageTo(player, "handlePrecuRetreatExpiry", expiry, delay, false);
+    }
+    public int handlePrecuBerserkExpiry(obj_id self, dictionary params)
+        throws InterruptedException
+    {
+        if (!isIdValid(self) || !exists(self) ||
+            !hasObjVar(self, PRECU_BERSERK_EXPIRY) || params == null)
+        {
+            return SCRIPT_CONTINUE;
+        }
+        int scheduledExpiry = params.getInt("expiresAt");
+        int currentExpiry = getIntObjVar(self, PRECU_BERSERK_EXPIRY);
+        if (scheduledExpiry != currentExpiry)
+        {
+            return SCRIPT_CONTINUE;
+        }
+        int remaining = currentExpiry - getGameTime();
+        if (remaining > 0)
+        {
+            schedulePrecuBerserkExpiry(self, currentExpiry);
+            return SCRIPT_CONTINUE;
+        }
+        if (buff.hasBuff(self, PRECU_BERSERK_STATUS_BUFF))
+        {
+            buff.removeBuff(self, PRECU_BERSERK_STATUS_BUFF);
+        }
+        setState(self, STATE_BERSERK, false);
+        removeObjVar(self, PRECU_BERSERK_EXPIRY);
+        boolean fixture = isPrecuBerserkOneFixture(self);
+        if (fixture)
+        {
+            setObjVar(self, PRECU_BERSERK_ONE_FIXTURE_ROOT + ".expiredAt",
+                getGameTime());
+        }
+        recordPrecuBerserkOneOutcome(self, fixture, "expired");
+        boolean fixtureTwo = isPrecuBerserkTwoFixture(self);
+        if (fixtureTwo)
+        {
+            setObjVar(self, PRECU_BERSERK_TWO_FIXTURE_ROOT + ".expiredAt",
+                getGameTime());
+        }
+        recordPrecuBerserkTwoOutcome(self, fixtureTwo, "expired");
+        return SCRIPT_CONTINUE;
+    }
+    private void restorePrecuBerserkState(obj_id player)
+        throws InterruptedException
+    {
+        if (!hasObjVar(player, PRECU_BERSERK_EXPIRY))
+        {
+            if (buff.hasBuff(player, PRECU_BERSERK_STATUS_BUFF))
+            {
+                buff.removeBuff(player, PRECU_BERSERK_STATUS_BUFF);
+            }
+            return;
+        }
+        int expiresAt = getIntObjVar(player, PRECU_BERSERK_EXPIRY);
+        if (expiresAt <= getGameTime())
+        {
+            if (buff.hasBuff(player, PRECU_BERSERK_STATUS_BUFF))
+            {
+                buff.removeBuff(player, PRECU_BERSERK_STATUS_BUFF);
+            }
+            setState(player, STATE_BERSERK, false);
+            removeObjVar(player, PRECU_BERSERK_EXPIRY);
+            return;
+        }
+        if (!buff.hasBuff(player, PRECU_BERSERK_STATUS_BUFF))
+        {
+            buff.applyBuff(player, player, PRECU_BERSERK_STATUS_BUFF,
+                expiresAt - getGameTime());
+        }
+        setState(player, STATE_BERSERK, true);
+        schedulePrecuBerserkExpiry(player, expiresAt);
+    }
+    private void schedulePrecuBerserkExpiry(obj_id player, int expiresAt)
+        throws InterruptedException
+    {
+        dictionary expiry = new dictionary();
+        expiry.put("expiresAt", expiresAt);
+        float delay = Math.max(0.1f, expiresAt - getGameTime());
+        messageTo(player, "handlePrecuBerserkExpiry", expiry, delay, false);
+    }
+    private int calculatePrecuBerserkCost(int governingValue, int baseCost)
+        throws InterruptedException
+    {
+        float cost = baseCost;
+        cost -= ((governingValue - 300.0f) / 1200.0f) * cost;
+        return Math.max(0, (int)cost);
+    }
+    private boolean isPrecuBerserkOneFixture(obj_id player)
+        throws InterruptedException
+    {
+        return isIdValid(player) && exists(player) && isPlayer(player) &&
+            player.getValue() == PRECU_BERSERK_ONE_PLAYER_OID &&
+            getPlayerStationId(player) == PRECU_BERSERK_ONE_STATION_ID &&
+            hasObjVar(player, PRECU_BERSERK_ONE_FIXTURE_ROOT + ".protocol") &&
+            getIntObjVar(player,
+                PRECU_BERSERK_ONE_FIXTURE_ROOT + ".protocol") ==
+                    PRECU_BERSERK_ONE_PROTOCOL_VERSION &&
+            hasObjVar(player, PRECU_BERSERK_ONE_FIXTURE_ROOT + ".prepared") &&
+            getIntObjVar(player,
+                PRECU_BERSERK_ONE_FIXTURE_ROOT + ".prepared") == 1;
+    }
+    private int readPrecuBerserkOneInt(obj_id player, String suffix)
+        throws InterruptedException
+    {
+        String path = PRECU_BERSERK_ONE_FIXTURE_ROOT + suffix;
+        return hasObjVar(player, path) ? getIntObjVar(player, path) : 0;
+    }
+    private void recordPrecuBerserkOneOutcome(obj_id player, boolean fixture,
+        String outcome) throws InterruptedException
+    {
+        if (fixture)
+        {
+            setObjVar(player,
+                PRECU_BERSERK_ONE_FIXTURE_ROOT + ".outcome", outcome);
+        }
+    }
+    private boolean isPrecuBerserkTwoFixture(obj_id player)
+        throws InterruptedException
+    {
+        return isIdValid(player) && exists(player) && isPlayer(player) &&
+            player.getValue() == PRECU_BERSERK_TWO_PLAYER_OID &&
+            getPlayerStationId(player) == PRECU_BERSERK_TWO_STATION_ID &&
+            hasObjVar(player, PRECU_BERSERK_TWO_FIXTURE_ROOT + ".protocol") &&
+            getIntObjVar(player,
+                PRECU_BERSERK_TWO_FIXTURE_ROOT + ".protocol") ==
+                    PRECU_BERSERK_TWO_PROTOCOL_VERSION &&
+            hasObjVar(player, PRECU_BERSERK_TWO_FIXTURE_ROOT + ".prepared") &&
+            getIntObjVar(player,
+                PRECU_BERSERK_TWO_FIXTURE_ROOT + ".prepared") == 1;
+    }
+    private int readPrecuBerserkTwoInt(obj_id player, String suffix)
+        throws InterruptedException
+    {
+        String path = PRECU_BERSERK_TWO_FIXTURE_ROOT + suffix;
+        return hasObjVar(player, path) ? getIntObjVar(player, path) : 0;
+    }
+    private void recordPrecuBerserkTwoOutcome(obj_id player, boolean fixture,
+        String outcome) throws InterruptedException
+    {
+        if (fixture)
+        {
+            setObjVar(player,
+                PRECU_BERSERK_TWO_FIXTURE_ROOT + ".outcome", outcome);
+        }
+    }
+    private boolean isPrecuFormupFixture(obj_id player)
+        throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player) ||
+            player.getValue() != PRECU_FORMUP_LEADER_OID ||
+            getPlayerStationId(player) != PRECU_FORMUP_LEADER_STATION_ID ||
+            !hasObjVar(player, PRECU_FORMUP_FIXTURE_ROOT + ".protocol") ||
+            getIntObjVar(player, PRECU_FORMUP_FIXTURE_ROOT + ".protocol") !=
+                PRECU_FORMUP_PROTOCOL_VERSION ||
+            !hasObjVar(player, PRECU_FORMUP_FIXTURE_ROOT + ".prepared") ||
+            getIntObjVar(player, PRECU_FORMUP_FIXTURE_ROOT + ".prepared") != 1 ||
+            !hasObjVar(player, PRECU_FORMUP_FIXTURE_ROOT + ".peer"))
+        {
+            return false;
+        }
+        obj_id member = getObjIdObjVar(player,
+            PRECU_FORMUP_FIXTURE_ROOT + ".peer");
+        return isIdValid(member) && member.isLoaded() &&
+            member.getValue() == PRECU_FORMUP_MEMBER_OID &&
+            getPlayerStationId(member) == PRECU_FORMUP_MEMBER_STATION_ID;
+    }
+    private int readPrecuFormupInt(obj_id player, String suffix)
+        throws InterruptedException
+    {
+        String path = PRECU_FORMUP_FIXTURE_ROOT + suffix;
+        return hasObjVar(player, path) ? getIntObjVar(player, path) : 0;
+    }
+    private void recordPrecuFormupOutcome(obj_id player, boolean fixture,
+        String outcome) throws InterruptedException
+    {
+        if (fixture)
+        {
+            setObjVar(player,
+                PRECU_FORMUP_FIXTURE_ROOT + ".outcome", outcome);
+        }
+    }
+    private boolean isPrecuBoostMoraleFixture(obj_id player)
+        throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player) ||
+            player.getValue() != PRECU_BOOST_MORALE_LEADER_OID ||
+            getPlayerStationId(player) !=
+                PRECU_BOOST_MORALE_LEADER_STATION_ID ||
+            !hasObjVar(player, PRECU_BOOST_MORALE_FIXTURE_ROOT +
+                ".protocol") ||
+            getIntObjVar(player, PRECU_BOOST_MORALE_FIXTURE_ROOT +
+                ".protocol") != PRECU_BOOST_MORALE_PROTOCOL_VERSION ||
+            !hasObjVar(player, PRECU_BOOST_MORALE_FIXTURE_ROOT +
+                ".prepared") ||
+            getIntObjVar(player, PRECU_BOOST_MORALE_FIXTURE_ROOT +
+                ".prepared") != 1 ||
+            !hasObjVar(player, PRECU_BOOST_MORALE_FIXTURE_ROOT + ".peer"))
+        {
+            return false;
+        }
+        obj_id member = getObjIdObjVar(player,
+            PRECU_BOOST_MORALE_FIXTURE_ROOT + ".peer");
+        return isIdValid(member) && member.isLoaded() &&
+            member.getValue() == PRECU_BOOST_MORALE_MEMBER_OID &&
+            getPlayerStationId(member) == PRECU_BOOST_MORALE_MEMBER_STATION_ID;
+    }
+    private int readPrecuBoostMoraleInt(obj_id player, String suffix)
+        throws InterruptedException
+    {
+        String path = PRECU_BOOST_MORALE_FIXTURE_ROOT + suffix;
+        return hasObjVar(player, path) ? getIntObjVar(player, path) : 0;
+    }
+    private void recordPrecuBoostMoraleOutcome(obj_id player,
+        boolean fixture, String outcome) throws InterruptedException
+    {
+        if (fixture)
+        {
+            setObjVar(player,
+                PRECU_BOOST_MORALE_FIXTURE_ROOT + ".outcome", outcome);
+        }
+    }
+    private boolean isPrecuSteadyAimFixture(obj_id player)
+        throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player) ||
+            player.getValue() != PRECU_STEADY_AIM_LEADER_OID ||
+            getPlayerStationId(player) != PRECU_STEADY_AIM_LEADER_STATION_ID ||
+            !hasObjVar(player, PRECU_STEADY_AIM_FIXTURE_ROOT + ".protocol") ||
+            getIntObjVar(player, PRECU_STEADY_AIM_FIXTURE_ROOT +
+                ".protocol") != PRECU_STEADY_AIM_PROTOCOL_VERSION ||
+            !hasObjVar(player, PRECU_STEADY_AIM_FIXTURE_ROOT + ".prepared") ||
+            getIntObjVar(player, PRECU_STEADY_AIM_FIXTURE_ROOT +
+                ".prepared") != 1 ||
+            !hasObjVar(player, PRECU_STEADY_AIM_FIXTURE_ROOT + ".peer"))
+        {
+            return false;
+        }
+        obj_id member = getObjIdObjVar(player,
+            PRECU_STEADY_AIM_FIXTURE_ROOT + ".peer");
+        return isIdValid(member) && member.isLoaded() &&
+            member.getValue() == PRECU_STEADY_AIM_MEMBER_OID &&
+            getPlayerStationId(member) == PRECU_STEADY_AIM_MEMBER_STATION_ID;
+    }
+    private int readPrecuSteadyAimInt(obj_id player, String suffix)
+        throws InterruptedException
+    {
+        String path = PRECU_STEADY_AIM_FIXTURE_ROOT + suffix;
+        return hasObjVar(player, path) ? getIntObjVar(player, path) : 0;
+    }
+    private void recordPrecuSteadyAimOutcome(obj_id player,
+        boolean fixture, String outcome) throws InterruptedException
+    {
+        if (fixture)
+        {
+            setObjVar(player, PRECU_STEADY_AIM_FIXTURE_ROOT + ".outcome",
+                outcome);
+        }
+    }
+    private boolean isPrecuRetreatFixture(obj_id player)
+        throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player) ||
+            player.getValue() != PRECU_RETREAT_LEADER_OID ||
+            getPlayerStationId(player) != PRECU_RETREAT_LEADER_STATION_ID ||
+            !hasObjVar(player, PRECU_RETREAT_FIXTURE_ROOT + ".protocol") ||
+            getIntObjVar(player, PRECU_RETREAT_FIXTURE_ROOT + ".protocol") !=
+                PRECU_RETREAT_PROTOCOL_VERSION ||
+            !hasObjVar(player, PRECU_RETREAT_FIXTURE_ROOT + ".prepared") ||
+            getIntObjVar(player, PRECU_RETREAT_FIXTURE_ROOT + ".prepared") !=
+                1 ||
+            !hasObjVar(player, PRECU_RETREAT_FIXTURE_ROOT + ".peer"))
+        {
+            return false;
+        }
+        obj_id member = getObjIdObjVar(player,
+            PRECU_RETREAT_FIXTURE_ROOT + ".peer");
+        return isIdValid(member) && member.isLoaded() &&
+            member.getValue() == PRECU_RETREAT_MEMBER_OID &&
+            getPlayerStationId(member) == PRECU_RETREAT_MEMBER_STATION_ID;
+    }
+    private boolean isPrecuRetreatMemberFixture(obj_id player)
+        throws InterruptedException
+    {
+        return isIdValid(player) && exists(player) && isPlayer(player) &&
+            player.getValue() == PRECU_RETREAT_MEMBER_OID &&
+            getPlayerStationId(player) == PRECU_RETREAT_MEMBER_STATION_ID &&
+            hasObjVar(player, PRECU_RETREAT_FIXTURE_ROOT + ".protocol") &&
+            getIntObjVar(player, PRECU_RETREAT_FIXTURE_ROOT + ".protocol") ==
+                PRECU_RETREAT_PROTOCOL_VERSION &&
+            hasObjVar(player, PRECU_RETREAT_FIXTURE_ROOT + ".prepared") &&
+            getIntObjVar(player, PRECU_RETREAT_FIXTURE_ROOT + ".prepared") ==
+                1;
+    }
+    private int readPrecuRetreatInt(obj_id player, String suffix)
+        throws InterruptedException
+    {
+        String path = PRECU_RETREAT_FIXTURE_ROOT + suffix;
+        return hasObjVar(player, path) ? getIntObjVar(player, path) : 0;
+    }
+    private void recordPrecuRetreatOutcome(obj_id player, boolean fixture,
+        String outcome) throws InterruptedException
+    {
+        if (fixture)
+        {
+            setObjVar(player,
+                PRECU_RETREAT_FIXTURE_ROOT + ".outcome", outcome);
+        }
     }
     public int cmdUseSkillBuff(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
@@ -4078,11 +5665,21 @@ public class base_player extends script.base_script
     }
     public boolean canDeathBlow(obj_id killer, obj_id victim) throws InterruptedException
     {
-        if ((!isIdValid(victim)) || (!isPlayer(victim)))
+        if (!isIdValid(killer) || !isPlayer(killer) ||
+            !isIdValid(victim) || !isPlayer(victim) ||
+            killer == victim || isDead(victim) ||
+            !isIncapacitated(victim) ||
+            getState(victim, STATE_FEIGN_DEATH) == 1)
         {
             debugServerConsoleMsg(killer, "cmdCoupDeGrace: (" + victim + ")target is not player or is not incapacitated!!");
             combat.sendCombatSpamMessage(killer, new string_id("cbt_spam", "invalid_target"));
             showFlyTextPrivate(killer, killer, new string_id("combat_effects", "target_invalid_fly"), 1.5f, colors.WHITE);
+            return false;
+        }
+        if (isIncapacitated(killer) || isDead(killer) ||
+            getState(killer, STATE_FEIGN_DEATH) == 1 ||
+            getPosture(killer) == POSTURE_KNOCKED_DOWN)
+        {
             return false;
         }
         if (!pvpCanAttack(killer, victim))
@@ -4091,59 +5688,36 @@ public class base_player extends script.base_script
             combat.sendCombatSpamMessage(killer, new string_id("cbt_spam", "invalid_pvp_target"));
             return false;
         }
-        if (isIncapacitated(victim))
-        {
-            if (hasObjVar(victim, pclib.VAR_BEEN_COUPDEGRACED))
-            {
-                combat.sendCombatSpamMessage(killer, new string_id("cbt_spam", "invalid_target"));
-                showFlyTextPrivate(killer, killer, new string_id("combat_effects", "target_invalid_fly"), 1.5f, colors.WHITE);
-                return false;
-            }
-            location myPos = getLocation(killer);
-            location targetPos = getLocation(victim);
-            if (myPos != null && targetPos != null)
-            {
-                float distance = myPos.distance(targetPos);
-                float maxDistance = getCommandMaxRange((1917386623));
-                debugServerConsoleMsg(null, "Deathblow distance to target ");
-                if (distance < maxDistance)
-                {
-                    stealth.checkForAndMakeVisibleNoRecourse(killer);
-                    if (isIncapacitated(killer) || isDead(killer))
-                    {
-                        return false;
-                    }
-                    if (getState(killer, STATE_FEIGN_DEATH) == 1)
-                    {
-                        return false;
-                    }
-                    int killerPosture = getPosture(killer);
-                    if (killerPosture == POSTURE_KNOCKED_DOWN)
-                    {
-                        return false;
-                    }
-                    return true;
-                }
-                else 
-                {
-                    showFlyTextPrivate(killer, killer, new string_id("combat_effects", "range_too_far"), 1.5f, colors.MEDIUMTURQUOISE);
-                    combat.sendCombatSpamMessage(killer, new string_id("cbt_spam", "out_of_range_far"), COMBAT_RESULT_OUT_OF_RANGE);
-                    CustomerServiceLog("Pvp", "Player %TU received deathblow message for target %TT, but has moved too " + "far away (" + distance + ")", killer, victim);
-                }
-            }
-            else 
-            {
-                combat.sendCombatSpamMessage(killer, new string_id("cbt_spam", "invalid_target"));
-                showFlyTextPrivate(killer, killer, new string_id("combat_effects", "target_invalid_fly"), 1.5f, colors.WHITE);
-                CustomerServiceLog("Pvp", "Player %TU received deathblow message for target %TT, but we could " + "not get the player's positions", killer, victim);
-            }
-        }
-        else 
+        if (hasObjVar(victim, pclib.VAR_BEEN_COUPDEGRACED))
         {
             combat.sendCombatSpamMessage(killer, new string_id("cbt_spam", "invalid_target"));
             showFlyTextPrivate(killer, killer, new string_id("combat_effects", "target_invalid_fly"), 1.5f, colors.WHITE);
+            return false;
         }
-        return false;
+        if (!canSee(killer, victim))
+        {
+            sendSystemMessage(killer, new string_id("combat_effects", "cansee_fail"));
+            return false;
+        }
+        location killerPosition = getLocation(killer);
+        location victimPosition = getLocation(victim);
+        if (killerPosition == null || victimPosition == null)
+        {
+            combat.sendCombatSpamMessage(killer, new string_id("cbt_spam", "invalid_target"));
+            showFlyTextPrivate(killer, killer, new string_id("combat_effects", "target_invalid_fly"), 1.5f, colors.WHITE);
+            CustomerServiceLog("Pvp", "Player %TU received deathblow message for target %TT, but we could not get the players' positions", killer, victim);
+            return false;
+        }
+        float distance = killerPosition.distance(victimPosition);
+        if (distance > RANGE_COUP_DE_GRACE)
+        {
+            showFlyTextPrivate(killer, killer, new string_id("combat_effects", "range_too_far"), 1.5f, colors.MEDIUMTURQUOISE);
+            combat.sendCombatSpamMessage(killer, new string_id("cbt_spam", "out_of_range_far"), COMBAT_RESULT_OUT_OF_RANGE);
+            CustomerServiceLog("Pvp", "Player %TU received deathblow message for target %TT, but has moved too far away (" + distance + ")", killer, victim);
+            return false;
+        }
+        stealth.checkForAndMakeVisibleNoRecourse(killer);
+        return true;
     }
     public int cmdCoupDeGrace(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
@@ -4164,40 +5738,10 @@ public class base_player extends script.base_script
             obj_id target = utils.getObjIdScriptVar(self, COUPE_DE_GRACE_TARGET);
             utils.removeScriptVar(self, COUPE_DE_GRACE_TARGET);
             debugServerConsoleMsg(null, "Performing deathblow on " + target);
-            if (isIdValid(target))
+            if (canDeathBlow(self, target))
             {
-                if (isIncapacitated(target))
-                {
-                    location myPos = getLocation(self);
-                    location targetPos = getLocation(target);
-                    if (myPos != null && targetPos != null)
-                    {
-                        float distance = myPos.distance(targetPos);
-                        float maxDistance = getCommandMaxRange((1917386623));
-                        debugServerConsoleMsg(null, "Deathblow distance to target ");
-                        if (distance < maxDistance)
-                        {
-                            CustomerServiceLog("Pvp", "Player %TU received deathblow message for target %TT, and is performing the blow");
-                            pclib.coupDeGrace(target, self);
-                        }
-                        else 
-                        {
-                            CustomerServiceLog("Pvp", "Player %TU received deathblow message for target %TT, but has moved too " + "far away (" + distance + ")", self, target);
-                        }
-                    }
-                    else 
-                    {
-                        CustomerServiceLog("Pvp", "Player %TU received deathblow message for target %TT, but we could " + "not get the player's positions", self, target);
-                    }
-                }
-                else 
-                {
-                    CustomerServiceLog("Pvp", "Player %TU received deathblow message, but target %TT is no longer incapped ", self, target);
-                }
-            }
-            else 
-            {
-                CustomerServiceLog("Pvp", "Player %TU received deathblow message, but has invalid deathblow scriptvar " + target, self);
+                CustomerServiceLog("Pvp", "Player %TU received deathblow message for target %TT, and is performing the blow");
+                pclib.coupDeGrace(target, self);
             }
         }
         else 
@@ -4462,6 +6006,282 @@ public class base_player extends script.base_script
     {
         return SCRIPT_CONTINUE;
     }
+    public int areatrack(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        recordAreaTrackInt(self, ".handlerCalls",
+            readAreaTrackInt(self, ".handlerCalls") + 1);
+        if (!isPlayer(self) ||
+            !hasSkill(self, "outdoors_ranger_novice"))
+        {
+            recordAreaTrackOutcome(self, "missingSkill");
+            return SCRIPT_OVERRIDE;
+        }
+        location current = getLocation(self);
+        if (current == null || isIdValid(current.cell))
+        {
+            sendSystemMessage(self, SID_SYS_SCAN_INSIDE);
+            recordAreaTrackOutcome(self, "inside");
+            return SCRIPT_OVERRIDE;
+        }
+        int now = getGameTime();
+        if ((utils.hasScriptVar(self, PRECU_AREA_TRACK_COOLDOWN) &&
+                now < utils.getIntScriptVar(self,
+                    PRECU_AREA_TRACK_COOLDOWN)) ||
+            utils.hasScriptVar(self, PRECU_AREA_TRACK_PENDING) ||
+            sui.hasPid(self, PRECU_AREA_TRACK_OPTIONS_PID))
+        {
+            sendSystemMessage(self, SID_SYS_SCAN_ALREADY);
+            recordAreaTrackOutcome(self, "alreadyScanning");
+            return SCRIPT_OVERRIDE;
+        }
+        if (utils.hasScriptVar(self, PRECU_AREA_TRACK_COOLDOWN))
+            utils.removeScriptVar(self, PRECU_AREA_TRACK_COOLDOWN);
+
+        Vector choices = new Vector();
+        choices.add("@cmd_n:areatrack_animal");
+        if (hasSkill(self, "outdoors_ranger_harvest_02"))
+            choices.add("@cmd_n:areatrack_npc");
+        if (hasSkill(self, "outdoors_ranger_harvest_04"))
+            choices.add("@cmd_n:areatrack_player");
+        int pid = sui.listbox(self, self, "@skl_use:scan_type_d",
+            sui.OK_CANCEL, "@skl_use:scan_type_t", choices,
+            "handlePrecuAreaTrackChoice", true);
+        if (pid < 0)
+        {
+            recordAreaTrackOutcome(self, "optionSuiFailed");
+            return SCRIPT_OVERRIDE;
+        }
+        sui.setPid(self, pid, PRECU_AREA_TRACK_OPTIONS_PID);
+        recordAreaTrackInt(self, ".optionPid", pid);
+        recordAreaTrackInt(self, ".optionCount", choices.size());
+        recordAreaTrackOutcome(self, "optionsOpen");
+        return SCRIPT_OVERRIDE;
+    }
+    public int failAreatrack(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        recordAreaTrackInt(self, ".failHandlerCalls",
+            readAreaTrackInt(self, ".failHandlerCalls") + 1);
+        return SCRIPT_OVERRIDE;
+    }
+    public int handlePrecuAreaTrackChoice(obj_id self, dictionary params) throws InterruptedException
+    {
+        sui.removePid(self, PRECU_AREA_TRACK_OPTIONS_PID);
+        recordAreaTrackInt(self, ".optionPid", 0);
+        if (params == null || sui.getIntButtonPressed(params) == sui.BP_CANCEL)
+        {
+            recordAreaTrackOutcome(self, "cancelled");
+            return SCRIPT_CONTINUE;
+        }
+        int selectedType = sui.getListboxSelectedRow(params);
+        int maxType = hasSkill(self, "outdoors_ranger_harvest_04") ? 2
+            : (hasSkill(self, "outdoors_ranger_harvest_02") ? 1 : 0);
+        if (selectedType < 0 || selectedType > maxType)
+        {
+            recordAreaTrackOutcome(self, "invalidSelection");
+            return SCRIPT_CONTINUE;
+        }
+        doAnimationAction(self, "search");
+        sendSystemMessage(self, SID_SYS_SCAN_BEGIN);
+        int now = getGameTime();
+        utils.setScriptVar(self, PRECU_AREA_TRACK_PENDING, true);
+        utils.setScriptVar(self, PRECU_AREA_TRACK_COOLDOWN,
+            now + PRECU_AREA_TRACK_DELAY_SECONDS);
+        dictionary scan = new dictionary();
+        scan.put("selectedType", selectedType);
+        scan.put("initialLocation", getWorldLocation(self));
+        messageTo(self, "handlePrecuAreaTrackScan", scan,
+            PRECU_AREA_TRACK_DELAY_SECONDS, true);
+        recordAreaTrackInt(self, ".selectedType", selectedType);
+        recordAreaTrackInt(self, ".scanStartedAt", now);
+        recordAreaTrackInt(self, ".cooldownUntil",
+            now + PRECU_AREA_TRACK_DELAY_SECONDS);
+        recordAreaTrackOutcome(self, "scanPending");
+        return SCRIPT_CONTINUE;
+    }
+    public int handlePrecuAreaTrackScan(obj_id self, dictionary params) throws InterruptedException
+    {
+        if (!utils.hasScriptVar(self, PRECU_AREA_TRACK_PENDING))
+            return SCRIPT_CONTINUE;
+        utils.removeScriptVar(self, PRECU_AREA_TRACK_PENDING);
+        if (params == null)
+        {
+            recordAreaTrackOutcome(self, "missingScanState");
+            return SCRIPT_CONTINUE;
+        }
+        location initial = params.getLocation("initialLocation");
+        location current = getWorldLocation(self);
+        if (initial == null || current == null)
+        {
+            recordAreaTrackOutcome(self, "missingLocation");
+            return SCRIPT_CONTINUE;
+        }
+        if (utils.getDistance2D(initial, current) >
+            PRECU_AREA_TRACK_MOVE_LIMIT)
+        {
+            sendSystemMessage(self, SID_SYS_SCAN_MOVED);
+            recordAreaTrackOutcome(self, "moved");
+            return SCRIPT_CONTINUE;
+        }
+        if (ai_lib.isInCombat(self))
+        {
+            sendSystemMessage(self, SID_SYS_SCAN_COMBAT);
+            recordAreaTrackOutcome(self, "combat");
+            return SCRIPT_CONTINUE;
+        }
+        int selectedType = params.getInt("selectedType");
+        int maxType = hasSkill(self, "outdoors_ranger_harvest_04") ? 2
+            : (hasSkill(self, "outdoors_ranger_harvest_02") ? 1 : 0);
+        if (selectedType < 0 || selectedType > maxType)
+        {
+            recordAreaTrackOutcome(self, "tierChanged");
+            return SCRIPT_CONTINUE;
+        }
+
+        Vector results = new Vector();
+        boolean directionAllowed =
+            hasSkill(self, "outdoors_ranger_harvest_01");
+        boolean distanceAllowed =
+            hasSkill(self, "outdoors_ranger_harvest_03");
+        obj_id fixtureTarget = readAreaTrackTarget(self);
+        boolean fixtureFound = false;
+        String fixtureDirection = "";
+        int fixtureDistance = -1;
+        obj_id[] creatures = getCreaturesInRange(self,
+            PRECU_AREA_TRACK_RANGE);
+        if (creatures != null)
+        {
+            for (obj_id creature : creatures)
+            {
+                if (!isAreaTrackCandidate(self, creature, selectedType))
+                    continue;
+                String direction = directionAllowed
+                    ? getAreaTrackDirection(self, creature) : "";
+                int distance = Math.round(utils.getDistance2D(self, creature));
+                String details = "";
+                if (directionAllowed) details = direction;
+                if (distanceAllowed)
+                    details += (details.length() == 0 ? "" : " ") +
+                        distance + "m";
+                String displayName = getName(creature);
+                if (displayName == null || displayName.length() == 0)
+                    displayName = creature.toString();
+                results.add(displayName + (details.length() == 0 ? ""
+                    : " (" + details + ")"));
+                if (creature == fixtureTarget)
+                {
+                    fixtureFound = true;
+                    fixtureDirection = direction;
+                    fixtureDistance = distance;
+                }
+            }
+        }
+        recordAreaTrackInt(self, ".resultCount", results.size());
+        recordAreaTrackInt(self, ".fixtureTargetFound",
+            fixtureFound ? 1 : 0);
+        recordAreaTrackString(self, ".fixtureDirection",
+            fixtureDirection);
+        recordAreaTrackInt(self, ".fixtureDistance", fixtureDistance);
+        recordAreaTrackInt(self, ".scanCompletedAt", getGameTime());
+        if (results.size() == 0)
+        {
+            sendSystemMessage(self, SID_SYS_SCAN_NOTHING);
+            recordAreaTrackOutcome(self, "nothingFound");
+            return SCRIPT_CONTINUE;
+        }
+        int pid = sui.listbox(self, self, "@skl_use:scan_results_d",
+            sui.OK_ONLY, "@skl_use:scan_results_t", results,
+            "handlePrecuAreaTrackResults", true, false);
+        if (pid < 0)
+        {
+            recordAreaTrackOutcome(self, "resultSuiFailed");
+            return SCRIPT_CONTINUE;
+        }
+        sui.setPid(self, pid, PRECU_AREA_TRACK_RESULTS_PID);
+        recordAreaTrackInt(self, ".resultsPid", pid);
+        recordAreaTrackOutcome(self, "resultsOpen");
+        return SCRIPT_CONTINUE;
+    }
+    public int handlePrecuAreaTrackResults(obj_id self, dictionary params) throws InterruptedException
+    {
+        sui.removePid(self, PRECU_AREA_TRACK_RESULTS_PID);
+        recordAreaTrackInt(self, ".resultsPid", 0);
+        return SCRIPT_CONTINUE;
+    }
+    private boolean isAreaTrackCandidate(obj_id self, obj_id creature,
+        int selectedType) throws InterruptedException
+    {
+        if (!isIdValid(creature) || !creature.isLoaded() ||
+            creature == self || stealth.hasInvisibleBuff(creature))
+            return false;
+        if (selectedType == 2)
+            return isPlayer(creature);
+        if (selectedType == 1)
+            return !isPlayer(creature) && ai_lib.isNpc(creature) &&
+                !hasCondition(creature, CONDITION_VENDOR) &&
+                getSpecies(creature) != SPECIES_PROBOT;
+        int niche = ai_lib.aiGetNiche(creature);
+        return !isPlayer(creature) && !vehicle.isVehicle(creature) &&
+            !ai_lib.isDroid(creature) && !ai_lib.isAndroid(creature) &&
+            (niche == NICHE_MONSTER || niche == NICHE_HERBIVORE ||
+                niche == NICHE_CARNIVORE || niche == NICHE_PREDATOR);
+    }
+    private String getAreaTrackDirection(obj_id tracker, obj_id trackee)
+        throws InterruptedException
+    {
+        location from = getWorldLocation(tracker);
+        location to = getWorldLocation(trackee);
+        if (from == null || to == null) return "";
+        double angle = Math.toDegrees(Math.atan2(to.z - from.z,
+            to.x - from.x));
+        if (angle < 0.0) angle += 360.0;
+        if (angle <= 22.5 || angle >= 337.5) return "east";
+        if (angle <= 67.5) return "northeast";
+        if (angle <= 112.5) return "north";
+        if (angle <= 157.5) return "northwest";
+        if (angle <= 202.5) return "west";
+        if (angle <= 247.5) return "southwest";
+        if (angle <= 292.5) return "south";
+        return "southeast";
+    }
+    private boolean isAreaTrackFixture(obj_id self)
+        throws InterruptedException
+    {
+        return self == obj_id.getObjId(PRECU_AREA_TRACK_PLAYER_OID) &&
+            getPlayerStationId(self) == PRECU_AREA_TRACK_STATION_ID &&
+            hasObjVar(self, PRECU_AREA_TRACK_FIXTURE_ROOT);
+    }
+    private void recordAreaTrackOutcome(obj_id self, String outcome)
+        throws InterruptedException
+    {
+        recordAreaTrackString(self, ".outcome", outcome);
+    }
+    private void recordAreaTrackInt(obj_id self, String suffix, int value)
+        throws InterruptedException
+    {
+        if (isAreaTrackFixture(self))
+            setObjVar(self, PRECU_AREA_TRACK_FIXTURE_ROOT + suffix, value);
+    }
+    private void recordAreaTrackString(obj_id self, String suffix,
+        String value) throws InterruptedException
+    {
+        if (isAreaTrackFixture(self))
+            setObjVar(self, PRECU_AREA_TRACK_FIXTURE_ROOT + suffix,
+                value == null ? "" : value);
+    }
+    private int readAreaTrackInt(obj_id self, String suffix)
+        throws InterruptedException
+    {
+        String name = PRECU_AREA_TRACK_FIXTURE_ROOT + suffix;
+        return isAreaTrackFixture(self) && hasObjVar(self, name)
+            ? getIntObjVar(self, name) : 0;
+    }
+    private obj_id readAreaTrackTarget(obj_id self)
+        throws InterruptedException
+    {
+        String name = PRECU_AREA_TRACK_FIXTURE_ROOT + ".target";
+        return isAreaTrackFixture(self) && hasObjVar(self, name)
+            ? getObjIdObjVar(self, name) : obj_id.NULL_ID;
+    }
     public int milkCreature(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
         obj_id playerCurrentMount = getMountId(self);
@@ -4617,7 +6437,7 @@ public class base_player extends script.base_script
     }
     public int sysGroup(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
-        if (hasSkill(self, "class_officer_phase1_master"))
+        if (hasSkill(self, "outdoors_squadleader_novice"))
         {
             squad_leader.sendSquadLeaderCommand(self, params);
         }
@@ -4625,7 +6445,7 @@ public class base_player extends script.base_script
     }
     public int groupWaypoint(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
-        if (hasSkill(self, "class_officer_phase1_master"))
+        if (hasSkill(self, "outdoors_squadleader_novice"))
         {
             if (params.equals("a") || params.equals("c"))
             {
@@ -5803,9 +7623,6 @@ public class base_player extends script.base_script
             case 0:
             handleCmdGrantZoningRights(player, target, city_id);
             break;
-            case 1:
-            handleStorytellerZoningRights(player, target, city_id);
-            break;
         }
         return SCRIPT_CONTINUE;
     }
@@ -6005,19 +7822,6 @@ public class base_player extends script.base_script
     }
     public int cmdGrantStorytellerZoningRights(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
-        if (!isIdValid(self) || !isIdValid(target))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        obj_id player = self;
-        obj_id top = getTopMostContainer(player);
-        int city_id = getCityAtLocation(getLocation(top), 0);
-        if (city_id <= 0)
-        {
-            sendSystemMessage(player, SID_NOT_IN_CITY_LIMITS);
-            return SCRIPT_CONTINUE;
-        }
-        handleStorytellerZoningRights(player, target, city_id);
         return SCRIPT_CONTINUE;
     }
     public int cmdInstallMissionTerminal(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
@@ -6425,6 +8229,12 @@ public class base_player extends script.base_script
     }
     public int OnSkillGranted(obj_id self, String skillName) throws InterruptedException
     {
+        if (skill.isRetiredPostNgeSpySkill(skillName))
+        {
+            revokeSkillSilent(self, skillName);
+            script.systems.skills.stealth.player_stealth.retirePostNgeSpyPlayerState(self);
+            return SCRIPT_OVERRIDE;
+        }
         if (!hasObjVar(self, "clickRespec.granting") && !hasObjVar(self, "npcRespec.inProgress"))
         {
             if (getLevel(self) <= 1)
@@ -6480,7 +8290,8 @@ public class base_player extends script.base_script
             skill.recalcPlayerPools(self, false);
         }
         recomputeCommandSeries(self);
-        beast_lib.verifyAndUpdateCalledBeastStats(self);
+        beast_lib.retirePostNgeBeastMasterPlayerState(self);
+        incubator.retirePostNgeBeastMasterCreationPlayerState(self);
         trial.bumpSession(self, "displayDefensiveMods");
         messageTo(self, "setDisplayOnlyDefensiveMods", trial.getSessionDict(self, "displayDefensiveMods"), 5, false);
         return SCRIPT_CONTINUE;
@@ -8093,31 +9904,13 @@ public class base_player extends script.base_script
                 CustomerServiceLog("CharacterTransfer", "OnUploadCharacter() : FAILED because of CTS completed or in progress for character");
                 return SCRIPT_OVERRIDE;
             }
-            String skillTemplate = getSkillTemplate(self);
-            if (skillTemplate == null || skillTemplate.equals("") || skillTemplate.equals("a"))
-            {
-                CustomerServiceLog("CharacterTransfer", "OnUploadCharacter() : skillTemplate not set! (pre-NGE source characters must choose profession prior to transfer) TRANSFER FAILED");
-                return SCRIPT_OVERRIDE;
-            }
-            characterData.put("skillTemplate", skillTemplate);
-            int combatLevel = getLevel(self);
-            characterData.put("combatLevel", combatLevel);
-            String workingSkill = getWorkingSkill(self);
-            if (workingSkill == null || workingSkill.equals(""))
-            {
-                CustomerServiceLog("CharacterTransfer", "OnUploadCharacter() : workingSkill not set! (pre-NGE source characters must choose profession prior to transfer) TRANSFER FAILED");
-                return SCRIPT_OVERRIDE;
-            }
-            characterData.put("workingSkill", workingSkill);
-            CustomerServiceLog("CharacterTransfer", "OnUploadCharacter() : skillTemplate == " + skillTemplate + ", workingSkill == " + workingSkill + ", combatLevel == " + combatLevel);
-            characterData.put("commands", getCommandListingForPlayer(self));
+            CustomerServiceLog("CharacterTransfer", "OnUploadCharacter() : using PRE-CU skill-box authority; NGE template, level, working-skill, and raw-command fields are intentionally omitted");
             characterData.put("skills", getSkillListingForPlayer(self));
             final String[] strObjVarLists = 
             {
                 "badge",
                 factions.FACTION,
                 groundquests.questBaseObjVar,
-                "live_conversions",
                 space_flags.IMPERIAL_CORELLIA,
                 space_flags.IMPERIAL_NABOO,
                 space_flags.IMPERIAL_TATOOINE,
@@ -8129,14 +9922,11 @@ public class base_player extends script.base_script
                 space_flags.REBEL_TATOOINE,
                 space_quest.QUEST_STATUS,
                 township.OBJVAR_NOVA_ORION_FACTION,
-                pgc_quests.PGC_GRANTED_ROADMAP_REWARDS_OBJVAR,
                 "spaceTrackFlagListName",
                 "veteran_rewards",
                 "_notskill.schematics",
                 "_notskill.mods",
-                "respec_voucher",
                 "mand.acknowledge",
-                respec.EXPERTISE_VERSION_OBJVAR,
                 "publish_gift",
                 "legacy",
                 temp_schematic.VAR_TEMP_SCHEMATIC_BASE,
@@ -8146,9 +9936,6 @@ public class base_player extends script.base_script
                 "hoth.flawless_reward",
                 "instance_player_protected_data",
                 "bornOnGalaxyTitleSet",
-                "beast_master",
-                "playerRespec",
-                "respecsBought",
                 player_structure.HOUSE_PACKUP_ARRAY_OBJVAR,
                 "space.dantooine_landing_permission",
                 "lotOverlimit",
@@ -8251,16 +10038,6 @@ public class base_player extends script.base_script
                 if (matchMakingCharacterProfileId != null && matchMakingCharacterProfileId.length > 0)
                 {
                     characterData.put("matchMakingCharacterProfileId", matchMakingCharacterProfileId);
-                }
-                byte[] playerObjectWorkingSkill = getByteStreamFromAutoVariable(playerObject, "workingSkill");
-                if (playerObjectWorkingSkill != null && playerObjectWorkingSkill.length > 0)
-                {
-                    characterData.put("workingSkill", playerObjectWorkingSkill);
-                }
-                byte[] playerObjectSkillTemplate = getByteStreamFromAutoVariable(playerObject, "skillTemplate");
-                if (playerObjectSkillTemplate != null && playerObjectSkillTemplate.length > 0)
-                {
-                    characterData.put("skillTemplate", playerObjectSkillTemplate);
                 }
                 byte[] collections = getByteStreamFromAutoVariable(playerObject, "collections");
                 if (collections != null && collections.length > 0)
@@ -8788,35 +10565,27 @@ public class base_player extends script.base_script
             dictionary characterData = dictionary.unpack(packedData);
             if (characterData != null)
             {
-                String skillTemplate = characterData.getString("skillTemplate");
-                String workingSkill = characterData.getString("workingSkill");
-                int combatLevel = characterData.getInt("combatLevel");
-                CustomerServiceLog("CharacterTransfer", "setSkillTemplate(" + self + ", " + skillTemplate + ") (combatLevel == " + combatLevel + ", workingSkill == " + workingSkill + ")");
-                setObjVar(self, "clickRespec.combatLevel", combatLevel);
-                setObjVar(self, "clickRespec.workingSkill", workingSkill);
-                setObjVar(self, "clickRespec.cts", true);
-                setSkillTemplate(self, skillTemplate);
                 String[] skills = characterData.getStringArray("skills");
-                for (String skill : skills) {
-                    if (!hasSkill(self, skill)) {
-                        if (grantSkill(self, skill)) {
-                            CustomerServiceLog("CharacterTransfer", "grantSkill(" + self + ", " + skill + ")");
-                        } else {
-                            CustomerServiceLog("CharacterTransfer", "grantSkill(" + self + ", " + skill + ") FAILED");
-                            return SCRIPT_OVERRIDE;
+                if (skills != null)
+                {
+                    for (String transferredSkill : skills) {
+                        if (skill.isRetiredNgeProgressionSkillName(transferredSkill)) {
+                            CustomerServiceLog("CharacterTransfer", "ignored retired NGE progression skill " + transferredSkill + " for PRE-CU character " + self);
+                            continue;
+                        }
+                        if (!hasSkill(self, transferredSkill)) {
+                            if (grantSkill(self, transferredSkill)) {
+                                CustomerServiceLog("CharacterTransfer", "grantSkill(" + self + ", " + transferredSkill + ")");
+                            } else {
+                                CustomerServiceLog("CharacterTransfer", "grantSkill(" + self + ", " + transferredSkill + ") FAILED");
+                                return SCRIPT_OVERRIDE;
+                            }
                         }
                     }
                 }
-                String[] commands = characterData.getStringArray("commands");
-                for (String command : commands) {
-                    if (!hasCommand(self, command)) {
-                        if (grantCommand(self, command)) {
-                            CustomerServiceLog("CharacterTransfer", "grantCommand(" + self + ", " + command + ")");
-                        } else {
-                            CustomerServiceLog("CharacterTransfer", "grantCommand(" + self + ", " + command + ") FAILED");
-                            return SCRIPT_OVERRIDE;
-                        }
-                    }
+                if (characterData.containsKey("commands"))
+                {
+                    CustomerServiceLog("CharacterTransfer", "ignored legacy raw command list; PRE-CU commands are rebuilt from transferred skill boxes and retained quest scripts");
                 }
                 dictionary experiencePoints = characterData.getDictionary("experience_points");
                 if (experiencePoints != null)
@@ -8962,16 +10731,6 @@ public class base_player extends script.base_script
                     {
                         byte[] matchMakingCharacterProfileId = characterData.getByteArray("matchMakingCharacterProfileId");
                         setAutoVariableFromByteStream(playerObject, "matchMakingCharacterProfileId", matchMakingCharacterProfileId);
-                    }
-                    if (characterData.containsKey("workingSkill"))
-                    {
-                        byte[] playerObjectWorkingSkill = characterData.getByteArray("workingSkill");
-                        setAutoVariableFromByteStream(playerObject, "workingSkill", playerObjectWorkingSkill);
-                    }
-                    if (characterData.containsKey("skillTemplate"))
-                    {
-                        byte[] playerObjectSkillTemplate = characterData.getByteArray("skillTemplate");
-                        setAutoVariableFromByteStream(playerObject, "skillTemplate", playerObjectSkillTemplate);
                     }
                     if (characterData.containsKey("collections"))
                     {
@@ -9375,11 +11134,13 @@ public class base_player extends script.base_script
         }
         catch(Throwable t)
         {
+            script.player.live_conversions.retirePostNgePlayerMigrationState(self);
             removeObjVar(self, "cts");
             utils.removeLocalVar(self, "ctsBeingUnpacked");
             CustomerServiceLog("CharacterTransfer", "OnDownloadCharacter() : an exception was thrown!  TRANSFER FAILED : " + t);
             return SCRIPT_OVERRIDE;
         }
+        script.player.live_conversions.retirePostNgePlayerMigrationState(self);
         CustomerServiceLog("CharacterTransfer", "OnDownloadCharacter() complete");
         removeObjVar(self, "cts");
         removeObjVar(self, "preserve_existing_lightsaber_crystal_owner_objvar");
@@ -9483,41 +11244,11 @@ public class base_player extends script.base_script
     }
     public int grantUnmodifiedExperienceOnSelf(obj_id self, dictionary params) throws InterruptedException
     {
-        if (npe.hasReachedMaxTutorialLevel(self))
-        {
-            int hadNotif = utils.getIntScriptVar(self, "npe.level_capped");
-            if (hadNotif == 0)
-            {
-                string_id chat = new string_id("npe", "pop_level_cap");
-                obj_id building = getTopMostContainer(self);
-                obj_id droid = utils.getObjIdScriptVar(building, "objDroidInvis");
-                npe.commTutorialPlayer(droid, self, 10, chat, "sound/dro_r2_3_danger.snd", "object/mobile/r2.iff");
-                utils.setScriptVar(self, "npe.level_capped", 1);
-            }
-            return SCRIPT_CONTINUE;
-        }
-        int playerLevel = getLevel(self);
-        if (isFreeTrialAccount(self))
-        {
-            if (playerLevel >= xp.TRIAL_LEVEL_CAP)
-            {
-                return SCRIPT_CONTINUE;
-            }
-        }
         String xp_type = params.getString("xp_type");
         int amt = params.getInt("amt");
         String fromCallback = params.getString("fromCallback");
         dictionary fromCallbackData = params.getDictionary("fromCallbackData");
         obj_id fromId = params.getObjId("fromId");
-        if (luck.isLucky(self, 0.001f))
-        {
-            float bonus = amt * 0.1f;
-            if (bonus < 1.0f)
-            {
-                bonus = 1.0f;
-            }
-            amt += bonus;
-        }
         xp._grantUnmodifiedExperience(self, xp_type, amt, fromCallback, fromCallbackData, fromId);
         return SCRIPT_CONTINUE;
     }
@@ -9863,6 +11594,13 @@ public class base_player extends script.base_script
     }
     public int OnEnterRegion(obj_id self, String planetName, String regionName) throws InterruptedException
     {
+        if (gcw.isPostNgeQueuedBattlefieldRetired() &&
+            (regionName.startsWith(gcw.PVP_BATTLEFIELD_REGION) || regionName.startsWith(gcw.PVP_PUSHBACK_REGION)))
+        {
+            retirePostNgeQueuedBattlefieldPlayerState(self);
+            utils.removeScriptVar(self, factions.IN_ADHOC_PVP_AREA);
+            return SCRIPT_CONTINUE;
+        }
         obj_id pvpRegionController = gcw.getPvpRegionControllerIdByName(self, regionName);
         if (isIdValid(pvpRegionController) && exists(pvpRegionController))
         {
@@ -9870,9 +11608,10 @@ public class base_player extends script.base_script
         }
         if (regionName.equals(restuss_event.PVP_REGION_NAME))
         {
-            if ((!factions.isImperial(self) && !factions.isRebel(self)) || !factions.isCovert(self) || getLevel(self) < 75)
+            int precuCombatDifficulty = skill.getPrecuEncounterDifficulty(self);
+            if ((!factions.isImperial(self) && !factions.isRebel(self)) || !factions.isCovert(self) || precuCombatDifficulty < 75)
             {
-                if (getLevel(self) < 75)
+                if (precuCombatDifficulty < 75)
                 {
                     sendSystemMessage(self, new string_id("gcw", "pvp_advanced_region_level_low"));
                 }
@@ -10067,6 +11806,13 @@ public class base_player extends script.base_script
     }
     public int OnExitRegion(obj_id self, String planetName, String regionName) throws InterruptedException
     {
+        if (gcw.isPostNgeQueuedBattlefieldRetired() &&
+            (regionName.startsWith(gcw.PVP_BATTLEFIELD_REGION) || regionName.startsWith(gcw.PVP_PUSHBACK_REGION)))
+        {
+            retirePostNgeQueuedBattlefieldPlayerState(self);
+            utils.removeScriptVar(self, factions.IN_ADHOC_PVP_AREA);
+            return SCRIPT_CONTINUE;
+        }
         if (regionName.startsWith(gcw.PVP_BATTLEFIELD_REGION) && !utils.hasScriptVar(self, "battlefield.kicked_out"))
         {
             sendSystemMessage(self, new string_id("gcw", "pvp_advanced_region_leaving_battlefield"));
@@ -10388,7 +12134,6 @@ public class base_player extends script.base_script
     }
     public int setRespecVersion(obj_id self, dictionary params) throws InterruptedException
     {
-        respec.setRespecVersion(self);
         return SCRIPT_CONTINUE;
     }
     public int receiveCreditForKill(obj_id self, dictionary params) throws InterruptedException
@@ -11074,50 +12819,17 @@ public class base_player extends script.base_script
     }
     public int OnSkillTemplateChanged(obj_id self, String skillTemplateName, boolean clientSelected) throws InterruptedException
     {
-        if (skillTemplateName == null || skillTemplateName.equals("") || skillTemplateName.equals("a"))
+        // Publish 14.1 progression is skill-box based. Clear stale NGE respec
+        // state, but never translate a profession-template client event.
+        if (hasObjVar(self, "clickRespec"))
         {
-            if (hasObjVar(self, "clickRespec.tokenId"))
-            {
-                removeObjVar(self, "clickRespec.tokenId");
-            }
-            if (hasObjVar(self, "npcRespec.inProgress"))
-            {
-                removeObjVar(self, "npcRespec.inProgress");
-            }
-            return SCRIPT_CONTINUE;
+            removeObjVar(self, "clickRespec");
         }
-        if (!hasObjVar(self, "clickRespec") && !hasObjVar(self, "npcRespec.inProgress"))
+        if (hasObjVar(self, "npcRespec"))
         {
-            return SCRIPT_CONTINUE;
+            removeObjVar(self, "npcRespec");
         }
-        if (hasObjVar(self, "npcRespec.inProgress"))
-        {
-            respec.handleNpcRespec(self, skillTemplateName);
-            respec.setRespecVersion(self);
-            return SCRIPT_CONTINUE;
-        }
-        else if (hasObjVar(self, "clickRespec.tokenId"))
-        {
-            obj_id token = getObjIdObjVar(self, "clickRespec.tokenId");
-            if (hasObjVar(self, "clickRespec.oldTemplate"))
-            {
-                String oldTemplate = getStringObjVar(self, "clickRespec.oldTemplate");
-                if (oldTemplate.equals(getSkillTemplate(self)))
-                {
-                    removeObjVar(self, "clickRespec");
-                    detachScript(self, "systems.respec.click_combat_respec");
-                    return SCRIPT_CONTINUE;
-                }
-                static_item.decrementStaticItem(token);
-                removeObjVar(self, "clickRespec.tokenId");
-            }
-        }
-        boolean withItems = true;
-        if (hasObjVar(self, "clickRespec.cts"))
-        {
-            withItems = false;
-        }
-        respec.earnProfessionSkills(self, skillTemplateName, withItems);
+        detachScript(self, "systems.respec.click_combat_respec");
         return SCRIPT_CONTINUE;
     }
     public void givePublishGift(obj_id self) throws InterruptedException
@@ -11201,53 +12913,11 @@ public class base_player extends script.base_script
     }
     public void respecNewEntertainerSkills(obj_id self) throws InterruptedException
     {
-        String template = getSkillTemplate(self);
-        if (template == null)
-        {
-            return;
-        }
-        if (!template.equals("entertainer_2a"))
-        {
-            return;
-        }
-        String oldSkills = dataTableGetString(skill_template.TEMPLATE_TABLE, "entertainer_2a", "template");
-        String[] oldSkillList = split(oldSkills, ',');
-        if (oldSkillList == null || oldSkillList.length == 0)
-        {
-            return;
-        }
-        int oldSkillCount = 0;
-        float oldSkillPct = 0.0f;
-        for (String s : oldSkillList) {
-            if (hasSkill(self, s)) {
-                oldSkillCount++;
-            }
-        }
-        oldSkillPct = (float)oldSkillCount / oldSkillList.length;
-        skill.revokeAllProfessionSkills(self);
-        dictionary d = new dictionary();
-        d.put("oldSkillPct", oldSkillPct);
-        messageTo(self, "finishEntertainerRespec", d, 1.0f, true);
+        // Retained as a link-compatible no-op for old persisted messages.
     }
     public void respecNewCrafterSkills(obj_id self) throws InterruptedException
     {
-        String template = getSkillTemplate(self);
-        if (template == null)
-        {
-            return;
-        }
-        if (!template.startsWith("trader_1"))
-        {
-            return;
-        }
-        float pctDone = respec.getPercentageCompletion(self, template);
-        String newTemplate = getCorrectTraderTemplate(template);
-        skill.revokeAllProfessionSkills(self);
-        setSkillTemplate(self, newTemplate);
-        respec.setPercentageCompletion(self, newTemplate, pctDone, true);
-        skill.recalcPlayerPools(self, true);
-        trial.bumpSession(self, "displayDefensiveMods");
-        messageTo(self, "setDisplayOnlyDefensiveMods", trial.getSessionDict(self, "displayDefensiveMods"), 5, false);
+        // Retained as a link-compatible no-op for old persisted messages.
     }
     public String getCorrectTraderTemplate(String template) throws InterruptedException
     {
@@ -11271,22 +12941,7 @@ public class base_player extends script.base_script
     }
     public int finishEntertainerRespec(obj_id self, dictionary params) throws InterruptedException
     {
-        float oldSkillPct = params.getFloat("oldSkillPct");
-        String newSkills = dataTableGetString(skill_template.TEMPLATE_TABLE, "entertainer_1a", "template");
-        String[] newSkillList = split(newSkills, ',');
-        int newSkillCount = (int)Math.ceil(oldSkillPct * newSkillList.length);
-        setSkillTemplate(self, "entertainer_1a");
-        for (int i = 0; i < newSkillCount; i++)
-        {
-            skill.grantSkillToPlayer(self, newSkillList[i]);
-        }
-        if (newSkillCount < newSkillList.length)
-        {
-            setWorkingSkill(self, newSkillList[newSkillCount]);
-        }
-        skill.recalcPlayerPools(self, true);
-        trial.bumpSession(self, "displayDefensiveMods");
-        messageTo(self, "setDisplayOnlyDefensiveMods", trial.getSessionDict(self, "displayDefensiveMods"), 5, false);
+        // A queued pre-restoration NGE callback must not rewrite skill boxes.
         return SCRIPT_CONTINUE;
     }
     public int handleSetBounty(obj_id self, dictionary params) throws InterruptedException
@@ -11900,6 +13555,11 @@ public class base_player extends script.base_script
     }
     public int cmdMeditate(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (ai_lib.isInCombat(self))
+        {
+            sendSystemMessage(self, new string_id("jedi_spam", "not_while_in_combat"));
+            return SCRIPT_CONTINUE;
+        }
         if (getPosture(self) != POSTURE_SITTING)
         {
             sendSystemMessage(self, new string_id("jedi_spam", "meditate_not_sitting"));
@@ -11912,6 +13572,18 @@ public class base_player extends script.base_script
             return SCRIPT_CONTINUE;
         }
         meditation.startMeditation(self);
+        return SCRIPT_CONTINUE;
+    }
+    public int feignIncapacitation(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        return combat.armPrecuFeignDeath(self) ?
+            SCRIPT_CONTINUE : SCRIPT_OVERRIDE;
+    }
+    public int precuFinalizeFeignDeath(obj_id self, dictionary params)
+        throws InterruptedException
+    {
+        combat.finalizePrecuFeignDeath(self);
         return SCRIPT_CONTINUE;
     }
     public int cmdMeditateFail(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
@@ -11927,6 +13599,11 @@ public class base_player extends script.base_script
             return SCRIPT_CONTINUE;
         }
         if (!trial.verifySession(self, params, meditation.HANDLER_MEDITATION_TICK))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        float delay = meditation.trance(self);
+        if (delay <= 0.0f)
         {
             return SCRIPT_CONTINUE;
         }
@@ -11947,7 +13624,7 @@ public class base_player extends script.base_script
             }
             utils.setScriptVar(self, meditation.VAR_MEDITATION_BASE, value);
         }
-        messageTo(self, meditation.HANDLER_MEDITATION_TICK, trial.getSessionDict(self, meditation.HANDLER_MEDITATION_TICK), 10.0f, false);
+        messageTo(self, meditation.HANDLER_MEDITATION_TICK, trial.getSessionDict(self, meditation.HANDLER_MEDITATION_TICK), delay, false);
         return SCRIPT_CONTINUE;
     }
     public int msgCoupDeGraceAuthoritativeCheck(obj_id self, dictionary params) throws InterruptedException

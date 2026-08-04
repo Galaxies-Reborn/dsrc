@@ -62,7 +62,26 @@ public class consumable extends script.base_script
     }
     public static boolean consumeItem(obj_id player, obj_id target, obj_id item, boolean checkPvpStatus) throws InterruptedException
     {
+        return consumeItem(
+            player,
+            target,
+            item,
+            checkPvpStatus,
+            MAX_AFFECT_DISTANCE);
+    }
+    public static boolean consumeItem(
+        obj_id player,
+        obj_id target,
+        obj_id item,
+        boolean checkPvpStatus,
+        float maximumNormalMedicineRange)
+        throws InterruptedException
+    {
         if (!isIdValid(player) || !isIdValid(target) || !isIdValid(item))
+        {
+            return false;
+        }
+        if (maximumNormalMedicineRange <= 0.0f)
         {
             return false;
         }
@@ -104,9 +123,9 @@ public class consumable extends script.base_script
                 return false;
             }
         }
-        else 
+        else
         {
-            if (getDistance(player, target) > MAX_AFFECT_DISTANCE)
+            if (getDistance(player, target) > maximumNormalMedicineRange)
             {
                 sendSystemMessage(player, SID_TARGET_OUT_OF_RANGE);
                 return false;
@@ -429,11 +448,7 @@ public class consumable extends script.base_script
                     {
                         boolean isBuff = false;
                         for (attrib_mod attrib_mod : am) {
-                            debugServerConsoleMsg(target, ">>>>>>>>>>>> PREPARING TO APPLY MOD TO ATTRIBUTE: " + attrib_mod.getAttribute());
-                            if (attrib_mod.getAttribute() == HEALTH) {
-                                debugServerConsoleMsg(target, ">>>>>>>>>>>> ATTEMPTING TO APPLY MOD -- " + attrib_mod.getAttribute() + " LOOKS LIKE HEALTH TO ME!");
-                                utils.addAttribMod(target, attrib_mod);
-                            }
+                            utils.addAttribMod(target, attrib_mod);
                             if (attrib_mod.getDuration() > 0) {
                                 isBuff = true;
                             }
@@ -563,6 +578,15 @@ public class consumable extends script.base_script
         if (am == null || am.length == 0)
         {
             return null;
+        }
+        // Publish 14 medical enhancement packs carry their crafted power in
+        // the attribute modifier. The retained NGE path below zeroes generic
+        // positive-duration consumables before later specialization scripts
+        // populate them; applying it to medicine erases the pack before the
+        // normal healing multiplier and battle-fatigue scaling can run.
+        if (healing.isBuffMedicine(item))
+        {
+            return am;
         }
         for (int x = 0; x < am.length; x++)
         {

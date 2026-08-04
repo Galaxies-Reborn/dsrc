@@ -260,7 +260,7 @@ public class quest_shuttle_comlink extends script.base_script
         }
         blog("spawnEnemies - Creating empty resizable obj_id array");
         Vector ragtags = null;
-        int mobLevel = (getLevel(player) - MOB_LEVEL_HANDICAP);
+        int mobLevel = Math.max(1, skill.getPrecuEncounterDifficulty(player) - MOB_LEVEL_HANDICAP);
         blog("spawnEnemies - Mob Level for all Spawns: " + mobLevel);
         for (int i = 0; i < NORMAL_MOB_COUNT; i++)
         {

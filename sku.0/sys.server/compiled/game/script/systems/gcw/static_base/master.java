@@ -1,6 +1,8 @@
 package script.systems.gcw.static_base;
 
 import script.obj_id;
+import script.library.gcw;
+import script.library.utils;
 
 public class master extends script.base_script
 {
@@ -17,8 +19,30 @@ public class master extends script.base_script
     public static final String VAR_BASE_LAST_CAPTURE = "gcw.static_base.last_capture";
     public static final String SCRIPT_VAR_VALIDATION = "gcw.static_base.validation";
     public static final String TABLE_TERMINAL_SPAWN = "datatables/gcw/static_base/terminal_spawn.iff";
+    public void cleanupRetiredFixedStaticBase(obj_id self) throws InterruptedException
+    {
+        if (!gcw.isPostNgeFixedStaticBaseRetired())
+        {
+            return;
+        }
+        removeObjVar(self, "gcw.static_base");
+        removeObjVar(self, "scriptString");
+        utils.removeScriptVarTree(self, "gcw.static_base");
+        obj_id planet = getPlanetByName(getLocation(self).area);
+        if (isIdValid(planet))
+        {
+            utils.removeScriptVarTree(planet, "gcw.static_base");
+        }
+        detachScript(self, "systems.gcw.static_base.master");
+    }
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        cleanupRetiredFixedStaticBase(self);
+        return SCRIPT_CONTINUE;
+    }
+    public int OnInitialize(obj_id self) throws InterruptedException
+    {
+        cleanupRetiredFixedStaticBase(self);
         return SCRIPT_CONTINUE;
     }
 }

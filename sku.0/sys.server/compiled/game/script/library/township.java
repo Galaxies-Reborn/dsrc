@@ -42,7 +42,7 @@ public class township extends script.base_script
             LOG("force_sensitive", "township.isTownshipEligible -- player is invalid.");
             return false;
         }
-        return getLevel(player) >= MIN_LEVEL || space_skill.isMasterPilot(player);
+        return script.library.skill.getPrecuEncounterDifficulty(player) >= MIN_LEVEL || space_skill.isMasterPilot(player);
     }
     public static boolean giveTravelListFromAurilia(obj_id player, obj_id npc) throws InterruptedException
     {

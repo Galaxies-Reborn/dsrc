@@ -15,7 +15,7 @@ public class decoration_item extends script.base_script
     public static final string_id PCOLOR = new string_id("sui", "set_primary_color");
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
-        if (utils.isNestedWithinAPlayer(self))
+        if (utils.isNestedWithinAPlayer(self) && !incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
         {
             if (beast_lib.isBeastMaster(player))
             {
@@ -35,7 +35,7 @@ public class decoration_item extends script.base_script
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
         sendDirtyObjectMenuNotification(self);
-        if (item == menu_info_types.SERVER_MENU1 && utils.isNestedWithinAPlayer(self))
+        if (item == menu_info_types.SERVER_MENU1 && utils.isNestedWithinAPlayer(self) && !incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
         {
             if (beast_lib.isBeastMaster(player))
             {
@@ -80,6 +80,10 @@ public class decoration_item extends script.base_script
             return SCRIPT_CONTINUE;
         }
         obj_id player = sui.getPlayerId(params);
+        if (incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return SCRIPT_CONTINUE;
+        }
         obj_id petItem = self;
         if (beast_lib.isBeastMaster(player))
         {

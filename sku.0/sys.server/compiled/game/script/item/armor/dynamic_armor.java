@@ -59,25 +59,12 @@ public class dynamic_armor extends script.base_script
                     transferer = getContainedBy(destContainer);
                 }
             }
-            int requiredLevel = getIntObjVar(self, "dynamic_item.intLevelRequired");
-            int playerLevel = getLevel(transferer);
-            if (playerLevel < requiredLevel)
-            {
-                sendSystemMessage(transferer, SID_ITEM_LEVEL_TOO_LOW);
-                canTransfer = false;
-            }
             String requiredSkill = getStringObjVar(self, "dynamic_item.required_skill");
-            if (requiredSkill != null && !requiredSkill.equals(""))
+            if (requiredSkill != null && !requiredSkill.equals("") &&
+                !utils.meetsProfessionRequirement(transferer, requiredSkill))
             {
-                String classTemplate = getSkillTemplate(transferer);
-                if (classTemplate != null && !classTemplate.equals(""))
-                {
-                    if (!classTemplate.startsWith(requiredSkill))
-                    {
-                        sendSystemMessage(transferer, SID_ITEM_NOT_ENOUGH_SKILL);
-                        canTransfer = false;
-                    }
-                }
+                sendSystemMessage(transferer, SID_ITEM_NOT_ENOUGH_SKILL);
+                canTransfer = false;
             }
             if (hasObjVar(self, "armor.fake_armor"))
             {
@@ -127,12 +114,6 @@ public class dynamic_armor extends script.base_script
         if (free == -1)
         {
             return SCRIPT_CONTINUE;
-        }
-        int requiredLevelToEquip = getIntObjVar(self, "dynamic_item.intLevelRequired");
-        if (requiredLevelToEquip != 0)
-        {
-            names[free] = utils.packStringId(new string_id("proc/proc", "required_combat_level"));
-            attribs[free++] = Integer.toString(requiredLevelToEquip);
         }
         String requiredSkillToEquip = getStringObjVar(self, "dynamic_item.required_skill");
         if (requiredSkillToEquip != null && !requiredSkillToEquip.equals(""))

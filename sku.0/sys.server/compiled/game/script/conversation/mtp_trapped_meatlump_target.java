@@ -60,7 +60,7 @@ public class mtp_trapped_meatlump_target extends script.base_script
                 messageTo(building, "triggerFired", dict, 0.0f, false);
                 dictionary webster = new dictionary();
                 webster.put("player", player);
-                webster.put("playerCombatLevel", getLevel(player));
+                webster.put("playerCombatLevel", script.library.skill.getPrecuEncounterDifficulty(player));
                 messageTo(building, "setMtpInstanceCombatLevel", webster, 1, false);
             }
         }

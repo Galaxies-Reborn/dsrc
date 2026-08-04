@@ -18,7 +18,7 @@ public class som_kenobi_collectors_business_q4p3 extends script.base_script
     }
     public boolean som_kenobi_collectors_business_q4p3_condition_levelTooLow(obj_id player, obj_id npc) throws InterruptedException
     {
-        int playerLevel = getLevel(player);
+        int playerLevel = script.library.skill.getPrecuEncounterDifficulty(player);
         if (playerLevel > 60)
         {
             return true;

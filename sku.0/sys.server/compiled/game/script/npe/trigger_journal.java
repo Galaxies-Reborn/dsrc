@@ -57,7 +57,6 @@ public class trigger_journal extends script.base_script
     }
     public int OnSkillGranted(obj_id self, String skill) throws InterruptedException
     {
-        String playerTemplate = getSkillTemplate(self);
         if (!utils.isProfession(self, utils.TRADER) && !utils.isProfession(self, utils.ENTERTAINER))
         {
             if (!hasObjVar(self, "npe.firstSkillGranted"))

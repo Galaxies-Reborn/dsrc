@@ -14,21 +14,10 @@ public class quest_control_device extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info menuInfo) throws InterruptedException
     {
-        if (utils.isNestedWithin(self, player))
-        {
-            int rootMenu = menuInfo.addRootMenu(menu_info_types.SERVER_MENU1, new string_id("saga_system", "qcd_menu_abandon"));
-        }
         return SCRIPT_CONTINUE;
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int menu_item) throws InterruptedException
     {
-        if (menu_item == menu_info_types.SERVER_MENU1)
-        {
-            if (utils.isNestedWithin(self, player))
-            {
-                pgc_quests.setQuestAbandoned(self, player);
-            }
-        }
         return SCRIPT_CONTINUE;
     }
     public int OnGetAttributes(obj_id self, obj_id player, String[] names, String[] attribs) throws InterruptedException

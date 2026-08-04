@@ -37,6 +37,11 @@ public class cleanup extends script.base_script
         sendSystemMessage(self, meditation.SID_POWERBOOST_WANE);
         return SCRIPT_CONTINUE;
     }
+    public int handlePowerBoostMindRise(obj_id self, dictionary params) throws InterruptedException
+    {
+        meditation.beginPowerBoostMindRise(self, params);
+        return SCRIPT_CONTINUE;
+    }
     public int handlePowerBoostEnd(obj_id self, dictionary params) throws InterruptedException
     {
         if (!hasObjVar(self, meditation.VAR_POWERBOOST_ACTIVE))
@@ -49,8 +54,7 @@ public class cleanup extends script.base_script
         {
             return SCRIPT_CONTINUE;
         }
-        sendSystemMessage(self, meditation.SID_POWERBOOST_END);
-        removeObjVar(self, meditation.VAR_POWERBOOST_ACTIVE);
+        meditation.endPowerBoost(self, true);
         return SCRIPT_CONTINUE;
     }
     public int handlePowerBoostLog(obj_id self, dictionary params) throws InterruptedException

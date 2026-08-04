@@ -11,7 +11,7 @@ public class crafting_melee_lightsaber_two_handed_pvp_bf extends script.systems.
     public static final String VERSION = "v0.00.00";
     public static final String[] REQUIRED_SKILLS = 
     {
-        "class_forcesensitive_phase1_novice"
+        "jedi_padawan_novice"
     };
     public static final String[] ASSEMBLY_SKILL_MODS = 
     {

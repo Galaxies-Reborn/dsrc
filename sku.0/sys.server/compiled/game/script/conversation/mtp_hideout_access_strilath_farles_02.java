@@ -52,7 +52,7 @@ public class mtp_hideout_access_strilath_farles_02 extends script.base_script
     public void mtp_hideout_access_strilath_farles_02_action_regrant_mtpHideout04(obj_id player, obj_id npc) throws InterruptedException
     {
         groundquests.sendSignal(player, "mtp_hideout_access_04_pointer");
-        if (getLevel(player) >= 82)
+        if (script.library.skill.getPrecuEncounterDifficulty(player) >= 82)
         {
             if (!groundquests.isQuestActiveOrComplete(player, "mtp_hideout_access_high_04"))
             {

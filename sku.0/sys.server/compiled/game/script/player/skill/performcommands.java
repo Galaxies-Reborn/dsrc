@@ -1,5 +1,6 @@
 package script.player.skill;
 
+import script.library.buff;
 import script.library.performance;
 import script.library.sui;
 import script.library.utils;
@@ -438,6 +439,11 @@ public class performcommands extends script.base_script
     }
     public int cmdInspire(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (buff.isPostNgeBuffProgressionRetired())
+        {
+            buff.retirePostNgeBuffProgression(self);
+            return SCRIPT_CONTINUE;
+        }
         obj_id inspireTarget = getIntendedTarget(self);
         if (!isIdValid(inspireTarget) || !isPlayer(inspireTarget))
         {

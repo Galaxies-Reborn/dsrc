@@ -386,7 +386,7 @@ public class quest_convo extends script.base_script
         }
         else if (dataTableHasColumn(datatable, "gating_level_amt"))
         {
-            int playerLevel = getLevel(speaker);
+            int playerLevel = script.library.skill.getPrecuEncounterDifficulty(speaker);
             int npcLevel = dataTableGetInt(datatable, questNum, "gating_level_amt");
             if (playerLevel < (npcLevel))
             {

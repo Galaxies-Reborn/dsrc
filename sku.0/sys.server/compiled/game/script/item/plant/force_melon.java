@@ -21,9 +21,9 @@ public class force_melon extends script.base_script
         {
             setObjVar(self, "healing.power", 1000);
         }
-        if (!hasObjVar(self, "healing.combat_level_required"))
+        if (hasObjVar(self, "healing.combat_level_required"))
         {
-            setObjVar(self, "healing.combat_level_required", 50);
+            removeObjVar(self, "healing.combat_level_required");
         }
         return SCRIPT_CONTINUE;
     }

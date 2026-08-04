@@ -18,6 +18,28 @@ public class player_beastmaster extends script.base_script
             LOG("player_beastmaster.script", text);
         }
     }
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        if (beast_lib.isRetiredPostNgeBeastMasterPlayer(self))
+        {
+            messageTo(self, "handleRetirePostNgeBeastMasterPlayerState", null, 0, false);
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int OnInitialize(obj_id self) throws InterruptedException
+    {
+        if (beast_lib.isRetiredPostNgeBeastMasterPlayer(self))
+        {
+            beast_lib.retirePostNgeBeastMasterPlayerState(self);
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int handleRetirePostNgeBeastMasterPlayerState(obj_id self, dictionary params) throws InterruptedException
+    {
+        beast_lib.retirePostNgeBeastMasterPlayerState(self);
+        return SCRIPT_OVERRIDE;
+    }
     public int OnRemovingFromWorld(obj_id self) throws InterruptedException
     {
         if (!beast_lib.isValidBeast(beast_lib.getBeastOnPlayer(self)))

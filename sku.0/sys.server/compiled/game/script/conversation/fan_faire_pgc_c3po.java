@@ -17,7 +17,8 @@ public class fan_faire_pgc_c3po extends script.base_script
     }
     public boolean fan_faire_pgc_c3po_condition_needsProfession(obj_id player, obj_id npc) throws InterruptedException
     {
-        return !hasSkill(player, "class_chronicles_novice");
+        // Chronicles is later NGE profession progression, not retained content.
+        return false;
     }
     public boolean fan_faire_pgc_c3po_condition_relicEnabled(obj_id player, obj_id npc) throws InterruptedException
     {
@@ -25,8 +26,7 @@ public class fan_faire_pgc_c3po extends script.base_script
     }
     public void fan_faire_pgc_c3po_action_grantProfession(obj_id player, obj_id npc) throws InterruptedException
     {
-        grantSkill(player, "class_chronicles_novice");
-        sendSystemMessage(player, "You are now a Chronicle Apprentice.", "");
+        sendSystemMessage(player, "Chronicle profession progression is unavailable in PRE-CU.", "");
         return;
     }
     public int fan_faire_pgc_c3po_handleBranch1(obj_id player, obj_id npc, string_id response) throws InterruptedException
@@ -15204,18 +15204,14 @@ public class fan_faire_pgc_c3po extends script.base_script
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
-        if ((!isMob(self)) || (isPlayer(self)))
-        {
-            detachScript(self, "conversation.fan_faire_pgc_c3po");
-        }
-        setCondition(self, CONDITION_CONVERSABLE);
-        messageTo(self, "handleFanFairec3poSetup", null, 2, false);
+        clearCondition(self, CONDITION_CONVERSABLE);
+        detachScript(self, "conversation.fan_faire_pgc_c3po");
         return SCRIPT_CONTINUE;
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
-        setCondition(self, CONDITION_CONVERSABLE);
-        messageTo(self, "handleFanFairec3poSetup", null, 2, false);
+        clearCondition(self, CONDITION_CONVERSABLE);
+        detachScript(self, "conversation.fan_faire_pgc_c3po");
         return SCRIPT_CONTINUE;
     }
     public int handleFanFairec3poSetup(obj_id self, dictionary params) throws InterruptedException
@@ -15230,10 +15226,7 @@ public class fan_faire_pgc_c3po extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info menuInfo) throws InterruptedException
     {
-        int menu = menuInfo.addRootMenu(menu_info_types.CONVERSE_START, null);
-        menu_info_data menuInfoData = menuInfo.getMenuItemById(menu);
-        menuInfoData.setServerNotify(false);
-        faceTo(self, player);
+        clearCondition(self, CONDITION_CONVERSABLE);
         return SCRIPT_CONTINUE;
     }
     public int OnIncapacitated(obj_id self, obj_id killer) throws InterruptedException
@@ -15250,6 +15243,8 @@ public class fan_faire_pgc_c3po extends script.base_script
     }
     public int OnStartNpcConversation(obj_id self, obj_id player) throws InterruptedException
     {
+        return SCRIPT_OVERRIDE;
+        /*
         obj_id npc = self;
         if (ai_lib.isInCombat(npc) || ai_lib.isInCombat(player))
         {
@@ -15362,10 +15357,13 @@ public class fan_faire_pgc_c3po extends script.base_script
             return SCRIPT_CONTINUE;
         }
         chat.chat(npc, "Error:  All conditions for OnStartNpcConversation were false.");
-        return SCRIPT_CONTINUE;
+        */
     }
     public int OnNpcConversationResponse(obj_id self, String conversationId, obj_id player, string_id response) throws InterruptedException
     {
+        utils.removeScriptVar(player, "conversation.fan_faire_pgc_c3po.branchId");
+        return SCRIPT_CONTINUE;
+        /*
         if (!conversationId.equals("fan_faire_pgc_c3po"))
         {
             return SCRIPT_CONTINUE;
@@ -15442,6 +15440,6 @@ public class fan_faire_pgc_c3po extends script.base_script
         }
         chat.chat(npc, "Error:  Fell through all branches and responses for OnNpcConversationResponse.");
         utils.removeScriptVar(player, "conversation.fan_faire_pgc_c3po.branchId");
-        return SCRIPT_CONTINUE;
+        */
     }
 }

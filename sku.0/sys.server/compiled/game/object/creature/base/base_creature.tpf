@@ -7,24 +7,33 @@
 defaultWeapon = "object/weapon/creature/strength6/creature_strength6_normal.iff"
 
 attributes[AT_health] = 1000
+attributes[AT_strength] = 1000
 attributes[AT_constitution] = 1000
 attributes[AT_action] = 1000
+attributes[AT_quickness] = 1000
 attributes[AT_stamina] = 1000
 attributes[AT_mind] = 1000
+attributes[AT_focus] = 1000
 attributes[AT_willpower] = 1000
 
 minAttributes[AT_health] = 0
+minAttributes[AT_strength] = 0
 minAttributes[AT_constitution] = 0
 minAttributes[AT_action] = 0
+minAttributes[AT_quickness] = 0
 minAttributes[AT_stamina] = 0
 minAttributes[AT_mind] = 0
+minAttributes[AT_focus] = 0
 minAttributes[AT_willpower] = 0
 
 maxAttributes[AT_health] = 1000
+maxAttributes[AT_strength] = 1000
 maxAttributes[AT_constitution] = 1000
 maxAttributes[AT_action] = 1000
+maxAttributes[AT_quickness] = 1000
 maxAttributes[AT_stamina] = 1000
 maxAttributes[AT_mind] = 1000
+maxAttributes[AT_focus] = 1000
 maxAttributes[AT_willpower] = 1000
 
 minDrainModifier = 0.0007

@@ -11,7 +11,6 @@ public class newbie extends script.theme_park.newbie_tutorial.tutorial_base
     public newbie()
     {
     }
-    public static final String questNewbieHall01 = "c_newbie_hall_01";
     public int OnAttach(obj_id self) throws InterruptedException
     {
         if (features.isSpaceEdition(self))
@@ -59,11 +58,6 @@ public class newbie extends script.theme_park.newbie_tutorial.tutorial_base
     }
     public void beginTutorial(obj_id self) throws InterruptedException
     {
-        obj_id bldg = getTopMostContainer(self);
-        if (!groundquests.isQuestActiveOrComplete(self, questNewbieHall01))
-        {
-            groundquests.grantQuest(self, questNewbieHall01, false);
-        }
         messageTo(self, "handleWelcome", null, 5, false);
     }
     public int OnDetach(obj_id self) throws InterruptedException
@@ -124,7 +118,6 @@ public class newbie extends script.theme_park.newbie_tutorial.tutorial_base
         removeObjVar(self, "skipTutorial");
         removeObjVar(self, "banking_bankid");
         setObjVar(self, "comingFromTutorial", 1);
-        grantAllNoviceSkills(self);
         return SCRIPT_CONTINUE;
     }
     public int OnTransferred(obj_id self, obj_id sourceContainer, obj_id destContainer, obj_id transferer) throws InterruptedException

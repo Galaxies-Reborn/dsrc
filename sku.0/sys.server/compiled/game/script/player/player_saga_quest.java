@@ -10,24 +10,18 @@ public class player_saga_quest extends script.base_script
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
-        messageTo(self, "handleChronicleProfessionGranted", null, 14, false);
+        // Chronicles is an NGE-only progression system. Keep attach inert;
+        // OnInitialize retires this legacy script after attachment completes.
         return SCRIPT_CONTINUE;
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
-        messageTo(self, "handleChronicleProfessionGranted", null, 9, false);
+        detachScript(self, "player.player_saga_quest");
         return SCRIPT_CONTINUE;
     }
     public int OnNewbieTutorialResponse(obj_id self, String action) throws InterruptedException
     {
-        if (action.equals("clientReady"))
-        {
-            if (!hasObjVar(self, "chroniclesTermsOfServiceShown"))
-            {
-                messageTo(self, "handleChroniclesTermsOfService", null, 2, false);
-            }
-            messageTo(self, "handleChroniclesReserveReminder", null, 3, false);
-        }
+        detachScript(self, "player.player_saga_quest");
         return SCRIPT_CONTINUE;
     }
     public int handleChroniclesTermsOfService(obj_id self, dictionary params) throws InterruptedException

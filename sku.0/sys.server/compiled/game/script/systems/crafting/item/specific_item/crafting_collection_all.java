@@ -11,7 +11,7 @@ public class crafting_collection_all extends script.systems.crafting.item.crafti
     public static final String VERSION = "v0.00.00";
     public static final String[] REQUIRED_SKILLS = 
     {
-        "class_trader"
+        "crafting_artisan_novice"
     };
     public static final String[] ASSEMBLY_SKILL_MODS = 
     {

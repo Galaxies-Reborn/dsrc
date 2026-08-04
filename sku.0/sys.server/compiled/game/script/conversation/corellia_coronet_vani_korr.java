@@ -50,11 +50,11 @@ public class corellia_coronet_vani_korr extends script.base_script
     }
     public boolean corellia_coronet_vani_korr_condition_act1_completedAct1(obj_id player, obj_id npc) throws InterruptedException
     {
-        return groundquests.hasCompletedQuest(player, "corellia_coronet_meatlump_act1_end") && getLevel(player) < 55;
+        return groundquests.hasCompletedQuest(player, "corellia_coronet_meatlump_act1_end") && script.library.skill.getPrecuEncounterDifficulty(player) < 55;
     }
     public boolean corellia_coronet_vani_korr_condition_isLevelForMtp(obj_id player, obj_id npc) throws InterruptedException
     {
-        return getLevel(player) >= 55;
+        return script.library.skill.getPrecuEncounterDifficulty(player) >= 55;
     }
     public boolean corellia_coronet_vani_korr_condition_returning_mtpHideout02(obj_id player, obj_id npc) throws InterruptedException
     {
@@ -62,7 +62,7 @@ public class corellia_coronet_vani_korr extends script.base_script
     }
     public boolean corellia_coronet_vani_korr_condition_readyForMtpHideout(obj_id player, obj_id npc) throws InterruptedException
     {
-        return groundquests.hasCompletedQuest(player, "corellia_coronet_meatlump_act1_end") && getLevel(player) >= 55;
+        return groundquests.hasCompletedQuest(player, "corellia_coronet_meatlump_act1_end") && script.library.skill.getPrecuEncounterDifficulty(player) >= 55;
     }
     public boolean corellia_coronet_vani_korr_condition_active_mtpHideout01(obj_id player, obj_id npc) throws InterruptedException
     {
@@ -147,7 +147,7 @@ public class corellia_coronet_vani_korr extends script.base_script
     }
     public void corellia_coronet_vani_korr_action_grant_mtpHideout01(obj_id player, obj_id npc) throws InterruptedException
     {
-        if (getLevel(player) >= 82)
+        if (script.library.skill.getPrecuEncounterDifficulty(player) >= 82)
         {
             groundquests.grantQuest(player, "mtp_hideout_access_high_01");
         }
@@ -168,7 +168,7 @@ public class corellia_coronet_vani_korr extends script.base_script
     }
     public void corellia_coronet_vani_korr_action_grant_mtpHideout03(obj_id player, obj_id npc) throws InterruptedException
     {
-        if (getLevel(player) >= 82)
+        if (script.library.skill.getPrecuEncounterDifficulty(player) >= 82)
         {
             groundquests.grantQuest(player, "mtp_hideout_access_high_03");
         }

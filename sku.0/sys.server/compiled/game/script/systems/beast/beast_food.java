@@ -1,6 +1,7 @@
 package script.systems.beast;
 
 import script.library.beast_lib;
+import script.library.incubator;
 import script.library.static_item;
 import script.library.utils;
 import script.menu_info;
@@ -20,6 +21,10 @@ public class beast_food extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (!utils.isNestedWithin(self, player))
         {
             return SCRIPT_CONTINUE;
@@ -49,6 +54,10 @@ public class beast_food extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (incubator.isRetiredPostNgeBeastMasterCreationPlayer(player))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!utils.isNestedWithin(self, player))
         {
             return SCRIPT_CONTINUE;

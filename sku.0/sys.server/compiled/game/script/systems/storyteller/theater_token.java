@@ -11,6 +11,16 @@ public class theater_token extends script.base_script
     public theater_token()
     {
     }
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        detachScript(self, "systems.storyteller.theater_token");
+        return SCRIPT_CONTINUE;
+    }
+    public int OnInitialize(obj_id self) throws InterruptedException
+    {
+        detachScript(self, "systems.storyteller.theater_token");
+        return SCRIPT_CONTINUE;
+    }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
         mi.addRootMenu(menu_info_types.ITEM_USE, new string_id("storyteller", "deploy_mode"));

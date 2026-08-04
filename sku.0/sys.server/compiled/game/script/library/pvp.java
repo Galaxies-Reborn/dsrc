@@ -705,7 +705,7 @@ public class pvp extends script.base_script
     }
     public static boolean isBountyHunter(obj_id player) throws InterruptedException
     {
-        return hasSkill(player, "class_bountyhunter_phase2_novice");
+        return hasSkill(player, "combat_bountyhunter_novice");
     }
     public static boolean isPadawan(obj_id player) throws InterruptedException
     {

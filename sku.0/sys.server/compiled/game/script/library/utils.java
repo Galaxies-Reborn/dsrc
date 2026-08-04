@@ -149,20 +149,10 @@ public class utils extends script.base_script
     }
     public static boolean hasSpecialSkills(obj_id player) throws InterruptedException
     {
-        boolean skillCheck = false;
-        if (hasSkill(player, "class_commando_phase4_master"))
-        {
-            skillCheck = true;
-        }
-        if (hasSkill(player, "class_bountyhunter_phase4_master"))
-        {
-            skillCheck = true;
-        }
-        if (hasSkill(player, "class_officer_phase4_master"))
-        {
-            skillCheck = true;			
-        }
-        return skillCheck;
+        return hasSkill(player, "combat_bountyhunter_master") ||
+            hasSkill(player, "combat_commando_master") ||
+            hasSkill(player, "outdoors_squadleader_master") ||
+            hasSkill(player, "outdoors_ranger_master");
     }
     public static int unequipAndNotifyUncerted(obj_id player) throws InterruptedException
     {
@@ -186,7 +176,6 @@ public class utils extends script.base_script
         };
         obj_id curArmor;
         obj_id inv = utils.getInventoryContainer(player);
-        String classTemplate = getSkillTemplate(player);
         prose_package pp;
 
         for (String armorSlot : armorSlots) {
@@ -200,15 +189,13 @@ public class utils extends script.base_script
                 putInOverloaded(curArmor, inv);
             }
             if (!isIdNull(curArmor) && hasObjVar(curArmor, "armor.fake_armor") && hasObjVar(curArmor, "dynamic_item.required_skill")) {
-                if (classTemplate != null && !classTemplate.equals("")) {
-                    if (!classTemplate.startsWith(getStringObjVar(curArmor, "dynamic_item.required_skill"))) {
-                        totalUnequipped++;
-                        pp = new prose_package();
-                        pp = prose.setStringId(pp, new string_id("spam", "armor_lost_cert"));
-                        pp = prose.setTT(pp, curArmor);
-                        sendSystemMessageProse(player, pp);
-                        putInOverloaded(curArmor, inv);
-                    }
+                if (!meetsProfessionRequirement(player, getStringObjVar(curArmor, "dynamic_item.required_skill"))) {
+                    totalUnequipped++;
+                    pp = new prose_package();
+                    pp = prose.setStringId(pp, new string_id("spam", "armor_lost_cert"));
+                    pp = prose.setTT(pp, curArmor);
+                    sendSystemMessageProse(player, pp);
+                    putInOverloaded(curArmor, inv);
                 }
             }
         }
@@ -231,16 +218,6 @@ public class utils extends script.base_script
                     sendSystemMessageProse(player, pp);
                 }
             }
-        }
-        obj_id weapon = getCurrentWeapon(player);
-        if (isIdValid(weapon) && !combat.hasCertification(player, weapon))
-        {
-            totalUnequipped++;
-            pp = new prose_package();
-            pp = prose.setStringId(pp, new string_id("spam", "weapon_lost_cert"));
-            pp = prose.setTT(pp, weapon);
-            sendSystemMessageProse(player, pp);
-            putInOverloaded(weapon, inv);
         }
         obj_id hold_l = getObjectInSlot(player, "hold_l");
         obj_id hold_r = getObjectInSlot(player, "hold_r");
@@ -288,15 +265,13 @@ public class utils extends script.base_script
                     putInOverloaded(curArmor, inv);
                 }
                 if (!isIdNull(curArmor) && hasObjVar(curArmor, "armor.fake_armor") && hasObjVar(curArmor, "dynamic_item.required_skill")) {
-                    if (classTemplate != null && !classTemplate.equals("")) {
-                        if (!classTemplate.startsWith(getStringObjVar(curArmor, "dynamic_item.required_skill"))) {
-                            totalUnequipped++;
-                            pp = new prose_package();
-                            pp = prose.setStringId(pp, new string_id("spam", "armor_lost_cert"));
-                            pp = prose.setTT(pp, curArmor);
-                            sendSystemMessageProse(player, pp);
-                            putInOverloaded(curArmor, inv);
-                        }
+                    if (!meetsProfessionRequirement(player, getStringObjVar(curArmor, "dynamic_item.required_skill"))) {
+                        totalUnequipped++;
+                        pp = new prose_package();
+                        pp = prose.setStringId(pp, new string_id("spam", "armor_lost_cert"));
+                        pp = prose.setTT(pp, curArmor);
+                        sendSystemMessageProse(player, pp);
+                        putInOverloaded(curArmor, inv);
                     }
                 }
                 if (!static_item.validateLevelRequired(player, curArmor)) {
@@ -2085,6 +2060,7 @@ public class utils extends script.base_script
                     {
                         amt = 0;
                     }
+                    litmus = healWound(target, attrib, amt) != ATTRIB_ERROR;
                     break;
                 case (int)healing.AM_HEAL_SHOCK:
                     if (amt < 0)
@@ -2101,6 +2077,14 @@ public class utils extends script.base_script
                     litmus = addShockWound(target, amt);
                     break;
             }
+        }
+        else if (am.getDecay() == MOD_WOUND)
+        {
+            if (amt < 0)
+            {
+                amt = -amt;
+            }
+            litmus = addWound(target, attrib, amt) != ATTRIB_ERROR;
         }
         else 
         {
@@ -5788,13 +5772,14 @@ public class utils extends script.base_script
             while (st.hasMoreTokens())
             {
                 classId = st.nextToken();
-                tmp = "@skl_n:class_" + classId + "\0";
+                int requiredClass = stringToInt(classId);
+                tmp = getPrecuRetainedItemClassName(requiredClass) + "\0";
                 if (st.hasMoreTokens())
                 {
                     tmp += "\n\\>117\0";
                 }
                 requiredText += tmp;
-                if (isProfession(player, stringToInt(classId)))
+                if (isPrecuRetainedItemClass(player, requiredClass))
                 {
                     qualifies = true;
                     break;
@@ -5806,15 +5791,6 @@ public class utils extends script.base_script
                 attribs[firstFree++] = requiredText;
             }
         }
-        if (hasObjVar(item, prefix + "levelRequired"))
-        {
-            int minLevel = getIntObjVar(item, prefix + "levelRequired");
-            if (minLevel > getLevel(player))
-            {
-                names[firstFree] = "levelrequired";
-                attribs[firstFree++] = "" + minLevel;
-            }
-        }
         return firstFree;
     }
     public static boolean testItemClassRequirements(obj_id player, String requiredClasses, boolean silent) throws InterruptedException
@@ -5822,7 +5798,7 @@ public class utils extends script.base_script
         java.util.StringTokenizer st = new java.util.StringTokenizer(requiredClasses, ",");
         while (st.hasMoreTokens())
         {
-            if (isProfession(player, stringToInt(st.nextToken())))
+            if (isPrecuRetainedItemClass(player, stringToInt(st.nextToken())))
                 return true;
         }
         if (!silent)
@@ -5836,20 +5812,8 @@ public class utils extends script.base_script
     }
     public static boolean testItemLevelRequirements(obj_id player, obj_id thing, boolean silent, String prefix) throws InterruptedException
     {
-        if (!hasObjVar(thing, prefix + "levelRequired"))
-        {
-            return true;
-        }
-        int minLevel = getIntObjVar(thing, prefix + "levelRequired");
-        if (minLevel > getLevel(player))
-        {
-            if (!silent)
-            {
-                prose_package pp = prose.getPackage(new string_id("spam", "levelrequired"), "" + minLevel);
-                sendSystemMessageProse(player, pp);
-            }
-            return false;
-        }
+        // Retained expansion items may carry this compatibility metadata, but
+        // Publish 14.1 characters have no player combat level to gate against.
         return true;
     }
     public static boolean testItemAbilityRequirements(obj_id player, obj_id thing, boolean silent, String prefix) throws InterruptedException
@@ -6048,11 +6012,8 @@ public class utils extends script.base_script
     }
     public static boolean canSpeakWookiee(obj_id player, obj_id npc) throws InterruptedException
     {
-        if (hasSkill(player, "class_smuggler_phase1_novice"))
-        {
-            return false;
-        }
-        return !hasSkill(player, "social_language_wookiee_comprehend");
+        return !hasSkill(player, "social_language_wookiee_comprehend") &&
+            !hasSkill(player, "combat_smuggler_underworld_01");
     }
     public static void emoteWookieeConfusion(obj_id player, obj_id npc) throws InterruptedException
     {
@@ -6238,72 +6199,128 @@ public class utils extends script.base_script
         {
             return false;
         }
-        String professionName = "";
         switch (profession)
         {
             case COMMANDO:
-                professionName = "commando";
-                break;
+                return hasSkill(player, "combat_commando_novice");
             case SMUGGLER:
-                professionName = "smuggler";
-                break;
+                return hasSkill(player, "combat_smuggler_novice");
             case MEDIC:
-                professionName = "medic";
-                break;
+                return hasSkill(player, "science_medic_novice");
             case OFFICER:
-                professionName = "officer";
-                break;
+                return hasSkill(player, "outdoors_squadleader_novice");
             case SPY:
-                professionName = "spy";
-                break;
+                return false;
             case BOUNTY_HUNTER:
-                professionName = "bounty";
-                break;
+                return hasSkill(player, "combat_bountyhunter_novice");
             case FORCE_SENSITIVE:
-                professionName = "force";
-                break;
+                return isJediState(player, JEDI_STATE_FORCE_SENSITIVE);
             case TRADER:
-                professionName = "trader";
-                break;
+                return hasSkill(player, "crafting_artisan_novice");
             case ENTERTAINER:
-                professionName = "entertainer";
-                break;
+                return hasSkill(player, "social_entertainer_novice");
             default:
-                break;
+                return false;
         }
-        String classTemplate = getSkillTemplate(player);
-        return classTemplate != null && classTemplate.startsWith(professionName);
+    }
+    public static boolean isPrecuRetainedItemClass(obj_id player, int profession) throws InterruptedException
+    {
+        // Retained expansion scout devices encode the later Spy class as 5.
+        // Ranger is the Publish 14.1 advanced tracking, camouflage, and
+        // trapping profession; keep this translation local to item admission.
+        if (profession == SPY)
+        {
+            return isIdValid(player) && isPlayer(player) && hasSkill(player, "outdoors_ranger_novice");
+        }
+        return isProfession(player, profession);
+    }
+    public static String getPrecuRetainedItemClassName(int profession) throws InterruptedException
+    {
+        if (profession == SPY)
+        {
+            return "@skl_n:outdoors_ranger_novice";
+        }
+        return "@skl_n:class_" + profession;
+    }
+    public static boolean meetsProfessionRequirement(obj_id player, String requirement) throws InterruptedException
+    {
+        if (!isIdValid(player) || requirement == null || requirement.equals(""))
+        {
+            return false;
+        }
+        if (hasSkill(player, requirement))
+        {
+            return true;
+        }
+        if (requirement.equals("commando"))
+        {
+            return isProfession(player, COMMANDO);
+        }
+        if (requirement.equals("smuggler"))
+        {
+            return isProfession(player, SMUGGLER);
+        }
+        if (requirement.equals("medic"))
+        {
+            return isProfession(player, MEDIC);
+        }
+        if (requirement.equals("officer"))
+        {
+            return isProfession(player, OFFICER);
+        }
+        if (requirement.equals("spy"))
+        {
+            return false;
+        }
+        if (requirement.equals("bounty_hunter") ||
+            requirement.equals("bounty"))
+        {
+            return isProfession(player, BOUNTY_HUNTER);
+        }
+        if (requirement.equals("force_sensitive") ||
+            requirement.equals("force"))
+        {
+            return isProfession(player, FORCE_SENSITIVE);
+        }
+        if (requirement.equals("trader"))
+        {
+            return isProfession(player, TRADER);
+        }
+        if (requirement.equals("entertainer"))
+        {
+            return isProfession(player, ENTERTAINER);
+        }
+        return false;
     }
     public static int getPlayerProfession(obj_id player) throws InterruptedException
     {
-        String[] noviceSkillList = 
+        if (isProfession(player, FORCE_SENSITIVE))
         {
-            "class_forcesensitive_phase1_novice",
-            "class_bountyhunter_phase1_novice",
-            "class_smuggler_phase1_novice",
-            "class_commando_phase1_novice",
-            "class_officer_phase1_novice",
-            "class_spy_phase1_novice",
-            "class_medic_phase1_novice",
-            "class_entertainer_phase1_novice"
-        };
-        int[] professionList = 
+            return FORCE_SENSITIVE;
+        }
+        if (isProfession(player, BOUNTY_HUNTER))
         {
-            FORCE_SENSITIVE,
-            BOUNTY_HUNTER,
-            SMUGGLER,
-            COMMANDO,
-            OFFICER,
-            SPY,
-            MEDIC,
-            ENTERTAINER
-        };
-        for (int i = 0; i < noviceSkillList.length; i++)
+            return BOUNTY_HUNTER;
+        }
+        if (isProfession(player, SMUGGLER))
         {
-            if (hasSkill(player, noviceSkillList[i]))
-            {
-                return professionList[i];
-            }
+            return SMUGGLER;
+        }
+        if (isProfession(player, COMMANDO))
+        {
+            return COMMANDO;
+        }
+        if (isProfession(player, OFFICER))
+        {
+            return OFFICER;
+        }
+        if (isProfession(player, MEDIC))
+        {
+            return MEDIC;
+        }
+        if (isProfession(player, ENTERTAINER))
+        {
+            return ENTERTAINER;
         }
         return TRADER;
     }

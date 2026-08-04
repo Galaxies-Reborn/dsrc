@@ -1,0 +1,4 @@
+*.java text eol=lf
+*.tab text eol=lf
+*.tdf text eol=lf
+*.tpf text eol=lf

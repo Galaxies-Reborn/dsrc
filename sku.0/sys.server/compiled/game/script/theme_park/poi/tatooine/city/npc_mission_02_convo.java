@@ -117,7 +117,7 @@ public class npc_mission_02_convo extends script.systems.missions.base.mission_d
                 npcEndConversation(player);
                 return SCRIPT_CONTINUE;
             }
-            int intPlayerDifficulty = getLevel(player);
+            int intPlayerDifficulty = script.library.skill.getPrecuEncounterDifficulty(player);
             if (intPlayerDifficulty <= getIntObjVar(self, "intMinDifficulty"))
             {
                 string_id strResponse = new string_id("mission/mission_generic", "npc_job_request_wrong_difficulty");

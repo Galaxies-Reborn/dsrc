@@ -336,6 +336,7 @@ public class craftinglib extends script.base_script
             sendSystemMessageTestingOnly(player, "CRAFTING -- Balanced Roll Modifiers = " + totalSkillMod);
         }
         float modifiedDieRoll = dieRoll + totalSkillMod + dieRollMod;
+        modifiedDieRoll += luck.getPrecuCraftingLuckRoll(player);
         debugServerConsoleMsg(null, "@@@@ calcSkillDesignAssemblyCheck: Total Roll = " + modifiedDieRoll);
         if (isPlayerQA)
         {
@@ -399,11 +400,7 @@ public class craftinglib extends script.base_script
         {
             CustomerServiceLog("crit_fail", "== ASSEMBLY_BEGIN == " + getName(player) + " (" + player + ") is starting to assemble an item -- Base Roll: " + dieRoll + ", Mod Roll: " + modifiedDieRoll);
         }
-        if (luck.isLucky(player, 0.01f))
-        {
-            successState = STATE_CRITICAL_SUCCESS;
-        }
-        else if (dieRoll >= criticalSuccess)
+        if (dieRoll >= criticalSuccess)
         {
             successState = STATE_CRITICAL_SUCCESS;
         }
@@ -1210,6 +1207,7 @@ public class craftinglib extends script.base_script
                 float successAdjust = playerSkillMod / 4000.0f;
                 float successThreshold = 5.0f * ((10.0f + experimentPoints[i]) * (1 - successAdjust)) * deltaMod;
                 float modifiedSkillRoll = dieRoll + numericRangeModifiedTargetNumberModifier;
+                modifiedSkillRoll += luck.getPrecuCraftingLuckRoll(player);
                 debugServerConsoleMsg(null, "\texpPts = " + experimentPoints[i] + ", success threshold = " + successThreshold + ", mod roll = " + modifiedSkillRoll);
                 float moderateSuccess = successThreshold * 1.15f;
                 float goodSuccess = successThreshold * 1.30f;
@@ -1243,12 +1241,7 @@ public class craftinglib extends script.base_script
                 float oneExperimentPoint = craftingValuesDictionary.getFloat((itemAttributes[i].name).getAsciiId() + "TenPercent");
                 float totalAttribExperimentPoints = oneExperimentPoint * experimentPoints[i];
                 float successPointScale = 0;
-                if (luck.isLucky(player, 0.005f))
-                {
-                    successState = STATE_CRITICAL_SUCCESS;
-                    successPointScale = 1.20f;
-                }
-                else if (dieRoll >= criticalSuccess)
+                if (dieRoll >= criticalSuccess)
                 {
                     successState = STATE_CRITICAL_SUCCESS;
                     successPointScale = 1.15f;
@@ -1911,18 +1904,5 @@ public class craftinglib extends script.base_script
             }
         }
         return null;
-    }
-    public static boolean isTrader(obj_id who) throws InterruptedException
-    {
-        if (!isIdValid(who) || !exists(who))
-        {
-            return false;
-        }
-        String profession = skill.getProfessionName(getSkillTemplate(who));
-        if (profession.equals("trader"))
-        {
-            return true;
-        }
-        return false;
     }
 }

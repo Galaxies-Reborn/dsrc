@@ -7,6 +7,28 @@ import java.util.Vector;
 
 public class combat extends script.base_script
 {
+    public static final String PRECU_WEAPON_HAM_COST_TABLE = "datatables/combat/precu_weapon_ham_costs.iff";
+    public static final String PRECU_FEIGN_PENDING =
+        "precu.feignDeath.pending";
+    public static final String PRECU_FEIGN_PENDING_DEFENSE_MODIFIER =
+        "precu_feign_pending_defense";
+    public static final String PRECU_FEIGN_DAMAGE_DIVISOR_MODIFIER =
+        "precu_feign_damage_divisor";
+    public static final String PRECU_FEIGN_DAMAGE_MULTIPLIER_MODIFIER =
+        "precu_feign_damage_multiplier";
+    public static final String PRECU_FEIGN_SAVED_HEALTH =
+        "precu.feignDeath.savedHealth";
+    public static final String PRECU_FEIGN_FINALIZING =
+        "precu.feignDeath.finalizing";
+    public static final String PRECU_FEIGN_FIXTURE_ROOT =
+        "precu.p14.headShot1Fixture.m329";
+    public static final String PRECU_FEIGN_DIAGNOSTIC_ROOT =
+        PRECU_FEIGN_FIXTURE_ROOT + ".liveDiagnostic";
+    public static final String PRECU_FEIGN_FORCED_ROLL =
+        PRECU_FEIGN_FIXTURE_ROOT + ".forcedRoll";
+    private static final long PRECU_FEIGN_FIXTURE_PLAYER_OID = 44003778L;
+    private static final int PRECU_FEIGN_FIXTURE_STATION_ID = 91001;
+    private static final int PRECU_FEIGN_MAX_DEFENDERS = 5;
     public combat()
     {
     }
@@ -14,6 +36,7 @@ public class combat extends script.base_script
     public static final float OUT_COMBAT_REGEN_MULT = 4.0f;
     public static final int PLAYER_COMBAT_BASE_DAMAGE = 60;
     public static final int PLAYER_ATTACKER_DAMAGE_LEVEL_MULTIPLIER = 5;
+    public static final float PRECU_UNCERTIFIED_WEAPON_MISS_PENALTY = 50.0f;
     public static final int RANGED_WEAPON = -1;
     public static final int MELEE_WEAPON = -2;
     public static final int ALL_WEAPONS = -3;
@@ -23,6 +46,10 @@ public class combat extends script.base_script
     public static final int WEAPON_TYPE_FORCE_POWER = -1;
     public static final int LEFT_CLICK_DEFAULT = 1;
     public static final int RIGHT_CLICK_SPECIAL = 2;
+    public static final int PRECU_TARGET_POOL_HEALTH = 0;
+    public static final int PRECU_TARGET_POOL_ACTION = 1;
+    public static final int PRECU_TARGET_POOL_MIND = 2;
+    public static final int PRECU_TARGET_POOL_RANDOM = 3;
     public static final int B_RIFLE = 0x00000001;
     public static final int B_CARBINE = 0x00000002;
     public static final int B_PISTOL = 0x00000004;
@@ -673,6 +700,15 @@ public class combat extends script.base_script
         }
         return true;
     }
+    public static boolean drainCombatActionAttributes(obj_id self, int[] actionCost, boolean usePrecuHam) throws InterruptedException
+    {
+        if (!usePrecuHam)
+        {
+            return drainCombatActionAttributes(self, actionCost);
+        }
+        return actionCost != null && actionCost.length == 3 &&
+            drainCombatAttributes(self, actionCost[0], actionCost[1], actionCost[2]);
+    }
     public static boolean canDrainCombatActionAttributes(obj_id self, int actionCost) throws InterruptedException
     {
         int[] tempArray = 
@@ -694,6 +730,57 @@ public class combat extends script.base_script
         }
         return true;
     }
+
+    public static boolean canDrainCombatActionAttributes(obj_id self, int[] actionCost, boolean usePrecuHam) throws InterruptedException
+    {
+        if (!usePrecuHam)
+        {
+            return canDrainCombatActionAttributes(self, actionCost);
+        }
+        if (actionCost == null || actionCost.length != 3)
+        {
+            return false;
+        }
+        int[] pools = { HEALTH, ACTION, MIND };
+        for (int i = 0; i < pools.length; ++i)
+        {
+            if (actionCost[i] < 0 || (actionCost[i] > 0 && getAttrib(self, pools[i]) <= actionCost[i]))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static int calculatePrecuHamCost(int governingValue, int baseCost, float multiplier) throws InterruptedException
+    {
+        if (baseCost < 0 || multiplier < 0.0f)
+        {
+            return -1;
+        }
+        float cost = baseCost * multiplier;
+        cost -= ((governingValue - 300.0f) / 1200.0f) * cost;
+        return Math.max(0, (int)cost);
+    }
+
+    private static int[] getPrecuHamActionCost(obj_id self, weapon_data weaponData, float healthMultiplier, float actionMultiplier, float mindMultiplier) throws InterruptedException
+    {
+        int[] invalid = { -1, -1, -1 };
+        if (weaponData == null || !isIdValid(weaponData.id))
+        {
+            return invalid;
+        }
+        dictionary weaponCosts = dataTableGetRow(PRECU_WEAPON_HAM_COST_TABLE, getTemplateName(weaponData.id));
+        if (weaponCosts == null)
+        {
+            return invalid;
+        }
+        int[] costs = new int[3];
+        costs[0] = calculatePrecuHamCost(getAttrib(self, STRENGTH), weaponCosts.getInt("healthCost"), healthMultiplier);
+        costs[1] = calculatePrecuHamCost(getAttrib(self, QUICKNESS), weaponCosts.getInt("actionCost"), actionMultiplier);
+        costs[2] = calculatePrecuHamCost(getAttrib(self, FOCUS), weaponCosts.getInt("mindCost"), mindMultiplier);
+        return costs;
+    }
     public static final int ACTION_SUCCESS = 0;
     public static final int ACTION_INVALID_DATA = 1;
     public static final int ACTION_INVALID_WEAPON = 2;
@@ -713,7 +800,7 @@ public class combat extends script.base_script
             return ACTION_INVALID_WEAPON;
         }
         int[] actionCost = getActionCost(self, weaponData, actionData);
-        if (!canDrainCombatActionAttributes(self, actionCost))
+        if (!canDrainCombatActionAttributes(self, actionCost, actionData.precuHamCostModel > 0))
         {
             return ACTION_TOO_TIRED;
         }
@@ -725,6 +812,10 @@ public class combat extends script.base_script
     }
     public static int[] getActionCost(obj_id self, weapon_data weaponData, dictionary actionData) throws InterruptedException
     {
+        if (actionData.getInt("precuHamCostModel") > 0)
+        {
+            return getPrecuHamActionCost(self, weaponData, actionData.getFloat("healthCost"), actionData.getFloat("actionCost"), actionData.getFloat("mindCost"));
+        }
         int[] cost = new int[3];
         float healthCost = 0;
         float actionCost;
@@ -880,6 +971,10 @@ public class combat extends script.base_script
     }
     public static int[] getActionCost(obj_id self, weapon_data weaponData, combat_data actionData) throws InterruptedException
     {
+        if (actionData.precuHamCostModel > 0)
+        {
+            return getPrecuHamActionCost(self, weaponData, actionData.healthCost, actionData.actionCost, actionData.mindCost);
+        }
         int[] cost = new int[3];
         float healthCost = 0;
         float actionCost;
@@ -1158,6 +1253,387 @@ public class combat extends script.base_script
     public static int applyArmorProtection(obj_id attacker, obj_id defender, weapon_data weaponData, hit_result hitData, float bypassArmor) throws InterruptedException
     {
         return applyArmorProtection(attacker, defender, weaponData, hitData, bypassArmor, 0.0f);
+    }
+    /**
+     * Resolves Core3's RANDOM pool independently for one defender.
+     *
+     * System::random(100) is inclusive in Core3: rolls 0..60 select Health,
+     * 61..95 select Action, and 96..100 select Mind.
+     */
+    public static int resolvePrecuTargetPool(int targetPool) throws InterruptedException
+    {
+        if (targetPool != PRECU_TARGET_POOL_RANDOM)
+        {
+            return targetPool;
+        }
+        int roll = rand(0, 100);
+        if (roll <= 60)
+        {
+            return PRECU_TARGET_POOL_HEALTH;
+        }
+        if (roll <= 95)
+        {
+            return PRECU_TARGET_POOL_ACTION;
+        }
+        return PRECU_TARGET_POOL_MIND;
+    }
+    /**
+     * Selects the physical hit location used by the Publish 14 HAM pool.
+     *
+     * Health attacks select body, body, left arm, or right arm; action attacks
+     * select either leg; and mind attacks always select the head. This keeps
+     * armor-piece selection aligned with the pool that the command damages.
+     */
+    public static int selectPrecuHitLocationForPool(int targetPool) throws InterruptedException
+    {
+        switch (targetPool)
+        {
+            case PRECU_TARGET_POOL_HEALTH:
+                int[] healthLocations =
+                {
+                    HIT_LOCATION_BODY,
+                    HIT_LOCATION_BODY,
+                    HIT_LOCATION_L_ARM,
+                    HIT_LOCATION_R_ARM
+                };
+                return healthLocations[rand(0, healthLocations.length - 1)];
+            case PRECU_TARGET_POOL_ACTION:
+                int[] actionLocations =
+                {
+                    HIT_LOCATION_L_LEG,
+                    HIT_LOCATION_R_LEG
+                };
+                return actionLocations[rand(0, actionLocations.length - 1)];
+            case PRECU_TARGET_POOL_MIND:
+                return HIT_LOCATION_HEAD;
+            default:
+                return HIT_LOCATION_BODY;
+        }
+    }
+    /**
+     * Applies the Publish 14 player-armor order to an authenticated pre-CU
+     * combat action: personal shield generator, hit-location armor piece, then
+     * caller-owned food mitigation. Armor piercing is the Core3 NONE/LIGHT/
+     * MEDIUM/HEAVY value in the range 0..3.
+     */
+    public static int applyPrecuArmorProtection(
+        obj_id defender,
+        weapon_data weaponData,
+        hit_result hitData,
+        int armorPiercing) throws InterruptedException
+    {
+        if (!isPlayer(defender))
+        {
+            return 0;
+        }
+
+        int originalBaseDamage = Math.max(0, hitData.damage);
+        int originalElementalDamage = Math.max(0, weaponData.elementalValue);
+        float baseDamage = originalBaseDamage;
+        float elementalDamage = originalElementalDamage;
+        obj_id blockingArmor = null;
+
+        obj_id psg = getPsgArmor(defender);
+        if (isIdValid(psg))
+        {
+            float baseProtection =
+                getPrecuArmorObjectProtection(psg, weaponData.damageType, true);
+            float elementalProtection =
+                getPrecuArmorObjectProtection(psg, weaponData.elementalType, true);
+            if (baseProtection > 0.0f || elementalProtection > 0.0f)
+            {
+                float incomingDamage = baseDamage + elementalDamage;
+                int armorRating = getPrecuArmorRating(psg);
+                baseDamage = applyPrecuArmorLayer(
+                    baseDamage, baseProtection, armorPiercing, armorRating);
+                elementalDamage = applyPrecuArmorLayer(
+                    elementalDamage, elementalProtection, armorPiercing, armorRating);
+                decayPrecuArmorPiece(psg, incomingDamage);
+                blockingArmor = psg;
+            }
+        }
+
+        obj_id armorPiece = getArmorPieceHit(defender, hitData.hitLocation);
+        if (isIdValid(armorPiece))
+        {
+            float baseProtection =
+                getPrecuArmorObjectProtection(
+                    armorPiece, weaponData.damageType, false);
+            float elementalProtection =
+                getPrecuArmorObjectProtection(
+                    armorPiece, weaponData.elementalType, false);
+            if (baseProtection > 0.0f || elementalProtection > 0.0f)
+            {
+                float incomingDamage = baseDamage + elementalDamage;
+                int armorRating = getPrecuArmorRating(armorPiece);
+                baseDamage = applyPrecuArmorLayer(
+                    baseDamage, baseProtection, armorPiercing, armorRating);
+                elementalDamage = applyPrecuArmorLayer(
+                    elementalDamage, elementalProtection, armorPiercing, armorRating);
+                decayPrecuArmorPiece(armorPiece, incomingDamage);
+                blockingArmor = armorPiece;
+            }
+        }
+
+        hitData.damage = Math.max(0, (int)baseDamage);
+        hitData.elementalDamage = Math.max(0, (int)elementalDamage);
+        hitData.elementalDamageType = weaponData.elementalType;
+        if (isIdValid(blockingArmor))
+        {
+            hitData.blockingArmor = blockingArmor;
+        }
+        int finalDamage = hitData.damage + hitData.elementalDamage;
+        return Math.max(
+            0, originalBaseDamage + originalElementalDamage - finalDamage);
+    }
+    /**
+     * Applies Core3 Publish 14.1 creature armor rating and resistance data.
+     * A raw resistance over 100 carries Core3's special-protection marker and
+     * mitigates at raw - 100. A value of -1 is a vulnerability and bypasses
+     * both armor rating and resistance for that damage type.
+     */
+    public static int applyPrecuCreatureArmorProtection(
+        obj_id defender,
+        weapon_data weaponData,
+        hit_result hitData,
+        int armorPiercing) throws InterruptedException
+    {
+        if (!isIdValid(defender) || isPlayer(defender))
+        {
+            return 0;
+        }
+
+        int originalBaseDamage = Math.max(0, hitData.damage);
+        int originalElementalDamage = Math.max(0, weaponData.elementalValue);
+        int armorRating = getPrecuCreatureArmorRating(defender);
+        int baseResistance =
+            getPrecuCreatureArmorResistance(defender, weaponData.damageType);
+        int elementalResistance =
+            getPrecuCreatureArmorResistance(defender, weaponData.elementalType);
+
+        float baseDamage = applyPrecuCreatureArmorLayer(
+            originalBaseDamage,
+            baseResistance,
+            armorPiercing,
+            armorRating);
+        float elementalDamage = applyPrecuCreatureArmorLayer(
+            originalElementalDamage,
+            elementalResistance,
+            armorPiercing,
+            armorRating);
+
+        hitData.damage = Math.max(0, (int)baseDamage);
+        hitData.elementalDamage = Math.max(0, (int)elementalDamage);
+        hitData.elementalDamageType = weaponData.elementalType;
+        int finalDamage = hitData.damage + hitData.elementalDamage;
+        return Math.max(
+            0, originalBaseDamage + originalElementalDamage - finalDamage);
+    }
+    public static float applyPrecuCreatureArmorLayer(
+        float damage,
+        int resistance,
+        int armorPiercing,
+        int armorRating) throws InterruptedException
+    {
+        if (damage <= 0.0f)
+        {
+            return 0.0f;
+        }
+        if (resistance < 0)
+        {
+            return damage;
+        }
+
+        float ratingMultiplier =
+            getPrecuArmorPiercingMultiplier(armorPiercing, armorRating);
+        float protection =
+            Math.max(0.0f, Math.min(100.0f, resistance)) / 100.0f;
+        return Math.max(
+            0.0f, damage * ratingMultiplier * (1.0f - protection));
+    }
+    public static int getPrecuCreatureArmorRating(obj_id defender)
+        throws InterruptedException
+    {
+        if (!isIdValid(defender) || !hasObjVar(defender, "precu.armor.rating"))
+        {
+            return 0;
+        }
+        return Math.max(
+            0, Math.min(3, getIntObjVar(defender, "precu.armor.rating")));
+    }
+    public static int getPrecuCreatureArmorResistance(
+        obj_id defender,
+        int damageType) throws InterruptedException
+    {
+        String damageString = getPrecuArmorDamageString(damageType);
+        if (!isIdValid(defender))
+        {
+            return -1;
+        }
+        if (damageString == null)
+        {
+            return 0;
+        }
+
+        String resistanceObjVar = "precu.armor." + damageString;
+        if (!hasObjVar(defender, resistanceObjVar))
+        {
+            return -1;
+        }
+        int rawResistance = getIntObjVar(defender, resistanceObjVar);
+        return rawResistance > 100 ? rawResistance - 100 : rawResistance;
+    }
+    public static float applyPrecuArmorLayer(
+        float damage,
+        float protection,
+        int armorPiercing,
+        int armorRating) throws InterruptedException
+    {
+        if (damage <= 0.0f || protection <= 0.0f)
+        {
+            return Math.max(0.0f, damage);
+        }
+        float ratingMultiplier =
+            getPrecuArmorPiercingMultiplier(armorPiercing, armorRating);
+        float clampedProtection = Math.max(0.0f, Math.min(1.0f, protection));
+        return Math.max(
+            0.0f, damage * ratingMultiplier * (1.0f - clampedProtection));
+    }
+    public static float getPrecuArmorPiercingMultiplier(
+        int armorPiercing,
+        int armorRating) throws InterruptedException
+    {
+        int piercing = Math.max(0, Math.min(3, armorPiercing));
+        int rating = Math.max(0, Math.min(3, armorRating));
+        int difference = Math.abs(piercing - rating);
+        if (difference == 0)
+        {
+            return 1.0f;
+        }
+        return piercing > rating ?
+            (float)Math.pow(1.25f, difference) :
+            (float)Math.pow(0.50f, difference);
+    }
+    /**
+     * The retained armor library stores basic/standard/advanced as 0/1/2.
+     * Publish 14 armor ratings are NONE/LIGHT/MEDIUM/HEAVY as 0/1/2/3.
+     */
+    public static int getPrecuArmorRating(obj_id armorPiece)
+        throws InterruptedException
+    {
+        if (!isIdValid(armorPiece))
+        {
+            return 0;
+        }
+        int armorLevel = armor.getArmorLevel(armorPiece);
+        return Math.max(0, Math.min(3, armorLevel + 1));
+    }
+    public static float getPrecuArmorObjectProtection(
+        obj_id armorPiece,
+        int damageType,
+        boolean psg) throws InterruptedException
+    {
+        if (!isIdValid(armorPiece) || !armor.isValidArmor(armorPiece))
+        {
+            return 0.0f;
+        }
+        int generalProtection = armor.getArmorGeneralProtection(armorPiece);
+        dictionary protections = psg ?
+            armor.getPsgSpecialProtections(armorPiece) :
+            armor.getArmorSpecialProtections(armorPiece);
+        String damageString = getPrecuArmorDamageString(damageType);
+        float protection = Math.max(0, generalProtection);
+        if (protections != null && damageString != null)
+        {
+            protection += protections.getFloat(damageString);
+        }
+        return Math.max(
+            0.0f, Math.min(1.0f, convertProtectionToPercent(protection)));
+    }
+    public static String getPrecuArmorDamageString(int damageType)
+        throws InterruptedException
+    {
+        switch (damageType)
+        {
+            case DAMAGE_KINETIC:
+                return "kinetic";
+            case DAMAGE_ENERGY:
+                return "energy";
+            case DAMAGE_BLAST:
+                return "blast";
+            case DAMAGE_STUN:
+                return "stun";
+            case DAMAGE_RESTRAINT:
+                return "lightsaber";
+            case DAMAGE_ELEMENTAL_HEAT:
+                return "heat";
+            case DAMAGE_ELEMENTAL_COLD:
+                return "cold";
+            case DAMAGE_ELEMENTAL_ACID:
+                return "acid";
+            case DAMAGE_ELEMENTAL_ELECTRICAL:
+            case DAMAGE_ENVIRONMENTAL_ELECTRICAL:
+                return "electricity";
+            default:
+                return null;
+        }
+    }
+    /**
+     * Publish 14 armor condition wear is twenty percent of the damage entering
+     * each armor layer. The NGE path remains unchanged.
+     */
+    public static void decayPrecuArmorPiece(obj_id armorPiece, float incomingDamage)
+        throws InterruptedException
+    {
+        if (!isIdValid(armorPiece) || incomingDamage <= 0.0f ||
+            utils.isAntiDecay(armorPiece) || static_item.isStaticItem(armorPiece))
+        {
+            return;
+        }
+        int conditionDamage = Math.max(1, (int)(incomingDamage * 0.20f));
+        int currentCondition = getHitpoints(armorPiece);
+        setHitpoints(
+            armorPiece, Math.max(0, currentCondition - conditionDamage));
+    }
+    /**
+     * Applies the retained Publish 14 food.mitigate_damage effect after armor.
+     * Legacy food scriptvars remain authoritative; the skill mod is accepted
+     * for migrated objects that already use the newer modifier system.
+     */
+    public static int applyPrecuFoodMitigation(
+        obj_id defender,
+        hit_result hitData) throws InterruptedException
+    {
+        int effectiveness =
+            getEnhancedSkillStatisticModifier(defender, "mitigate_damage");
+        if (utils.hasScriptVar(defender, "food.mitigate_damage.eff"))
+        {
+            effectiveness =
+                utils.getIntScriptVar(defender, "food.mitigate_damage.eff");
+            if (utils.hasScriptVar(defender, "food.mitigate_damage.dur"))
+            {
+                int duration =
+                    utils.getIntScriptVar(defender, "food.mitigate_damage.dur") - 1;
+                if (duration <= 0)
+                {
+                    clearBuffIcon(defender, "food.mitigate_damage");
+                    utils.removeScriptVarTree(defender, "food.mitigate_damage");
+                }
+                else
+                {
+                    utils.setScriptVar(
+                        defender, "food.mitigate_damage.dur", duration);
+                }
+            }
+        }
+        effectiveness = Math.max(0, Math.min(100, effectiveness));
+        int baseMitigated = (int)(hitData.damage * (effectiveness / 100.0f));
+        int elementalMitigated =
+            (int)(hitData.elementalDamage * (effectiveness / 100.0f));
+        hitData.damage = Math.max(0, hitData.damage - baseMitigated);
+        hitData.elementalDamage =
+            Math.max(0, hitData.elementalDamage - elementalMitigated);
+        return baseMitigated + elementalMitigated;
     }
     public static int applyArmorProtection(obj_id attacker, obj_id defender, weapon_data weaponData, hit_result hitData, float bypassArmor, float expertiseDamageBonus) throws InterruptedException
     {
@@ -2315,6 +2791,40 @@ public class combat extends script.base_script
     {
         return hasCertification(objPlayer, objWeapon, true);
     }
+    public static boolean isPrecuStarterWeapon(obj_id objWeapon) throws InterruptedException
+    {
+        if (!isIdValid(objWeapon) || !exists(objWeapon))
+        {
+            return false;
+        }
+        int legacyLevel = -1;
+        if (hasObjVar(objWeapon, weapons.OBJVAR_WP_LEVEL))
+        {
+            legacyLevel = getIntObjVar(objWeapon, weapons.OBJVAR_WP_LEVEL);
+        }
+        else if (static_item.isDynamicItem(objWeapon) &&
+            hasObjVar(objWeapon, "dynamic_item.intLevelRequired"))
+        {
+            legacyLevel = getIntObjVar(objWeapon, "dynamic_item.intLevelRequired");
+        }
+        else if (static_item.isStaticItem(objWeapon))
+        {
+            dictionary itemData = static_item.getMasterItemDictionary(objWeapon);
+            if (itemData != null)
+            {
+                legacyLevel = itemData.getInt("required_level");
+            }
+        }
+        else
+        {
+            String template = getTemplateName(objWeapon);
+            if (template != null)
+            {
+                legacyLevel = dataTableGetInt(WEAPON_LEVEL_TABLE, template, "weapon_level");
+            }
+        }
+        return legacyLevel >= 0 && legacyLevel <= 1;
+    }
     public static boolean hasCertification(obj_id objPlayer, obj_id objWeapon, boolean verbose) throws InterruptedException
     {
         boolean hasCert = true;
@@ -2358,67 +2868,23 @@ public class combat extends script.base_script
                 hasCert = false;
             }
         }
-        String classTemplate = getSkillTemplate(objPlayer);
-        if (isLightsaberWeapon(objWeapon) && !utils.isProfession(objPlayer, utils.FORCE_SENSITIVE))
+        if (hasCert && isPrecuStarterWeapon(objWeapon))
         {
-            hasCert = false;
+            utils.setScriptVar(objPlayer, "combat.weaponCertified", objWeapon);
+            return true;
         }
-        if (static_item.isDynamicItem(objWeapon))
+        String[] requiredCertifications = getRequiredCertifications(objWeapon);
+        if (requiredCertifications != null)
         {
-            int levelRequired = getIntObjVar(objWeapon, "dynamic_item.intLevelRequired");
-            int playerLevel = getLevel(objPlayer);
-            if (playerLevel < levelRequired)
+            for (String requirement : requiredCertifications)
             {
-                hasCert = false;
-            }
-        }
-        else if (static_item.isStaticItem(objWeapon))
-        {
-            dictionary itemData = static_item.getMasterItemDictionary(objWeapon);
-            String skillRequired = itemData.getString("required_skill");
-            if (skillRequired != null && !skillRequired.equals(""))
-            {
-                if (classTemplate != null && !classTemplate.equals(""))
+                if (requirement != null && !requirement.equals(""))
                 {
-                    if (!classTemplate.startsWith(skillRequired))
+                    if (!hasCommand(objPlayer, requirement) && !hasSkill(objPlayer, requirement))
                     {
                         hasCert = false;
                     }
                 }
-            }
-            int levelRequired = itemData.getInt("required_level");
-            int playerLevel = getLevel(objPlayer);
-            if (playerLevel < levelRequired)
-            {
-                hasCert = false;
-            }
-        }
-        else 
-        {
-            String skillRequired = dataTableGetString(WEAPON_LEVEL_TABLE, template, "secondary_restriction");
-            if (skillRequired != null && !skillRequired.equals(""))
-            {
-                if (classTemplate != null && !classTemplate.equals(""))
-                {
-                    if (!classTemplate.startsWith(skillRequired))
-                    {
-                        hasCert = false;
-                    }
-                }
-            }
-            int levelRequired = -1;
-            int playerLevel = getLevel(objPlayer);
-            if (hasObjVar(objWeapon, weapons.OBJVAR_WP_LEVEL))
-            {
-                levelRequired = getIntObjVar(objWeapon, weapons.OBJVAR_WP_LEVEL);
-            }
-            else 
-            {
-                levelRequired = dataTableGetInt(WEAPON_LEVEL_TABLE, template, "weapon_level");
-            }
-            if (playerLevel < levelRequired)
-            {
-                hasCert = false;
             }
         }
         if (!hasCert && isGod(objPlayer))
@@ -2462,6 +2928,306 @@ public class combat extends script.base_script
             }
         }
         return false;
+    }
+    public static boolean armPrecuFeignDeath(obj_id player)
+        throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player) ||
+            isDead(player) ||
+            !hasSkill(player, "combat_smuggler_combat_01"))
+        {
+            recordPrecuFeignDiagnostic(player, "outcome", "playerRejected");
+            return false;
+        }
+        if (getState(player, STATE_FEIGN_DEATH) == 1 ||
+            buff.hasBuff(player, "feign_death"))
+        {
+            boolean revealed = revealPrecuFeignDeath(player, "toggle");
+            recordPrecuFeignDiagnostic(player, "outcome",
+                revealed ? "revealed" : "revealFailed");
+            return revealed;
+        }
+        if (isIncapacitated(player))
+        {
+            recordPrecuFeignDiagnostic(player, "outcome", "playerRejected");
+            return false;
+        }
+        if (!isInCombat(player))
+        {
+            sendSystemMessage(player,
+                new string_id("combat_effects", "feign_no_combat"));
+            recordPrecuFeignDiagnostic(player, "outcome", "noCombat");
+            return false;
+        }
+        clearPrecuFeignPending(player);
+        setObjVar(player, PRECU_FEIGN_PENDING, getGameTime());
+        boolean modifierApplied = addSkillModModifier(player,
+            PRECU_FEIGN_PENDING_DEFENSE_MODIFIER, "private_defense",
+            -99999999, -1.0f, false, false);
+        if (!modifierApplied)
+        {
+            removeObjVar(player, PRECU_FEIGN_PENDING);
+            recordPrecuFeignDiagnostic(player, "outcome",
+                "pendingModifierFailed");
+            return false;
+        }
+        sendSystemMessage(player,
+            new string_id("cbt_spam", "feign_get_hit_single"));
+        recordPrecuFeignDiagnostic(player, "outcome", "pendingDamage");
+        recordPrecuFeignDiagnostic(player, "pending", 1);
+        recordPrecuFeignDiagnostic(player, "privateDefense",
+            getEnhancedSkillStatisticModifierUncapped(player,
+                "private_defense"));
+        return true;
+    }
+    public static boolean consumePrecuFeignDeathOnDamage(obj_id player)
+        throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) ||
+            !hasObjVar(player, PRECU_FEIGN_PENDING))
+        {
+            return false;
+        }
+        clearPrecuFeignPending(player);
+        int skillMod = getSkillStatisticModifier(player, "feign_death");
+        obj_id[] targeting = getWhoIsTargetingMe(player);
+        int defenderCount = targeting == null ? 0 :
+            Math.min(PRECU_FEIGN_MAX_DEFENDERS, targeting.length);
+        recordPrecuFeignDiagnostic(player, "pending", 0);
+        recordPrecuFeignDiagnostic(player, "skillMod", skillMod);
+        recordPrecuFeignDiagnostic(player, "defenderCount", defenderCount);
+        if (getState(player, STATE_RIDING_MOUNT) == 1 ||
+            getLocomotion(player) == LOCOMOTION_KNEELING ||
+            (getAttrib(player, HEALTH) <= 100 &&
+                getAttrib(player, ACTION) <= 100 &&
+                getAttrib(player, MIND) <= 100))
+        {
+            sendSystemMessage(player,
+                new string_id("cbt_spam", "feign_fail_single"));
+            recordPrecuFeignDiagnostic(player, "outcome",
+                "boundaryRejected");
+            return false;
+        }
+        String rolls = "";
+        boolean accepted = true;
+        for (int index = 0; index < defenderCount; ++index)
+        {
+            int roll = isPrecuFeignFixture(player) &&
+                hasObjVar(player, PRECU_FEIGN_FORCED_ROLL) ?
+                getIntObjVar(player, PRECU_FEIGN_FORCED_ROLL) :
+                rand(0, 100);
+            rolls += (index == 0 ? "" : ",") + roll;
+            if (roll > skillMod)
+            {
+                accepted = false;
+                break;
+            }
+        }
+        recordPrecuFeignDiagnostic(player, "rolls", rolls);
+        if (!accepted)
+        {
+            sendSystemMessage(player,
+                new string_id("cbt_spam", "feign_fail_single"));
+            recordPrecuFeignDiagnostic(player, "outcome", "rollFailed");
+            return false;
+        }
+        boolean buffApplied = buff.applyBuff(player, player, "feign_death");
+        boolean divisorApplied = addSkillModModifier(player,
+            PRECU_FEIGN_DAMAGE_DIVISOR_MODIFIER,
+            "private_damage_divisor", 4, -1.0f, false, false);
+        boolean multiplierApplied = addSkillModModifier(player,
+            PRECU_FEIGN_DAMAGE_MULTIPLIER_MODIFIER,
+            "private_damage_multiplier", 5, -1.0f, false, false);
+        if (!buffApplied || !divisorApplied || !multiplierApplied)
+        {
+            revealPrecuFeignDeath(player, "entryRollback");
+            sendSystemMessage(player,
+                new string_id("cbt_spam", "feign_fail_single"));
+            recordPrecuFeignDiagnostic(player, "outcome", "entryFailed");
+            return false;
+        }
+        stopCombat(player);
+        messageTo(player, "precuFinalizeFeignDeath", null, 1.0f, false);
+        recordPrecuFeignDiagnostic(player, "outcome", "finalizePending");
+        return true;
+    }
+    public static boolean finalizePrecuFeignDeath(obj_id player)
+        throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) ||
+            !buff.hasBuff(player, "feign_death") ||
+            !hasSkillModModifier(player,
+                PRECU_FEIGN_DAMAGE_DIVISOR_MODIFIER) ||
+            !hasSkillModModifier(player,
+                PRECU_FEIGN_DAMAGE_MULTIPLIER_MODIFIER))
+        {
+            return false;
+        }
+        if (!hasObjVar(player, PRECU_FEIGN_SAVED_HEALTH))
+        {
+            setObjVar(player, PRECU_FEIGN_SAVED_HEALTH,
+                Math.max(1, getAttrib(player, HEALTH)));
+        }
+        setObjVar(player, PRECU_FEIGN_FINALIZING, 1);
+        setAttrib(player, HEALTH, -100);
+        setPostureClientImmediate(player, POSTURE_INCAPACITATED);
+        setState(player, STATE_FEIGN_DEATH, true);
+        removeObjVar(player, PRECU_FEIGN_FINALIZING);
+        stopCombat(player);
+        boolean finalized = getState(player, STATE_FEIGN_DEATH) == 1 &&
+            getPosture(player) == POSTURE_INCAPACITATED;
+        recordPrecuFeignDiagnostic(player, "outcome",
+            finalized ? "feigned" : "finalizeFailed");
+        recordPrecuFeignDiagnostic(player, "state",
+            getState(player, STATE_FEIGN_DEATH));
+        recordPrecuFeignDiagnostic(player, "posture", getPosture(player));
+        recordPrecuFeignDiagnostic(player, "locomotion",
+            getLocomotion(player));
+        recordPrecuFeignDiagnostic(player, "inCombat",
+            isInCombat(player) ? 1 : 0);
+        if (!finalized)
+        {
+            revealPrecuFeignDeath(player, "finalizeRollback");
+        }
+        return finalized;
+    }
+    public static boolean restorePrecuFeignDeathOnLoad(obj_id player)
+        throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) ||
+            !hasObjVar(player, PRECU_FEIGN_SAVED_HEALTH))
+        {
+            return false;
+        }
+        setObjVar(player, PRECU_FEIGN_FINALIZING, 1);
+        boolean buffReady = buff.hasBuff(player, "feign_death") ||
+            buff.applyBuff(player, player, "feign_death");
+        boolean divisorReady = hasSkillModModifier(player,
+            PRECU_FEIGN_DAMAGE_DIVISOR_MODIFIER) ||
+            addSkillModModifier(player,
+                PRECU_FEIGN_DAMAGE_DIVISOR_MODIFIER,
+                "private_damage_divisor", 4, -1.0f, false, false);
+        boolean multiplierReady = hasSkillModModifier(player,
+            PRECU_FEIGN_DAMAGE_MULTIPLIER_MODIFIER) ||
+            addSkillModModifier(player,
+                PRECU_FEIGN_DAMAGE_MULTIPLIER_MODIFIER,
+                "private_damage_multiplier", 5, -1.0f, false, false);
+        setAttrib(player, HEALTH, -100);
+        setPostureClientImmediate(player, POSTURE_INCAPACITATED);
+        setState(player, STATE_FEIGN_DEATH, true);
+        removeObjVar(player, PRECU_FEIGN_FINALIZING);
+        stopCombat(player);
+        boolean restored = buffReady && divisorReady && multiplierReady &&
+            buff.hasBuff(player, "feign_death") &&
+            hasSkillModModifier(player,
+                PRECU_FEIGN_DAMAGE_DIVISOR_MODIFIER) &&
+            hasSkillModModifier(player,
+                PRECU_FEIGN_DAMAGE_MULTIPLIER_MODIFIER) &&
+            getState(player, STATE_FEIGN_DEATH) == 1 &&
+            getPosture(player) == POSTURE_INCAPACITATED;
+        recordPrecuFeignDiagnostic(player, "outcome",
+            restored ? "restoredAfterLoad" : "loadRestoreFailed");
+        if (!restored)
+        {
+            revealPrecuFeignDeath(player, "loadRollback");
+        }
+        return restored;
+    }
+    public static boolean revealPrecuFeignDeath(obj_id player, String source)
+        throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player))
+        {
+            return false;
+        }
+        boolean active = getState(player, STATE_FEIGN_DEATH) == 1 ||
+            buff.hasBuff(player, "feign_death") ||
+            hasSkillModModifier(player,
+                PRECU_FEIGN_DAMAGE_DIVISOR_MODIFIER) ||
+            hasSkillModModifier(player,
+                PRECU_FEIGN_DAMAGE_MULTIPLIER_MODIFIER);
+        if (active)
+        {
+            clearPrecuFeignPending(player);
+        }
+        if (buff.hasBuff(player, "feign_death"))
+        {
+            buff.removeBuff(player, "feign_death");
+        }
+        setState(player, STATE_FEIGN_DEATH, false);
+        removeAttribOrSkillModModifier(player,
+            PRECU_FEIGN_DAMAGE_DIVISOR_MODIFIER);
+        removeAttribOrSkillModModifier(player,
+            PRECU_FEIGN_DAMAGE_MULTIPLIER_MODIFIER);
+        if (hasObjVar(player, PRECU_FEIGN_FINALIZING))
+        {
+            removeObjVar(player, PRECU_FEIGN_FINALIZING);
+        }
+        if (hasObjVar(player, PRECU_FEIGN_SAVED_HEALTH))
+        {
+            int restoredHealth = Math.max(1, Math.min(
+                getIntObjVar(player, PRECU_FEIGN_SAVED_HEALTH),
+                getMaxAttrib(player, HEALTH)));
+            setAttrib(player, HEALTH, restoredHealth);
+            removeObjVar(player, PRECU_FEIGN_SAVED_HEALTH);
+        }
+        if (active && getPosture(player) == POSTURE_INCAPACITATED)
+        {
+            setPosture(player, POSTURE_UPRIGHT);
+        }
+        if (active)
+        {
+            recordPrecuFeignDiagnostic(player, "outcome", "revealed");
+            recordPrecuFeignDiagnostic(player, "revealSource", source);
+            recordPrecuFeignDiagnostic(player, "state",
+                getState(player, STATE_FEIGN_DEATH));
+            recordPrecuFeignDiagnostic(player, "posture",
+                getPosture(player));
+        }
+        return active && getState(player, STATE_FEIGN_DEATH) == 0 &&
+            !buff.hasBuff(player, "feign_death");
+    }
+    public static void clearPrecuFeignPending(obj_id player)
+        throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player))
+        {
+            return;
+        }
+        if (hasObjVar(player, PRECU_FEIGN_PENDING))
+        {
+            removeObjVar(player, PRECU_FEIGN_PENDING);
+        }
+        removeAttribOrSkillModModifier(player,
+            PRECU_FEIGN_PENDING_DEFENSE_MODIFIER);
+    }
+    private static boolean isPrecuFeignFixture(obj_id player)
+        throws InterruptedException
+    {
+        return isIdValid(player) && player.getValue() ==
+            PRECU_FEIGN_FIXTURE_PLAYER_OID &&
+            getPlayerStationId(player) == PRECU_FEIGN_FIXTURE_STATION_ID &&
+            hasObjVar(player, PRECU_FEIGN_DIAGNOSTIC_ROOT + ".enabled") &&
+            getIntObjVar(player,
+                PRECU_FEIGN_DIAGNOSTIC_ROOT + ".enabled") == 1;
+    }
+    private static void recordPrecuFeignDiagnostic(obj_id player,
+        String key, int value) throws InterruptedException
+    {
+        if (isPrecuFeignFixture(player))
+        {
+            setObjVar(player, PRECU_FEIGN_DIAGNOSTIC_ROOT + "." + key,
+                value);
+        }
+    }
+    private static void recordPrecuFeignDiagnostic(obj_id player,
+        String key, String value) throws InterruptedException
+    {
+        if (isPrecuFeignFixture(player))
+        {
+            setObjVar(player, PRECU_FEIGN_DIAGNOSTIC_ROOT + "." + key,
+                value == null ? "" : value);
+        }
     }
     public static boolean isInCombat(obj_id objTarget) throws InterruptedException
     {
@@ -2602,6 +3368,24 @@ public class combat extends script.base_script
         if (anims.length > 1)
         {
             animation = anims[rand(0, anims.length - 1)];
+        }
+        return animation;
+    }
+    public static String getPrecuActionAnimation(combat_data actionData, String weaponType, int hitLocation, int weaponMaxDamage, int damage) throws InterruptedException
+    {
+        String animation = getActionAnimation(actionData, weaponType);
+        if (animation == null || animation.equals("") ||
+            actionData.precuAnimationType <= 0 ||
+            animation.startsWith("*creature_attack"))
+        {
+            return animation;
+        }
+        int threshold = Math.max(0, weaponMaxDamage) >> 2;
+        animation += damage > threshold ? "_medium" : "_light";
+        if (actionData.precuAnimationType == 1 &&
+            hitLocation == HIT_LOCATION_HEAD)
+        {
+            animation += "_face";
         }
         return animation;
     }
@@ -2817,6 +3601,12 @@ public class combat extends script.base_script
         obj_id attacker = attackerData.id;
         obj_id defender = defenderData.id;
         float missChance = isPlayer(attacker) ? 0.0f : 5.0f;
+        obj_id currentWeapon = getCurrentWeapon(attacker);
+        if (isPlayer(attacker) && isIdValid(currentWeapon) &&
+            !hasCertification(attacker, currentWeapon, false))
+        {
+            missChance += PRECU_UNCERTIFIED_WEAPON_MISS_PENALTY;
+        }
         if (autoAim && isRangedWeapon(getCurrentWeapon(attacker)))
         {
             missChance += 5.0f;

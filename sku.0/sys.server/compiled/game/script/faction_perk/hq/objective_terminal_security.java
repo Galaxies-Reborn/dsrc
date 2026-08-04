@@ -83,7 +83,7 @@ public class objective_terminal_security extends script.faction_perk.hq.objectiv
         }
         if (item == menu_info_types.ITEM_USE)
         {
-            if (!hasSkill(player, "class_smuggler_phase1_novice"))
+            if (!hasSkill(player, "combat_smuggler_slicing_01"))
             {
                 sendSystemMessage(player, ONLY_A_SMUGGLER);
                 return SCRIPT_CONTINUE;
@@ -172,15 +172,15 @@ public class objective_terminal_security extends script.faction_perk.hq.objectiv
         }
         int cnt = params.getInt("cnt");
         int max = 1;
-        if (hasSkill(player, "class_smuggler_phase4_novice"))
+        if (hasSkill(player, "combat_smuggler_slicing_04"))
         {
             max = 4;
         }
-        else if (hasSkill(player, "class_smuggler_phase3_novice"))
+        else if (hasSkill(player, "combat_smuggler_slicing_03"))
         {
             max = 3;
         }
-        else if (hasSkill(player, "class_smuggler_phase2_novice"))
+        else if (hasSkill(player, "combat_smuggler_slicing_02"))
         {
             max = 2;
         }

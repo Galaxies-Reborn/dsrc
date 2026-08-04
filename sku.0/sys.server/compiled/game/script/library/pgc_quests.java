@@ -1323,48 +1323,10 @@ public class pgc_quests extends script.base_script
     }
     public static void grantPgcNonChroniclesQuestXp(obj_id player, obj_id questHolocron) throws InterruptedException
     {
-        int questLevel = getIntObjVar(questHolocron, pgc_quests.PCG_QUEST_LEVEL_OBJVAR);
-        obj_id questCreatorObjId = getObjIdObjVar(questHolocron, PCG_QUEST_CREATOR_ID_OBJVAR);
-        int questCreatorStationId = getIntObjVar(questHolocron, PCG_QUEST_CREATOR_STATIONID_OBJVAR);
-        float questWeight = getFloatObjVar(questHolocron, PCG_QUEST_WEIGHT_OBJVAR);
-        pgc_quests.grantPgcNonChroniclesQuestXp(player, questLevel, questWeight, questCreatorObjId, questCreatorStationId);
         return;
     }
     public static void grantPgcNonChroniclesQuestXp(obj_id player, int questLevel, float questWeight, obj_id questCreatorObjId, int questCreatorStationId) throws InterruptedException
     {
-        float xpWeight = questWeight * 0.5f;
-        if (xpWeight < 5.0f)
-        {
-            xpWeight = 5.0f;
-        }
-        else if (xpWeight > 25.0f)
-        {
-            xpWeight = 25.0f;
-        }
-        int xpAmount = (int)(groundquests.getQuestExperienceReward(player, questLevel, 1, 0) * xpWeight);
-        int playerStationId = getPlayerStationId(player);
-        if (playerStationId == questCreatorStationId)
-        {
-            xpAmount *= 0.5;
-        }
-        String template = getSkillTemplate(player);
-        String xpType = xp.QUEST_COMBAT;
-        if (template.startsWith("trader"))
-        {
-            xpAmount = xp.grantCraftingQuestXp(player, xpAmount);
-            xpType = xp.QUEST_CRAFTING;
-        }
-        else if (template.startsWith("entertainer"))
-        {
-            xpAmount = xp.grantSocialStyleXp(player, xp.QUEST_SOCIAL, xpAmount);
-            xpType = xp.QUEST_SOCIAL;
-        }
-        else 
-        {
-            xpAmount = xp.grantCombatStyleXp(player, xp.QUEST_COMBAT, xpAmount);
-            xpType = xp.QUEST_COMBAT;
-        }
-        xp.displayXpFlyText(player, player, xpAmount);
         return;
     }
     public static void showPgcXpGrantedMessage(obj_id player, String xpType, int xpAmount) throws InterruptedException

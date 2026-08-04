@@ -32,30 +32,53 @@ public class live_conversions extends script.base_script
     public static final String UPDATE_COLLECTION_SLOT_TO_GRANT = "slot_to_grant";
     public static final String UPDATE_COLLECTION_INCREMENT_AMOUNT = "increment_amount";
     public static final String FORCE_RESPEC_OBJVAR = "configEnforcedRespecVersion";
+    public static final boolean POST_NGE_PLAYER_MIGRATION_RUNTIME_RETIRED = true;
+    public static boolean isPostNgePlayerMigrationRuntimeRetired() throws InterruptedException
+    {
+        return POST_NGE_PLAYER_MIGRATION_RUNTIME_RETIRED;
+    }
+    public static void retirePostNgePlayerMigrationState(obj_id player) throws InterruptedException
+    {
+        if (!POST_NGE_PLAYER_MIGRATION_RUNTIME_RETIRED || !isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        setSkillTemplate(player, "");
+        setWorkingSkill(player, "");
+        removeObjVar(player, "combatLevel");
+        removeObjVar(player, "clickRespec");
+        removeObjVar(player, "npcRespec");
+        removeObjVar(player, "playerRespec");
+        removeObjVar(player, "respecsBought");
+        removeObjVar(player, "respec_voucher");
+        removeObjVar(player, FORCE_RESPEC_OBJVAR);
+        removeObjVar(player, VAR_FLAGS);
+        if (hasScript(player, "cureward.cureward"))
+        {
+            detachScript(player, "cureward.cureward");
+        }
+        if (hasScript(player, "player.live_conversions"))
+        {
+            detachScript(player, "player.live_conversions");
+        }
+    }
     public int OnAttach(obj_id self) throws InterruptedException
     {
-        runOncePerSessionConversions(self);
-        runOncePerTravelConversions(self);
         return SCRIPT_CONTINUE;
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
-        runOncePerSessionConversions(self);
+        detachScript(self, "player.live_conversions");
         return SCRIPT_CONTINUE;
     }
     public int OnLogin(obj_id self) throws InterruptedException
     {
-        runOncePerTravelConversions(self);
+        detachScript(self, "player.live_conversions");
         return SCRIPT_CONTINUE;
     }
     public int OnNewbieTutorialResponse(obj_id self, String action) throws InterruptedException
     {
-        if (action.equals("clientReady"))
-        {
-            updateBountyHunterMissions(self);
-            updateChangedQuests(self);
-            updateCollectionSlots(self);
-        }
+        detachScript(self, "player.live_conversions");
         return SCRIPT_CONTINUE;
     }
     public void runOncePerSessionConversions(obj_id player) throws InterruptedException
@@ -632,7 +655,17 @@ public class live_conversions extends script.base_script
         {
             attachScript(player, "systems.storyteller.storyteller_commands");
         }
-        if (!hasScript(player, "systems.gcw.player_pvp"))
+        if (gcw.isPostNgeQueuedBattlefieldRetired())
+        {
+            if (hasScript(player, "systems.gcw.player_pvp"))
+            {
+                detachScript(player, "systems.gcw.player_pvp");
+            }
+            utils.removeScriptVarTree(player, "battlefield");
+            buff.removeBuff(player, "battlefield_communication_run");
+            buff.removeBuff(player, "battlefield_radar_invisibility");
+        }
+        else if (!hasScript(player, "systems.gcw.player_pvp"))
         {
             attachScript(player, "systems.gcw.player_pvp");
         }
@@ -663,10 +696,6 @@ public class live_conversions extends script.base_script
         if (!hasScript(player, "player.player_instance"))
         {
             attachScript(player, "player.player_instance");
-        }
-        if (!hasScript(player, "player.player_saga_quest"))
-        {
-            attachScript(player, "player.player_saga_quest");
         }
     }
     public void updateResidencyLinks(obj_id player) throws InterruptedException

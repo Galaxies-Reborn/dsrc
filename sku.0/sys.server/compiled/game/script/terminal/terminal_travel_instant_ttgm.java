@@ -18,34 +18,12 @@ public class terminal_travel_instant_ttgm extends script.base_script
     public static final string_id SID_WHILE_DEAD = new string_id("spam", "while_dead");
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
-        if (!isIdValid(player))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        if (isDead(player) || isIncapacitated(player))
-        {
-            sendSystemMessage(player, SID_WHILE_DEAD);
-            return SCRIPT_CONTINUE;
-        }
-        obj_id tcg_itv = getSelf();
-        mi.addRootMenu(menu_info_types.ITEM_USE, new string_id("reward_sys", "vet_ttgm_use_menu"));
+        LOG("LOG_CHANNEL", "Ignored retired NGE teleport-to-group-member menu request for " + player);
         return SCRIPT_CONTINUE;
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
-        if (!isIdValid(player))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        if (getState(player, STATE_RIDING_MOUNT) == 1)
-        {
-            pet_lib.doDismountNow(player, true);
-        }
-        if (item == menu_info_types.ITEM_USE)
-        {
-            showGroupMemberMenu(self, player);
-            return SCRIPT_CONTINUE;
-        }
+        LOG("LOG_CHANNEL", "Ignored retired NGE teleport-to-group-member selection for " + player);
         return SCRIPT_CONTINUE;
     }
     public dictionary getMyItemData(obj_id self) throws InterruptedException
@@ -202,52 +180,7 @@ public class terminal_travel_instant_ttgm extends script.base_script
     }
     public int handleConfirmTravel(obj_id self, dictionary params) throws InterruptedException
     {
-        if (params == null || params.isEmpty())
-        {
-            return SCRIPT_CONTINUE;
-        }
-        obj_id player = sui.getPlayerId(params);
-        if (!isIdValid(player))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        int bp = sui.getIntButtonPressed(params);
-        if (bp == sui.BP_CANCEL)
-        {
-            return SCRIPT_CONTINUE;
-        }
-        if (!terminalIsInRangeOfPlayer(self, player))
-        {
-            sendSystemMessage(player, new string_id("reward_sys", "vet_ttgm_out_of_range"));
-            return SCRIPT_CONTINUE;
-        }
-        if (utils.hasScriptVar(player, TRAVEL_LOC_VAR))
-        {
-            location travelLoc = utils.getLocationScriptVar(player, TRAVEL_LOC_VAR);
-            utils.removeScriptVar(player, TRAVEL_LOC_VAR);
-            if (travelLoc != null)
-            {
-                String[] groupieRegions = new String[0];
-                if (utils.hasScriptVar(player, TRAVEL_LOC_REGIONS_VAR))
-                {
-                    groupieRegions = utils.getStringArrayScriptVar(player, TRAVEL_LOC_REGIONS_VAR);
-                }
-                if (!isValidTravelLocation(player, travelLoc, groupieRegions))
-                {
-                    return SCRIPT_CONTINUE;
-                }
-                dictionary itemData = getMyItemData(self);
-                if (itemData != null)
-                {
-                    String coolDownGroup = itemData.getString("cool_down_group");
-                    int reuseTime = itemData.getInt("reuse_time");
-                    String varName = "clickItem." + coolDownGroup;
-                    String destPlanet = travelLoc.area;
-                    warpPlayer(player, destPlanet, travelLoc.x, travelLoc.y, travelLoc.z, null, 0, 0, 0, "", false);
-                    setObjVar(player, varName, getGameTime() + reuseTime);
-                }
-            }
-        }
+        LOG("LOG_CHANNEL", "Rejected retired NGE teleport-to-group-member warp");
         return SCRIPT_CONTINUE;
     }
     public boolean isValidTravelLocation(obj_id player, location travelLoc, String[] groupieRegions) throws InterruptedException

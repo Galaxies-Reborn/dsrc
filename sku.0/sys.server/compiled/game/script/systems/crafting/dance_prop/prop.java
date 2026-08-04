@@ -13,7 +13,7 @@ public class prop extends script.systems.crafting.dance_prop.base_prop
     public static final String VERSION = "v0.00.00";
     public static final String[] REQUIRED_SKILLS = 
     {
-        "class_entertainer_phase1_novice"
+        "social_dancer_novice"
     };
     public static final String[] ASSEMBLY_SKILL_MODS = 
     {

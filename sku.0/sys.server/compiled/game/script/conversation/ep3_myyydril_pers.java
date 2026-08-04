@@ -18,7 +18,7 @@ public class ep3_myyydril_pers extends script.base_script
     }
     public boolean ep3_myyydril_pers_condition_hasSkillSmug(obj_id player, obj_id npc) throws InterruptedException
     {
-        return hasSkill(player, "class_smuggler_phase1_novice");
+        return hasSkill(player, "combat_smuggler_novice");
     }
     public boolean ep3_myyydril_pers_condition_isTaskActiveOne(obj_id player, obj_id npc) throws InterruptedException
     {

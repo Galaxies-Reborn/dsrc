@@ -30,7 +30,7 @@ public class ep3_kachirho_missing_son extends script.base_script
     }
     public boolean ep3_kachirho_missing_son_condition_cannotSpeakWookiee(obj_id player, obj_id npc) throws InterruptedException
     {
-        if (hasSkill(player, "class_smuggler_phase1_novice"))
+        if (hasSkill(player, "combat_smuggler_underworld_01"))
         {
             return false;
         }

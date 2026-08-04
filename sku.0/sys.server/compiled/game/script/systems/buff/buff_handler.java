@@ -446,7 +446,12 @@ public class buff_handler extends script.base_script
     }
     public int xpBonusGeneralAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
-        int playerLevel = getLevel(self);
+        if (buff.isPostNgeBuffProgressionRetired())
+        {
+            utils.removeScriptVarTree(self, "buff.xpBonusGeneral");
+            return SCRIPT_CONTINUE;
+        }
+        int playerLevel = skill.getPrecuEncounterDifficulty(self);
         if (playerLevel < 90)
         {
             CustomerServiceLog("buff", "xpBonusGeneralAddBuff Buff used by player: " + self + " Name: " + getName(self) + " Player Level: " + playerLevel + " Effect: " + effectName + " subtype:" + subtype + " duration: " + duration + " value: " + value + " buffName: " + buffName + " caster: " + caster);
@@ -481,7 +486,11 @@ public class buff_handler extends script.base_script
     }
     public int xpGrantedGeneralAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
-        int playerLevel = getLevel(self);
+        if (buff.isPostNgeBuffProgressionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
+        int playerLevel = skill.getPrecuEncounterDifficulty(self);
         if (playerLevel < 90)
         {
             int xpGranted = xp.grantUnmodifiedXPPercentageOfLevel(self, value);
@@ -1673,6 +1682,12 @@ public class buff_handler extends script.base_script
     }
     public int buildabuffAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (buff.isPostNgeBuffProgressionRetired())
+        {
+            buildabuffRemoveBuffHandler(self, effectName, subtype, duration, value, buffName, caster);
+            utils.removeScriptVarTree(self, "performance.buildabuff");
+            return SCRIPT_CONTINUE;
+        }
         if (!utils.hasScriptVar(self, "performance.buildabuff.buffComponentKeys") || !utils.hasScriptVar(self, "performance.buildabuff.buffComponentValues"))
         {
             return SCRIPT_CONTINUE;
@@ -1912,7 +1927,7 @@ public class buff_handler extends script.base_script
                                 movement.applyMovementModifier(self, "buildabuff_movement_speed", buffValue);
                                 break;
                             case "reactive_second_chance":
-                                int playerLevel = getLevel(self);
+                                int playerLevel = skill.getPrecuEncounterDifficulty(self);
                                 float reactiveModifier = 0.0f;
                                 if (isIdValid(bufferId) && exists(bufferId)) {
                                     reactiveModifier = getEnhancedSkillStatisticModifierUncapped(bufferId, "expertise_en_inspire_proc_chance_increase");
@@ -1955,10 +1970,6 @@ public class buff_handler extends script.base_script
                         }
                         break;
                 }
-            }
-            if (!buff.hasBuff(self, "col_ent_invis_buff_tracker"))
-            {
-                collection.entertainerBuffCollection(self, bufferId, duration);
             }
         }
         else 
@@ -2827,6 +2838,12 @@ public class buff_handler extends script.base_script
     }
     public void invisBuffAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) &&
+            script.systems.skills.stealth.player_stealth.isRetiredPostNgeSpyBuffName(effectName))
+        {
+            buff.removeBuff(self, buffName);
+            return;
+        }
         int costumeBuff = buff.getBuffOnTargetFromGroup(self, "shapechange");
         if (costumeBuff != 0)
         {
@@ -3827,6 +3844,11 @@ public class buff_handler extends script.base_script
     }
     public int lifedayCompetitiveBuffRemoveBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isFactionalLifeDayScoreboardRetired())
+        {
+            removeObjVar(self, "lifeday");
+            return SCRIPT_CONTINUE;
+        }
         String lifedayRunning = getConfigSetting("GameServer", "lifeday");
         if (lifedayRunning != null && !lifedayRunning.equals("false"))
         {
@@ -3846,6 +3868,11 @@ public class buff_handler extends script.base_script
     }
     public int scoreBoardCheck(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isFactionalLifeDayScoreboardRetired())
+        {
+            removeObjVar(self, "lifeday");
+            return SCRIPT_CONTINUE;
+        }
         if (params == null || params.isEmpty())
         {
             return SCRIPT_CONTINUE;
@@ -3904,6 +3931,15 @@ public class buff_handler extends script.base_script
     public void updateScore(obj_id self, String playerName, int playerScore, String playerFaction, String position, String scoreBoardEmpty) throws InterruptedException
     {
         obj_id tatooine = getPlanetByName("tatooine");
+        if (isFactionalLifeDayScoreboardRetired())
+        {
+            removeObjVar(self, "lifeday");
+            if (isIdValid(tatooine) && exists(tatooine))
+            {
+                removeObjVar(tatooine, "lifeday");
+            }
+            return;
+        }
         int oneScore = 0;
         String oneName = "";
         String oneFaction = "";
@@ -3970,6 +4006,11 @@ public class buff_handler extends script.base_script
     }
     public void checkLifeDayData(obj_id planet) throws InterruptedException
     {
+        if (isFactionalLifeDayScoreboardRetired())
+        {
+            removeObjVar(planet, "lifeday");
+            return;
+        }
         if (!hasObjVar(planet, "lifeday.time_stamp"))
         {
             newLifeDayTimeStamp(planet);
@@ -3994,6 +4035,11 @@ public class buff_handler extends script.base_script
     }
     public boolean newLifeDayDay(obj_id planet) throws InterruptedException
     {
+        if (isFactionalLifeDayScoreboardRetired())
+        {
+            removeObjVar(planet, "lifeday");
+            return false;
+        }
         if (hasObjVar(planet, "lifeday.time_stamp"))
         {
             int now = getCalendarTime();
@@ -4011,10 +4057,19 @@ public class buff_handler extends script.base_script
     }
     public void newLifeDayTimeStamp(obj_id planet) throws InterruptedException
     {
+        if (isFactionalLifeDayScoreboardRetired())
+        {
+            removeObjVar(planet, "lifeday");
+            return;
+        }
         int now = getCalendarTime();
         int secondsUntil = secondsUntilNextDailyTime(10, 0, 0);
         int then = now + secondsUntil;
         setObjVar(planet, "lifeday.time_stamp", then);
+    }
+    private boolean isFactionalLifeDayScoreboardRetired() throws InterruptedException
+    {
+        return true;
     }
     public int procResistAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {

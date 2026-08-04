@@ -16,6 +16,13 @@ public class spawner_random extends script.base_script
     public int OnAttach(obj_id self) throws InterruptedException
     {
         CustomerServiceLog("holidaySpawner", "spawner_random.OnAttach: Initialized for: " + self);
+        if (spawning.isRetiredEmpireDaySpawner(self) || spawning.isRetiredLoveDaySpawner(self))
+        {
+            spawning.cleanupRetiredSpawnerChildren(self);
+            OnDestroy(self);
+            detachScript(self, "systems.spawning.spawner_random");
+            return SCRIPT_CONTINUE;
+        }
         if (!hasObjVar(self, "registerWithController"))
         {
             setObjVar(self, "registerWithController", 1);
@@ -33,6 +40,13 @@ public class spawner_random extends script.base_script
     public int OnInitialize(obj_id self) throws InterruptedException
     {
         CustomerServiceLog("holidaySpawner", "spawner_random.OnAttach: Initialized for: " + self);
+        if (spawning.isRetiredEmpireDaySpawner(self) || spawning.isRetiredLoveDaySpawner(self))
+        {
+            spawning.cleanupRetiredSpawnerChildren(self);
+            OnDestroy(self);
+            detachScript(self, "systems.spawning.spawner_random");
+            return SCRIPT_CONTINUE;
+        }
         if (!hasObjVar(self, "registerWithController"))
         {
             setObjVar(self, "registerWithController", 1);
@@ -54,6 +68,10 @@ public class spawner_random extends script.base_script
     }
     public int OnHearSpeech(obj_id self, obj_id speaker, String text) throws InterruptedException
     {
+        if (spawning.isRetiredEmpireDaySpawner(self) || spawning.isRetiredLoveDaySpawner(self))
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (!isGod(speaker))
         {
             return SCRIPT_CONTINUE;
@@ -83,6 +101,10 @@ public class spawner_random extends script.base_script
     }
     public int doSpawnEvent(obj_id self, dictionary params) throws InterruptedException
     {
+        if (spawning.isRetiredEmpireDaySpawner(self) || spawning.isRetiredLoveDaySpawner(self))
+        {
+            return SCRIPT_CONTINUE;
+        }
         CustomerServiceLog("holidaySpawner", "spawner_random.doSpawnEvent: Initialized for: " + self);
         String datatable = getStringObjVar(self, "strSpawnTable");
         if (datatable == null || datatable.equals(""))
@@ -185,6 +207,10 @@ public class spawner_random extends script.base_script
     }
     public void createMob(String strId, obj_id objLocationObject, location locLocation, float yaw, obj_id self) throws InterruptedException
     {
+        if (spawning.isRetiredEmpireDaySpawner(self) || spawning.isRetiredLoveDaySpawner(self))
+        {
+            return;
+        }
         if (!spawning.checkSpawnCount(self))
         {
             return;
@@ -265,6 +291,10 @@ public class spawner_random extends script.base_script
     }
     public int spawnDestroyed(obj_id self, dictionary params) throws InterruptedException
     {
+        if (spawning.isRetiredEmpireDaySpawner(self) || spawning.isRetiredLoveDaySpawner(self))
+        {
+            return SCRIPT_CONTINUE;
+        }
         int intCurrentSpawnCount = utils.getIntScriptVar(self, "intCurrentSpawnCount");
         intCurrentSpawnCount = intCurrentSpawnCount - 1;
         if (intCurrentSpawnCount > -1)

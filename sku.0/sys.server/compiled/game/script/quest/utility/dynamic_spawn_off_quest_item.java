@@ -3,6 +3,7 @@ package script.quest.utility;
 import script.dictionary;
 import script.library.attrib;
 import script.library.create;
+import script.library.skill;
 import script.library.utils;
 import script.location;
 import script.obj_id;
@@ -53,10 +54,10 @@ public class dynamic_spawn_off_quest_item extends script.base_script
             CustomerServiceLog("quest", "dynamic_spawn_off_quest_item.handleQuestFlavorObject() Creature spawn count var INVALID on object: " + self);
             return SCRIPT_CONTINUE;
         }
-        int combatLevel = getLevel(player);
+        int combatLevel = skill.getPrecuEncounterDifficulty(player);
         if (combatLevel < 0 || combatLevel > 90)
         {
-            CustomerServiceLog("quest", "dynamic_spawn_off_quest_item.handleQuestFlavorObject() Player " + player + " has a level that is invalid. Player level is: " + combatLevel + ". Aborting the camp defense.");
+            CustomerServiceLog("quest", "dynamic_spawn_off_quest_item.handleQuestFlavorObject() Player " + player + " has an invalid PRE-CU combat-skill difficulty: " + combatLevel + ". Aborting the camp defense.");
             return SCRIPT_CONTINUE;
         }
         for (int i = 0; i < spawnCount; i++)
@@ -68,14 +69,14 @@ public class dynamic_spawn_off_quest_item extends script.base_script
                 CustomerServiceLog("quest", "dynamic_spawn_off_quest_item.handleQuestFlavorObject() Mob: " + mob + " could not be created!");
                 return SCRIPT_CONTINUE;
             }
-            CustomerServiceLog("quest", "dynamic_spawn_off_quest_item.handleQuestFlavorObject() Mob level is set to match player level");
+            CustomerServiceLog("quest", "dynamic_spawn_off_quest_item.handleQuestFlavorObject() Mob level is set to match PRE-CU combat-skill difficulty");
             setObjVar(mob, create.INITIALIZE_CREATURE_DO_NOT_SCALE_OBJVAR, 1);
             dictionary creatureDict = utils.dataTableGetRow(CREATURE_TABLE, creatureName);
             if (creatureDict != null)
             {
                 create.initializeCreature(mob, creatureName, creatureDict, combatLevel);
             }
-            CustomerServiceLog("quest", "dynamic_spawn_off_quest_item.handleQuestFlavorObject() Mob level is set to match player level.");
+            CustomerServiceLog("quest", "dynamic_spawn_off_quest_item.handleQuestFlavorObject() Mob level is set to match PRE-CU combat-skill difficulty.");
             setInvulnerable(mob, false);
             clearCondition(mob, CONDITION_CONVERSABLE);
             setMovementRun(mob);

@@ -7,7 +7,6 @@ import script.library.weapons;
 import script.location;
 import script.menu_info_types;
 import script.obj_id;
-import script.string_id;
 
 public class loot extends script.base_script
 {
@@ -43,12 +42,6 @@ public class loot extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
-        String classTemplate = getSkillTemplate(player);
-        if (classTemplate == null || classTemplate.startsWith("entertainer") || classTemplate.startsWith("trader"))
-        {
-            sendSystemMessage(player, new string_id("dungeon/corvette", "no_trader_farming_allowed"));
-            return SCRIPT_CONTINUE;
-        }
         if (item == menu_info_types.ITEM_OPEN)
         {
             if (!hasObjVar(self, "used"))

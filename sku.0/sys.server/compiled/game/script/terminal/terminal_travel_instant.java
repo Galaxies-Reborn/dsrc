@@ -25,87 +25,12 @@ public class terminal_travel_instant extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
-        obj_id owner = (playerCheck(self, "OnObjectMenuRequest - "));
-        if (owner != player)
-        {
-            sendSystemMessage(player, SID_NOT_YOUR_SHIP);
-            return SCRIPT_CONTINUE;
-        }
-        mi.addRootMenu(menu_info_types.ITEM_USE, new string_id("", ""));
-        if(hasObjVar(self, "itv_slave_1")) {
-            mi.addRootMenu(menu_info_types.ITEM_USE_OTHER, new string_id("tcg", "travel_locations"));
-        }
+        LOG("LOG_CHANNEL", "Ignored retired NGE instant-travel terminal menu request for " + player);
         return SCRIPT_CONTINUE;
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
-        if (item == menu_info_types.ITEM_USE || item == menu_info_types.ITEM_USE_OTHER) {
-            obj_id owner = (playerCheck(self, "OnObjectMenuSelect - "));
-            if (owner != player) {
-                return SCRIPT_CONTINUE;
-            }
-            if (getState(player, STATE_RIDING_MOUNT) == 1) {
-                pet_lib.doDismountNow(player, true);
-            }
-            if (item == menu_info_types.ITEM_USE) {
-                if (hasObjVar(self, "tcg_itv_home") || hasObjVar(self, "itv_slave_1")) {
-                    if (city.isAMayor(player)) {
-                        int city_id = getCitizenOfCityId(player);
-                        if (cityExists(city_id)) {
-                            obj_id city_hall = cityGetCityHall(city_id);
-                            if (isIdValid(city_hall)) {
-                                dictionary dict = new dictionary();
-                                dict.put("requestingObject", self);
-                                dict.put("homeOwner", player);
-                                messageTo(city_hall, "retrieveHouseCoords", dict, 0.0f, false);
-                            } else {
-                                sendSystemMessage(player, new string_id("tcg", "no_residence_home_itv"));
-                            }
-                        }
-                        return SCRIPT_CONTINUE;
-                    } else if (hasObjVar(player, "residenceHouseId")) {
-                        obj_id home = getObjIdObjVar(player, "residenceHouseId");
-                        if (isIdValid(home)) {
-                            dictionary dict = new dictionary();
-                            dict.put("requestingObject", self);
-                            dict.put("homeOwner", player);
-                            messageTo(home, "retrieveHouseCoords", dict, 0, false);
-                        } else {
-                            sendSystemMessage(player, new string_id("tcg", "no_residence_home_itv"));
-                        }
-                    } else {
-                        sendSystemMessage(player, new string_id("tcg", "no_residence_home_itv"));
-                    }
-                    return SCRIPT_CONTINUE;
-                } else if (hasObjVar(self, "tcg_itv_location") || hasObjVar(self, "itv_snowspeeder")) {
-                    LocationItvOptions(self, player);
-                    return SCRIPT_CONTINUE;
-                }
-            }
-            // This section is for "regular" ITV's - Privateer, Royal Ship, etc.
-            String planet = getCurrentSceneName();
-            String travel_point = "Starfighter";
-            int cityId = getCityAtLocation(getLocation(player), 1000);
-            debugLogging("//***// OnObjectMenuSelect: ", "////>>>> cityId at player's location is: " + cityId);
-            if (cityId != 0) {
-                travel_point = cityGetName(cityId);
-                debugLogging("//***// OnObjectMenuSelect: ", "////>>>> city name at player's location is: " + travel_point);
-            }
-            LOG("LOG_CHANNEL", "player ->" + player + " planet ->" + planet + " travel_point ->" + travel_point);
-            String config = getConfigSetting("GameServer", "disableTravelSystem");
-            if (config != null) {
-                if (config.equals("on")) {
-                    return SCRIPT_CONTINUE;
-                }
-            }
-            utils.setScriptVar(player, travel.SCRIPT_VAR_TERMINAL, self);
-            utils.setScriptVar(player, "instantTravel", true);
-            boolean success = enterClientTicketPurchaseMode(player, planet, travel_point, true);
-            if (success) {
-                utils.setScriptVar(self, "transport", 1);
-            }
-            return SCRIPT_CONTINUE;
-        }
+        LOG("LOG_CHANNEL", "Ignored retired NGE instant-travel terminal selection for " + player);
         return SCRIPT_CONTINUE;
     }
     public int OnTriggerVolumeExited(obj_id self, String volumeName, obj_id breacher) throws InterruptedException
@@ -210,31 +135,8 @@ public class terminal_travel_instant extends script.base_script
     }
     public void sendPlayerToLocation(obj_id player, int idx) throws InterruptedException
     {
-        if (!isIdValid(player))
-        {
-            return;
-        }
-        obj_id self = getSelf();
-        if(hasObjVar(self, "tcg_itv_location")) {
-            if (hasObjVar(player, ("travel_tcg.itv.location." + idx)) && hasObjVar(player, ("travel_tcg.itv.scene." + idx))) {
-                location travelLoc = getLocationObjVar(player, ("travel_tcg.itv.location." + idx));
-                String destPlanet = getStringObjVar(player, ("travel_tcg.itv.scene." + idx));
-                warpPlayer(player, destPlanet, travelLoc.x, travelLoc.y, travelLoc.z, null, 0, 0, 0, "", false);
-                messageTo(self, "cleanupShip", null, 0.0f, false);
-            } else {
-                sendSystemMessage(player, new string_id("tcg", "corrupt_itv_location_data"));
-            }
-        }
-        else if(hasObjVar(self, "itv_snowspeeder")){
-            if (hasObjVar(player, ("travel_snowspeeder.itv.location." + idx)) && hasObjVar(player, ("travel_snowspeeder.itv.scene." + idx))) {
-                location travelLoc = getLocationObjVar(player, ("travel_snowspeeder.itv.location." + idx));
-                String destPlanet = getStringObjVar(player, ("travel_snowspeeder.itv.scene." + idx));
-                warpPlayer(player, destPlanet, travelLoc.x, travelLoc.y, travelLoc.z, null, 0, 0, 0, "", false);
-                messageTo(self, "cleanupShip", null, 0.0f, false);
-            } else {
-                sendSystemMessage(player, new string_id("tcg", "corrupt_itv_location_data"));
-            }
-        }
+        LOG("LOG_CHANNEL", "Rejected retired NGE instant-travel location warp for " + player);
+        return;
     }
     public boolean canMarkAtLocation(obj_id player) throws InterruptedException
     {
@@ -347,32 +249,7 @@ public class terminal_travel_instant extends script.base_script
     }
     public int sendPlayerToHomeLocation(obj_id self, dictionary params) throws InterruptedException
     {
-        if (params == null || params.isEmpty())
-        {
-            messageTo(self, "cleanupShip", null, 0, false);
-            return SCRIPT_CONTINUE;
-        }
-        obj_id player = sui.getPlayerId(params);
-        if (sui.hasPid(player, PID_VAR))
-        {
-            int pid = sui.getPid(player, PID_VAR);
-            forceCloseSUIPage(pid);
-        }
-        int btn = sui.getIntButtonPressed(params);
-        if (btn == sui.BP_CANCEL)
-        {
-            utils.removeScriptVar(self, "homeLoc");
-            utils.removeScriptVar(self, "destPlanet");
-            messageTo(self, "cleanupShip", null, 0, false);
-            return SCRIPT_CONTINUE;
-        }
-        else 
-        {
-            location destLoc = utils.getLocationScriptVar(self, "homeLoc");
-            String destPlanet = utils.getStringScriptVar(self, "destPlanet");
-            warpPlayer(player, destPlanet, destLoc.x, destLoc.y, destLoc.z, null, 0, 0, 0, "", false);
-            messageTo(self, "cleanupShip", null, 0, false);
-        }
+        LOG("LOG_CHANNEL", "Rejected retired NGE instant-travel home warp");
         return SCRIPT_CONTINUE;
     }
     public int handleLocationItvOptions(obj_id self, dictionary params) throws InterruptedException

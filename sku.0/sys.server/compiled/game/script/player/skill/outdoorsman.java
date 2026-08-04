@@ -17,6 +17,10 @@ public class outdoorsman extends script.base_script
     public static final string_id SID_NO_RESOURCE = new string_id("error_message", "no_resource");
     public int cmdHarvestCorpse(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (!corpse.canPlayerHarvestCreature(self, true))
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (!isIdValid(target) || params == null)
         {
             return SCRIPT_CONTINUE;

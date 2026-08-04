@@ -52,7 +52,7 @@ public class ai_corpse extends script.base_script
         {
             if (canOpen)
             {
-                if (canHarvest(self, player))
+                if (corpse.canPlayerHarvestCreature(player, false) && canHarvest(self, player))
                 {
                     int[] hasResource = getIntArrayObjVar(self, corpse.VAR_HAS_RESOURCE);
                     if (hasResource != null)
@@ -73,20 +73,6 @@ public class ai_corpse extends script.base_script
                     }
                 }
             }
-        }
-        String strLootTable = getStringObjVar(self, "loot.lootTable");
-        if (strLootTable == null || strLootTable.length() < 1)
-        {
-            return SCRIPT_CONTINUE;
-        }
-        if ((!strLootTable.startsWith("npc") && !strLootTable.startsWith("droid")) || utils.hasScriptVar(self, "contrabandChecked"))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        String playerClass = getSkillTemplate(player);
-        if (isIdValid(player) && canOpen && playerClass.startsWith("smuggler") && getLevel(player) > 9)
-        {
-            mnu = mi.addRootMenu(menu_info_types.SERVER_MENU1, new string_id("smuggler/items", "mnu_find_illicit_goods"));
         }
         return SCRIPT_CONTINUE;
     }
@@ -131,14 +117,6 @@ public class ai_corpse extends script.base_script
         if (!hasObjVar(self, "readyToLoot"))
         {
             return SCRIPT_OVERRIDE;
-        }
-        if (item == menu_info_types.SERVER_MENU1)
-        {
-            String playerClass = getSkillTemplate(player);
-            if (isIdValid(player) && canOpen && playerClass.startsWith("smuggler") && getLevel(player) > 9)
-            {
-                smuggler.inspectCorpseForContraband(player, self);
-            }
         }
         obj_id inv = utils.getInventoryContainer(self);
         obj_id[] items = getContents(inv);
@@ -214,6 +192,14 @@ public class ai_corpse extends script.base_script
         {
             if (canOpen)
             {
+                boolean harvestMenuItem = item == menu_info_types.SERVER_HARVEST_CORPSE ||
+                    item == menu_info_types.SERVER_MENU5 ||
+                    item == menu_info_types.SERVER_MENU6 ||
+                    item == menu_info_types.SERVER_MENU7;
+                if (harvestMenuItem && !corpse.canPlayerHarvestCreature(player, true))
+                {
+                    return SCRIPT_OVERRIDE;
+                }
                 if (canHarvest(self, player))
                 {
                     if (item == menu_info_types.SERVER_HARVEST_CORPSE)
@@ -252,6 +238,11 @@ public class ai_corpse extends script.base_script
         if (!isIdValid(player))
         {
             return SCRIPT_CONTINUE;
+        }
+        if (!corpse.canPlayerHarvestCreature(player, true))
+        {
+            LOG("PreCuScoutHarvest", "Rejected corpse callback without Novice Scout for player " + player);
+            return SCRIPT_OVERRIDE;
         }
         String args = params.getString("args");
         corpse.harvestCreatureCorpse(player, self, args);

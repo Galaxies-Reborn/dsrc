@@ -37,7 +37,7 @@ public class craft_jetpack_droid extends script.base_script
         {
             return SCRIPT_CONTINUE;
         }
-        if (!hasSkill(giver, "class_engineering_phase1_master"))
+        if (!hasSkill(giver, "crafting_artisan_master"))
         {
             CustomerServiceLog("DUNGEON_DeathWatchBunker", "*Mandalorian Armor: Player %TU was not a crafting artisan master, so erroring out.");
             string_id master_tailor = new string_id(MSGS, "master_artisan_required");

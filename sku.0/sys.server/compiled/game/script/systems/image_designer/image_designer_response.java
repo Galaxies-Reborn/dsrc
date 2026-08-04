@@ -2,6 +2,7 @@ package script.systems.image_designer;
 
 import script.dictionary;
 import script.library.buff;
+import script.library.camping;
 import script.library.prose;
 import script.library.utils;
 import script.library.xp;
@@ -133,6 +134,15 @@ public class image_designer_response extends script.base_script
         obj_id closestTerminal = null;
         obj_id structure = getTopMostContainer(self);
         obj_id targetStructure = getTopMostContainer(target);
+        boolean validSalon = (structure != self) &&
+            structure == targetStructure &&
+            terminalId == structure &&
+            utils.hasObjVar(structure, "salon");
+        obj_id entertainmentCamp = camping.getCurrentAdvancedCamp(self);
+        boolean validEntertainmentCamp = isIdValid(entertainmentCamp) &&
+            terminalId == entertainmentCamp &&
+            camping.isInEntertainmentCamp(self, entertainmentCamp) &&
+            camping.isInEntertainmentCamp(target, entertainmentCamp);
         if ((structure != self) && utils.hasObjVar(structure, "salon"))
         {
             if ((targetStructure != target) && utils.hasObjVar(targetStructure, "salon"))
@@ -159,6 +169,10 @@ public class image_designer_response extends script.base_script
             accepted = false;
         }
         else if (structure != self && targetStructure != self && structure != targetStructure)
+        {
+            accepted = false;
+        }
+        if (designType == 2 && !validSalon && !validEntertainmentCamp)
         {
             accepted = false;
         }
@@ -218,7 +232,10 @@ public class image_designer_response extends script.base_script
             attachScript(target, SCRIPT_HOLO_EMOTE);
             sendSystemMessage(target, new string_id(STF_FILE, "new_holoemote"));
         }
-        if (newHairSet || !holoEmote.equals("") || morphChangesKeys.length != 0 || indexChangesKeys.length != 0)
+        // Stat migration is a complete Image Designer transaction even when no
+        // cosmetic field changed.  Include it explicitly so the authentic
+        // 2,000 XP reward is not skipped by the cosmetic-change guard.
+        if (designType == 2 || newHairSet || !holoEmote.equals("") || morphChangesKeys.length != 0 || indexChangesKeys.length != 0)
         {
             int experience = 0;
             if (designType == 2)
@@ -245,7 +262,10 @@ public class image_designer_response extends script.base_script
                     experience = (int)(experience / 2);
                 }
             }
-            xp.grantSocialStyleXp(self, xp.IMAGEDESIGNER, experience);
+            // The NGE social-style helper routes XP to the active expertise
+            // template and ignores xp.IMAGEDESIGNER.  Publish 14 profession
+            // rewards must remain in the dedicated Image Designer pool.
+            xp.grant(self, xp.IMAGEDESIGNER, experience);
         }
         detachScript(self, SCRIPT_IMAGE_DESIGNER_RESPONSE);
         return SCRIPT_CONTINUE;

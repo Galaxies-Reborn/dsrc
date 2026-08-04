@@ -56,13 +56,6 @@ public class newbie_hall_skipped extends script.theme_park.newbie_tutorial.tutor
         {
             attachScript(item, NEWBIE_SCRIPT_SKIPPED);
         }
-        obj_id terminal = getObjIdObjVar(self, TRAVEL_TERMINAL);
-        if (terminal != null)
-        {
-            dictionary params = new dictionary();
-            params.put("player", item);
-            messageTo(terminal, "warp_player_now", params, 0, false);
-        }
         return SCRIPT_CONTINUE;
     }
 }

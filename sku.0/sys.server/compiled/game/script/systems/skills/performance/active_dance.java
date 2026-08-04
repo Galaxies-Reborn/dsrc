@@ -12,12 +12,6 @@ public class active_dance extends script.base_script
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
-        int healingXP = getExperiencePoints(self, "entertainer_healing");
-        if (healingXP > 0)
-        {
-            grantExperiencePoints(self, "entertainer_healing", (healingXP * -1));
-            grantExperiencePoints(self, xp.ENTERTAINER, healingXP);
-        }
         groundquests.questStartDance(self);
         performance.checkAndIncrementEntertainerMissions(self, "dancer");
         queueCommand(self, (-1219480501), null, "1", COMMAND_PRIORITY_IMMEDIATE);
@@ -150,10 +144,9 @@ public class active_dance extends script.base_script
             return SCRIPT_CONTINUE;
         }
         performance.checkAndIncrementEntertainerMissions(self, "dancer");
-        if (performance.applyPerformanceActionCost(self, 1.0f))
+        if (performance.applyPerformanceLoopActionCost(self))
         {
             performance.performanceHeal(self, performance.PERFORMANCE_TYPE_DANCE, 1.0f);
-            performance.inspire(self, performance.PERFORMANCE_TYPE_DANCE);
             int flourishNum = getIntObjVar(self, performance.VAR_PERFORM_FLOURISH_COUNT);
             int xpAmt = performance.calcPerformanceXp(self);
             int entXpAmt = 0;

@@ -11,6 +11,7 @@ public class create extends script.base_script
     }
     public static final String CREATURE_TABLE = "datatables/mob/creatures.iff";
     public static final String STAT_BALANCE_TABLE = "datatables/mob/stat_balance.iff";
+    public static final String PRECU_CREATURE_COMBAT_PROFILE_TABLE = "datatables/mob/precu_creature_combat_profiles.iff";
     public static final String VEHICLE_TABLE = "datatables/vehicle/vehicle_template.iff";
     public static final String TEMPLATE_PREFIX = "object/mobile/";
     public static final String CREATURE_NAME_FILE = "mob/creature_names";
@@ -521,18 +522,60 @@ public class create extends script.base_script
         {
             armorLevel = 1;
         }
-        if (level > 0)
+        int requestedLevel = level;
+        dictionary precuCombatProfile = null;
+        if (requestedLevel > 0)
         {
-            dmgLevel = level;
-            statLevel = level;
-            toHitLevel = level;
-            armorLevel = level;
+            int boundedLevel = requestedLevel;
+            if (boundedLevel < 1)
+            {
+                boundedLevel = 1;
+            }
+            else if (boundedLevel > 500)
+            {
+                boundedLevel = 500;
+            }
+            precuCombatProfile = utils.dataTableGetRow(PRECU_CREATURE_COMBAT_PROFILE_TABLE, "__level_" + boundedLevel);
         }
-        else 
+        else
         {
-            level = calcCreatureLevel(statLevel, dmgLevel, toHitLevel, armorLevel);
+            precuCombatProfile = utils.dataTableGetRow(PRECU_CREATURE_COMBAT_PROFILE_TABLE, creatureName);
         }
+        if (precuCombatProfile == null)
+        {
+            int fallbackLevel = baseLevel;
+            if (fallbackLevel < 1)
+            {
+                fallbackLevel = 1;
+            }
+            else if (fallbackLevel > 500)
+            {
+                fallbackLevel = 500;
+            }
+            precuCombatProfile = utils.dataTableGetRow(PRECU_CREATURE_COMBAT_PROFILE_TABLE, "__level_" + fallbackLevel);
+        }
+        if (precuCombatProfile == null)
+        {
+            LOG("create", "Missing PRE-CU combat profile for " + creatureName + " at requested level " + requestedLevel);
+            return;
+        }
+        level = precuCombatProfile.getInt("level");
+        dmgLevel = level;
+        statLevel = level;
+        toHitLevel = level;
+        armorLevel = level;
         setObjVar(creature, "intCombatDifficulty", level);
+        setObjVar(creature, "precu.combatProfile", precuCombatProfile.getString("sourceKey"));
+        setObjVar(creature, "precu.armor.rating", precuCombatProfile.getInt("armor"));
+        setObjVar(creature, "precu.armor.kinetic", precuCombatProfile.getInt("resistKinetic"));
+        setObjVar(creature, "precu.armor.energy", precuCombatProfile.getInt("resistEnergy"));
+        setObjVar(creature, "precu.armor.blast", precuCombatProfile.getInt("resistBlast"));
+        setObjVar(creature, "precu.armor.heat", precuCombatProfile.getInt("resistHeat"));
+        setObjVar(creature, "precu.armor.cold", precuCombatProfile.getInt("resistCold"));
+        setObjVar(creature, "precu.armor.electricity", precuCombatProfile.getInt("resistElectric"));
+        setObjVar(creature, "precu.armor.acid", precuCombatProfile.getInt("resistAcid"));
+        setObjVar(creature, "precu.armor.stun", precuCombatProfile.getInt("resistStun"));
+        setObjVar(creature, "precu.armor.lightsaber", precuCombatProfile.getInt("resistLightsaber"));
         setLevel(creature, level);
         int stealType = creatureDict.getInt("stealingFlags");
         utils.setScriptVar(creature, stealth.STEAL_TYPE, stealType);
@@ -551,17 +594,16 @@ public class create extends script.base_script
         {
             diffClassName = "Boss_";
         }
-        float damagePerSecond = dataTableGetFloat(STAT_BALANCE_TABLE, dmgLevel - 1, diffClassName + "damagePerSecond");
-        int toHitChance = dataTableGetInt(STAT_BALANCE_TABLE, toHitLevel - 1, diffClassName + "ToHit");
-        int defenseValue = dataTableGetInt(STAT_BALANCE_TABLE, toHitLevel - 1, diffClassName + "Def");
+        int toHitChance = Math.round(precuCombatProfile.getFloat("chanceHit") * 100.0f);
+        int defenseValue = 0;
         boolean hasRanged = false;
         obj_id creatureWeapon = getCurrentWeapon(creature);
         float primarySpeed = creatureDict.getFloat("primary_weapon_speed");
         float secondarySpeed = creatureDict.getFloat("secondary_weapon_speed");
-        int priMinDamage = Math.round((damagePerSecond * primarySpeed) * 0.5f);
-        int priMaxDamage = Math.round((damagePerSecond * primarySpeed) * 1.5f);
-        int secMinDamage = Math.round((damagePerSecond * secondarySpeed) * 0.5f);
-        int secMaxDamage = Math.round((damagePerSecond * secondarySpeed) * 1.5f);
+        int priMinDamage = precuCombatProfile.getInt("damageMin");
+        int priMaxDamage = precuCombatProfile.getInt("damageMax");
+        int secMinDamage = priMinDamage;
+        int secMaxDamage = priMaxDamage;
         if (isIdValid(creatureWeapon))
         {
             setWeaponAttackSpeed(creatureWeapon, primarySpeed);
@@ -628,36 +670,31 @@ public class create extends script.base_script
             }
         }
         float speedMod = 1;
-        float hpMod = 1;
         if (hasRanged)
         {
             speedMod = MELEE_SPEED_MOD;
-            hpMod = MELEE_HP_MOD;
         }
-        int avgAttribHealth = dataTableGetInt(STAT_BALANCE_TABLE, statLevel - 1, diffClassName + "HP");
-        int minAttribHealth = minAttribHealth = (int)(avgAttribHealth * 0.9f);
-        int maxAttribHealth = maxAttribHealth = (int)(avgAttribHealth * 1.1f);
-        float newAttribValueHealth = rand(minAttribHealth, maxAttribHealth);
-        newAttribValueHealth *= hpMod;
-        setMaxAttrib(creature, HEALTH, (int)newAttribValueHealth);
-        setAttrib(creature, HEALTH, (int)newAttribValueHealth);
-        int avgAttribAction = dataTableGetInt(STAT_BALANCE_TABLE, statLevel - 1, diffClassName + "Action");
-        int minAttribAction = minAttribAction = (int)(avgAttribAction * 0.9f);
-        int maxAttribAction = maxAttribAction = (int)(avgAttribAction * 1.1f);
-        int newAttribValueAction = rand(minAttribAction, maxAttribAction);
-        setMaxAttrib(creature, ACTION, newAttribValueAction);
-        setAttrib(creature, ACTION, newAttribValueAction);
-        setMaxAttrib(creature, MIND, 1000);
-        setAttrib(creature, MIND, 1000);
-        int healthRegen = dataTableGetInt(STAT_BALANCE_TABLE, statLevel - 1, "HealthRegen");
-        int actionRegen = dataTableGetInt(STAT_BALANCE_TABLE, statLevel - 1, "ActionRegen");
-        int mindRegen = dataTableGetInt(STAT_BALANCE_TABLE, statLevel - 1, "MindRegen");
-        setRegenRate(creature, CONSTITUTION, healthRegen);
-        setRegenRate(creature, STAMINA, healthRegen);
-        setRegenRate(creature, WILLPOWER, healthRegen);
-        float normalRegen = dataTableGetFloat(STAT_BALANCE_TABLE, statLevel - 1, diffClassName + "Regen");
-        float combatRegen = dataTableGetFloat(STAT_BALANCE_TABLE, statLevel - 1, diffClassName + "CombatRegen");
-        int xpValue = xp.getLevelBasedXP(level);
+        int baseHamMinimum = precuCombatProfile.getInt("baseHAM");
+        int baseHamMaximum = precuCombatProfile.getInt("baseHAMmax");
+        if (baseHamMaximum < baseHamMinimum)
+        {
+            baseHamMaximum = baseHamMinimum;
+        }
+        int healthHam = rand(baseHamMinimum, baseHamMaximum);
+        int actionHam = rand(baseHamMinimum, baseHamMaximum);
+        int mindHam = rand(baseHamMinimum, baseHamMaximum);
+        int[] precuHam =
+        {
+            healthHam, Math.max(1, healthHam / 10), Math.max(1, healthHam / 10),
+            actionHam, Math.max(1, actionHam / 10), Math.max(1, actionHam / 10),
+            mindHam, Math.max(1, mindHam / 10), Math.max(1, mindHam / 10)
+        };
+        for (int attribute = HEALTH; attribute <= WILLPOWER; attribute++)
+        {
+            setMaxAttrib(creature, attribute, precuHam[attribute]);
+            setAttrib(creature, attribute, precuHam[attribute]);
+        }
+        int xpValue = precuCombatProfile.getInt("baseXp");
         setObjVar(creature, "combat.intCombatXP", xpValue);
         
         {
@@ -744,7 +781,7 @@ public class create extends script.base_script
             setObjVar(creature, "loot.lootTable", strLootTable);
             setObjVar(creature, "loot.numItems", intItems);
         }
-        if (!initializeArmor(creature, creatureDict, dataTableGetInt(STAT_BALANCE_TABLE, armorLevel - 1, diffClassName + "Armor")))
+        if (!initializeArmor(creature, creatureDict, 0))
         {
             LOG("create", "Unable to initialize armor on " + creatureName + "(" + creature + ")");
         }

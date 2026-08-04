@@ -17,6 +17,7 @@ public class corpse extends script.base_script
     public static final String VAR_TIME_CREATED = "create_time";
     public static final String VAR_HAS_RESOURCE = "hasResource";
     public static final String VAR_BEEN_HARVESTED = "beenHarvested";
+    public static final String SKILL_NOVICE_SCOUT = "outdoors_scout_novice";
     public static final String GROUP_CONSENTED = "consented";
     public static final String DICT_PLAYER_ID = "playerId";
     public static final String DICT_CORPSE_ID = "corpseId";
@@ -71,6 +72,7 @@ public class corpse extends script.base_script
     public static final string_id SID_GROUP_HARVEST_BONUS_SCOUT = new string_id("skl_use", "group_harvest_bonus_scout");
     public static final string_id SID_GROUP_HARVEST_BONUS_MASTERSCOUT = new string_id("skl_use", "group_harvest_bonus_masterscout");
     public static final string_id SID_NOTHING_TO_HARVEST = new string_id("skl_use", "nothing_to_harvest");
+    public static final string_id SID_HARVEST_REQUIRES_SCOUT = new string_id("error_message", "harvest_corpse_failed");
     public static final String DATATABLE_SPECIES = "datatables/mob/creatures.iff";
     public static final String DATATABLE_COL_HAS_RESOURCE = "hasResources";
     public static final String DATATABLE_COL_MEAT_AMT = "meat";
@@ -681,8 +683,21 @@ public class corpse extends script.base_script
         }
         return (hasResource(ai_lib.getCreatureName(corpse)) != null);
     }
+    public static boolean canPlayerHarvestCreature(obj_id player, boolean verbose) throws InterruptedException
+    {
+        boolean allowed = isIdValid(player) && isPlayer(player) && hasSkill(player, SKILL_NOVICE_SCOUT);
+        if (!allowed && verbose && isIdValid(player) && isPlayer(player))
+        {
+            sendSystemMessage(player, SID_HARVEST_REQUIRES_SCOUT);
+        }
+        return allowed;
+    }
     public static boolean harvestCreatureCorpse(obj_id player, obj_id corpse, String restype) throws InterruptedException
     {
+        if (!canPlayerHarvestCreature(player, true))
+        {
+            return false;
+        }
         obj_id pInv = utils.getInventoryContainer(player);
         obj_id cInv = utils.getInventoryContainer(corpse);
         if ((pInv == null) || (cInv == null))
@@ -948,6 +963,12 @@ public class corpse extends script.base_script
         if ((resourceClass.equals("")) || (amt < 1) || (loc == null) || (pInv == null) || (cInv == null))
         {
             LOG("harvestCorpse", "ERROR: extractCorpseResource -> invalid parameters!!");
+            return -1;
+        }
+        obj_id harvestingPlayer = utils.getContainingPlayer(pInv);
+        if (isIdValid(harvestingPlayer) && isPlayer(harvestingPlayer) && !canPlayerHarvestCreature(harvestingPlayer, true))
+        {
+            LOG("harvestCorpse", "Rejected creature resource extraction without Novice Scout for player " + harvestingPlayer);
             return -1;
         }
         obj_id playerId = obj_id.NULL_ID;

@@ -15,7 +15,7 @@ public class mission_base extends script.base_script
     public static final String MISSION_INCOMPLETE_PERSISTENT_MESSAGE = "incomplete";
     public static final String MISSION_TIMED_OUT_PERSISTENT_MESSAGE = "timed_out";
     public static final String GENERIC_MISSION_MESSAGE_STRING_FILE = "mission/mission_generic";
-    public static final int MAX_MISSIONS = 2;
+    public static final int MAX_MISSIONS = 10;
     public static final String BOUNTY_MISSION_LISTENERS = "mission.objBountyListeners";
     public static final int BOUNTY_DIFFICULTY_BASIC = 1;
     public static final int BOUNTY_DIFFICULTY_ADVANCED = 2;
@@ -76,16 +76,10 @@ public class mission_base extends script.base_script
         obj_id objMissionData = getMissionData(objMission);
         int intPlayerDifficulty = getIntObjVar(objMissionData, "intPlayerDifficulty");
         obj_id objGroup = getGroupObject(objPlayer);
-        string_id strMessage = new string_id();
         boolean boolGroup = false;
         if (isIdValid(objGroup))
         {
             boolGroup = true;
-            strMessage = new string_id(GENERIC_MISSION_MESSAGE_STRING_FILE, "group_success");
-        }
-        else 
-        {
-            strMessage = new string_id(GENERIC_MISSION_MESSAGE_STRING_FILE, "success");
         }
         dictionary dctParams = new dictionary();
         int intBond = getMissionBondAmount(objMissionData);
@@ -113,11 +107,6 @@ public class mission_base extends script.base_script
         if (hasObjVar(objMissionData, "intIncomplete"))
         {
             intReward = intReward / 2;
-        }
-        int originalGroupSize = 0;
-        if (hasObjVar(objMissionData, "originalGroupSize"))
-        {
-            originalGroupSize = getIntObjVar(objMissionData, "originalGroupSize");
         }
         String strMissionType = getMissionType(objMissionData);
         if (strMissionType.equals("bounty"))
@@ -149,50 +138,25 @@ public class mission_base extends script.base_script
                 transferBankCreditsFromNamedAccount(money.ACCT_MISSION_DYNAMIC, objHq, hqReward, "noHandler", "noHandler", new dictionary());
             }
         }
-        if (!boolGroup)
+        Vector recipients = null;
+        if (boolGroup)
         {
-            intReward = group.getSafeDifference(objPlayer, intReward);
-            if (originalGroupSize > 0 && !strMissionType.equals("destroy"))
-            {
-                intReward = intReward / originalGroupSize;
-            }
-            float divisor = missions.alterMissionPayoutDivisorDaily(objPlayer);
-            intReward = intReward / (int)divisor;
-            if (missions.canEarnDailyMissionXp(objPlayer) && missions.isDestroyMission(objMissionData))
-            {
-                xp.grantMissionXp(objPlayer, intPlayerDifficulty);
-            }
-            transferBankCreditsFromNamedAccount(money.ACCT_MISSION_DYNAMIC, objPlayer, intReward, "testSuccess", "testFail", dctParams);
-            utils.moneyInMetric(objPlayer, money.ACCT_MISSION_DYNAMIC, intReward);
+            recipients = group.getPCMembersInRange(objPlayer, group.SPLIT_RANGE);
+        }
+        if (recipients == null || recipients.size() == 0)
+        {
+            recipients = new Vector();
+            recipients.add(objPlayer);
+        }
+        for (Object recipientObject : recipients)
+        {
+            obj_id recipient = (obj_id)recipientObject;
+            transferBankCreditsFromNamedAccount(money.ACCT_MISSION_DYNAMIC, recipient, intReward, "testSuccess", "testFail", dctParams);
+            utils.moneyInMetric(recipient, money.ACCT_MISSION_DYNAMIC, intReward);
             prose_package successProse = prose.getPackage(new string_id("mission/mission_generic", "success_w_amount"), intReward);
-            sendSystemMessageProse(objPlayer, successProse);
-            missions.incrementDaily(objPlayer);
+            sendSystemMessageProse(recipient, successProse);
         }
-        else 
-        {
-            int currentGroupSize = getPCGroupSize(objGroup);
-            if (originalGroupSize < 0)
-            {
-                originalGroupSize = 0;
-            }
-            int missionDivisor = originalGroupSize;
-            strMessage = new string_id(GENERIC_MISSION_MESSAGE_STRING_FILE, "group_success");
-            if (!strMissionType.equals("destroy"))
-            {
-                if (currentGroupSize > originalGroupSize)
-                {
-                    missionDivisor = currentGroupSize;
-                    strMessage = new string_id(GENERIC_MISSION_MESSAGE_STRING_FILE, "group_expanded");
-                }
-            }
-            else 
-            {
-                missionDivisor = 1;
-                dctParams.put("intPlayerDifficulty", intPlayerDifficulty);
-                group.distributeMissionXpToGroup(objPlayer, group.SPLIT_RANGE, objMissionData);
-            }
-            group.systemPayoutToGroupInternal(money.ACCT_MISSION_DYNAMIC, objPlayer, intReward, null, strMessage, "test", missionDivisor, dctParams, objMissionData);
-        }
+        LOG("PreCuMission", "payout mission=" + objMissionData + " holder=" + objPlayer + " recipients=" + recipients.size() + " fullRewardEach=" + intReward + " split=false dailyCashPenalty=false");
         String strTitleString = MISSION_SUCCESS_PERSISTENT_MESSAGE;
         int intStringId = getIntObjVar(objMissionData, "intStringId");
         String strMessageString = "m" + intStringId + "d";

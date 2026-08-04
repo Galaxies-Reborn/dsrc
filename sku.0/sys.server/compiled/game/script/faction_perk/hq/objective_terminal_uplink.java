@@ -105,7 +105,7 @@ public class objective_terminal_uplink extends script.faction_perk.hq.objective_
         }
         if (item == menu_info_types.ITEM_USE)
         {
-            if (!hasSkill(player, "class_bountyhunter_phase2_novice"))
+            if (!hasSkill(player, "combat_bountyhunter_investigation_02"))
             {
                 sendSystemMessage(player, ONLY_A_BOUNTY_HUNTER);
                 return SCRIPT_CONTINUE;
@@ -382,6 +382,7 @@ public class objective_terminal_uplink extends script.faction_perk.hq.objective_
             sendSystemMessage(player, JAMMING_COMPLETE_YOU);
             String playerName = getName(player);
             CustomerServiceLog("faction_hq", playerName + "(" + player + "), " + "jammed Uplink Terminal at " + getGameTime() + ".");
+            xp.grant(player, xp.BOUNTYHUNTER, 1000);
             hq.disableObjective(self);
             return SCRIPT_CONTINUE;
         }

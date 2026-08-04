@@ -51,7 +51,6 @@ public class pet_lib extends script.base_script
     public static final int MAX_NONCH_PET_LEVEL = 10;
     public static final int MAX_REGEN_STAT = 4000;
     public static final int MAX_PET_LEVELS = 70;
-    public static final int MAX_PET_LEVELS_ABOVE_CALLER = 5;
     public static final int MAX_PET_MOUNT_DISTANCE = 4;
     public static final int MAX_PET_MOUNT_OFFER_DISTANCE = 32;
     public static final int MAX_VITALITY_LOSS = 100;
@@ -107,7 +106,6 @@ public class pet_lib extends script.base_script
     public static final string_id SID_SYS_PATROL_REMOVED = new string_id("pet/pet_menu", "patrol_removed");
     public static final string_id SID_SYS_CANT_CALL = new string_id("pet/pet_menu", "cant_call");
     public static final string_id SID_SYS_CANT_CALL_YET = new string_id("pet/pet_menu", "prose_cant_call_yet");
-    public static final string_id SID_SYS_CANT_CALL_LEVEL = new string_id("pet/pet_menu", "cant_call_level");
     public static final string_id SID_SYS_CANT_GENERATE_YET = new string_id("pet/pet_menu", "prose_cant_generate_yet");
     public static final string_id SID_SYS_CALL_DELAY_FINISH_VEHICLE = new string_id("pet/pet_menu", "call_delay_finish_vehicle");
     public static final string_id SID_SYS_CALL_DELAY_FINISH_PET = new string_id("pet/pet_menu", "call_delay_finish_pet");
@@ -243,6 +241,86 @@ public class pet_lib extends script.base_script
             pet_lib.setPetStatsByGrowth(pet, 10);
         }
         callable.setCallableCD(pet, petControlDevice);
+        return petControlDevice;
+    }
+    public static obj_id makeTamedCreature(obj_id master, obj_id pet, int growthStage) throws InterruptedException
+    {
+        if (!isIdValid(master) || !exists(master) || !isPlayer(master) ||
+            !isIdValid(pet) || !exists(pet) || !isMob(pet) || isPlayer(pet) ||
+            hasMaster(pet) || callable.hasCallableCD(pet))
+        {
+            return null;
+        }
+        int petType = getPetType(pet);
+        if ((petType != PET_TYPE_NON_AGGRO && petType != PET_TYPE_AGGRO) ||
+            hasMaxPets(master, petType) || hasMaxStoredPetsOfType(master, petType))
+        {
+            return null;
+        }
+        obj_id datapad = utils.getPlayerDatapad(master);
+        String creatureName = getCreatureName(pet);
+        if (!isIdValid(datapad) || !exists(datapad) || creatureName == null || creatureName.equals(""))
+        {
+            return null;
+        }
+        String controlTemplate = "object/intangible/pet/" +
+            utils.dataTableGetString(create.CREATURE_TABLE, creatureName, "template");
+        if (!controlTemplate.endsWith(".iff"))
+        {
+            controlTemplate = PET_CTRL_DEVICE_TEMPLATE;
+        }
+        obj_id petControlDevice = createObject(controlTemplate, datapad, "");
+        if (!isIdValid(petControlDevice))
+        {
+            petControlDevice = createObject(PET_CTRL_DEVICE_TEMPLATE, datapad, "");
+        }
+        if (!isIdValid(petControlDevice))
+        {
+            return null;
+        }
+        setUpPetControlDevice(petControlDevice, pet);
+        if (!isObjectPersisted(pet) && !persistObject(pet))
+        {
+            callable.setCDCallable(petControlDevice, null);
+            removeObjVar(pet, callable.OBJVAR_CALLABLE_CONTROL_DEVICE);
+            destroyObject(petControlDevice);
+            return null;
+        }
+        if (growthStage < 1)
+        {
+            growthStage = 1;
+        }
+        else if (growthStage > 10)
+        {
+            growthStage = 10;
+        }
+        setObjVar(petControlDevice, "ai.petAdvance.growthStage", growthStage);
+        setObjVar(petControlDevice, "ai.petAbility.toBeEarned", getMaxAbilitySlots(getLevel(pet)));
+        setObjVar(petControlDevice, "ai.petAbility.available", 0);
+        setPetStatsByGrowth(pet, growthStage);
+        setObjVar(pet, "ai.pet", true);
+        callable.setCallableLinks(master, petControlDevice, pet);
+        if (!hasScript(master, "ai.pet_master"))
+        {
+            attachScript(master, "ai.pet_master");
+        }
+        obj_id inventory = utils.getInventoryContainer(pet);
+        if (isIdValid(inventory))
+        {
+            setOwner(inventory, master);
+        }
+        setObjVar(pet, "ai.pet.masterName", getEncodedName(master));
+        if (hasScript(pet, "ai.pet_advance"))
+        {
+            detachScript(pet, "ai.pet_advance");
+        }
+        if (!hasScript(pet, "ai.pet"))
+        {
+            attachScript(pet, "ai.pet");
+        }
+        setupDefaultCommands(pet);
+        savePetInfo(pet, petControlDevice);
+        petFollow(pet, master);
         return petControlDevice;
     }
     public static void makePet(obj_id pet, obj_id master) throws InterruptedException
@@ -445,31 +523,7 @@ public class pet_lib extends script.base_script
         {
             return 0;
         }
-        String profession = skill.getProfessionName(getSkillTemplate(player));
-        if(profession == null){
-            LOG("pet","Cannot get the profession for player (" + player + ") while getting droid command level.");
-            return 0;
-        }
-        boolean isTrader = false;
-        if (profession.equals("trader"))
-        {
-            isTrader = true;
-        }
-        int playerLevel = getLevel(player);
-        int commandLevel = 0;
-        if (modulePotency >= 100 && isTrader && playerLevel >= 60)
-        {
-            commandLevel = 3;
-        }
-        else if (modulePotency >= 50 && isTrader && playerLevel >= 30)
-        {
-            commandLevel = 2;
-        }
-        else if (modulePotency > 0)
-        {
-            commandLevel = 1;
-        }
-        return commandLevel;
+        return modulePotency > 0 ? 1 : 0;
     }
     public static void learnCommand(obj_id pet, int commandNum, String text, obj_id master) throws InterruptedException
     {
@@ -3478,7 +3532,7 @@ public class pet_lib extends script.base_script
         int maxDamage = getIntObjVar(petControlDevice, "creature_attribs.maxDamage");
         if (isIdValid(player) && exists(player))
         {
-            if (level > 60 && !craftinglib.isTrader(player))
+            if (level > 60)
             {
                 level = 60;
             }
@@ -3748,6 +3802,36 @@ public class pet_lib extends script.base_script
         obj_id pet = callable.getCallable(master, callable.CALLABLE_TYPE_COMBAT_PET);
         return getLevel(pet);
     }
+    public static boolean canCallCreaturePet(obj_id player, int petType, int petLevel) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return false;
+        }
+        if (petType != PET_TYPE_NON_AGGRO && petType != PET_TYPE_AGGRO)
+        {
+            return true;
+        }
+        boolean creatureHandler = hasSkill(player, "outdoors_creaturehandler_novice");
+        int maximumControlLevel = creatureHandler ? getMaxTameLevel(player) : MAX_NONCH_PET_LEVEL;
+        if (petLevel > maximumControlLevel)
+        {
+            sendSystemMessage(player, new string_id("pet/pet_menu", "control_exceeded"));
+            return false;
+        }
+        if (petType == PET_TYPE_AGGRO &&
+            (!creatureHandler || getSkillStatMod(player, "tame_aggro") <= 0))
+        {
+            sendSystemMessage(player, new string_id("pet/pet_menu", "lack_skill"));
+            return false;
+        }
+        if (getCurrentPetLevels(player) + petLevel > maximumControlLevel)
+        {
+            sendSystemMessage(player, new string_id("pet/pet_menu", "control_exceeded"));
+            return false;
+        }
+        return true;
+    }
     public static boolean canControlPetsOfLevel(obj_id player, int petType, int petLevel, String creatureName) throws InterruptedException
     {
         if (!hasSkill(player, "outdoors_creaturehandler_novice"))
@@ -3796,22 +3880,11 @@ public class pet_lib extends script.base_script
     }
     public static int getMaxTameLevel(obj_id player) throws InterruptedException
     {
-        int baseTameLevel = getSkillStatMod(player, "tame_level");
-        int bonusTameLevel = getEnhancedSkillStatisticModifier(player, "tame_level_bonus");
-        int playerLevel = getLevel(player);
-        if (baseTameLevel + bonusTameLevel > playerLevel)
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
         {
-            if (baseTameLevel > playerLevel)
-            {
-                return baseTameLevel;
-            }
-            bonusTameLevel = playerLevel - baseTameLevel;
-            if (bonusTameLevel < 0)
-            {
-                bonusTameLevel = 0;
-            }
+            return 0;
         }
-        return (baseTameLevel + bonusTameLevel);
+        return Math.max(0, getSkillStatMod(player, "tame_level"));
     }
     public static int getModifiedAttribDamage(obj_id target, int attrib) throws InterruptedException
     {
@@ -5397,10 +5470,6 @@ public class pet_lib extends script.base_script
     }
     public static int getDroidCapLevel(obj_id who, int level) throws InterruptedException
     {
-        if (craftinglib.isTrader(who))
-        {
-            return 90;
-        }
         return 60;
     }
     public static void initDroidDefaultStats(obj_id deed) throws InterruptedException

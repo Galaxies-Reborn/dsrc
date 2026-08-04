@@ -15,6 +15,10 @@ public class beast_control_device extends script.base_script
     public static final String CALLED_FOR_PET = "player.calledForPet";
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (beast_lib.isRetiredPostNgeBeastMasterPlayer(player))
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (ai_lib.aiIsDead(player))
         {
             return SCRIPT_CONTINUE;
@@ -50,6 +54,10 @@ public class beast_control_device extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (beast_lib.isRetiredPostNgeBeastMasterPlayer(player))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (ai_lib.aiIsDead(player) || getPerformanceType(player) != 0)
         {
             sendSystemMessage(player, new string_id("spam", "cant_do_it_state"));

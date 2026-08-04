@@ -14,12 +14,13 @@ public class figrin_dan_band_spawner extends script.base_script
     public static final String DATATABLE_OBJVAR = "figrinDatatable";
     public int OnInitialize(obj_id self) throws InterruptedException
     {
-        debugServerConsoleMsg(self, "Initialized Figrin Dan Band spawner script");
-        messageTo(self, "spawnFigrinDanBand", null, 9, true);
+        destroyTheBand(self);
+        detachScript(self, "systems.storyteller.events.figrin_dan_band_spawner");
         return SCRIPT_CONTINUE;
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        detachScript(self, "systems.storyteller.events.figrin_dan_band_spawner");
         return SCRIPT_CONTINUE;
     }
     public int OnTriggerVolumeEntered(obj_id self, String volName, obj_id breecher) throws InterruptedException

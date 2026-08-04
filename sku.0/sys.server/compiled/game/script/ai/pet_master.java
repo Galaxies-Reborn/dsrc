@@ -19,6 +19,18 @@ public class pet_master extends script.base_script
     public static final string_id SID_SYS_ENRAGE = new string_id("pet/pet_menu", "sys_enrage");
     public static final string_id SID_SYS_FAIL_ENRAGE = new string_id("pet/pet_menu", "sys_fail_enrage");
     public static final string_id SID_SYS_CANT_BUFF = new string_id("pet/pet_menu", "sys_cant_buff");
+    public static final String PRECU_EMBOLDEN_BUFF = "emboldenPet";
+    public static final String PRECU_EMBOLDEN_COOLDOWN =
+        "pet.precuEmboldenCooldownUntil";
+    public static final float PRECU_EMBOLDEN_RANGE = 50.0f;
+    public static final float PRECU_EMBOLDEN_DURATION = 60.0f;
+    public static final int PRECU_EMBOLDEN_COOLDOWN_SECONDS = 300;
+    public static final int PRECU_EMBOLDEN_BASE_MIND_COST = 100;
+    private static final long PRECU_EMBOLDEN_PLAYER_OID = 44003778L;
+    private static final int PRECU_EMBOLDEN_STATION_ID = 91001;
+    private static final int PRECU_EMBOLDEN_PROTOCOL_VERSION = 1;
+    private static final String PRECU_EMBOLDEN_FIXTURE_ROOT =
+        "precu.emboldenPetsCommandFixture";
     public int OnRemovedFromGroup(obj_id self, obj_id group) throws InterruptedException
     {
         if (!callable.hasAnyCallable(self))
@@ -50,6 +62,116 @@ public class pet_master extends script.base_script
     {
         sendSystemMessage(self, SID_SYS_CANT_BUFF);
         return SCRIPT_CONTINUE;
+    }
+    public int emboldenPets(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        obj_id pet = callable.getCallable(
+            self, callable.CALLABLE_TYPE_COMBAT_PET);
+        boolean fixture = isPrecuEmboldenFixture(self, pet);
+        if (fixture)
+        {
+            setObjVar(self, PRECU_EMBOLDEN_FIXTURE_ROOT + ".handlerEntered", 1);
+            setObjVar(self, PRECU_EMBOLDEN_FIXTURE_ROOT + ".handlerCalls",
+                readPrecuEmboldenInt(self, ".handlerCalls") + 1);
+            setObjVar(self, PRECU_EMBOLDEN_FIXTURE_ROOT + ".outcome", "entered");
+        }
+        if (!isIdValid(self) || !exists(self) || !isPlayer(self) ||
+            isDead(self) || isIncapacitated(self) ||
+            !hasSkill(self, "outdoors_creaturehandler_healing_02"))
+        {
+            recordPrecuEmboldenOutcome(self, fixture, "playerRejected");
+            return SCRIPT_CONTINUE;
+        }
+        if (!isIdValid(pet) || !exists(pet) ||
+            !pet_lib.isMyPet(pet, self) || !pet_lib.isCreaturePet(pet) ||
+            ai_lib.isAiDead(pet) || isIncapacitated(pet) ||
+            getDistance(self, pet) > PRECU_EMBOLDEN_RANGE)
+        {
+            sendSystemMessage(self, SID_SYS_FAIL_EMBOLDEN);
+            recordPrecuEmboldenOutcome(self, fixture, "petRejected");
+            return SCRIPT_CONTINUE;
+        }
+        int now = getGameTime();
+        if (buff.hasBuff(pet, PRECU_EMBOLDEN_BUFF) ||
+            (hasObjVar(pet, PRECU_EMBOLDEN_COOLDOWN) &&
+                getIntObjVar(pet, PRECU_EMBOLDEN_COOLDOWN) > now))
+        {
+            showFlyText(pet,
+                new string_id("combat_effects", "pet_embolden_no"),
+                1.0f, 0, 153, 0);
+            sendSystemMessage(self, SID_SYS_FAIL_EMBOLDEN);
+            recordPrecuEmboldenOutcome(self, fixture, "cooldownRejected");
+            return SCRIPT_CONTINUE;
+        }
+        int mindCost = getPrecuEmboldenMindCost(self);
+        int mindBefore = getAttrib(self, MIND);
+        if (mindBefore <= mindCost)
+        {
+            sendSystemMessage(self, SID_SYS_FAIL_EMBOLDEN);
+            recordPrecuEmboldenOutcome(self, fixture, "notEnoughMind");
+            return SCRIPT_CONTINUE;
+        }
+        if (!buff.applyBuff(
+            pet, self, PRECU_EMBOLDEN_BUFF, PRECU_EMBOLDEN_DURATION))
+        {
+            sendSystemMessage(self, SID_SYS_CANT_BUFF);
+            recordPrecuEmboldenOutcome(self, fixture, "buffRejected");
+            return SCRIPT_CONTINUE;
+        }
+        setObjVar(pet, PRECU_EMBOLDEN_COOLDOWN,
+            now + PRECU_EMBOLDEN_COOLDOWN_SECONDS);
+        setAttrib(self, MIND, mindBefore - mindCost);
+        showFlyText(pet,
+            new string_id("combat_effects", "pet_embolden"),
+            1.0f, 0, 153, 0);
+        sendSystemMessage(self, SID_SYS_EMBOLDEN);
+        if (fixture)
+        {
+            setObjVar(self, PRECU_EMBOLDEN_FIXTURE_ROOT + ".mindCost", mindCost);
+            setObjVar(self, PRECU_EMBOLDEN_FIXTURE_ROOT + ".cooldownUntil",
+                now + PRECU_EMBOLDEN_COOLDOWN_SECONDS);
+            setObjVar(self, PRECU_EMBOLDEN_FIXTURE_ROOT + ".completedAt", now);
+        }
+        recordPrecuEmboldenOutcome(self, fixture, "passed");
+        return SCRIPT_CONTINUE;
+    }
+    private int getPrecuEmboldenMindCost(obj_id player)
+        throws InterruptedException
+    {
+        float cost = PRECU_EMBOLDEN_BASE_MIND_COST;
+        cost -= ((getAttrib(player, FOCUS) - 300.0f) / 1200.0f) * cost;
+        return Math.max(0, (int)cost);
+    }
+    private boolean isPrecuEmboldenFixture(obj_id player, obj_id pet)
+        throws InterruptedException
+    {
+        return isIdValid(player) && exists(player) && isPlayer(player) &&
+            player.getValue() == PRECU_EMBOLDEN_PLAYER_OID &&
+            getPlayerStationId(player) == PRECU_EMBOLDEN_STATION_ID &&
+            hasObjVar(player, PRECU_EMBOLDEN_FIXTURE_ROOT + ".protocol") &&
+            getIntObjVar(player, PRECU_EMBOLDEN_FIXTURE_ROOT + ".protocol") ==
+                PRECU_EMBOLDEN_PROTOCOL_VERSION &&
+            hasObjVar(player, PRECU_EMBOLDEN_FIXTURE_ROOT + ".prepared") &&
+            getIntObjVar(player, PRECU_EMBOLDEN_FIXTURE_ROOT + ".prepared") == 1 &&
+            hasObjVar(player, PRECU_EMBOLDEN_FIXTURE_ROOT + ".pet") &&
+            isIdValid(pet) && pet.equals(getObjIdObjVar(
+                player, PRECU_EMBOLDEN_FIXTURE_ROOT + ".pet"));
+    }
+    private int readPrecuEmboldenInt(obj_id player, String suffix)
+        throws InterruptedException
+    {
+        String path = PRECU_EMBOLDEN_FIXTURE_ROOT + suffix;
+        return hasObjVar(player, path) ? getIntObjVar(player, path) : 0;
+    }
+    private void recordPrecuEmboldenOutcome(obj_id player, boolean fixture,
+        String outcome) throws InterruptedException
+    {
+        if (fixture)
+        {
+            setObjVar(player,
+                PRECU_EMBOLDEN_FIXTURE_ROOT + ".outcome", outcome);
+        }
     }
     public int OnSkillGranted(obj_id self, String skillName) throws InterruptedException
     {
@@ -122,7 +244,7 @@ public class pet_master extends script.base_script
             sendSystemMessage(self, new string_id(STF_FILE, "no_bomb_module"));
             return SCRIPT_CONTINUE;
         }
-        if (!hasSkill(self, "class_smuggler_phase1_novice") && !hasSkill(self, "class_bountyhunter_phase1_novice"))
+        if (!hasSkill(self, "combat_smuggler_novice") && !hasSkill(self, "combat_bountyhunter_novice"))
         {
             sendSystemMessage(self, new string_id(STF_FILE, "insufficient_skill_detonate"));
             return SCRIPT_CONTINUE;

@@ -81,7 +81,7 @@ public class objective_power_regulator extends script.faction_perk.hq.objective_
         }
         if (item == menu_info_types.ITEM_USE)
         {
-            if (!hasSkill(player, "class_commando_phase1_novice"))
+            if (!hasSkill(player, "combat_commando_heavyweapon_speed_02"))
             {
                 sendSystemMessage(player, new string_id(STF, "commando_only"));
                 return SCRIPT_CONTINUE;
@@ -202,6 +202,7 @@ public class objective_power_regulator extends script.faction_perk.hq.objective_
         {
             CustomerServiceLog("faction_hq", getName(player) + "(" + player + "), " + "overloaded Power Regulator Terminal at " + getGameTime() + ".");
             sendSystemMessage(player, new string_id(STF, "alignment_complete"));
+            xp.grant(player, xp.COMBAT_RANGEDSPECIALIZE_HEAVY, 1000);
             hq.disableObjective(self);
             return SCRIPT_CONTINUE;
         }

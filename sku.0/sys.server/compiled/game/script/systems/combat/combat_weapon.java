@@ -104,7 +104,7 @@ public class combat_weapon extends script.base_script
         }
         return SCRIPT_CONTINUE;
     }
-    public void expertiseRangeModify(obj_id self) throws InterruptedException
+    public void restorePrecuWeaponRange(obj_id self) throws InterruptedException
     {
         if (!isIdValid(self))
         {
@@ -144,31 +144,26 @@ public class combat_weapon extends script.base_script
                 return;
             }
         }
-        obj_id holder = getContainedBy(self);
-        if (!isIdNull(holder) && isPlayer(holder))
-        {
-            if (self == getObjectInSlot(holder, "hold_r"))
-            {
-                weapons.adjustWeaponRangeForExpertise(holder, self, true);
-            }
-            else 
-            {
-                weapons.adjustWeaponRangeForExpertise(holder, self, false);
-            }
-        }
-        else 
-        {
-            weapons.adjustWeaponRangeForExpertise(null, self, false);
-        }
+        weapons.restorePrecuWeaponRange(self);
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        restorePrecuWeaponRange(self);
+        obj_id owner = utils.getContainingPlayerOrCreature(self);
+        if (isPlayer(owner))
+        {
+            retireNgeWeaponDamageSkillMods(owner);
+        }
         messageTo(self, "weaponConversion", null, 5, false);
         return SCRIPT_CONTINUE;
     }
     public int weaponConversion(obj_id self, dictionary params) throws InterruptedException
     {
         obj_id owner = utils.getContainingPlayerOrCreature(self);
+        if (isPlayer(owner))
+        {
+            retireNgeWeaponDamageSkillMods(owner);
+        }
         int niche = ai_lib.aiGetNiche(owner);
         if (niche != 1)
         {
@@ -184,7 +179,7 @@ public class combat_weapon extends script.base_script
         }
         if (static_item.isStaticItem(self))
         {
-            expertiseRangeModify(self);
+            restorePrecuWeaponRange(self);
             return SCRIPT_CONTINUE;
         }
         else 
@@ -219,7 +214,7 @@ public class combat_weapon extends script.base_script
         weapons.validateWeaponDamageType(self);
         weapons.validateWeaponRange(self);
         weapons.setWeaponData(self);
-        expertiseRangeModify(self);
+        restorePrecuWeaponRange(self);
         if (weapons.checkForIllegalStorytellerWeapon(owner, self))
         {
             weapons.handleIllegalStorytellerWeapon(owner, self, "OnInitialize");
@@ -228,51 +223,37 @@ public class combat_weapon extends script.base_script
     }
     public int OnAboutToBeTransferred(obj_id self, obj_id destContainer, obj_id transferer) throws InterruptedException
     {
-        if (isPlayer(destContainer) && !combat.hasCertification(destContainer, self))
-        {
-            prose_package pp = new prose_package();
-            pp = prose.setStringId(pp, new string_id("spam", "weapon_no_cert"));
-            pp = prose.setTT(pp, self);
-            sendSystemMessageProse(destContainer, pp);
-            return SCRIPT_OVERRIDE;
-        }
+        // PRE-CU permits uncertified weapons to be equipped.  Certification
+        // is enforced as a substantial accuracy penalty during combat.
         return SCRIPT_CONTINUE;
     }
     public int OnTransferred(obj_id self, obj_id sourceContainer, obj_id destContainer, obj_id transferer) throws InterruptedException
     {
-        expertiseRangeModify(self);
+        restorePrecuWeaponRange(self);
         if (isPlayer(destContainer))
         {
-            setDamageSkillMods(destContainer, self);
+            retireNgeWeaponDamageSkillMods(destContainer);
             proc.buildCurrentProcList(destContainer);
         }
         else if (isPlayer(sourceContainer))
         {
-            setDamageSkillMods(sourceContainer, null);
+            retireNgeWeaponDamageSkillMods(sourceContainer);
             proc.buildCurrentProcList(sourceContainer);
         }
         return SCRIPT_CONTINUE;
     }
-    public void setDamageSkillMods(obj_id player, obj_id weapon) throws InterruptedException
+    public void retireNgeWeaponDamageSkillMods(obj_id player) throws InterruptedException
     {
-        int intMultiplier = combat.PLAYER_ATTACKER_DAMAGE_LEVEL_MULTIPLIER;
-        int intBaseDamage = combat.PLAYER_COMBAT_BASE_DAMAGE;
-        int weaponMinDamage = 0;
-        int weaponMaxDamage = 0;
-        if (isIdValid(weapon))
-        {
-            weaponMinDamage = getWeaponMinDamage(weapon);
-            weaponMaxDamage = getWeaponMaxDamage(weapon);
-        }
-        int playerLevel = getLevel(player);
-        int minDamage = weaponMinDamage + (playerLevel * intMultiplier);
-        int maxDamage = intBaseDamage + weaponMaxDamage + (playerLevel * intMultiplier);
         int oldMin = getSkillStatisticModifier(player, "minDamage");
-        applySkillStatisticModifier(player, "minDamage", 0 - oldMin);
+        if (oldMin != 0)
+        {
+            applySkillStatisticModifier(player, "minDamage", 0 - oldMin);
+        }
         int oldMax = getSkillStatisticModifier(player, "maxDamage");
-        applySkillStatisticModifier(player, "maxDamage", 0 - oldMax);
-        applySkillStatisticModifier(player, "minDamage", minDamage);
-        applySkillStatisticModifier(player, "maxDamage", maxDamage);
+        if (oldMax != 0)
+        {
+            applySkillStatisticModifier(player, "maxDamage", 0 - oldMax);
+        }
     }
     public int OnGetAttributes(obj_id self, obj_id player, String[] names, String[] attribs) throws InterruptedException
     {
@@ -291,27 +272,6 @@ public class combat_weapon extends script.base_script
             {
                 itemData = static_item.getMasterItemDictionary(self);
             }
-            int levelRequired = -1;
-            if (hasObjVar(self, weapons.OBJVAR_WP_LEVEL))
-            {
-                levelRequired = getIntObjVar(self, weapons.OBJVAR_WP_LEVEL);
-            }
-            else 
-            {
-                levelRequired = dataTableGetInt(combat.WEAPON_LEVEL_TABLE, template, "weapon_level");
-                if (staticItem)
-                {
-                    levelRequired = itemData.getInt("required_level");
-                }
-                if (static_item.isDynamicItem(self))
-                {
-                    levelRequired = getIntObjVar(self, "dynamic_item.intLevelRequired");
-                }
-            }
-            names[free] = "healing_combat_level_required";
-            attribs[free++] = "" + levelRequired;
-            names[free] = "tooltip.healing_combat_level_required";
-            attribs[free++] = "" + levelRequired;
             String skillRequired = dataTableGetString(combat.WEAPON_LEVEL_TABLE, template, "secondary_restriction");
             if (staticItem)
             {

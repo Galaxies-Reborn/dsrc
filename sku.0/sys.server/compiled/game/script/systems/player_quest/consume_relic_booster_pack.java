@@ -13,6 +13,10 @@ public class consume_relic_booster_pack extends script.base_script
     public static final String PID_NAME = "chronicleBoosterPack";
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (!isChroniclesBoosterPackEnabled())
+        {
+            return SCRIPT_CONTINUE;
+        }
         string_id openMenu = new string_id("saga_system", "booster_pack_open");
         if (hasObjVar(self, "chronicles.isStarterPack"))
         {
@@ -26,6 +30,10 @@ public class consume_relic_booster_pack extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (!isChroniclesBoosterPackEnabled())
+        {
+            return SCRIPT_CONTINUE;
+        }
         sendDirtyObjectMenuNotification(self);
         if (utils.isNestedWithinAPlayer(self))
         {
@@ -69,6 +77,10 @@ public class consume_relic_booster_pack extends script.base_script
     }
     public int handlerSuiBoosterPackOpen(obj_id self, dictionary params) throws InterruptedException
     {
+        if (!isChroniclesBoosterPackEnabled())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (params == null || params.isEmpty())
         {
             return SCRIPT_CONTINUE;
@@ -98,7 +110,6 @@ public class consume_relic_booster_pack extends script.base_script
         {
             isStarterKit = true;
         }
-        String professionTemplate = getSkillTemplate(player);
         obj_id playerInventory = utils.getInventoryContainer(player);
         int relicQualitySkillmod = getEnhancedSkillStatisticModifierUncapped(player, pgc_quests.PGC_SKILLMOD_RELIC_QUALITY);
         Vector relicReferences = new Vector();
@@ -111,13 +122,6 @@ public class consume_relic_booster_pack extends script.base_script
         {
             relicFilter = getStringObjVar(self, "chronicles.boosterPackCategory");
             filterChance = 99;
-        }
-        else if (professionTemplate.startsWith("trader"))
-        {
-            relicFilter = "crafting";
-        }
-        else if (professionTemplate.startsWith("entertainer"))
-        {
         }
         int num_items = dataTableGetNumRows(storyteller.STORYTELLER_DATATABLE);
         for (int i = 0; i < num_items; i++)
@@ -183,5 +187,9 @@ public class consume_relic_booster_pack extends script.base_script
         decrementCount(self);
         sui.removePid(player, PID_NAME);
         return SCRIPT_CONTINUE;
+    }
+    private static boolean isChroniclesBoosterPackEnabled()
+    {
+        return false;
     }
 }

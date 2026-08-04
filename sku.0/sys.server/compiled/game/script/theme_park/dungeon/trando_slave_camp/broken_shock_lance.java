@@ -12,7 +12,7 @@ public class broken_shock_lance extends script.base_script
     public broken_shock_lance()
     {
     }
-    public static final String weapon_smith = "class_munitions_phase1_master";
+    public static final String weapon_smith = "crafting_weaponsmith_master";
     public static final String STF = "ep3/sidequests";
     public static final string_id reverse_engineer = new string_id(STF, "re_broken_shock_lance");
     public static final String plans_name = "shock_lance";

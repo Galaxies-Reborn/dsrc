@@ -14,7 +14,7 @@ public class player_jedi_conversion extends script.base_script
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
-        convertOldJedi(self);
+        detachScript(self, "player.player_jedi_conversion");
         return SCRIPT_CONTINUE;
     }
     public void convertOldJedi(obj_id self) throws InterruptedException
@@ -655,13 +655,11 @@ public class player_jedi_conversion extends script.base_script
     }
     public int OnLogin(obj_id self) throws InterruptedException
     {
-        setSkillTemplate(self, "a");
         detachScript(self, "player.player_jedi_conversion");
         return SCRIPT_CONTINUE;
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
-        setSkillTemplate(self, "a");
         detachScript(self, "player.player_jedi_conversion");
         return SCRIPT_CONTINUE;
     }

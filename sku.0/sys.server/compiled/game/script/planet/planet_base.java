@@ -45,6 +45,7 @@ public class planet_base extends script.base_script
             attachScript(self, "systems.spawning.spawn_master");
         }
         CustomerServiceLog("holidayEvent", "planet_base.doSpawnSetup: doSpawnSetup complete.");
+        messageTo(self, "refreshPrecuLifeDayFromState", null, 780.0f, false);
         obj_id tatooinePlanet = getPlanetByName("tatooine");
         if (isIdValid(tatooinePlanet) && exists(tatooinePlanet))
         {
@@ -61,6 +62,57 @@ public class planet_base extends script.base_script
             CustomerServiceLog("holidayEvent", "planet_base.doSpawnSetup: Tatooine Planet not found!! Notify development.");
         }
         return SCRIPT_CONTINUE;
+    }
+    public int refreshPrecuLifeDayFromState(obj_id self, dictionary params) throws InterruptedException
+    {
+        String setting = getConfigSetting("GameServer", "lifeday");
+        boolean configured = setting != null && (setting.equals("true") || setting.equals("1"));
+        boolean active = configured && getCurrentUniverseWideEvents().indexOf("lifeday") > -1;
+        dictionary refresh = new dictionary();
+        refresh.put("active", active);
+        return refreshPrecuLifeDayAnchors(self, refresh);
+    }
+    public int refreshPrecuLifeDayAnchors(obj_id self, dictionary params) throws InterruptedException
+    {
+        boolean active = params != null && params.getBoolean("active");
+        String planetName = getNameForPlanetObject(self);
+        String spawnerScript = getPrecuLifeDaySpawnerScript(planetName);
+        if (spawnerScript == null)
+        {
+            return SCRIPT_CONTINUE;
+        }
+        if (active)
+        {
+            if (!hasScript(self, spawnerScript))
+            {
+                attachScript(self, spawnerScript);
+            }
+            else
+            {
+                messageTo(self, "reconcilePrecuLifeDayAnchors", null, 0.0f, false);
+            }
+        }
+        else if (hasScript(self, spawnerScript))
+        {
+            messageTo(self, "retirePrecuLifeDayAnchors", null, 0.0f, false);
+        }
+        return SCRIPT_CONTINUE;
+    }
+    private String getPrecuLifeDaySpawnerScript(String planetName) throws InterruptedException
+    {
+        if (planetName == null)
+        {
+            return null;
+        }
+        if (planetName.equals("tatooine") || planetName.equals("corellia") || planetName.equals("naboo"))
+        {
+            return "event.lifeday.city_spawner";
+        }
+        if (planetName.equals("dathomir") || planetName.equals("endor") || planetName.equals("yavin4"))
+        {
+            return "event.lifeday.lifeday_spawner";
+        }
+        return null;
     }
     public int OnDetach(obj_id self) throws InterruptedException
     {
@@ -167,8 +219,29 @@ public class planet_base extends script.base_script
         }
         return SCRIPT_CONTINUE;
     }
+    private void retirePostNgeCityInvasionState(obj_id self) throws InterruptedException
+    {
+        if (!isIdValid(self) || !exists(self))
+        {
+            return;
+        }
+        for (String cityName : gcw.INVASION_CITIES)
+        {
+            utils.removeScriptVar(self, "gcw.lastTrackTime." + cityName);
+            utils.removeScriptVar(self, "gcw.time." + cityName);
+            utils.removeScriptVar(self, "gcw.object." + cityName);
+            utils.removeScriptVar(self, "gcw.calendar_time." + cityName);
+            utils.removeScriptVar(self, "gcw.invasionRunning." + cityName);
+            utils.removeScriptVar(self, "gcw.factionDefending." + cityName);
+        }
+    }
     public void gcwInvasionMessage(obj_id self, obj_id citySequencer, String city) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            retirePostNgeCityInvasionState(self);
+            return;
+        }
         if (isIdValid(self) && exists(self) && isIdValid(citySequencer))
         {
             LOG("gcwlog", "planet_base gcwInvasionTracker citySequencer: " + citySequencer);
@@ -180,6 +253,11 @@ public class planet_base extends script.base_script
     }
     public int gcwInvasionTracker(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            retirePostNgeCityInvasionState(self);
+            return SCRIPT_CONTINUE;
+        }
         if (params == null)
         {
             return SCRIPT_CONTINUE;
@@ -259,6 +337,11 @@ public class planet_base extends script.base_script
     }
     public int gcwGetInvasionObject(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            retirePostNgeCityInvasionState(self);
+            return SCRIPT_CONTINUE;
+        }
         if (params == null)
         {
             return SCRIPT_CONTINUE;

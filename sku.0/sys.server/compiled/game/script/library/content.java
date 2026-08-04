@@ -18,23 +18,11 @@ public class content extends script.base_script
     public static final String IMPERIAL_PATH_OBJVAR_NAME = "legacy.faction.imperialPath";
     public static boolean isCrafter(obj_id player) throws InterruptedException
     {
-        String profession = getSkillTemplate(player);
-        int crafting = profession.indexOf("trader");
-        if (crafting > -1)
-        {
-            return true;
-        }
-        return false;
+        return utils.isProfession(player, utils.TRADER);
     }
     public static boolean isEntertainer(obj_id player) throws InterruptedException
     {
-        String profession = getSkillTemplate(player);
-        int entertaining = profession.indexOf("entertainer");
-        if (entertaining > -1)
-        {
-            return true;
-        }
-        return false;
+        return utils.isProfession(player, utils.ENTERTAINER);
     }
     public static void grantRsfSecurityClearance(obj_id player) throws InterruptedException
     {

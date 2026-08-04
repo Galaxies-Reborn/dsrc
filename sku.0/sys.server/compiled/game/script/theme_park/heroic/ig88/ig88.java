@@ -536,8 +536,7 @@ public class ig88 extends script.base_script
         CustomerServiceLog("instance-heroic_ig88", "Group (" + group + ") consists of: ");
         for (int i = 0; i < players.length; ++i)
         {
-            String strProfession = skill.getProfessionName(getSkillTemplate(players[i]));
-            CustomerServiceLog("instance-heroic_ig88", "Group (" + group + ") member " + i + " " + getFirstName(players[i]) + "'s(" + players[i] + ") profession is " + strProfession + ".");
+            CustomerServiceLog("instance-heroic_ig88", "Group (" + group + ") member " + i + " " + getFirstName(players[i]) + "'s(" + players[i] + ") progression is Publish 14.1 skills.");
         }
         instance.setClock(trial.getParent(self), 300);
         return SCRIPT_CONTINUE;

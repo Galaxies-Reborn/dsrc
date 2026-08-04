@@ -18,7 +18,7 @@ public class ep3_myyydril_weaponsmith extends script.base_script
     }
     public boolean ep3_myyydril_weaponsmith_condition_hasSkillWeapon(obj_id player, obj_id npc) throws InterruptedException
     {
-        return hasSkill(player, "class_munitions_phase1_novice");
+        return hasSkill(player, "crafting_weaponsmith_novice");
     }
     public boolean ep3_myyydril_weaponsmith_condition_isTaskOneActive(obj_id player, obj_id npc) throws InterruptedException
     {
