@@ -12,9 +12,8 @@ public class innate extends script.base_script
     public static final int TWO_HOURS = ONE_HOUR * 2;
     public static final float DURATION_REGEN = 300.0f;
     public static final float DURATION_ROAR = 300.0f;
-    public static final float DURATION_VIT = 300.0f;
+    public static final float DURATION_VIT = 600.0f;
     public static final int VALUE_VIT_BUFF = 50;
-    public static final int VALUE_EQUALIZE_AMOUNT = 250;
     public static final float RAMP_REGEN = 30.0f;
     public static final float RAMP_VIT = 0.0f;
     public static final String VAR_INNATE_BASE = "innate";
@@ -102,12 +101,25 @@ public class innate extends script.base_script
         {
             return;
         }
-        if (getAttrib(player, HEALTH) <= VALUE_EQUALIZE_AMOUNT)
+        int health = getAttrib(player, HEALTH);
+        int action = getAttrib(player, ACTION);
+        int mind = getAttrib(player, MIND);
+        int balancedValue = (health + action + mind) / 3;
+        int healthDelta = balancedValue - health;
+        int actionDelta = balancedValue - action;
+        int mindDelta = balancedValue - mind;
+        if (healthDelta != 0)
         {
-            return;
+            addAttribModifier(player, HEALTH, healthDelta, 0, 0, MOD_POOL);
         }
-        addAttribModifier(player, HEALTH, (-1 * VALUE_EQUALIZE_AMOUNT), 0, 0, MOD_POOL);
-        addAttribModifier(player, ACTION, VALUE_EQUALIZE_AMOUNT, 0, 0, MOD_POOL);
+        if (actionDelta != 0)
+        {
+            addAttribModifier(player, ACTION, actionDelta, 0, 0, MOD_POOL);
+        }
+        if (mindDelta != 0)
+        {
+            addAttribModifier(player, MIND, mindDelta, 0, 0, MOD_POOL);
+        }
     }
     public static int doAntiModCheck(obj_id target, String skill_mod) throws InterruptedException
     {

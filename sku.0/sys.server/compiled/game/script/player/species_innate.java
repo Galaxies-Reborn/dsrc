@@ -163,7 +163,7 @@ public class species_innate extends script.base_script
                         queueCommand(self, (1397846664), null, "", COMMAND_PRIORITY_DEFAULT);
                         return SCRIPT_CONTINUE;
                     case innate.ROAR:
-                        queueCommand(self, (-1223315403), null, "", COMMAND_PRIORITY_DEFAULT);
+                        queueCommand(self, (-1223315403), target, "", COMMAND_PRIORITY_DEFAULT);
                         return SCRIPT_CONTINUE;
                     case innate.EQUIL:
                         queueCommand(self, (136144656), null, "", COMMAND_PRIORITY_DEFAULT);
@@ -184,7 +184,7 @@ public class species_innate extends script.base_script
     public int cmdRegeneration(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
         int mod = getSkillStatMod(self, "private_innate_regeneration");
-        if (mod == 1)
+        if (getSpecies(self) == SPECIES_TRANDOSHAN && mod == 1)
         {
             innate.regeneration();
         }
@@ -193,7 +193,7 @@ public class species_innate extends script.base_script
     public int cmdVitalize(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
         int mod = getSkillStatMod(self, "private_innate_vitalize");
-        if (mod == 1)
+        if (getSpecies(self) == SPECIES_ZABRAK && mod == 1)
         {
             innate.vitalize();
         }
@@ -202,7 +202,7 @@ public class species_innate extends script.base_script
     public int cmdEquilibrium(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
         int mod = getSkillStatMod(self, "private_innate_equilibrium");
-        if (mod == 1)
+        if (getSpecies(self) == SPECIES_ZABRAK && mod == 1)
         {
             innate.equilibrium();
         }

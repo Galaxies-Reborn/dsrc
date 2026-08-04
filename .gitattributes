@@ -3,3 +3,4 @@
 *.tdf text eol=lf
 *.tpf text eol=lf
 sku.0/sys.server/compiled/game/script/ai/pet.java -text
+sku.0/sys.server/compiled/game/script/library/innate.java -text

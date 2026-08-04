@@ -657,7 +657,7 @@ editStats		immediate		failAdmin	editStats			admin																	1	1		1	1		0	1	
 emptyMailTarget		immediate		failAdmin	emptyMailTarget			admin																				1	1		0	1												1																	0	0	0	0								gm.cmd		none		2			0		40	csr	0										
 endDuel		immediate			endDuel		0		1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1		1	1	0	1	1	1	1		0	1	1	1	1	1	1	0	1	1	1	0	1	1																								required	1	3			0				0										
 enragepets		normal	enragePets	failPetBuff			01. Mai	enragepets	1	0	1	1	1	0	1	1	1	0	0	0	0	0	0	0	0	1	0			0	0	0	1	1	1	0	0	0	1	1	1	0	1	0	1	1	1	1	0	0									1		0	0	0	0										optional		2			0				0										
-equilibrium		normal	cmdEquilibrium	cmdInnateFail			1	equilibrium		0				0				0	0					0			0				0	1												0				0	0	0	0	0									0	0	0	0										optional		2			0				1			species_innate		1	3600				
+equilibrium		normal	cmdEquilibrium	cmdInnateFail			1	equilibrium		0				0				0	0					0			0				0	1												0				0	0	0	0	0									0	0	0	0										optional		2			0				1			innate_equilibrium		1	3600				
 eventBuff		immediate	eventBuff	failAdmin				admin																	1	1		1	1		0	1												1															1															none	0				0		40	csr	0										
 eventBuffArea		immediate	eventBuffArea	failAdmin				admin																	1	1		1	1		0	1												1															1															none	0				0		40	csr	0										
 eventBuffTarget		immediate	eventBuffTarget	failAdmin				admin																	1	1		1	1		0	1												1															1															required	0				0		40	csr	0										
@@ -901,7 +901,7 @@ qatool		immediate	cmdQaTool					admin																				1	1		0	1												1		
 quickHeal	combat	normal	quickHeal				2	quickHeal	1	1	1	1	1	0	1	0	0	0	0	1	1	0	1	0	0	0	0	0	0	0	0	1	1	1	1	0	1	1	1	1	1	1	1	1	1	1	1	1	0	1	1	1	0	1	1	1	1	1	0	1	0	0	0	0	1	1	1	1	1	1	1	player.cmd.quick_heal	other	optional		2	0	0	0	0	0	0	0	ALL	NONE	defaultCooldownGroup	0	2	0		0	0	0
 reconnectToTransferServer		immediate		failAdmin	reconnectToTransferServer			admin																				1	1		0	1												1																														none	0				0		40	csr	0										
 recruitSkillTrainer		normal	cmdRecruitSkillTrainer				0	recruitSkillTrainer	1	1	1	1	1	1	1	1	1	0	0	0	0	0	0	0	0	1	1	1	1	1	0	1	1	1	1	1	1	1	1	0	0	1	1	1	1	1	1	0	0	0											0	0	0	0										none		2			0				0										
-regeneration		normal	cmdRegeneration	cmdInnateFail			1	regeneration		0				0				0	0					0			0				0	1												0				0	0	0	0	0									0	0	0	0										optional		2			0				1			species_innate		1	3600				
+regeneration		normal	cmdRegeneration	cmdInnateFail			1	regeneration		0				0				0	0					0			0				0	1												0				0	0	0	0	0									0	0	0	0										optional		2			0				1			innate_regeneration		1	3600				
 registerWithLocation		immediate	cmdRegisterWithLocation					registerWithLocation																							0	1	0					0						1				0	0																							player.cmd.register		none		2							0										
 reload		normal	reload				3		1	0	1	1	1	0	1	1	1	0	0	0	0	1	0	0	0	0	0			0	0	1	1		1		0	1	1	1	1	1	1	1	1	1	1	0	0	0									0		0	0	0	0	0									optional		2		combat_non_loop	0				1										
 remote		immediate		failAdmin	console_all			admin																				1	1		0	1																																										none					0		40	csr	0										
@@ -1073,11 +1073,11 @@ useSkillBuff		normal	cmdUseSkillBuff				01. Mai		1	0	1	1	1	0	1	0	0	0	0	0	0	0	0	0
 vacateUnlockedSlot		immediate			vacateUnlockedSlot																							1	1		0	1												1																														none									0										
 ventriloquism		normal	cmdVentriloquism					ventriloquism	1	0	1	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0			0	0	0	0	1	0	0	0	0	1	1	1	0	0	0	0	0	0	0	0	0									0		0	0	0	0								player.skill.performcommands	friend	required	0	2		performance	0	15			1										
 vertFurniture		immediate	vertFurniture				0		1	0	1			0				0	0	0	0				0	0	0			0	0	0	0	1	0	0	0	0	1	1	1	0	0	1	0	0	0	0	0	0									0															optional					0				0										
-vitalize		normal	cmdVitalize	cmdInnateFail			1	vitalize		0				0				0	0					0			0				0	1												0				0	0	0	0	0									0	0	0	0										optional		2			0				1			species_innate		1	3600				
+vitalize		normal	cmdVitalize	cmdInnateFail			1	vitalize		0				0				0	0					0			0				0	1												0				0	0	0	0	0									0	0	0	0										optional		2			0				1			innate_vitalize		1	3600				
 watch		normal	cmdWatch						1	0	1	0	0	0	0	0	0	0	0	0	0	0	1		0	0	0			0	0	0	0	1	0	0	0	0	1	1	1	0	0	0	0	0	0	0	0	0									0		0	0	0	0								player.skill.performcommands		optional	0			performance	0				0										
 wildernessStealth		normal	wildernessStealth	failWildernessStealth				wildernessStealth	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	0	0	0	0	0	0	0	0	1	0		1	1	1	1	1	1	1	1	1	0	1	1	1	1	0	0									0	0	0	0	0	0	0	0								none		2		skill_outdoorsman	0				0	ALL		invisibility	5	2	10				
 wipeItems		immediate	cmdWipeItems	failAdmin				admin																				1	1		0																																									gm.cmd		optional	0				0		40	csr	0										
-wookieeRoar		normal	wookieeRoar	cmdInnateFail			1	wookieeRoar		0			0	0	0	0	0	0	0			0	0	0			0				0													0				0	0	0	0	0																						optional		2			0				1			species_innate		1	3600				
+wookieeRoar	combat	normal	wookieeRoar	cmdInnateFail			1	wookieeRoar		0			0	0	0	0	0	0	0			0	0	0			0				0													0				0	0	0	0	0																					enemy	required		2		combat_general	0			combat	1	ALL		innate_roar	0	1	300				
 detPackAttack		normal	detPackAttack				1																								0																																											optional		2			0				1	ALL				1				1	
 useGroupPickup		immediate			useGroupPickup																							1	1		0	1												0																														none					1				0										
 throwDetPack		normal	throwDetPack																												0													0																														optional		2			0				1	ALL				1				1	

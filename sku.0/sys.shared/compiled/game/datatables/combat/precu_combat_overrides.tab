@@ -122,6 +122,7 @@ unarmedBlind1	1.5	1.5	1.5	RANDOM	2.0	15	NONE		0	BLIND	100	0	50	blind_defense	jed
 unarmedStun1	1.5	1.5	1.5	RANDOM	2.0	15	INTENSITY		0	STUN	100	0	60	stun_defense	jedi_state_defense	resistance_states
 intimidate1	0	0	0	NO_ATTRIBUTE	1.0	0	NONE		0	INTIMIDATE	100	0	30																								intimidate
 intimidate2	0	0	0	NO_ATTRIBUTE	1.0	0	NONE		0	INTIMIDATE	100	0	120																								intimidate
+wookieeRoar	0	0	0	NO_ATTRIBUTE	1.0	0	NONE		0	INTIMIDATE	100	0	60	intimidate_defense	jedi_state_defense	resistance_states																					intimidate
 warcry1	0	0	0	NO_ATTRIBUTE	1.0	0	NONE		0	NEXT_ATTACK_DELAY	100	0	10	warcry_defense	jedi_state_defense	resistance_states																					warcry
 warcry2	0	0	0	NO_ATTRIBUTE	1.0	0	NONE		0	NEXT_ATTACK_DELAY	100	0	20	warcry_defense	jedi_state_defense	resistance_states																					warcry
 taunt	1.0	1.0	1.0	NO_ATTRIBUTE	1.0	0	NONE

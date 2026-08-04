@@ -269,9 +269,9 @@ forceSap_1	cmStamina	cmWillpower		3	jedi.forceSap	60	willpowerPercent	-30	stamin
 forceShock	forceShock	stateDebuff		1	jedi.forceShock	60	private_state_resist_debuff	20		0		0		0		0	STATE_NONE	none			1	1		1	1	1	0	1	1	0	1	1	1
 forceShock_1	forceShock	stateDebuff		2	jedi.forceShock	120	private_state_resist_debuff	40		0		0		0		0	STATE_NONE	none			1	1		1	1	1	0	1	1	0	1	1	1
 forceChoke	forceChoke			1	jedi.forceChoke	-1		0		0		0		0		0	STATE_NONE	none			1	1		0	1	1	0	1	1	0	1	1	1
-innate_regeneration	innateHealthRegen	innateActionRegen		1	command.regeneration	300	constitutionPercent	20	staminaPercent	20		0		0		0	STATE_NONE	none			1	0		0	1	1	0	1	1	0	1	1	1
-innate_wookiee_roar	innateWookieeRoar			1	command.wookieeRoar	300	private_accuracy_bonus	40	private_melee_dmg_bonus	40	private_defense_penalty	40		0		0	STATE_NONE	none			1	0		0	1	1	0	1	1	0	1	1	1
-innate_vitalize	innateVitalize			1	command.vitalize	300	healthPercent	20	staminaPercent	-20	willpowerPercent	-20		0		0	STATE_NONE	none			1	0		0	1	1	0	1	1	0	1	1	1
+innate_regeneration	innateHealthRegen	innateActionRegen		1	command.regeneration	300	constitution	175		0		0		0		0	STATE_NONE	none			1	0		0	1	1	0	1	1	0	1	1	1
+innate_wookiee_roar	innateWookieeRoar			1	command.wookieeRoar	300		0		0		0		0		0	STATE_NONE	none			1	0		0	1	1	0	1	1	0	1	1	1
+innate_vitalize	innateVitalize			1	command.vitalize	600	health	50	action	50	mind	50		0		0	STATE_NONE	none			1	0		0	1	1	0	1	1	0	1	1	1
 newbie_bread	food			0	buffs.foodMeal	300	agility_modified	10		0		0		0		0	STATE_NONE	none			1	0		1	1	1	0	1	1	0	1	1	1
 newbie_meat	food			0	buffs.foodMeat	300	agility_modified	10		0		0		0		0	STATE_NONE	none			1	0		1	1	1	0	1	1	0	1	1	1
 newbie_melon	food			0	buffs.foodVegetable	300	stamina_modified	10		0		0		0		0	STATE_NONE	none			1	0		1	1	1	0	1	1	0	1	1	1

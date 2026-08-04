@@ -15336,6 +15336,17 @@ public class combat_actions extends script.systems.combat.combat_base
         }
         return SCRIPT_CONTINUE;
     }
+    public int wookieeRoar(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (getSpecies(self) != SPECIES_WOOKIEE ||
+            getSkillStatMod(self, "private_innate_roar") != 1 ||
+            !combatStandardAction("wookieeRoar", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        sendCombatSpamMessage(self, innate.SID_ROAR_ACTIVE, COMBAT_RESULT_GENERIC);
+        return SCRIPT_CONTINUE;
+    }
     public int warcry1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
         if (!combatStandardAction("warcry1", self, target, params, "", ""))
