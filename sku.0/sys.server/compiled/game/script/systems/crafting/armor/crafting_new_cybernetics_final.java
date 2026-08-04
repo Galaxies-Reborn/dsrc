@@ -109,30 +109,7 @@ public class crafting_new_cybernetics_final extends script.systems.crafting.craf
             LOG("sissynoid", "*************Entered Armor Reduction Modification**************");
             float protectionAmount = getFloatObjVar(prototype, "armor.general_protection");
             LOG("sissynoid", "******ARMOR PROTECTION BASE****** :: " + protectionAmount);
-            obj_id crafter = obj_id.NULL_ID;
-            int reductionExpertise = 0;
-            if (hasObjVar(prototype, craftinglib.OBJVAR_CRAFTER))
-            {
-                crafter = getObjIdObjVar(prototype, craftinglib.OBJVAR_CRAFTER);
-                if (crafter != null)
-                {
-                    reductionExpertise = getEnhancedSkillStatisticModifierUncapped(crafter, "expertise_cybernetic_negative_effects_reduction");
-                    LOG("sissynoid", "******EXPERTISE REDUCTION AMOUNT****** :: " + reductionExpertise);
-                }
-            }
-            float percentReductionExpertise = reductionExpertise / 100.0f;
-            LOG("sissynoid", "******EXPERTISE REDUCTION AMOUNT****** :: PERCENTAGE :: " + percentReductionExpertise);
-            float reductionAmount = 0.4f;
-            if (percentReductionExpertise > 0)
-            {
-                reductionAmount = 1.0f - (reductionAmount - percentReductionExpertise);
-                LOG("sissynoid", "**OLD REDUCT MULTIPLIER: " + (1.0f - reductionAmount) + " **New Reduction MULTIPLIER** " + reductionAmount);
-            }
-            else 
-            {
-                reductionAmount = 1.0f - 0.4f;
-                LOG("sissynoid", "Reduction Expertise is not being found!");
-            }
+            float reductionAmount = 1.0f - 0.4f;
             protectionAmount *= reductionAmount;
             setObjVar(prototype, "armor.general_protection", protectionAmount);
             LOG("sissynoid", "**NEW PROTECTION AMOUNT** (((" + protectionAmount + " )))");

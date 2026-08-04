@@ -581,11 +581,6 @@ public class resource extends script.base_script
                         }
                     }
                 }
-                int expertiseResourceIncrease = getSkillStatisticModifier(user, "expertise_resource_sampling_increase");
-                if (expertiseResourceIncrease > 0)
-                {
-                    amt += (int)(amt * expertiseResourceIncrease / 100.0f);
-                }
                 if (buff.hasBuff(user, "tcg_series4_falleens_fist"))
                 {
                     amt = (int)(amt * 1.5f);

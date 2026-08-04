@@ -649,16 +649,10 @@ public class player_structure extends script.base_script
         setObjVar(structure, VAR_DEED_SCENE, deed_info.getString("scene"));
         if (deed_info.containsKey("current_extraction") && (isHarvester(structure) || isGenerator(structure)))
         {
-            int expertiseExtractionIncrease = getSkillStatisticModifier(owner, "expertise_harvester_collection_increase");
             int currentExtraction = deed_info.getInt("current_extraction");
             int maxExtraction = deed_info.getInt("max_extraction");
             setObjVar(structure, "current_extraction", currentExtraction);
             setObjVar(structure, "max_extraction", maxExtraction);
-            if (expertiseExtractionIncrease > 0)
-            {
-                currentExtraction += (int)(currentExtraction * expertiseExtractionIncrease / 100.0f);
-                maxExtraction += (int)(maxExtraction * expertiseExtractionIncrease / 100.0f);
-            }
             if (currentExtraction > HARVESTER_MAX_EXTRACTION_RATE)
             {
                 currentExtraction = HARVESTER_MAX_EXTRACTION_RATE;
@@ -674,14 +668,6 @@ public class player_structure extends script.base_script
         {
             int max_hopper = deed_info.getInt("max_hopper");
             setObjVar(structure, VAR_DEED_MAX_HOPPER, max_hopper);
-            if (isHarvester(structure) || isGenerator(structure))
-            {
-                int expertiseHopperIncrease = getSkillStatisticModifier(owner, "expertise_havester_storage_increase");
-                if (expertiseHopperIncrease > 0)
-                {
-                    max_hopper += (int)(max_hopper * expertiseHopperIncrease / 100.0f);
-                }
-            }
             if (max_hopper > HARVESTER_MAX_HOPPER_SIZE)
             {
                 max_hopper = HARVESTER_MAX_HOPPER_SIZE;
@@ -752,35 +738,13 @@ public class player_structure extends script.base_script
         {
             return 0;
         }
-        int got = getGameObjectType(structure);
-        int expertisePowerReduction = 0;
-        if (!isIdValid(owner) || !exists(owner))
+        if (hasObjVar(structure, VAR_POWER_MOD_FACTORY))
         {
-            if (got == GOT_installation_factory && hasObjVar(structure, VAR_POWER_MOD_FACTORY))
-            {
-                expertisePowerReduction = getIntObjVar(structure, VAR_POWER_MOD_FACTORY);
-            }
-            if (got == GOT_installation_harvester && hasObjVar(structure, VAR_POWER_MOD_HARVESTER))
-            {
-                expertisePowerReduction = getIntObjVar(structure, VAR_POWER_MOD_HARVESTER);
-            }
+            removeObjVar(structure, VAR_POWER_MOD_FACTORY);
         }
-        else 
+        if (hasObjVar(structure, VAR_POWER_MOD_HARVESTER))
         {
-            if (got == GOT_installation_factory)
-            {
-                expertisePowerReduction = getSkillStatisticModifier(owner, "expertise_factory_energy_decrease");
-                setObjVar(structure, VAR_POWER_MOD_FACTORY, expertisePowerReduction);
-            }
-            if (got == GOT_installation_harvester)
-            {
-                expertisePowerReduction = getSkillStatisticModifier(owner, "expertise_harvester_energy_decrease");
-                setObjVar(structure, VAR_POWER_MOD_HARVESTER, expertisePowerReduction);
-            }
-        }
-        if (expertisePowerReduction > 0)
-        {
-            power_rate -= (int)(power_rate * expertisePowerReduction / 100.0f);
+            removeObjVar(structure, VAR_POWER_MOD_HARVESTER);
         }
         return power_rate;
     }
@@ -2945,14 +2909,6 @@ public class player_structure extends script.base_script
         if (maintenance_mod > 0)
         {
             mods.put("maintenance_mod", maintenance_mod);
-        }
-        if (isFactory(structure))
-        {
-            maintenance_mod += getSkillStatisticModifier(player, "expertise_factory_maintenance_decrease");
-        }
-        if (isHarvester(structure))
-        {
-            maintenance_mod += getSkillStatisticModifier(player, "expertise_harvester_maintenance_decrease");
         }
         if (getSkillStatMod(player, "factory_efficiency") > 0)
         {

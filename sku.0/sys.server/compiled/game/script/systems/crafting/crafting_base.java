@@ -594,22 +594,6 @@ public class crafting_base extends script.base_script
             }
             setObjVar(newObject, "crafting.creator.id", id);
             setObjVar(newObject, "crafting.creator.name", name);
-            String expertiseSkill = craftinglib.getCraftingSubskill(getRequiredSkills());
-            int complexityDecrease = (int)getSkillStatisticModifier(player, "expertise_complexity_decrease_" + expertiseSkill);
-            if (complexityDecrease > 0)
-            {
-                int newComplexity = (int)getComplexity(newObject) - complexityDecrease;
-                if (newComplexity > 0)
-                {
-                    setComplexity(newObject, newComplexity);
-                    setComplexity(getSelf(), newComplexity);
-                }
-                else 
-                {
-                    setComplexity(newObject, 1);
-                    setComplexity(getSelf(), 1);
-                }
-            }
         }
         if (hasObjVar(self, "customAppearance"))
         {

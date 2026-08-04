@@ -745,7 +745,6 @@ public class craftinglib extends script.base_script
                         }
                         if (isIdValid(player)) {
                             itemAttributeApplicableResourceValueAverage += getCraftingInspirationBonus(player, craftingValuesDictionary, itemAttributeApplicableResourceValueAverage, 1.0f);
-                            itemAttributeApplicableResourceValueAverage += (int) getEnhancedSkillStatisticModifierUncapped(player, "expertise_resource_quality_increase");
                             if (itemAttributeApplicableResourceValueAverage > 100.0f) {
                                 itemAttributeApplicableResourceValueAverage = 100.0f;
                             }
@@ -1177,17 +1176,6 @@ public class craftinglib extends script.base_script
             }
         }
         debugServerConsoleMsg(null, "craftinglib::calcSuccessPerAttributeExperimentation force adjustment = " + forceRollAdjust);
-        String expertiseSkill = getCraftingSubskill(craftingSkills);
-        float expertiseRollAdjust = 0;
-        
-        {
-            int expertiseBonus = getSkillStatisticModifier(player, "expertise_experimentation_increase_" + expertiseSkill);
-            expertiseRollAdjust = expertiseBonus * deltaMod;
-            if (isPlayerQA)
-            {
-                sendSystemMessageTestingOnly(player, "EXPERIMENT -- Expertise Experimentation bonus applied to raw random rolls: " + expertiseRollAdjust + " expertiseSkill: " + expertiseSkill);
-            }
-        }
         for (int i = 0; i < itemAttributes.length; ++i)
         {
             if (itemAttributes[i] == null)
@@ -1202,7 +1190,6 @@ public class craftinglib extends script.base_script
                 dieRoll += getCraftingInspirationBonus(player, craftingValuesDictionary, baseRoll, 5.0f);
                 dieRoll += foodRollAdjust;
                 dieRoll += forceRollAdjust;
-                dieRoll += expertiseRollAdjust;
                 debugServerConsoleMsg(null, "craftinglib::calcSuccessPerAttributeExperimentation - base roll for attrib " + itemAttributes[i].name + " (" + itemAttributes[i].currentValue + ") = " + baseRoll + ", adjusted roll = " + dieRoll);
                 float successAdjust = playerSkillMod / 4000.0f;
                 float successThreshold = 5.0f * ((10.0f + experimentPoints[i]) * (1 - successAdjust)) * deltaMod;
