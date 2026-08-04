@@ -155,7 +155,7 @@ public class transition extends script.base_script
                 return true;
             }
             if (parse[0].equals("level")) {
-                int level = getLevel(player);
+                int level = skill.getPrecuEncounterDifficulty(player);
                 if (level >= utils.stringToInt(parse[1])) {
                     return true;
                 }
@@ -181,7 +181,7 @@ public class transition extends script.base_script
                 }
             }
             if (parse[0].equals("level")) {
-                int level = getLevel(player);
+                int level = skill.getPrecuEncounterDifficulty(player);
                 if (level >= utils.stringToInt(parse[1])) {
                     return true;
                 }
@@ -209,7 +209,7 @@ public class transition extends script.base_script
                 }
             }
             if (parse[0].equals("level")) {
-                int level = getLevel(player);
+                int level = skill.getPrecuEncounterDifficulty(player);
                 if (level >= utils.stringToInt(parse[1])) {
                     return true;
                 }
