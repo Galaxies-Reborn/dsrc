@@ -14,12 +14,46 @@ public class proc extends script.base_script
     public static final String CYBERNETICS_TABLE = "datatables/cybernetic/cybernetic.iff";
     public static final String PROC_TABLE = "datatables/proc/proc.iff";
     public static final String REAC_BASE = "reactive_proc.";
+    public static boolean isPostNgePlayerProcRuntimeRetired() throws InterruptedException
+    {
+        return true;
+    }
+    public static boolean isRetiredPostNgePlayerProcActor(obj_id actor) throws InterruptedException
+    {
+        return isPostNgePlayerProcRuntimeRetired() &&
+            isIdValid(actor) && isPlayer(actor);
+    }
+    public static void retirePostNgePlayerProcState(obj_id player) throws InterruptedException
+    {
+        if (!isRetiredPostNgePlayerProcActor(player))
+        {
+            return;
+        }
+        String[] retiredScriptVars =
+        {
+            "expertiseProcReacList",
+            "currentProcList",
+            "currentReacList",
+            "procBuffEffects",
+            "reacBuffEffects"
+        };
+        for (String retiredScriptVar : retiredScriptVars)
+        {
+            if (utils.hasScriptVar(player, retiredScriptVar))
+            {
+                utils.removeScriptVar(player, retiredScriptVar);
+            }
+        }
+        utils.removeScriptVarTree(player, "reactive_proc");
+    }
     public static void executeProcEffects(obj_id attacker, obj_id defender) throws InterruptedException
     {
         executeProcEffects(attacker, defender, null);
     }
     public static void executeProcEffects(obj_id attacker, obj_id defender, combat_data actionData) throws InterruptedException
     {
+        retirePostNgePlayerProcState(attacker);
+        retirePostNgePlayerProcState(defender);
         String params = "";
         prose_package pp = new prose_package();
         if (actionData != null)
@@ -164,6 +198,11 @@ public class proc extends script.base_script
     }
     public static void buildCurrentProcList(obj_id player) throws InterruptedException
     {
+        if (isRetiredPostNgePlayerProcActor(player))
+        {
+            retirePostNgePlayerProcState(player);
+            return;
+        }
         Vector currentProcList = new Vector();
         currentProcList.setSize(0);
         obj_id weapon = getCurrentWeapon(player);
@@ -234,6 +273,11 @@ public class proc extends script.base_script
     }
     public static void buildCurrentReacList(obj_id player) throws InterruptedException
     {
+        if (isRetiredPostNgePlayerProcActor(player))
+        {
+            retirePostNgePlayerProcState(player);
+            return;
+        }
         Vector currentReacList = new Vector();
         currentReacList.setSize(0);
         final String strWear[] = 
