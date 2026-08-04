@@ -1088,34 +1088,8 @@ public class skill extends script.base_script
     }
     public static void grantAllPoliticianSkills(obj_id player) throws InterruptedException
     {
-        String[] skillNames = 
-        {
-            "social_politician_novice",
-            "social_politician_fiscal_01",
-            "social_politician_fiscal_02",
-            "social_politician_fiscal_03",
-            "social_politician_fiscal_04",
-            "social_politician_martial_01",
-            "social_politician_martial_02",
-            "social_politician_martial_03",
-            "social_politician_martial_04",
-            "social_politician_civic_01",
-            "social_politician_civic_02",
-            "social_politician_civic_03",
-            "social_politician_civic_04",
-            "social_politician_urban_01",
-            "social_politician_urban_02",
-            "social_politician_urban_03",
-            "social_politician_urban_04",
-            "social_politician_master"
-        };
-        setObjVar(player, "clickRespec.granting", true);
-        for (String skillName : skillNames) {
-            if (!hasSkill(player, skillName)) {
-                grantSkill(player, skillName);
-            }
-        }
-        removeObjVar(player, "clickRespec.granting");
+        // Link-compatible no-op. Politician is a Publish 14.1 skill-box
+        // profession; residence and mayor state cannot grant its tree.
     }
     public static int getProfessionPhase(obj_id player) throws InterruptedException
     {
