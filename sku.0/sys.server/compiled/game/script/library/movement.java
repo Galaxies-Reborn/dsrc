@@ -90,11 +90,6 @@ public class movement extends script.base_script
             customStr = false;
             strength = getStrength(name);
         }
-        if (getSkillStatisticModifier(target, "expertise_movement_buff_" + name) != 0)
-        {
-            customStr = true;
-            strength += strength * (getSkillStatisticModifier(target, "expertise_movement_buff_" + name) / 100.0f);
-        }
         utils.setScriptVar(target, MOVEMENT_OBJVAR + "." + name + ".time", getGameTime());
         if (customStr)
         {
