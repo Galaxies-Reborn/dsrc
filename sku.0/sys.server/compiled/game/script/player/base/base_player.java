@@ -15,11 +15,13 @@ public class base_player extends script.base_script
     private void retirePostNgePassiveProfessionState(obj_id self) throws InterruptedException
     {
         // Automatic Jedi stance/focus and Smuggler Underworld-rank buffs are
-        // NGE class/expertise progression. Retain their data for expansion
+        // NGE class/expertise progression. NGE GCW rank abilities are likewise
+        // not part of Publish 14 faction rank. Retain their data for expansion
         // compatibility, but never let it provide player runtime authority.
         buff.removeBuff(self, jedi.JEDI_STANCE);
         buff.removeBuff(self, jedi.JEDI_FOCUS);
         removeSmugglingBuffs(self);
+        factions.retirePostNgePvpRewardState(self);
     }
     private void retirePostNgeQueuedBattlefieldPlayerState(obj_id self) throws InterruptedException
     {
@@ -912,6 +914,10 @@ public class base_player extends script.base_script
     }
     public int OnPvpRankingChanged(obj_id self, int oldRank, int newRank) throws InterruptedException
     {
+        // PRE-CU faction rank remains authoritative, but the six ability tiers
+        // granted by this later handler do not. Clear persisted rewards and
+        // preserve only the non-combat badge/title presentation below.
+        factions.retirePostNgePvpRewardState(self);
         String faction = "";
         boolean isImperial = false;
         if (factions.isImperial(self))
@@ -931,7 +937,6 @@ public class base_player extends script.base_script
         }
         if (oldRank <= 6 && newRank > 6)
         {
-            skill.grantSkill(self, faction + PVP_SKILL_1);
             if (isImperial)
             {
                 badge.grantBadge(self, "pvp_imperial_lieutenant");
@@ -943,7 +948,6 @@ public class base_player extends script.base_script
         }
         if (oldRank <= 7 && newRank > 7)
         {
-            skill.grantSkill(self, faction + PVP_SKILL_2);
             if (isImperial)
             {
                 badge.grantBadge(self, "pvp_imperial_captain");
@@ -955,7 +959,6 @@ public class base_player extends script.base_script
         }
         if (oldRank <= 8 && newRank > 8)
         {
-            skill.grantSkill(self, faction + PVP_SKILL_3);
             if (isImperial)
             {
                 badge.grantBadge(self, "pvp_imperial_major");
@@ -967,7 +970,6 @@ public class base_player extends script.base_script
         }
         if (oldRank <= 9 && newRank > 9)
         {
-            skill.grantSkill(self, faction + PVP_SKILL_4);
             if (isImperial)
             {
                 badge.grantBadge(self, "pvp_imperial_lt_colonel");
@@ -979,7 +981,6 @@ public class base_player extends script.base_script
         }
         if (oldRank <= 10 && newRank > 10)
         {
-            skill.grantSkill(self, faction + PVP_SKILL_5);
             if (isImperial)
             {
                 badge.grantBadge(self, "pvp_imperial_colonel");
@@ -991,7 +992,6 @@ public class base_player extends script.base_script
         }
         if (oldRank <= 11 && newRank > 11)
         {
-            skill.grantSkill(self, faction + PVP_SKILL_6);
             if (isImperial)
             {
                 badge.grantBadge(self, "pvp_imperial_general");

@@ -2078,6 +2078,41 @@ public class factions extends script.base_script
         skill.revokeSkill(player, "pvp_rebel_aura_buff_self");
         skill.revokeSkill(player, "pvp_rebel_airstrike_ability");
     }
+    public static void retirePostNgePvpRewardState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        removeAllPvpSkills(player);
+        String[] postNgePvpRewardBuffs =
+        {
+            "pvp_aura_buff_self",
+            "pvp_aura_buff_target",
+            "pvp_aura_buff_rebel_self",
+            "pvp_aura_buff_rebel_target",
+            "pvp_retaliation_ability",
+            "pvp_retaliation_rebel_ability",
+            "pvp_adrenaline_ability",
+            "pvp_adrenaline_rebel_ability",
+            "pvp_unstoppable_ability",
+            "pvp_unstoppable_rebel_ability",
+            "pvp_last_man_ability",
+            "pvp_last_man_rebel_ability"
+        };
+        for (String buffName : postNgePvpRewardBuffs)
+        {
+            if (buff.hasBuff(player, buffName))
+            {
+                buff.removeBuff(player, buffName);
+            }
+        }
+        if (hasScript(player, "player.gcw.pvp_aura_buff_controller"))
+        {
+            detachScript(player, "player.gcw.pvp_aura_buff_controller");
+        }
+        removeObjVar(player, "pvp_aura_buff.faction");
+    }
     public static boolean shareSocialGroup(obj_id creatureOne, obj_id creatureTwo) throws InterruptedException
     {
         String socialOne = getStringObjVar(creatureOne, "socialGroup");

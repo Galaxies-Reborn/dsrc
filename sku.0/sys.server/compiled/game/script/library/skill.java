@@ -80,7 +80,14 @@ public class skill extends script.base_script
             (skillName.startsWith("class_") ||
                 skillName.equals("expertise") ||
                 skillName.startsWith("expertise_") ||
-                skillName.startsWith("internal_expertise_"));
+                skillName.startsWith("internal_expertise_") ||
+                isRetiredPostNgePvpRewardSkill(skillName));
+    }
+    public static boolean isRetiredPostNgePvpRewardSkill(String skillName) throws InterruptedException
+    {
+        return skillName != null &&
+            (skillName.startsWith("pvp_imperial_") ||
+                skillName.startsWith("pvp_rebel_"));
     }
     public static boolean isRetiredPostNgeSpySkill(String skillName) throws InterruptedException
     {
