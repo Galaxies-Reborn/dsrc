@@ -668,10 +668,8 @@ public class base_player extends script.base_script
             buff.removeBuff(self, "forceRun_2");
         }
         jedi.jediSaberPearlRestore(self);
-        if (!hasSkill(self, "social_language_wookiee_comprehend"))
-        {
-            grantSkill(self, "social_language_wookiee_comprehend");
-        }
+        // Publish 14.1 language ownership comes from species defaults or an
+        // explicit teaching/content grant, not a universal player-init grant.
         if (!group.isGrouped(self))
         {
             int[] buffList = buff.getGroupBuffEffects(self);
