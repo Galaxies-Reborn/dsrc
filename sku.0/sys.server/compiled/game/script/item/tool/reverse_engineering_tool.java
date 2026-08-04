@@ -56,6 +56,12 @@ public class reverse_engineering_tool extends script.base_script
         "crafting_armorsmith_novice",
         "crafting_weaponsmith_novice"
     };
+    public static final String[] MASTER_SKILL_LIST =
+    {
+        "crafting_tailor_master",
+        "crafting_armorsmith_master",
+        "crafting_weaponsmith_master"
+    };
     public static final String[] POWERUP_STATIC_NAMES = 
     {
         "item_reverse_engineering_powerup_clothing_02_01",
@@ -443,9 +449,7 @@ public class reverse_engineering_tool extends script.base_script
             for (obj_id obj_id1 : stuff) {
                 if (getPowerBitType(obj_id1) > 0) {
                     power = getIntObjVar(obj_id1, "reverse_engineering.reverse_engineering_power");
-                    float skillMod = getEnhancedSkillStatisticModifierUncapped(player, "expertise_reverse_engineering_bonus");
-                    float toolMod = getFloatObjVar(self, "crafting.stationMod");
-                    skillMod += toolMod;
+                    float skillMod = getFloatObjVar(self, "crafting.stationMod");
                     float quality = getFloatObjVar(self, "res_quality");
                     float randomRollMin = 0.85f;
                     LOG("reverse_engineering", "createPowerup quality: " + quality);
@@ -478,9 +482,7 @@ public class reverse_engineering_tool extends script.base_script
                 setObjVar(powerup, "reverse_engineering.reverse_engineering_power", power);
                 setObjVar(powerup, "reverse_engineering.reverse_engineering_modifier", mod);
                 setObjVar(powerup, "reverse_engineering.reverse_engineering_ratio", ratio);
-                float skillMod = getEnhancedSkillStatisticModifierUncapped(player, "expertise_reverse_engineering_bonus");
-                float toolMod = getFloatObjVar(self, "crafting.stationMod");
-                skillMod += toolMod;
+                float skillMod = getFloatObjVar(self, "crafting.stationMod");
                 float numPupCharges = ((skillMod / 11.5f) * ((skillMod * rand(0.85f, 1.25f)) / 11.5f)) + 20;
                 setCount(powerup, (int)numPupCharges);
                 for (obj_id obj_id : stuff) {
@@ -509,7 +511,6 @@ public class reverse_engineering_tool extends script.base_script
         int maxStat = 0;
         int finalPower = 1;
         boolean containsCraftedItem = false;
-        skillMod += (getEnhancedSkillStatisticModifierUncapped(player, "expertise_reverse_engineering_bonus") * getReverseEngineeringBonusMultiplier());
         float toolMod = getFloatObjVar(self, "crafting.stationMod");
         skillMod += toolMod;
         int powerOrderResult = 0;
@@ -554,10 +555,8 @@ public class reverse_engineering_tool extends script.base_script
             LOG("reverse_engineering", "generatePowerBit randomRollMin: " + randomRollMin);
         }
         float powerResult = (maxStat * (50 + ((skillMod + rand(randomRollMin, 130)) / 3.4f))) / 100;
-        if(getReverseEngineeringBonusMultiplier() <= 1.2f) {
-            if (powerResult / maxStat > 1.25f) {
-                powerResult = maxStat * 1.25f;
-            }
+        if (powerResult / maxStat > 1.25f) {
+            powerResult = maxStat * 1.25f;
         }
         finalPower = (int)powerResult;
         if (containsCraftedItem && powerResult > maxStat)
@@ -565,9 +564,6 @@ public class reverse_engineering_tool extends script.base_script
             double chanceFloat = (StrictMath.pow(maxStat + 1, 4) / 502.00) + 11.00;
             int chance = (int)chanceFloat;
             int randomRoll = rand(1, chance);
-            int luckMod = getEnhancedSkillStatisticModifierUncapped(player, "luck");
-            luckMod += getEnhancedSkillStatisticModifierUncapped(player, "luck_modified");
-            skillMod += luckMod;
             if (skillMod > randomRoll)
             {
                 finalPower = maxStat + 1;
@@ -743,8 +739,12 @@ public class reverse_engineering_tool extends script.base_script
     }
     public boolean canUpgradeAttachment(obj_id player) throws InterruptedException
     {
-        float skillMod = getEnhancedSkillStatisticModifierUncapped(player, "expertise_attachment_upgrade");
-        return skillMod > 0;
+        for (String skillName : MASTER_SKILL_LIST) {
+            if (hasSkill(player, skillName)) {
+                return true;
+            }
+        }
+        return false;
     }
     public String getGemTemplateByClass(obj_id player, int ratio, int type) throws InterruptedException
     {
@@ -811,13 +811,5 @@ public class reverse_engineering_tool extends script.base_script
             String newName = modName + " " + stringName;
             setName(object, newName);
         }
-    }
-    public float getReverseEngineeringBonusMultiplier() throws InterruptedException
-    {
-        String config = getConfigSetting("Custom", "reverseEngineeringBonusMultiplier");
-        if (config != null && config.length() > 0) {
-            return utils.stringToFloat(config);
-        }
-        return 1.0f;
     }
 }

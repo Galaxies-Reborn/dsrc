@@ -2663,8 +2663,7 @@ public class performance extends script.base_script
                 continue;
             }
             int inspireBuffCrc = buff.getBuffOnTargetFromGroup(obj_id1, "inspiration");
-            float expertisePerTickBonusTime = getEnhancedSkillStatisticModifierUncapped(actor, "expertise_en_inspire_pulse_duration_increase") * 60;
-            float perTickMinutesAdded = expertisePerTickBonusTime + INSPIRATION_BUFF_SEGMENT;
+            float perTickMinutesAdded = INSPIRATION_BUFF_SEGMENT;
             int city_id = city.checkCity(actor, false);
             if (city_id > 0 && (city.cityHasSpec(city_id, city.SF_SPEC_ENTERTAINER))) {
                 perTickMinutesAdded += 180;
@@ -3700,9 +3699,7 @@ public class performance extends script.base_script
         if (utils.hasScriptVar(actor, "currentHolo"))
         {
             int holoPets = utils.getIntScriptVar(actor, "currentHolo");
-            int holoMod = (int)getSkillStatisticModifier(actor, "expertise_en_holographic_additional_backup");
             int maxHoloAllowed = 1;
-            maxHoloAllowed += holoMod;
             if (holoPets >= maxHoloAllowed)
             {
                 return true;
