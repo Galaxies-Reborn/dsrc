@@ -7,6 +7,10 @@ import script.library.*;
 
 public class droid_bomb extends script.base_script
 {
+    public static final int PRECU_DETONATION_MIN_DAMAGE = 150;
+    public static final int PRECU_DETONATION_MAX_DAMAGE = 200;
+    public static final int PRECU_DETONATION_RADIUS = 17;
+    public static final float PRECU_PLAYER_DAMAGE_MULTIPLIER = 0.25f;
     public droid_bomb()
     {
     }
@@ -128,9 +132,8 @@ public class droid_bomb extends script.base_script
         {
             bomb_level += bomb_level_bonus;
         }
-        float min_dam = pet_lib.DETONATION_DROID_MIN_DAMAGE * bomb_level;
-        float max_dam = pet_lib.DETONATION_DROID_MAX_DAMAGE * bomb_level;
-        int radius = 20 + (int)(0.3f * bomb_level);
+        int min_dam = PRECU_DETONATION_MIN_DAMAGE * bomb_level;
+        int max_dam = PRECU_DETONATION_MAX_DAMAGE * bomb_level;
         obj_id pet_control = callable.getCallableCD(droid);
         if (!isIdValid(pet_control))
         {
@@ -139,7 +142,7 @@ public class droid_bomb extends script.base_script
         }
         location loc = getLocation(droid);
         playClientEffectLoc(master, "clienteffect/combat_explosion_lair_large.cef", loc, 0);
-        obj_id[] targets = utils.getAttackableTargetsInRadius(droid, radius, true);
+        obj_id[] targets = utils.getAttackableTargetsInRadius(droid, PRECU_DETONATION_RADIUS, true);
         if (targets != null)
         {
             prose_package pp = new prose_package();
@@ -154,19 +157,19 @@ public class droid_bomb extends script.base_script
                                 HIT_LOCATION_R_LEG,
                                 HIT_LOCATION_L_LEG
                         };
+                int target_min_damage = min_dam;
+                int target_max_damage = max_dam;
                 if (isPlayer(target)) {
-                    float level = getLevel(target);
-                    float mult = level / 90.0f;
-                    min_dam *= mult;
-                    max_dam *= mult;
+                    target_min_damage = Math.max(1, (int)(target_min_damage * PRECU_PLAYER_DAMAGE_MULTIPLIER));
+                    target_max_damage = Math.max(1, (int)(target_max_damage * PRECU_PLAYER_DAMAGE_MULTIPLIER));
                 }
-                int final_damage = rand((int) min_dam, (int) max_dam);
+                int final_damage = rand(target_min_damage, target_max_damage);
                 weapon_data weaponData = new weapon_data();
                 hit_result hitData = new hit_result();
                 weaponData.id = getDefaultWeapon(droid);
                 weaponData.weaponName = getNameStringId(droid);
-                weaponData.minDamage = (int) min_dam;
-                weaponData.maxDamage = (int) max_dam;
+                weaponData.minDamage = target_min_damage;
+                weaponData.maxDamage = target_max_damage;
                 weaponData.weaponType = WEAPON_TYPE_UNARMED;
                 weaponData.attackType = ATTACK_TYPE_MELEE;
                 weaponData.damageType = DAMAGE_KINETIC;
