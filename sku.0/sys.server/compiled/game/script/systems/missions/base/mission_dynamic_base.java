@@ -3883,7 +3883,7 @@ public class mission_dynamic_base extends script.systems.missions.base.mission_b
     }
     public boolean isPlanetHuntingViable(obj_id player, String area) throws InterruptedException
     {
-        int playerLevel = getLevel(player);
+        int playerLevel = skill.getPrecuEncounterDifficulty(player);
         if (area.equals("tatooine") && playerLevel > 30)
         {
             return false;
@@ -3912,7 +3912,7 @@ public class mission_dynamic_base extends script.systems.missions.base.mission_b
     }
     public void msgWrongHuntingPlanet(obj_id player) throws InterruptedException
     {
-        int playerLevel = getLevel(player);
+        int playerLevel = skill.getPrecuEncounterDifficulty(player);
         int msgIndex = playerLevel / 10;
         string_id[] missionPlanets = 
         {

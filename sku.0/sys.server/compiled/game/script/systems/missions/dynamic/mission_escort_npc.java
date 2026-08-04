@@ -104,7 +104,6 @@ public class mission_escort_npc extends script.systems.missions.base.mission_dyn
                 npcEndConversation(player);
                 return SCRIPT_CONTINUE;
             }
-            int intPlayerDifficulty = getLevel(player);
             obj_id objMissionData = getMyMission(self);
             if (objMissionData != null)
             {
