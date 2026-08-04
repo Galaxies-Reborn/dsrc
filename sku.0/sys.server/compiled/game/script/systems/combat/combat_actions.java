@@ -10803,7 +10803,14 @@ public class combat_actions extends script.systems.combat.combat_base
     {
         obj_id[] defenders = params.getObjIdArray("defenders");
         for (obj_id defender : defenders) {
-            dot.applyDotEffect(defender, self, dot.DOT_DISEASE, "creatureDiseaseAttack", HEALTH, 100, 300, 300);
+            if (hasObjVar(self, "precu.combatProfile"))
+            {
+                dot.applyPrecuDotEffect(defender, self, dot.DOT_DISEASE, "creatureDiseaseAttack", HEALTH, 100, 300, 300);
+            }
+            else
+            {
+                dot.applyDotEffect(defender, self, dot.DOT_DISEASE, "creatureDiseaseAttack", HEALTH, 100, 300, 300);
+            }
         }
         return SCRIPT_CONTINUE;
     }
@@ -10812,7 +10819,14 @@ public class combat_actions extends script.systems.combat.combat_base
         obj_id[] defenders = params.getObjIdArray("defenders");
         for (obj_id defender : defenders) {
             if (dot.canApplyDotType(defender, dot.DOT_POISON)) {
-                dot.applyDotEffect(defender, self, dot.DOT_POISON, "creaturePoisonAttack", HEALTH, 100, 150, 300);
+                if (hasObjVar(self, "precu.combatProfile"))
+                {
+                    dot.applyPrecuDotEffect(defender, self, dot.DOT_POISON, "creaturePoisonAttack", HEALTH, 100, 150, 300);
+                }
+                else
+                {
+                    dot.applyDotEffect(defender, self, dot.DOT_POISON, "creaturePoisonAttack", HEALTH, 100, 150, 300);
+                }
             }
         }
         return SCRIPT_CONTINUE;

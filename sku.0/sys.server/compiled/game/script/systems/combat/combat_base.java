@@ -4571,7 +4571,7 @@ public class combat_base extends script.base_script
                 int targetAttrib = actionData.precuDotAttribute >= 0 ?
                     actionData.precuDotAttribute :
                     (dotType.equals("disease") ? ACTION : HEALTH);
-                dot.applyDotEffect(
+                dot.applyPrecuDotEffect(
                     defender,
                     attacker,
                     dotType,

@@ -2364,7 +2364,7 @@ public class healing extends script.base_script
                     pvpAttackPerformed(medic, valid_target);
                 }
             }
-            if (dot.applyDotEffect(valid_target, medic, dot_type, dot_id, attribute, dot_potency, (int) strength, duration)) {
+            if (dot.applyPrecuDotEffect(valid_target, medic, dot_type, dot_id, attribute, dot_potency, (int) strength, duration)) {
                 if (!isPlayer(valid_target)) {
                     grantHealingExperience((int) strength, medic, valid_target, heal_type);
                     if (!ai_lib.isInCombat(valid_target)) {
