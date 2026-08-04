@@ -12,6 +12,15 @@ public class base_player extends script.base_script
     public base_player()
     {
     }
+    private void retirePostNgePassiveProfessionState(obj_id self) throws InterruptedException
+    {
+        // Automatic Jedi stance/focus and Smuggler Underworld-rank buffs are
+        // NGE class/expertise progression. Retain their data for expansion
+        // compatibility, but never let it provide player runtime authority.
+        buff.removeBuff(self, jedi.JEDI_STANCE);
+        buff.removeBuff(self, jedi.JEDI_FOCUS);
+        removeSmugglingBuffs(self);
+    }
     private void retirePostNgeQueuedBattlefieldPlayerState(obj_id self) throws InterruptedException
     {
         buff.removeBuff(self, "battlefield_communication_run");
@@ -594,16 +603,9 @@ public class base_player extends script.base_script
                 revokeSchematic(self, "object/draft_schematic/scout/item_camokit_kashyyyk.iff");
             }
         }
-        if (strSkill.startsWith("expertise_"))
+        if (skill.isRetiredNgeProgressionSkillName(strSkill))
         {
-            expertise.cacheExpertiseProcReacList(self);
-            armor.recalculateArmorForPlayer(self);
-            obj_id tempWeapon = getObjectInSlot(self, "hold_r");
-            if (isIdValid(tempWeapon))
-            {
-                weapons.adjustWeaponRangeForExpertise(self, tempWeapon, true);
-            }
-            skill.recalcPlayerPools(self, false);
+            retirePostNgePassiveProfessionState(self);
         }
         trial.bumpSession(self, "displayDefensiveMods");
         messageTo(self, "setDisplayOnlyDefensiveMods", trial.getSessionDict(self, "displayDefensiveMods"), 5, false);
@@ -700,6 +702,8 @@ public class base_player extends script.base_script
         removeObjVar(self, "clickRespec");
         removeObjVar(self, "npcRespec");
         script.player.live_conversions.retirePostNgePlayerMigrationState(self);
+        skill.validateExpertise(self);
+        retirePostNgePassiveProfessionState(self);
         detachScript(self, group.SCRIPT_GROUP_MEMBER);
         if (!hasScript(self, dot.SCRIPT_PLAYER_DOT))
         {
@@ -1806,17 +1810,7 @@ public class base_player extends script.base_script
                 warpPlayer(self, "tatooine", 0, 0, 0, null, 0, 0, 0, null, false);
             }
         }
-        if (utils.isProfession(self, utils.FORCE_SENSITIVE) && getLevel(self) > 3)
-        {
-            if (!buff.isInStance(self) && !buff.isInFocus(self))
-            {
-                messageTo(self, "applyJediStance", null, 1.0f, false);
-            }
-        }
-        if (utils.isProfession(self, utils.SMUGGLER))
-        {
-            messageTo(self, "applySmugglingBonuses", null, 1.0f, false);
-        }
+        retirePostNgePassiveProfessionState(self);
         int cityId = getCitizenOfCityId(self);
         if (cityId > 0 && !utils.hasScriptVar(self, "recieved_city_motd"))
         {
@@ -1854,78 +1848,17 @@ public class base_player extends script.base_script
     }
     public int applyJediStance(obj_id self, dictionary params) throws InterruptedException
     {
-        if (hasSkill(self, "expertise_fs_path_cautious_nature_1"))
-        {
-            buff.applyBuff(self, self, jedi.JEDI_STANCE);
-        }
-        else 
-        {
-            buff.applyBuff(self, self, jedi.JEDI_FOCUS);
-        }
+        retirePostNgePassiveProfessionState(self);
         return SCRIPT_CONTINUE;
     }
     public int applySmugglingBonuses(obj_id self, dictionary params) throws InterruptedException
     {
-        removeSmugglingBuffs(self);
-        messageTo(self, "addSmugglingBuffs", null, 1.0f, false);
+        retirePostNgePassiveProfessionState(self);
         return SCRIPT_CONTINUE;
     }
     public int addSmugglingBuffs(obj_id self, dictionary params) throws InterruptedException
     {
-        int smUnderworld = (int)getSkillStatisticModifier(self, "expertise_underworld_boss_bonus");
-        int rangeBonus = (int)getSkillStatisticModifier(self, "expertise_sm_rank_range_buff");
-        int damageBonus = (int)getSkillStatisticModifier(self, "expertise_sm_rank_damage_buff");
-        float underworldFaction = factions.getFactionStanding(self, "underworld");
-        int smugglerTier = smuggler.getSmugglerRank(underworldFaction);
-        switch (smugglerTier)
-        {
-            case 1:
-            if (smUnderworld > 0)
-            {
-                buff.applyBuff(self, "sm_underworld_boss_1");
-            }
-            if (rangeBonus > 0)
-            {
-                buff.applyBuff(self, "sm_underworld_range_1");
-            }
-            if (damageBonus > 0)
-            {
-                buff.applyBuff(self, "sm_underworld_damage_1");
-            }
-            break;
-            case 2:
-            if (smUnderworld > 0)
-            {
-                buff.applyBuff(self, "sm_underworld_boss_2");
-            }
-            if (rangeBonus > 0)
-            {
-                buff.applyBuff(self, "sm_underworld_range_2");
-            }
-            if (damageBonus > 0)
-            {
-                buff.applyBuff(self, "sm_underworld_damage_2");
-            }
-            break;
-            case 3:
-            if (smUnderworld > 0)
-            {
-                buff.applyBuff(self, "sm_underworld_boss_3");
-            }
-            if (rangeBonus > 0)
-            {
-                buff.applyBuff(self, "sm_underworld_range_3");
-            }
-            if (damageBonus > 0)
-            {
-                buff.applyBuff(self, "sm_underworld_damage_3");
-            }
-            break;
-            default:
-            break;
-        }
-        messageTo(self, "recalcArmor", null, 1, false);
-        messageTo(self, "recalcWeaponRange", null, 1, false);
+        retirePostNgePassiveProfessionState(self);
         return SCRIPT_CONTINUE;
     }
     public int recalcWeaponRange(obj_id self, dictionary params) throws InterruptedException
@@ -8229,19 +8162,20 @@ public class base_player extends script.base_script
     }
     public int OnSkillGranted(obj_id self, String skillName) throws InterruptedException
     {
-        if (skill.isRetiredPostNgeSpySkill(skillName))
+        if (skill.isRetiredNgeProgressionSkillName(skillName))
         {
             revokeSkillSilent(self, skillName);
-            script.systems.skills.stealth.player_stealth.retirePostNgeSpyPlayerState(self);
+            if (skill.isRetiredPostNgeSpySkill(skillName))
+            {
+                script.systems.skills.stealth.player_stealth.retirePostNgeSpyPlayerState(self);
+            }
+            retirePostNgePassiveProfessionState(self);
             return SCRIPT_OVERRIDE;
         }
         if (!hasObjVar(self, "clickRespec.granting") && !hasObjVar(self, "npcRespec.inProgress"))
         {
-            if (getLevel(self) <= 1)
-            {
-                playClientEffectObj(self, "clienteffect/skill_granted.cef", self, null);
-                showFlyText(self, new string_id("cbt_spam", "skill_up"), 2.5f, colors.YELLOWGREEN);
-            }
+            playClientEffectObj(self, "clienteffect/skill_granted.cef", self, null);
+            showFlyText(self, new string_id("cbt_spam", "skill_up"), 2.5f, colors.YELLOWGREEN);
         }
         badge.grantMasterSkillBadge(self, skillName);
         static_item.validateWornEffects(self);
@@ -8255,39 +8189,6 @@ public class base_player extends script.base_script
         if (!allowedBySpaceExpansion(self, skillName))
         {
             return SCRIPT_OVERRIDE;
-        }
-        if (skillName.startsWith("expertise_"))
-        {
-            expertise.cacheExpertiseProcReacList(self);
-            armor.recalculateArmorForPlayer(self);
-            if (utils.isProfession(self, utils.SMUGGLER))
-            {
-                messageTo(self, "applySmugglingBonuses", null, 1.0f, false);
-            }
-            if (utils.isProfession(self, utils.FORCE_SENSITIVE))
-            {
-                if (buff.isInStance(self))
-                {
-                    buff.removeBuff(self, jedi.JEDI_STANCE);
-                    buff.applyBuff(self, jedi.JEDI_STANCE);
-                }
-                if (buff.isInFocus(self))
-                {
-                    buff.removeBuff(self, jedi.JEDI_FOCUS);
-                    buff.applyBuff(self, jedi.JEDI_FOCUS);
-                }
-            }
-            if (!expertise.isProfAllowedSkill(self, skillName))
-            {
-                revokeSkillSilent(self, skillName);
-                return SCRIPT_OVERRIDE;
-            }
-            obj_id tempWeapon = getObjectInSlot(self, "hold_r");
-            if (isIdValid(tempWeapon))
-            {
-                weapons.adjustWeaponRangeForExpertise(self, tempWeapon, true);
-            }
-            skill.recalcPlayerPools(self, false);
         }
         recomputeCommandSeries(self);
         beast_lib.retirePostNgeBeastMasterPlayerState(self);
@@ -12109,17 +12010,7 @@ public class base_player extends script.base_script
         static_item.validateWornEffects(self);
         reverse_engineering.checkPowerUpReApply(self);
         messageTo(self, "setDisplayOnlyDefensiveMods", trial.getSessionDict(self, "displayDefensiveMods"), 5, false);
-        if (utils.isProfession(self, utils.SMUGGLER))
-        {
-            messageTo(self, "applySmugglingBonuses", null, 1.0f, false);
-        }
-        if (utils.isProfession(self, utils.FORCE_SENSITIVE) && getLevel(self) > 3)
-        {
-            if (!buff.isInStance(self) && !buff.isInFocus(self))
-            {
-                messageTo(self, "applyJediStance", null, 1.0f, false);
-            }
-        }
+        retirePostNgePassiveProfessionState(self);
         if (factions.isInAdhocPvpArea(self))
         {
             pvpMakeDeclared(self);

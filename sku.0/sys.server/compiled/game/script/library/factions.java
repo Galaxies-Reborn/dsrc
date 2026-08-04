@@ -795,7 +795,6 @@ public class factions extends script.base_script
             {
                 smuggler.checkSmugglerTitleGrants(target, value);
                 smuggler.checkRewardQuestGrants(target, value);
-                messageTo(target, "applySmugglingBonuses", null, 1.0f, false);
             }
             if (utils.isProfession(target, utils.BOUNTY_HUNTER) && factionName.equals("underworld"))
             {

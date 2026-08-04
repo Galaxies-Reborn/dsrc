@@ -90,7 +90,7 @@ public class skill extends script.base_script
     }
     public static boolean grant(obj_id target, String skillName) throws InterruptedException
     {
-        if (isPlayer(target) && isRetiredPostNgeSpySkill(skillName))
+        if (isPlayer(target) && isRetiredNgeProgressionSkillName(skillName))
         {
             return false;
         }
@@ -109,7 +109,7 @@ public class skill extends script.base_script
         {
             return false;
         }
-        if (isRetiredPostNgeSpySkill(skillName))
+        if (isRetiredNgeProgressionSkillName(skillName))
         {
             return false;
         }
@@ -237,7 +237,7 @@ public class skill extends script.base_script
         {
             return false;
         }
-        if (isRetiredPostNgeSpySkill(skillName))
+        if (isRetiredNgeProgressionSkillName(skillName))
         {
             return false;
         }
