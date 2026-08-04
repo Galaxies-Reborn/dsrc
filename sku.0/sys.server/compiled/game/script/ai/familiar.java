@@ -60,7 +60,7 @@ public class familiar extends script.base_script
             }
             break;
             case FAMILIAR_TRICK_5:
-            String[] anims_01 = 
+            String[] anims_01 =
             {
                 "stretch",
                 "bow",
@@ -70,7 +70,7 @@ public class familiar extends script.base_script
             doAnimationAction(pet, anims_01[chance_01]);
             break;
             case FAMILIAR_TRICK_6:
-            String[] anims_02 = 
+            String[] anims_02 =
             {
                 "startle",
                 "goodbye",
@@ -132,48 +132,17 @@ public class familiar extends script.base_script
         messageTo(self, "handleSetupPet", null, 3, false);
         return SCRIPT_CONTINUE;
     }
-    public boolean applyBuff(obj_id pet) throws InterruptedException
-    {
-        obj_id master = getMaster(pet);
-        if (!isIdValid(master))
-        {
-            destroyObject(pet);
-            return false;
-        }
-        String nameBuff = "";
-        int levelUpBuff = 1;
-        obj_id petControl = callable.getCallableCD(pet);
-        String creatureName = getStringObjVar(petControl, "pet.creatureName");
-        int row = dataTableSearchColumnForString(creatureName, "familiar_name", "datatables/familiar/familiar_buff.iff");
-        if (row < 0)
-        {
-            return false;
-        }
-        nameBuff = dataTableGetString("datatables/familiar/familiar_buff.iff", row, "buff_name");
-        levelUpBuff = dataTableGetInt("datatables/familiar/familiar_buff.iff", row, "level_up");
-        if (nameBuff.length() > 0)
-        {
-            if (levelUpBuff == 1)
-            {
-                int level = getLevel(master) / 10;
-                if (level < 1)
-                {
-                    level = 1;
-                }
-                if (level > 8)
-                {
-                    level = 8;
-                }
-                nameBuff += level;
-            }
-            buff.applyBuff(master, nameBuff);
-        }
-        return true;
-    }
     public void removePetBuff(obj_id master) throws InterruptedException
     {
+        if (!isIdValid(master))
+        {
+            return;
+        }
         int numbuff = buff.getBuffOnTargetFromGroup(master, "vr_familiar");
-        buff.applyBuff(master, numbuff, 3600.0f);
+        if (numbuff != 0)
+        {
+            buff.removeBuff(master, numbuff);
+        }
         return;
     }
     public void repackPet(obj_id master, obj_id pet) throws InterruptedException
@@ -223,7 +192,7 @@ public class familiar extends script.base_script
         final float alertRadius = 128.0f;
         createTriggerVolume(ai_lib.ALERT_VOLUME_NAME, alertRadius, promiscuous);
         messageTo(self, "cleanupCheck", null, 300, false);
-        applyBuff(self);
+        removePetBuff(master);
         ai_lib.aiFollow(self, master, 3.0f, 6.0f);
         int whichTrick = rand(1, 2);
         dictionary trickData = new dictionary();
@@ -270,7 +239,7 @@ public class familiar extends script.base_script
             return SCRIPT_CONTINUE;
         }
         obj_id master = getMaster(self);
-        if (!isIdValid(master))
+        if (isIdValid(master))
         {
             removePetBuff(master);
         }
@@ -322,7 +291,7 @@ public class familiar extends script.base_script
     {
         if (getLocomotion(self) != LOCOMOTION_RUNNING)
         {
-            
+
         }
         setMovementRun(self);
         pet_lib.validateFollowTarget(self, target);
@@ -351,7 +320,7 @@ public class familiar extends script.base_script
         {
             messageTo(petControlDevice, "handleRemoveCurrentPet", messageData, 1, false);
         }
-        else 
+        else
         {
             debugServerConsoleMsg(null, "+++ pet.messageHandler handlePackRequest +++ WARNINGWARNING - FAILED TO DESTROY SELF");
         }
