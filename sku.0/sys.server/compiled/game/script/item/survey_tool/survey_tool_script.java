@@ -13,7 +13,6 @@ public class survey_tool_script extends script.base_script
     public static final int MIN_SURVEY_RANGE = 32;
     public static final int MAX_SURVEY_RANGE = 384;
     public static final int SURVEY_TOOL_DELAY = 25;
-    public static final int MIN_SURVEY_TOOL_DELAY = 10;
     public static final int SURVEY_MIND_COST = 0;
     public static final int SAMPLE_MIND_COST = 0;
     public static final int PRECU_SAMPLE_ACTION_BASE_COST = 124;
@@ -954,15 +953,6 @@ public class survey_tool_script extends script.base_script
     }
     public int getSurveyToolDelay(obj_id player) throws InterruptedException
     {
-        if (!isIdValid(player))
-        {
-            return SURVEY_TOOL_DELAY;
-        }
-        int delay = SURVEY_TOOL_DELAY - (int)getSkillStatisticModifier(player, "expertise_resource_sampling_time_decrease");
-        if (delay <= MIN_SURVEY_TOOL_DELAY)
-        {
-            delay = MIN_SURVEY_TOOL_DELAY;
-        }
-        return delay;
+        return SURVEY_TOOL_DELAY;
     }
 }
