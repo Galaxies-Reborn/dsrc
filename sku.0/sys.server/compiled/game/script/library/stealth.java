@@ -1975,8 +1975,8 @@ public class stealth extends script.base_script
             }
         }
         float finalChanceToDetect = 0.0f;
-        int stealtherLevel = getLevel(target);
-        int detectorLevel = getLevel(detector);
+        int stealtherLevel = xp.getPrecuCombatLevel(target);
+        int detectorLevel = xp.getPrecuCombatLevel(detector);
         float levelChanceToDetectMod = 0.0f;
         if (stealtherLevel > detectorLevel)
         {
@@ -2073,8 +2073,8 @@ public class stealth extends script.base_script
             }
         }
         float finalChanceToDetect = 0.0f;
-        int stealtherLevel = getLevel(target);
-        int detectorLevel = getLevel(detector);
+        int stealtherLevel = xp.getPrecuCombatLevel(target);
+        int detectorLevel = xp.getPrecuCombatLevel(detector);
         sendConsoleMessage(objectToReceiveDetailedOutput, "passiveDetectInfo: stealtherLevel=" + stealtherLevel + ", detectorLevel=" + detectorLevel);
         float levelChanceToDetectMod = 0.0f;
         if (stealtherLevel > detectorLevel)
