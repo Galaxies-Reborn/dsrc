@@ -863,7 +863,7 @@ public class battlefield extends script.base_script
         region bf = getRegionFromMasterObject(master_object);
         int faction_id = pvpBattlefieldGetFaction(player, bf);
         String faction = factions.getFactionNameByHashCode(faction_id);
-        if (!utils.isProfession(player, utils.TRADER))
+        if (!hasSkill(player, "crafting_artisan_novice"))
         {
             LOG("LOG_CHANNEL", player + " ->You must have skill as an artisan in order to use the battlefield constructor.");
             sendSystemMessageTestingOnly(player, "You must have skill as an artisan in order to use the battlefield constructor.");
