@@ -18,6 +18,8 @@ public class faction_perk extends script.base_script
     public static final String PRECU_CATEGORY_UNIFORMS = "uniform";
     public static final String PRECU_CATEGORY_HIRELINGS = "hireling";
     public static final String PRECU_CATEGORY_SCHEMATICS = "schematic";
+    public static final int PRECU_COMM_LINK_MIN_RANK = 7;
+    public static final int PRECU_COMM_LINK_MAX_TEMPLATE_RANK = 12;
     public static final String VAR_COVERT_DETECTOR = "covert_detector";
     public static final String VAR_COVERT_DETECTOR_FACTION = VAR_COVERT_DETECTOR + ".faction";
     public static final String VAR_COVERT_DETECTOR_RANGE = VAR_COVERT_DETECTOR + ".range";
@@ -996,13 +998,14 @@ public class faction_perk extends script.base_script
         {
             faction = factions.isRebel(player) ? "rebel" : "imperial";
         }
-        if (rank < 7)
+        if (rank < PRECU_COMM_LINK_MIN_RANK)
         {
             sendSystemMessage(player, new string_id("gcw", "gcw_officer_only_use"));
             return false;
         }
-        String toSpawn = "gcw_comm_link_reinforcement_" + faction + "_" + rank;
-        int atLevel = getLevel(player) - 10 + rank;
+        int reinforcementRank = Math.min(rank, PRECU_COMM_LINK_MAX_TEMPLATE_RANK);
+        String toSpawn = "gcw_comm_link_reinforcement_" + faction + "_" + reinforcementRank;
+        int atLevel = skill.getPrecuEncounterDifficulty(player);
         obj_id reinforcement = create.object(toSpawn, getLocation(player), atLevel);
         if (!isIdValid(reinforcement))
         {
