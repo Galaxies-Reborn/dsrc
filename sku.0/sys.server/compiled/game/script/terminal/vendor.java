@@ -713,36 +713,20 @@ public class vendor extends script.terminal.base.base_terminal
         CustomerServiceLog("vendor", "Vendor calculating maintenance fees.  Vendor " + self + ", loops: " + loops + ", determined by formula (current_time(" + current_time + ") - time_stamp(" + time_stamp + ")) / vendor_lib.MAINTENANCE_HEARTBEAT(" + vendor_lib.MAINTENANCE_HEARTBEAT + ")");
         int cost = 15 * loops;
         CustomerServiceLog("vendor", "Vendor calculating maintenance fees.  Vendor " + self + ", cost: " + cost + ". Determined by formula: cost = 15 * loops(" + loops + ")");
-        int hiringSkillMod = getSkillStatisticModifier(owner, "hiring");
-        CustomerServiceLog("vendor", "Vendor calculating maintenance fees.  Vendor " + self + ", hiring skill mod on owner(" + owner + "): " + hiringSkillMod);
-        if (hiringSkillMod >= 100)
+        if (hasSkill(owner, "crafting_merchant_master"))
         {
             cost *= 0.6;
-            CustomerServiceLog("vendor", "Vendor calculating maintenance fees.  Vendor " + self + ", hiring skill mod was greater than or equal to 100 so cost is only 60% (cost * .6). cost is now " + cost);
+            CustomerServiceLog("vendor", "Vendor calculating maintenance fees.  Vendor " + self + ", owner is a Master Merchant, so cost is only 60% (cost * .6). cost is now " + cost);
         }
-        else if (utils.isProfession(owner, utils.TRADER))
+        else if (hasSkill(owner, "crafting_merchant_sales_02"))
         {
             cost *= 0.8;
-            CustomerServiceLog("vendor", "Vendor calculating maintenance fees.  Vendor " + self + ", hiring skill mod was NOT great than or equal to 100, but they are a trader, so cost is only 80% (cost * .8). cost is now " + cost);
+            CustomerServiceLog("vendor", "Vendor calculating maintenance fees.  Vendor " + self + ", owner has Merchant Sales II, so cost is only 80% (cost * .8). cost is now " + cost);
         }
         if (hasObjVar(self, "vendor.map_registered"))
         {
-            if (utils.isProfession(owner, utils.TRADER))
-            {
-                cost *= 1.2;
-                CustomerServiceLog("vendor", "Vendor calculating maintenance fees.  Vendor " + self + ", vendor is registered. Because the owner is a trader this increases the maintenance fees by 20% (cost * 1.2). cost is now " + cost);
-            }
-            else 
-            {
-                cost *= 1.4;
-                CustomerServiceLog("vendor", "Vendor calculating maintenance fees.  Vendor " + self + ", vendor is registered. Because the owner is NOT a trader this increases the maintenance fees by 40% (cost * 1.4). cost is now " + cost);
-            }
-        }
-        int expertiseMaintenanceDecrease = (int)getSkillStatisticModifier(owner, "expertise_vendor_cost_decrease");
-        if (expertiseMaintenanceDecrease > 0)
-        {
-            cost -= expertiseMaintenanceDecrease;
-            CustomerServiceLog("vendor", "Vendor calculating maintenance fees.  Vendor " + self + ", expertiseMaintenanceDecrease is " + expertiseMaintenanceDecrease + " so cost is decreased by this amount. cost is now " + cost);
+            cost += 6 * loops;
+            CustomerServiceLog("vendor", "Vendor calculating maintenance fees.  Vendor " + self + ", vendor is registered, adding 6 credits per maintenance loop. cost is now " + cost);
         }
         if (cost < 0)
         {
@@ -867,30 +851,17 @@ public class vendor extends script.terminal.base.base_terminal
         }
         updateVendorValue(self);
         int cost = 15;
-        int hiringSkillMod = getSkillStatisticModifier(ownerId, "hiring");
-        if (hiringSkillMod >= 100)
+        if (hasSkill(ownerId, "crafting_merchant_master"))
         {
             cost *= 0.6;
         }
-        else if (utils.isProfession(ownerId, utils.TRADER))
+        else if (hasSkill(ownerId, "crafting_merchant_sales_02"))
         {
             cost *= 0.8;
         }
         if (hasObjVar(self, "vendor.map_registered"))
         {
-            if (utils.isProfession(ownerId, utils.TRADER))
-            {
-                cost *= 1.2;
-            }
-            else 
-            {
-                cost *= 1.4;
-            }
-        }
-        int expertiseMaintenanceDecrease = (int)getSkillStatisticModifier(player, "expertise_vendor_cost_decrease");
-        if (expertiseMaintenanceDecrease > 0)
-        {
-            cost -= expertiseMaintenanceDecrease;
+            cost += 6;
         }
         if (cost < 0)
         {
