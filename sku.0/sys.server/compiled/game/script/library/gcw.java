@@ -1083,7 +1083,7 @@ public class gcw extends script.base_script
                 if (!isIdValid(obj_id) || !exists(obj_id) || !verifyPvpRegionStatus(obj_id)) {
                     continue;
                 }
-                if ((float) getLevel(player) / getLevel(obj_id) >= MIN_PVP_LEVEL_RATIO_LIMIT && ((isImperialPlayer && factions.isRebel(obj_id)) || (factions.isImperial(obj_id) && isRebelPlayer))) {
+                if ((float) skill.getPrecuEncounterDifficulty(player) / skill.getPrecuEncounterDifficulty(obj_id) >= MIN_PVP_LEVEL_RATIO_LIMIT && ((isImperialPlayer && factions.isRebel(obj_id)) || (factions.isImperial(obj_id) && isRebelPlayer))) {
                     int points = distributeIndividualContribution(player, obj_id, 0, GCW_POINT_TYPE_GROUND_PVP);
                     pvpModifyCurrentPvpKills(obj_id, 1);
                     incrementKillMeter(obj_id, 1);
@@ -1100,8 +1100,8 @@ public class gcw extends script.base_script
                 if (beast_lib.isBeast(killer) || pet_lib.isPet(killer)) {
                     killer = getMaster(killer);
                 }
-                double vLev = getLevel(player);
-                double kLev = getLevel(killer);
+                double vLev = skill.getPrecuEncounterDifficulty(player);
+                double kLev = skill.getPrecuEncounterDifficulty(killer);
                 boolean isOfLevel = (vLev / kLev) >= MIN_PVP_LEVEL_RATIO_LIMIT;
                 if (isOfLevel && killer != landedDeathBlow) {
                     pvp.bfCreditForAssist(killer);
@@ -1125,8 +1125,8 @@ public class gcw extends script.base_script
         for (Object o : attackerList) {
             String[] parseKiller = split(((String) o), '-');
             obj_id killer = utils.stringToObjId(parseKiller[0]);
-            double vLev = getLevel(player);
-            double kLev = getLevel(killer);
+            double vLev = skill.getPrecuEncounterDifficulty(player);
+            double kLev = skill.getPrecuEncounterDifficulty(killer);
             boolean isOfLevel = (vLev / kLev) >= MIN_PVP_LEVEL_RATIO_LIMIT;
             if (isOfLevel) {
                 int points = distributeIndividualContribution(player, ((String) o), totalDamage, GCW_POINT_TYPE_GROUND_PVP);
@@ -1509,7 +1509,7 @@ public class gcw extends script.base_script
             return 0;
         }
         double npcLev = getLevel(npc);
-        double playLev = getLevel(player);
+        double playLev = skill.getPrecuEncounterDifficulty(player);
         if ((npcLev / playLev) < MIN_NPC_LEVEL_RATIO_LIMIT)
         {
             return 0;
