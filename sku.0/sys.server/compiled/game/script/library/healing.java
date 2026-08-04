@@ -229,7 +229,6 @@ public class healing extends script.base_script
         int toHeal = action_data.addedDamage;
         int totalDelta = 0;
         boolean total_success = false;
-        toHeal = getExpertiseModifiedHealing(medic, toHeal, action_data);
         String actionName = action_data.actionName;
         boolean useTempParticle = false;
         boolean playParticleOnMedic = false;
@@ -248,8 +247,6 @@ public class healing extends script.base_script
             if (!isValidHealTarget(medic, defenderDatum.id)) {
                 continue;
             }
-            toHeal = getHealingAfterReductions(medic, defenderDatum.id, toHeal);
-            toHeal = getTargetHealingBonus(medic, defenderDatum.id, toHeal);
             if (luck.isLucky(defenderDatum.id, 0.005f)) {
                 float bonus = toHeal * 0.2f;
                 if (bonus < 1) {
@@ -279,9 +276,7 @@ public class healing extends script.base_script
                     showFlyTextPrivateProseWithFlags(defenderDatum.id, medic, pp, 2.0f, colors.SEAGREEN, FLY_TEXT_FLAG_IS_HEAL);
                 }
                 float hateMod = action_data.hateDamageModifier;
-                int healingAgroMod = getEnhancedSkillStatisticModifierUncapped(medic, "expertise_agro_healing");
-                float agroReductionFact = 1.0f - (healingAgroMod / 100.0f);
-                float modifiedHate = (delta * agroReductionFact) / HEALING_AGGRO_REDUCER;
+                float modifiedHate = delta / HEALING_AGGRO_REDUCER;
                 if (isPlayer(medic)) {
                     _addMedicalHate(medic, defenderDatum.id, (int) modifiedHate, hateMod);
                 }
@@ -336,15 +331,11 @@ public class healing extends script.base_script
         {
             return false;
         }
-        if (!combat.expertiseRandomBuffChance(medic, actionData))
-        {
-            return false;
-        }
         if (!isValidHealTarget(defender))
         {
             return false;
         }
-        buffDuration = combat.getExpertiseBuffDurationMods(medic, actionData, buffName, buffDuration);
+        buffDuration = combat.getAuthoredBuffDuration(buffName, buffDuration);
         combat.combatLog(medic, defender, "applyDefenderHealBuffs", "Applying defender buff - " + buffName);
         return buff.applyBuff(defender, buffName, buffDuration, buffStrength);
     }
@@ -358,11 +349,7 @@ public class healing extends script.base_script
         {
             return false;
         }
-        if (!combat.expertiseRandomBuffChance(medic, actionData))
-        {
-            return false;
-        }
-        buffDuration = combat.getExpertiseBuffDurationMods(medic, actionData, buffName, buffDuration);
+        buffDuration = combat.getAuthoredBuffDuration(buffName, buffDuration);
         combat.combatLog(medic, null, "applyMedicHealBuffs", "Applying medic buff - " + buffName);
         return buff.applyBuff(medic, buffName, buffDuration, buffStrength);
     }
@@ -372,50 +359,17 @@ public class healing extends script.base_script
         int maxHeal = action_data.addedDamage;
         int duration = action_data.dotDuration;
         int perTick = action_data.dotIntensity;
-        String specialLine = action_data.specialLine;
-        duration += getEnhancedSkillStatisticModifierUncapped(medic, "expertise_hot_duration_" + specialLine);
-        perTick = getExpertiseModifiedHealing(medic, perTick, action_data);
-        maxHeal = getExpertiseModifiedHealing(medic, maxHeal, action_data);
         int tickLength = (int)(duration / (((float)maxHeal) / perTick));
         for (defender_data defenderDatum : defenderData) {
             if (isDead(defenderDatum.id) || !isValidHealTarget(defenderDatum.id)) {
                 continue;
             }
-            perTick = getHealingAfterReductions(medic, defenderDatum.id, perTick);
-            perTick = getTargetHealingBonus(medic, defenderDatum.id, perTick);
             startHealOverTime(medic, defenderDatum.id, action_data.actionName, duration, tickLength, perTick, true);
             pvpHelpPerformed(medic, defenderDatum.id);
             location loc = getLocation(defenderDatum.id);
             playHealDamageEffect(loc);
         }
         return true;
-    }
-    public static int getExpertiseModifiedHealing(obj_id medic, int toHeal, combat_data action_data) throws InterruptedException
-    {
-        String specialLine = action_data.specialLine;
-        float expertiseHealingBonus = 0.0f;
-        expertiseHealingBonus += getEnhancedSkillStatisticModifierUncapped(medic, "expertise_healing_all");
-        if (specialLine != null && !specialLine.equals(""))
-        {
-            expertiseHealingBonus += getEnhancedSkillStatisticModifierUncapped(medic, "expertise_healing_line_" + specialLine);
-        }
-        float toHealFloat = toHeal;
-        toHealFloat = toHealFloat * (1 + (expertiseHealingBonus / 100));
-        toHeal = (int)toHealFloat;
-        return toHeal;
-    }
-    public static int getHealingAfterReductions(obj_id medic, obj_id target, int toHeal) throws InterruptedException
-    {
-        int healingReduction = getEnhancedSkillStatisticModifierUncapped(target, "expertise_healing_reduction");
-        float redux = healingReduction / (healingReduction + 50.0f);
-        toHeal = (int)(toHeal - (toHeal * redux));
-        return toHeal;
-    }
-    public static int getTargetHealingBonus(obj_id medic, obj_id target, int toHeal) throws InterruptedException
-    {
-        int healingBonus = getEnhancedSkillStatisticModifierUncapped(target, "expertise_target_healing_bonus");
-        toHeal = (int)(toHeal * (1.0f + (healingBonus / 100.0f)));
-        return toHeal;
     }
     public static boolean canUseAbility(obj_id medic, combat_data actionData) throws InterruptedException
     {
@@ -5832,8 +5786,6 @@ public class healing extends script.base_script
         if (percentToHeal > 0)
         {
             int damageToHeal = Math.round(damage * percentToHeal);
-            damageToHeal = getHealingAfterReductions(attacker, attacker, damageToHeal);
-            damageToHeal = getTargetHealingBonus(attacker, attacker, damageToHeal);
             healDamage(attacker, attacker, HEALTH, damageToHeal);
             prose_package pp = new prose_package();
             pp = prose.setStringId(pp, new string_id("healing", "siphon_fly"));
@@ -5871,8 +5823,6 @@ public class healing extends script.base_script
                 attacker = getMaster(attacker);
                 if (healMaster && exists(attacker) && !isDead(attacker))
                 {
-                    damageToHeal = getHealingAfterReductions(attacker, attacker, damageToHeal);
-                    damageToHeal = getTargetHealingBonus(attacker, attacker, damageToHeal);
                     pp = prose.setDI(pp, damageToHeal);
                     healDamage(attacker, attacker, HEALTH, damageToHeal);
                     if (isPlayer(attacker))

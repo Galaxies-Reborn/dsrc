@@ -474,19 +474,6 @@ public class combat extends script.base_script
         }
         xp.updateCombatXpList(defender, attacker, xpType, damage);
     }
-    public static boolean expertiseRandomBuffChance(obj_id attacker, combat_data actionData) throws InterruptedException
-    {
-        String specialLine = actionData.specialLine;
-        if (getSkillStatisticModifier(attacker, "expertise_use_buff_chance_line_" + specialLine) > 0 || getSkillStatisticModifier(attacker, "private_use_buff_chance_line_" + specialLine) > 0)
-        {
-            int chance = getSkillStatisticModifier(attacker, "expertise_buff_chance_line_" + specialLine);
-            if (rand(0, 99) > chance)
-            {
-                return false;
-            }
-        }
-        return true;
-    }
     public static boolean applyDefenderCombatBuffs(obj_id attacker, obj_id defender, weapon_data weaponData, combat_data actionData) throws InterruptedException
     {
         String actionName = actionData.actionName;
@@ -494,10 +481,6 @@ public class combat extends script.base_script
         float buffStrength = actionData.buffStrengthTarget;
         float buffDuration = actionData.buffDurationTarget;
         if (buffName == null || buffName.equals(""))
-        {
-            return false;
-        }
-        if (!expertiseRandomBuffChance(attacker, actionData))
         {
             return false;
         }
@@ -516,7 +499,7 @@ public class combat extends script.base_script
                 return false;
             }
         }
-        buffDuration += getExpertiseBuffDurationMods(attacker, actionData, buffName, buffDuration);
+        buffDuration = getAuthoredBuffDuration(buffName, buffDuration);
         return buff.applyBuff(defender, attacker, buffName, buffDuration, buffStrength);
     }
     public static boolean applyAttackerCombatBuffs(obj_id attacker, combat_data actionData) throws InterruptedException
@@ -529,32 +512,22 @@ public class combat extends script.base_script
         {
             return false;
         }
-        if (!expertiseRandomBuffChance(attacker, actionData))
-        {
-            return false;
-        }
         combatLog(attacker, null, "applyAttackerCombatBuffs", "Applying attacker buff - " + buffName);
-        buffDuration += getExpertiseBuffDurationMods(attacker, actionData, buffName, buffDuration);
+        buffDuration = getAuthoredBuffDuration(buffName, buffDuration);
         return buff.applyBuff(attacker, attacker, buffName, buffDuration, buffStrength);
     }
-    public static float getExpertiseBuffDurationMods(obj_id buffCaster, combat_data actionData, String buffName, float buffDuration) throws InterruptedException
+    public static float getAuthoredBuffDuration(String buffName, float buffDuration) throws InterruptedException
     {
-        float expertiseBuffDurationMod = 0.0f;
+        if (buffDuration != 0)
+        {
+            return buffDuration;
+        }
         dictionary dic = dataTableGetRow(buff.BUFF_TABLE, buffName);
         if (dic == null)
         {
-            return expertiseBuffDurationMod;
+            return 0.0f;
         }
-        String buffGroupName = dic.getString("GROUP1");
-        if (buffDuration == 0)
-        {
-            buffDuration = dic.getFloat("DURATION");
-        }
-        String specialLine = actionData.specialLine;
-        expertiseBuffDurationMod = buffDuration + getEnhancedSkillStatisticModifierUncapped(buffCaster, "expertise_buff_duration_line_" + specialLine);
-        expertiseBuffDurationMod += getEnhancedSkillStatisticModifierUncapped(buffCaster, "expertise_buff_duration_group_" + toLower(buffGroupName));
-        expertiseBuffDurationMod += getEnhancedSkillStatisticModifierUncapped(buffCaster, "expertise_buff_duration_single_" + toLower(buffName));
-        return expertiseBuffDurationMod;
+        return dic.getFloat("DURATION");
     }
     public static boolean applyCombatMovementModifier(obj_id attacker, obj_id defender, String actionName) throws InterruptedException
     {
