@@ -1400,26 +1400,7 @@ public class groundquests extends script.base_script
             dataTableColumnQuestRewardExperienceTeir5,
             dataTableColumnQuestRewardExperienceTeir6
         };
-        int questXp = dataTableGetInt(QUEST_EXPERIENCE_TABLE, "" + questLevel, tierColumns[questTier - 1]);
-        int xpCap = getQuestXpCap(player);
-        if (questXp > xpCap)
-        {
-            questXp = xpCap;
-        }
-        return questXp;
-    }
-    public static int getQuestXpCap(obj_id player) throws InterruptedException
-    {
-        int level = script.library.skill.getPrecuEncounterDifficulty(player);
-        int xpCurrentLevel = dataTableGetInt("datatables/player/player_level.iff", level, "xp_required");
-        int xpPreviousLevel = dataTableGetInt("datatables/player/player_level.iff", level - 1, "xp_required");
-        int xpRequired = xpCurrentLevel - xpPreviousLevel;
-        int xpCap = xpRequired / 2;
-        if (xpCap < 0)
-        {
-            xpCap = 0;
-        }
-        return xpCap;
+        return dataTableGetInt(QUEST_EXPERIENCE_TABLE, "" + questLevel, tierColumns[questTier - 1]);
     }
     public static void createQuestWaypoints(int questCrc, int taskId, obj_id self) throws InterruptedException
     {
