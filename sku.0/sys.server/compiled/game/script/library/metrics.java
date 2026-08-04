@@ -260,7 +260,7 @@ public class metrics extends script.base_script
             obj_id[] members = getGroupMemberIds(killCredit);
             for (obj_id member : members) {
                 String playerName = getEncodedName(member);
-                int playerLevel = getLevel(member);
+                int playerLevel = skill.getPrecuEncounterDifficulty(member);
                 int dmgAmount = utils.getIntScriptVar(target, xp.VAR_ATTACKER_LIST + "." + member + ".damage");
                 float dmgPercent = (float) ((int) ((float) dmgAmount / dmgTotal * 10000) / 100.0f);
                 killLog += ";" + member + ";" + playerName + ";" + playerLevel + ";" + dmgAmount + ";" + dmgPercent;
@@ -269,7 +269,7 @@ public class metrics extends script.base_script
         else 
         {
             String playerName = getEncodedName(killCredit);
-            int playerLevel = getLevel(killCredit);
+            int playerLevel = skill.getPrecuEncounterDifficulty(killCredit);
             int dmgAmount = utils.getIntScriptVar(target, xp.VAR_ATTACKER_LIST + "." + killCredit + ".damage");
             float dmgPercent = (float)((int)((float)dmgAmount / dmgTotal * 10000) / 100.0f);
             killLog += ";solo;" + killCredit + ";" + playerName + ";" + playerLevel + ";" + dmgAmount + ";" + dmgPercent;
@@ -281,7 +281,7 @@ public class metrics extends script.base_script
     {
         int curTime = getGameTime();
         String playerName = getEncodedName(player);
-        int playerLevel = getLevel(player);
+        int playerLevel = skill.getPrecuEncounterDifficulty(player);
         int startTime = utils.getIntScriptVar(player, "xpRateMetrics." + xpType + ".startTime");
         int lastTime = utils.getIntScriptVar(player, "xpRateMetrics." + xpType + ".timeStamp");
         if (startTime == 0)
@@ -304,7 +304,7 @@ public class metrics extends script.base_script
     {
         int curTime = getGameTime();
         String playerName = getEncodedName(player);
-        int playerLevel = getLevel(player);
+        int playerLevel = skill.getPrecuEncounterDifficulty(player);
         String questName = questGetQuestName(questId);
         String questLog = "quest;" + curTime + ";" + player + ";" + playerName + ";" + playerLevel + ";" + questName + ";" + level + ";" + tier + ";" + xpType + ";" + xpAmount;
         logBalance(questLog);
