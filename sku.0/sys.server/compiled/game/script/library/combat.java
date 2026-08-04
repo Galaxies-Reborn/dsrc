@@ -4383,6 +4383,10 @@ public class combat extends script.base_script
         {
             return freeShot;
         }
+        if (actionData.precuHamCostModel > 0)
+        {
+            return getActionCost(attacker, weaponData, actionData);
+        }
         int freeMiss = getEnhancedSkillStatisticModifierUncapped(attacker, "freeshot_case_miss");
         int freeDodge = getEnhancedSkillStatisticModifierUncapped(attacker, "freeshot_case_dodge");
         int freeParry = getEnhancedSkillStatisticModifierUncapped(attacker, "freeshot_case_parry");

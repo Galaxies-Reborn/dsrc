@@ -1535,18 +1535,37 @@ public class combat_base extends script.base_script
             }
             else 
             {
-                int precuPrimaryResult = getPrecuPrimaryAttackResult(attackerData, defenderData[i], weaponData, actionData);
+                int precuPrimaryResult = PRECU_PRIMARY_RESULT_FALLBACK;
                 int precuSecondaryResult = HIT_RESULT_HIT;
-                if (precuPrimaryResult == HIT_RESULT_HIT)
+                int defResult;
+                int atkResult;
+                if (precuAuthoritativeAttack)
                 {
-                    precuSecondaryResult = getPrecuSecondaryDefenseResult(attackerData, defenderData[i], weaponData, actionData);
-                    if (precuSecondaryResult == PRECU_SECONDARY_RESULT_FALLBACK)
+                    precuPrimaryResult = getPrecuPrimaryAttackResult(
+                        attackerData, defenderData[i], weaponData, actionData);
+                    if (precuPrimaryResult == PRECU_PRIMARY_RESULT_FALLBACK)
                     {
-                        precuPrimaryResult = PRECU_PRIMARY_RESULT_FALLBACK;
+                        precuPrimaryResult = HIT_RESULT_HIT;
                     }
+                    if (precuPrimaryResult == HIT_RESULT_HIT)
+                    {
+                        precuSecondaryResult = getPrecuSecondaryDefenseResult(
+                            attackerData, defenderData[i], weaponData, actionData);
+                        if (precuSecondaryResult == PRECU_SECONDARY_RESULT_FALLBACK)
+                        {
+                            precuSecondaryResult = HIT_RESULT_HIT;
+                        }
+                    }
+                    defResult = precuSecondaryResult;
+                    atkResult = precuPrimaryResult;
                 }
-                int defResult = precuPrimaryResult == PRECU_PRIMARY_RESULT_FALLBACK ? getDefenderResult(attackerData, defenderData[i], actionData, isAutoAiming) : precuSecondaryResult;
-                int atkResult = precuPrimaryResult == PRECU_PRIMARY_RESULT_FALLBACK ? getAttackerResult(attackerData, defenderData[i], actionData, isAutoAiming) : precuPrimaryResult;
+                else
+                {
+                    defResult = getDefenderResult(
+                        attackerData, defenderData[i], actionData, isAutoAiming);
+                    atkResult = getAttackerResult(
+                        attackerData, defenderData[i], actionData, isAutoAiming);
+                }
                 switch (defResult)
                 {
                     case HIT_RESULT_DODGE:
@@ -1563,7 +1582,7 @@ public class combat_base extends script.base_script
                     break;
                     case HIT_RESULT_BLOCK:
                     hitData[i].success = true;
-                    if (precuPrimaryResult == PRECU_PRIMARY_RESULT_FALLBACK)
+                    if (!precuAuthoritativeAttack)
                     {
                         hitData[i].blockResult = true;
                     }
