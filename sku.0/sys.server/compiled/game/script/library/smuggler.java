@@ -334,27 +334,6 @@ public class smuggler extends script.base_script
             String playerName = getName(player);
             String itemName = getEncodedName(item);
             CustomerServiceLog("Junk_Dealer: ", "smuggler.sellJunkItem() - Player (" + playerName + " OID: " + player + ") sold item (" + itemName + " OID: " + item + ") for (" + price + ")credits, at (" + realTime + ")");
-            if (!fence && (player != salesman))
-            {
-                obj_id master = utils.getObjIdScriptVar(salesman, "smugglerMaster");
-                if (isIdValid(master) && group.inSameGroup(player, master))
-                {
-                    dictionary junkParams = new dictionary();
-                    params.put("item", item);
-                    params.put("price", price);
-                    params.put("reshowSui", false);
-                    int smugglerCut = (int)getSkillStatisticModifier(master, "expertise_junk_dealer_cut");
-                    if (smugglerCut > 0)
-                    {
-                        price = (int)((float)price * smugglerCut * 0.01f);
-                        money.systemPayout(money.ACCT_RELIC_DEALER, master, price, "handleSoldJunk", junkParams);
-                        CustomerServiceLog("Junk_Dealer: ", "smuggler.sellJunkItem() - Player (" + playerName + " OID: " + player + ") sold item (" + itemName + " OID: " + item + ") for (" + price + ")credits, at (" + realTime + ")");
-                        int totalProfits = utils.getIntScriptVar(salesman, "totalProfits");
-                        totalProfits += price;
-                        utils.setScriptVar(salesman, "totalProfits", totalProfits);
-                    }
-                }
-            }
         }
         else 
         {
@@ -741,15 +720,9 @@ public class smuggler extends script.base_script
         float underworldFaction = factions.getFactionStanding(player, "underworld");
         int tier = getSmuggleTier(underworldFaction);
         int chance = (12 - tier * 2);
-        int buffFeelingLucky = 0;
-        chance += buffFeelingLucky = (int)getSkillStatisticModifier(player, "expertise_increase_smuggler_loot");
         if (chance >= rand(1, 100))
         {
             createRandomContrabandTier(player, tier);
-            if (buffFeelingLucky > 0 && !buff.hasBuff(player, "sm_feeling_lucky") && !buff.hasBuff(player, "sm_feeling_lucky_recourse"))
-            {
-                buff.applyBuff(player, "sm_feeling_lucky");
-            }
         }
         return;
     }
@@ -781,16 +754,10 @@ public class smuggler extends script.base_script
             dropTier = tier;
         }
         int chance = (12 - (dropTier * 2));
-        int buffFeelingLucky = 0;
-        chance += buffFeelingLucky = (int)getSkillStatisticModifier(player, "expertise_increase_smuggler_loot");
         utils.setScriptVar(target, "contrabandChecked", 1);
         if (chance >= rand(1, 100))
         {
             createRandomContrabandTier(player, dropTier);
-            if (buffFeelingLucky > 0 && !buff.hasBuff(player, "sm_feeling_lucky") && !buff.hasBuff(player, "sm_feeling_lucky_recourse"))
-            {
-                buff.applyBuff(player, "sm_feeling_lucky");
-            }
             return;
         }
         sendSystemMessage(player, new string_id("smuggler/messages", "no_contraband_found"));
