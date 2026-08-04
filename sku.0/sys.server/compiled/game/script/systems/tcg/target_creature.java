@@ -44,7 +44,7 @@ public class target_creature extends script.base_script
                 obj_id owner = getObjIdObjVar(self, target_dummy.OWNER_OBJVAR);
                 if (isIdValid(owner) && exists(owner))
                 {
-                    combatLevel = getLevel(owner);
+                    combatLevel = skill.getPrecuEncounterDifficulty(owner);
                 }
             }
             if (hasObjVar(controller, "intCombatDifficulty"))
@@ -65,7 +65,7 @@ public class target_creature extends script.base_script
                 }
             }
         }
-        else 
+        else
         {
             destroyObject(self);
         }
@@ -95,7 +95,7 @@ public class target_creature extends script.base_script
                         {
                             mi.addSubMenu(menuNpcOptions, OPTIONS_ANIMATIONS, new string_id("target_dummy", "menu_turnon_target_dummy_anims"));
                         }
-                        else 
+                        else
                         {
                             mi.addSubMenu(menuNpcOptions, OPTIONS_ANIMATIONS, new string_id("target_dummy", "menu_turnoff_target_dummy_anims"));
                         }
@@ -105,7 +105,7 @@ public class target_creature extends script.base_script
                     {
                         mi.addSubMenu(menuNpcOptions, OPTIONS_CLEANUP, new string_id("target_dummy", "menu_cleanup_target_creature"));
                     }
-                    else 
+                    else
                     {
                         mi.addSubMenu(menuNpcOptions, OPTIONS_CLEANUP, new string_id("target_dummy", "menu_cleanup_target_object"));
                     }
@@ -156,7 +156,7 @@ public class target_creature extends script.base_script
                 setObjVar(self, target_dummy.TARGET_DUMMY_NO_SOUND, true);
                 sendSystemMessage(player, target_dummy.SID_SOUND_ANIMS_OFF);
             }
-            else 
+            else
             {
                 removeObjVar(self, target_dummy.TARGET_DUMMY_NO_SOUND);
                 sendSystemMessage(player, target_dummy.SID_SOUND_ANIMS_ON);
@@ -251,7 +251,7 @@ public class target_creature extends script.base_script
             {
                 return SCRIPT_CONTINUE;
             }
-            else 
+            else
             {
                 obj_id controller = target_dummy.getTargetDummyController(self);
                 if (isIdValid(controller))
@@ -262,12 +262,12 @@ public class target_creature extends script.base_script
                         {
                             target_dummy.confirmClearYourCombatData(self, player);
                         }
-                        else 
+                        else
                         {
                             sendSystemMessage(player, new string_id("target_dummy", "placement_no_combat_data"));
                         }
                     }
-                    else 
+                    else
                     {
                         target_dummy.reportCombatDataViaController(player, self, controller);
                     }
@@ -293,7 +293,7 @@ public class target_creature extends script.base_script
                 {
                     target_dummy.clearYourCombatData(self, player);
                 }
-                else 
+                else
                 {
                     sendSystemMessage(player, new string_id("target_dummy", "placement_no_combat_data"));
                 }
@@ -318,7 +318,7 @@ public class target_creature extends script.base_script
                 {
                     target_dummy.clearAllCombatData(self, player);
                 }
-                else 
+                else
                 {
                     sendSystemMessage(player, new string_id("target_dummy", "placement_no_combat_data"));
                 }
@@ -345,7 +345,7 @@ public class target_creature extends script.base_script
         {
             sendSystemMessage(player, new string_id("target_dummy", "combat_level_invalid"));
         }
-        else 
+        else
         {
             blog("handleTargetDummyLevelSelect - setting");
             int difficulty = target_dummy.getTargetDummyDifficulty(self);

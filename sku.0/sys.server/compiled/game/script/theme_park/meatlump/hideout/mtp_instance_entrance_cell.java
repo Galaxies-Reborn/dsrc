@@ -2,6 +2,7 @@ package script.theme_park.meatlump.hideout;
 
 import script.dictionary;
 import script.library.instance;
+import script.library.skill;
 import script.obj_id;
 
 public class mtp_instance_entrance_cell extends script.base_script
@@ -23,7 +24,7 @@ public class mtp_instance_entrance_cell extends script.base_script
             {
                 dictionary webster = new dictionary();
                 webster.put("player", item);
-                webster.put("playerCombatLevel", getLevel(item));
+                webster.put("playerCombatLevel", skill.getPrecuEncounterDifficulty(item));
                 messageTo(self, "handleInstanceCombatLevel", webster, 1, false);
             }
         }
