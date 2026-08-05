@@ -32,6 +32,21 @@ public class buff_handler extends script.base_script
     {
         return modifierName != null && modifierName.startsWith("expertise_");
     }
+    public boolean isRetiredNgePrimaryStatisticModifier(String modifierName) throws InterruptedException
+    {
+        return modifierName != null &&
+            (modifierName.equals("agility_modified") ||
+                modifierName.equals("constitution_modified") ||
+                modifierName.equals("luck_modified") ||
+                modifierName.equals("precision_modified") ||
+                modifierName.equals("stamina_modified") ||
+                modifierName.equals("strength_modified"));
+    }
+    public boolean isRetiredNgeBuffSkillModifier(String modifierName) throws InterruptedException
+    {
+        return isRetiredNgeExpertiseModifier(modifierName) ||
+            isRetiredNgePrimaryStatisticModifier(modifierName);
+    }
     public void retireNgeExpertiseModifier(obj_id self, String effectName) throws InterruptedException
     {
         if (hasSkillModModifier(self, effectName))
@@ -150,7 +165,7 @@ public class buff_handler extends script.base_script
     {
         long stack = buff.getBuffStackCount(self, buffName) > 1 ? buff.getBuffStackCount(self, buffName) : 1;
         value *= (int)stack;
-        if (isRetiredNgeExpertiseModifier(subtype))
+        if (isRetiredNgeBuffSkillModifier(subtype))
         {
             retireNgeExpertiseModifier(self, effectName);
         }
@@ -235,7 +250,7 @@ public class buff_handler extends script.base_script
     }
     public int skillPercentAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
-        if (isRetiredNgeExpertiseModifier(subtype))
+        if (isRetiredNgeBuffSkillModifier(subtype))
         {
             retireNgeExpertiseModifier(self, effectName);
         }
@@ -531,7 +546,7 @@ public class buff_handler extends script.base_script
     }
     public int forcePowerAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
-        if (isRetiredNgeExpertiseModifier(subtype))
+        if (isRetiredNgeBuffSkillModifier(subtype))
         {
             retireNgeExpertiseModifier(self, effectName);
         }
