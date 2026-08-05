@@ -6842,6 +6842,10 @@ public class utils extends script.base_script
         }
         return _resizeList;
     }
+    public static boolean isPostNgeCtsProgressionRestorationRetired() throws InterruptedException
+    {
+        return true;
+    }
     public static void updateCTSObjVars(obj_id player) throws InterruptedException
     {
         if (!isIdValid(player) || !exists(player))
@@ -6880,6 +6884,17 @@ public class utils extends script.base_script
     {
         if (!isIdValid(player) || !exists(player))
         {
+            return;
+        }
+        if (isPostNgeCtsProgressionRestorationRetired())
+        {
+            // CTS may restore retained world/content history, but Publish 14.1
+            // progression is the transferred skill-box graph and XP pools. A
+            // historical NGE profession-level array must never auto-level or
+            // recreate roadmap/respec state if this compatibility helper is
+            // invoked outside the retired live-conversion script.
+            removeObjVar(player, "respecsBought");
+            removeObjVar(player, respec.PROF_LEVEL_ARRAY);
             return;
         }
         if ((ctsOjbvars == null) || (ctsOjbvars.length <= 0))
@@ -6991,6 +7006,14 @@ public class utils extends script.base_script
     {
         if (!isIdValid(player) || !exists(player))
         {
+            return;
+        }
+        if (isPostNgeCtsProgressionRestorationRetired())
+        {
+            // Beast Master is post-NGE player progression. Retain the imported
+            // objects and content data, but never merge its learned-ability
+            // batch back onto a PRE-CU character.
+            beast_lib.retirePostNgeBeastMasterPlayerState(player);
             return;
         }
         if ((ctsOjbvars == null) || (ctsOjbvars.length <= 0))
