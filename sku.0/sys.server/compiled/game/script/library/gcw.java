@@ -1086,7 +1086,7 @@ public class gcw extends script.base_script
                 if ((float) skill.getPrecuEncounterDifficulty(player) / skill.getPrecuEncounterDifficulty(obj_id) >= MIN_PVP_LEVEL_RATIO_LIMIT && ((isImperialPlayer && factions.isRebel(obj_id)) || (factions.isImperial(obj_id) && isRebelPlayer))) {
                     int points = distributeIndividualContribution(player, obj_id, 0, GCW_POINT_TYPE_GROUND_PVP);
                     pvpModifyCurrentPvpKills(obj_id, 1);
-                    incrementKillMeter(obj_id, 1);
+                    combat.modifyKillMeter(obj_id, 1);
                 }
             }
             Vector attackerList = utils.getResizeableStringBatchScriptVar(player, gcw.LIST_CREDIT_FOR_KILLS);
@@ -1132,7 +1132,7 @@ public class gcw extends script.base_script
                 int points = distributeIndividualContribution(player, ((String) o), totalDamage, GCW_POINT_TYPE_GROUND_PVP);
                 if (isIdValid(killer) && exists(killer)) {
                     pvpModifyCurrentPvpKills(killer, 1);
-                    incrementKillMeter(killer, 1);
+                    combat.modifyKillMeter(killer, 1);
                 }
             }
         }

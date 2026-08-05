@@ -860,7 +860,7 @@ public class xp extends script.base_script
                     primaryKillers = utils.addElement(primaryKillers, tmpId);
                     if (!group.isGroupObject(tmpId))
                     {
-                        incrementKillMeter(tmpId, 1);
+                        combat.modifyKillMeter(tmpId, 1);
                     }
                 }
             }
@@ -885,7 +885,7 @@ public class xp extends script.base_script
                 attacker = utils.stringToObjId(attackerDamageVar.getName());
                 if (isIdValid(attacker)) {
                     if (getGroupObject(attacker) == winner) {
-                        incrementKillMeter(attacker, 1);
+                        combat.modifyKillMeter(attacker, 1);
                     }
                 }
             }

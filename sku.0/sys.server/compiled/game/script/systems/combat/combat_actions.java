@@ -1114,7 +1114,7 @@ public class combat_actions extends script.systems.combat.combat_base
             return SCRIPT_OVERRIDE;
         }
         setHealth(self, modifiedHealth);
-        incrementKillMeter(self, 10);
+        combat.modifyKillMeter(self, 10);
         playClientEffectObj(self, "clienteffect/medic_reckless_stimulation.cef", self, "root");
         prose_package pp = new prose_package();
         pp = prose.setStringId(pp, new string_id("set_bonus", "enraged_cmb_spam"));

@@ -6580,11 +6580,25 @@ public class combat_base extends script.base_script
     }
     public void doKillMeterUpdate(obj_id attacker, obj_id defender, int damage) throws InterruptedException
     {
-        if (!utils.isProfession(attacker, utils.COMMANDO) && !utils.isProfession(defender, utils.COMMANDO) || damage < 1)
+        boolean playerAttacker = isPlayer(attacker);
+        boolean playerDefender = isPlayer(defender);
+        if (playerAttacker)
+        {
+            combat.retirePostNgeKillMeterPlayerState(attacker);
+        }
+        if (playerDefender)
+        {
+            combat.retirePostNgeKillMeterPlayerState(defender);
+        }
+        boolean compatibleAttacker = !playerAttacker &&
+            utils.isProfession(attacker, utils.COMMANDO);
+        boolean compatibleDefender = !playerDefender &&
+            utils.isProfession(defender, utils.COMMANDO);
+        if ((!compatibleAttacker && !compatibleDefender) || damage < 1)
         {
             return;
         }
-        if (utils.isProfession(attacker, utils.COMMANDO))
+        if (compatibleAttacker)
         {
             int damageInterval = utils.getIntScriptVar(attacker, "km.damage_done");
             damageInterval += damage;
@@ -6598,7 +6612,7 @@ public class combat_base extends script.base_script
                 utils.setScriptVar(attacker, "km.damage_done", damageInterval);
             }
         }
-        if (utils.isProfession(defender, utils.COMMANDO))
+        if (compatibleDefender)
         {
             int damageInterval = utils.getIntScriptVar(defender, "km.damage_taken");
             damageInterval += damage;

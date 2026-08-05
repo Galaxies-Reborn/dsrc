@@ -14,13 +14,15 @@ public class base_player extends script.base_script
     }
     private void retirePostNgePassiveProfessionState(obj_id self) throws InterruptedException
     {
-        // Automatic Jedi stance/focus and Smuggler Underworld-rank buffs are
-        // NGE class/expertise progression. NGE GCW rank abilities are likewise
-        // not part of Publish 14 faction rank. Retain their data for expansion
-        // compatibility, but never let it provide player runtime authority.
+        // Automatic Jedi stance/focus, Smuggler Underworld-rank buffs, and the
+        // Commando kill meter are NGE class/expertise progression. NGE GCW rank
+        // abilities are likewise not part of Publish 14 faction rank. Retain
+        // their data for expansion compatibility, but never let it provide
+        // player runtime authority.
         buff.retirePostNgeForceSensitiveStanceState(self);
         removeSmugglingBuffs(self);
         factions.retirePostNgePvpRewardState(self);
+        combat.retirePostNgeKillMeterPlayerState(self);
     }
     private void retirePostNgeQueuedBattlefieldPlayerState(obj_id self) throws InterruptedException
     {

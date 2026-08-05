@@ -4560,8 +4560,31 @@ public class combat extends script.base_script
             }
         }
     }
+    public static void retirePostNgeKillMeterPlayerState(obj_id player) throws InterruptedException
+    {
+        // The Commando kill meter is an NGE class/expertise resource. Publish
+        // 14.1 Commandos use combat_commando skill boxes and classic heavy-
+        // weapon commands, so a player must never retain this native meter or
+        // its damage-interval bookkeeping. Non-player compatibility actors
+        // continue to use the inherited helpers below.
+        if (!isPlayer(player))
+        {
+            return;
+        }
+        int current = getKillMeter(player);
+        if (current != 0)
+        {
+            incrementKillMeter(player, -current);
+        }
+        utils.removeScriptVarTree(player, "km");
+    }
     public static boolean setKillMeter(obj_id player, int value) throws InterruptedException
     {
+        if (isPlayer(player))
+        {
+            retirePostNgeKillMeterPlayerState(player);
+            return false;
+        }
         int current = getKillMeter(player);
         int delta = value - current;
         incrementKillMeter(player, delta);
@@ -4569,6 +4592,11 @@ public class combat extends script.base_script
     }
     public static boolean modifyKillMeter(obj_id player, int value) throws InterruptedException
     {
+        if (isPlayer(player))
+        {
+            retirePostNgeKillMeterPlayerState(player);
+            return false;
+        }
         int current = getKillMeter(player);
         int delta = current + value;
         if (delta < 0)
@@ -4584,25 +4612,21 @@ public class combat extends script.base_script
     }
     public static boolean canDrainKillMeter(obj_id player, int value) throws InterruptedException
     {
-        if (!isPlayer(player))
+        if (isPlayer(player))
         {
-            return true;
+            retirePostNgeKillMeterPlayerState(player);
+            return false;
         }
-        int current = getKillMeter(player);
-        int delta = current - value;
-        return delta < 0 ? false : true;
+        return true;
     }
     public static boolean drainKillMeter(obj_id player, int value) throws InterruptedException
     {
-        if (!isPlayer(player))
+        if (isPlayer(player))
         {
-            return true;
-        }
-        if (!canDrainKillMeter(player, value))
-        {
+            retirePostNgeKillMeterPlayerState(player);
             return false;
         }
-        return modifyKillMeter(player, -1 * value);
+        return true;
     }
     public static location getCommandGroundTargetLocation(String params) throws InterruptedException
     {
