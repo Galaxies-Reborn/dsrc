@@ -109,6 +109,47 @@ public class buff extends script.base_script
         combat.removeCombatBuffEffect(player, "fs_buff_def_1_1");
         combat.removeCombatBuffEffect(player, "fs_buff_ca_1");
     }
+    private static final String[] RETIRED_POST_NGE_GCW_BANNER_BUFFS =
+    {
+        "banner_buff_commando",
+        "banner_buff_smuggler",
+        "banner_buff_medic",
+        "banner_buff_officer",
+        "banner_buff_spy",
+        "banner_buff_bounty_hunter",
+        "banner_buff_force_sensitive",
+        "banner_buff_trader",
+        "banner_buff_entertainer"
+    };
+    public static boolean isRetiredPostNgeGcwBannerBuff(String buffName)
+    {
+        if (buffName == null)
+        {
+            return false;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_GCW_BANNER_BUFFS)
+        {
+            if (buffName.equals(retiredBuff))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void retirePostNgeGcwBannerBuffState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_GCW_BANNER_BUFFS)
+        {
+            if (hasBuff(player, retiredBuff))
+            {
+                removeBuff(player, retiredBuff);
+            }
+        }
+    }
     public static boolean isRetiredPostNgeBountyHunterShieldBuff(String buffName)
     {
         return buffName != null &&
@@ -158,6 +199,7 @@ public class buff extends script.base_script
         }
         retirePostNgeMeditationBuffs(player);
         retirePostNgeForceSensitiveStanceState(player);
+        retirePostNgeGcwBannerBuffState(player);
         retirePostNgeBountyHunterShieldState(player);
         utils.removeScriptVarTree(player, "performance.buildabuff");
         utils.removeScriptVarTree(player, "buff.xpBonus");
@@ -259,6 +301,7 @@ public class buff extends script.base_script
         }
         if (isPlayer(target) &&
             (isRetiredPostNgeForceSensitiveStanceBuff(bdata.buffName) ||
+                isRetiredPostNgeGcwBannerBuff(bdata.buffName) ||
                 isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName)))
         {
             return false;
