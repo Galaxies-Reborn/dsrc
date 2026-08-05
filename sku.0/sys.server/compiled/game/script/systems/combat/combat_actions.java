@@ -794,6 +794,11 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int sm_feeling_lucky_recourse(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isRetiredPostNgeSmugglerPlayerAction(self, "sm_feeling_lucky_recourse"))
+        {
+            buff.removeBuff(self, "sm_feeling_lucky_recourse");
+            return SCRIPT_CONTINUE;
+        }
         if (!buff.hasBuff(self, "sm_feeling_lucky_recourse"))
         {
             buff.applyBuff(self, self, "sm_feeling_lucky_recourse");
@@ -802,6 +807,11 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int sm_lucky_break_recourse(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isRetiredPostNgeSmugglerPlayerAction(self, "sm_lucky_break_recourse"))
+        {
+            buff.removeBuff(self, "sm_lucky_break_recourse");
+            return SCRIPT_CONTINUE;
+        }
         if (!buff.hasBuff(self, "sm_lucky_break_recourse"))
         {
             buff.applyBuff(self, self, "sm_lucky_break_recourse");
@@ -810,6 +820,11 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int sm_break_the_deal_recourse(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isRetiredPostNgeSmugglerPlayerAction(self, "sm_break_the_deal_recourse"))
+        {
+            buff.removeBuff(self, "sm_break_the_deal_recourse");
+            return SCRIPT_CONTINUE;
+        }
         if (!buff.hasBuff(self, "sm_break_the_deal_recourse"))
         {
             buff.applyBuff(self, self, "sm_break_the_deal_recourse");
@@ -818,6 +833,11 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int sm_melee_stun_recourse(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isRetiredPostNgeSmugglerPlayerAction(self, "sm_melee_stun_recourse"))
+        {
+            buff.removeBuff(self, "sm_melee_stun_recourse");
+            return SCRIPT_CONTINUE;
+        }
         if (!buff.hasBuff(self, "sm_melee_stun_recourse"))
         {
             buff.applyBuff(self, self, "sm_melee_stun_recourse");
@@ -5893,6 +5913,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int sm_disarm_trap_1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeSmugglerPlayerAction(self, "sm_disarm_trap_1"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!stealth.canDisarmTrap(self, target))
         {
             return SCRIPT_OVERRIDE;
@@ -6985,6 +7009,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int sm_inspect_cargo(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeSmugglerPlayerAction(self, "sm_inspect_cargo"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         obj_id player = self;
         smuggler.inspectCorpseForContraband(player, target);
         return SCRIPT_CONTINUE;

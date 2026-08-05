@@ -105,6 +105,15 @@ public class combat_base extends script.base_script
         // rows, so keep it available to NPC/content scripts but not players.
         return isPlayer(self) && actionName != null && actionName.startsWith("fs_");
     }
+    public static boolean isRetiredPostNgeSmugglerPlayerAction(obj_id self, String actionName) throws InterruptedException
+    {
+        // Publish 14.1 Smuggler progression uses the combat_smuggler tree and
+        // its feignDeath, panicShot, lowBlow, lastDitch, and slicing commands.
+        // The sm_* family belongs to the retained NGE class/expertise rows, so
+        // preserve it for NPC/content compatibility but never grant it player
+        // combat authority.
+        return isPlayer(self) && actionName != null && actionName.startsWith("sm_");
+    }
     public boolean combatStandardAction(String actionName, obj_id self, obj_id target, String params, String successHandler, String failHandler) throws InterruptedException
     {
         return combatStandardAction(actionName, self, target, getCurrentWeapon(self), params, null, false, false, 0);
@@ -216,6 +225,10 @@ public class combat_base extends script.base_script
             return false;
         }
         if (isRetiredPostNgeForceSensitivePlayerAction(self, actionName))
+        {
+            return false;
+        }
+        if (isRetiredPostNgeSmugglerPlayerAction(self, actionName))
         {
             return false;
         }
