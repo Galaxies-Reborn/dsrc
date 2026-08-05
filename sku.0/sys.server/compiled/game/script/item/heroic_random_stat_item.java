@@ -8,33 +8,38 @@ public class heroic_random_stat_item extends script.base_script
     public heroic_random_stat_item()
     {
     }
-    public static final String[] STAT_ONE = 
+    public static final String[] STAT_ONE =
     {
         "agility_modified",
         "stamina_modified",
         "constitution_modified"
     };
-    public static final String[] STAT_TWO = 
+    public static final String[] STAT_TWO =
     {
         "precision_modified",
         "strength_modified",
         "luck_modified"
     };
-    public static final String[] STAT_THREE = 
+    public static final String[] RANGED_SPEED_MODIFIERS =
     {
-        "expertise_action_weapon_0",
-        "expertise_action_weapon_1",
-        "expertise_action_weapon_10",
-        "expertise_action_weapon_11",
-        "expertise_action_weapon_2",
-        "expertise_action_weapon_3",
-        "expertise_action_weapon_4",
-        "expertise_action_weapon_5",
-        "expertise_action_weapon_6",
-        "expertise_action_weapon_7",
-        "expertise_action_weapon_9"
+        "rifle_speed",
+        "carbine_speed",
+        "pistol_speed"
     };
-    public static final int[] STAT_VALS = 
+    public static final String[] MELEE_SPEED_MODIFIERS =
+    {
+        "onehandmelee_speed",
+        "twohandmelee_speed",
+        "unarmed_speed",
+        "polearm_speed"
+    };
+    public static final String[] LIGHTSABER_SPEED_MODIFIERS =
+    {
+        "onehandlightsaber_speed",
+        "twohandlightsaber_speed",
+        "polearmlightsaber_speed"
+    };
+    public static final int[] STAT_VALS =
     {
         25,
         25,
@@ -62,45 +67,26 @@ public class heroic_random_stat_item extends script.base_script
         {
             setObjVar(self, "skillmod.bonus." + STAT_ONE[rand(0, STAT_ONE.length - 1)], STAT_VALS[0]);
             setObjVar(self, "skillmod.bonus." + STAT_TWO[rand(0, STAT_TWO.length - 1)], STAT_VALS[1]);
-            setObjVar(self, "skillmod.bonus.expertise_action_weapon_" + getWeightedWeaponValue(), STAT_VALS[2]);
+            setObjVar(self, "skillmod.bonus." + getWeightedWeaponSpeedModifier(), STAT_VALS[2]);
         }
         return SCRIPT_CONTINUE;
     }
-    public int getWeightedWeaponValue() throws InterruptedException
+    public String getWeightedWeaponSpeedModifier() throws InterruptedException
     {
-        int value = 0;
+        String[] weaponChoices;
         int weightingRoll = rand(0, 100);
         if (weightingRoll <= 57)
         {
-            int[] weaponChoices = 
-            {
-                0,
-                1,
-                2
-            };
-            value = weaponChoices[rand(0, weaponChoices.length - 1)];
+            weaponChoices = RANGED_SPEED_MODIFIERS;
         }
         else if (weightingRoll >= 78)
         {
-            int[] weaponChoices = 
-            {
-                9,
-                10,
-                11
-            };
-            value = weaponChoices[rand(0, weaponChoices.length - 1)];
+            weaponChoices = LIGHTSABER_SPEED_MODIFIERS;
         }
-        else 
+        else
         {
-            int[] weaponChoices = 
-            {
-                4,
-                5,
-                6,
-                7
-            };
-            value = weaponChoices[rand(0, weaponChoices.length - 1)];
+            weaponChoices = MELEE_SPEED_MODIFIERS;
         }
-        return value;
+        return weaponChoices[rand(0, weaponChoices.length - 1)];
     }
 }
