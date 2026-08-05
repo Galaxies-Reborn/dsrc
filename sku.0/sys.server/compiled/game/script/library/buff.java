@@ -35,6 +35,7 @@ public class buff extends script.base_script
         {
             removeBuff(player, "general_inspiration");
         }
+        retirePostNgeMeditationBuffs(player);
         utils.removeScriptVarTree(player, "performance.buildabuff");
         utils.removeScriptVarTree(player, "buff.xpBonus");
         utils.removeScriptVarTree(player, "buff.xpBonusGeneral");
@@ -46,6 +47,26 @@ public class buff extends script.base_script
         if (hasScript(player, "systems.buff_builder.buff_builder_cancel"))
         {
             detachScript(player, "systems.buff_builder.buff_builder_cancel");
+        }
+    }
+    public static void retirePostNgeMeditationBuffs(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player))
+        {
+            return;
+        }
+        String[] retiredBuffs =
+        {
+            "fs_meditate_1",
+            "fs_meditate_2",
+            "fs_meditate_3"
+        };
+        for (String retiredBuff : retiredBuffs)
+        {
+            if (hasBuff(player, retiredBuff))
+            {
+                removeBuff(player, retiredBuff);
+            }
         }
     }
     public static final String DOT_BLEEDING = "dot_bleeding";

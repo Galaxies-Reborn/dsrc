@@ -75,12 +75,6 @@ public class meditation extends script.base_script
         "action", "quickness", "stamina",
         "mind", "focus", "willpower"
     };
-    public static final String[] MEDITATE_BUFFS = 
-    {
-        "fs_meditate_1",
-        "fs_meditate_2",
-        "fs_meditate_3"
-    };
     public static int getMeditationSkillMod(obj_id player) throws InterruptedException
     {
         if (!isIdValid(player))
@@ -96,6 +90,7 @@ public class meditation extends script.base_script
         {
             return false;
         }
+        buff.retirePostNgeMeditationBuffs(player);
         setState(player, STATE_MEDITATE, true);
         chat.setTempAnimationMood(player, "meditating");
         messageTo(player, HANDLER_MEDITATION_TICK, trial.getSessionDict(player, meditation.HANDLER_MEDITATION_TICK), INITIAL_DELAY, false);
