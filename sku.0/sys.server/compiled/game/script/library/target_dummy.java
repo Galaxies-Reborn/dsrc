@@ -634,8 +634,6 @@ public class target_dummy extends script.base_script
         if (defenseName.equals("unarmed_passive_defense")) return "Unarmed Passive Defense";
         return defenseName;
     }
-        }
-    }
     public static void confirmClearYourCombatData(obj_id targetDummy, obj_id player) throws InterruptedException
     {
         String title = utils.packStringId(new string_id("target_dummy", "data_cleared_confirm_title"));
