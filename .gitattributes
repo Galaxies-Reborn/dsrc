@@ -22,6 +22,8 @@ sku.0/sys.server/compiled/game/script/faction_perk/hq/loader.java -text whitespa
 sku.0/sys.server/compiled/game/script/faction_perk/hq/planetary_base_register.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/systems/gcw/gcw_parent_object.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/systems/gcw/space/battle_spawner.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/library/holiday.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/collections/collection_gcw.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/library/guild.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/terminal/terminal_city.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/terminal/terminal_gcw_publish_gift.java -text whitespace=cr-at-eol

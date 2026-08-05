@@ -1091,11 +1091,8 @@ public class holiday extends script.base_script
                     if (!getEventTokens(player, TOKEN_IMPERIAL_EMPIRE_DAY, TOKEN_AMOUNT_COMBATANT))
                     {
                     }
-                    if (factions.isImperial(player) || factions.isRebel(player))
-                    {
-                        pvpModifyCurrentGcwPoints(player, GCW_AMOUNT_COMBATANT);
-                        sendSystemMessage(player, SID_GCW_POINTS);
-                    }
+                    // PRE-CU retains the authored holiday token reward without
+                    // the later GCW point/rating progression side effect.
                 }
                 else if (eventType.startsWith(BUFF_SF_GROUP))
                 {
@@ -1107,8 +1104,6 @@ public class holiday extends script.base_script
                     if (!getEventTokens(player, TOKEN_IMPERIAL_EMPIRE_DAY, TOKEN_AMOUNT_SF))
                     {
                     }
-                    pvpModifyCurrentGcwPoints(player, GCW_AMOUNT_SF);
-                    sendSystemMessage(player, SID_GCW_POINTS);
                 }
                 buff.applyBuff(player, childBuffName);
             }
@@ -1118,11 +1113,6 @@ public class holiday extends script.base_script
                 {
                     if (!getEventTokens(player, TOKEN_REBEL_EMPIRE_DAY, TOKEN_AMOUNT_COMBATANT))
                     {
-                    }
-                    if (factions.isImperial(player) || factions.isRebel(player))
-                    {
-                        pvpModifyCurrentGcwPoints(player, GCW_AMOUNT_COMBATANT);
-                        sendSystemMessage(player, SID_GCW_POINTS);
                     }
                 }
                 else if (eventType.startsWith(BUFF_SF_GROUP))
@@ -1135,8 +1125,6 @@ public class holiday extends script.base_script
                     if (!getEventTokens(player, TOKEN_REBEL_EMPIRE_DAY, TOKEN_AMOUNT_SF))
                     {
                     }
-                    pvpModifyCurrentGcwPoints(player, GCW_AMOUNT_SF);
-                    sendSystemMessage(player, SID_GCW_POINTS);
                 }
                 buff.applyBuff(player, childBuffName);
             }
@@ -1155,11 +1143,6 @@ public class holiday extends script.base_script
                 if (!getEventTokens(player, tokenReward, TOKEN_AMOUNT_COMBATANT))
                 {
                 }
-                if (factions.isImperial(player) || factions.isRebel(player))
-                {
-                    pvpModifyCurrentGcwPoints(player, GCW_AMOUNT_COMBATANT);
-                    sendSystemMessage(player, SID_GCW_POINTS);
-                }
             }
             else if (eventType.startsWith(BUFF_SF_GROUP))
             {
@@ -1176,8 +1159,6 @@ public class holiday extends script.base_script
                 if (!getEventTokens(player, tokenReward, TOKEN_AMOUNT_SF))
                 {
                 }
-                pvpModifyCurrentGcwPoints(player, GCW_AMOUNT_SF);
-                sendSystemMessage(player, SID_GCW_POINTS);
             }
             play2dNonLoopingSound(player, groundquests.MUSIC_QUEST_INCREMENT_COUNTER);
             buff.applyBuff(player, childBuffName);
