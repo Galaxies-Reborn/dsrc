@@ -916,7 +916,7 @@ public class faction_perk extends script.base_script
     public static int grabFactionBasePointValue(obj_id base) throws InterruptedException
     {
         String base_template = getTemplateName(base);
-        int default_point_value = 1;
+        int default_point_value = 0;
         final String TBL_HQ_POINT_VALUE = "datatables/faction_perk/hq/hq_point_values.iff";
         int idx = dataTableSearchColumnForString(base_template, "base_type", TBL_HQ_POINT_VALUE);
         if (idx == -1)
@@ -926,7 +926,7 @@ public class faction_perk extends script.base_script
         }
         dictionary row = dataTableGetRow(TBL_HQ_POINT_VALUE, idx);
         int point_value = row.getInt("point_value");
-        if (point_value < 1)
+        if (point_value < 0)
         {
             point_value = default_point_value;
         }

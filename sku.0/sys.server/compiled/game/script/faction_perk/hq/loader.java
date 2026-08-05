@@ -185,6 +185,7 @@ public class loader extends script.base_script
         dungeon_info.put("faction", intFac);
         dungeon_info.put("ownerId", getOwner(self));
         dungeon_info.put("scene", getCurrentSceneName());
+        dungeon_info.put("pointValue", Math.max(0, faction_perk.grabFactionBasePointValue(self)));
         dungeon_info.put("position_x", loc.x);
         dungeon_info.put("position_y", loc.y);
         dungeon_info.put("position_z", loc.z);

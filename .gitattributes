@@ -17,3 +17,7 @@ sku.0/sys.server/compiled/game/script/library/resource.java -text whitespace=cr-
 sku.0/sys.server/compiled/game/script/systems/crafting/armor/crafting_new_cybernetics_final.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/terminal/vendor.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/library/movement.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/datatables/faction_perk/hq/hq_point_values.tab -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/faction_perk/hq/loader.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/faction_perk/hq/planetary_base_register.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/gcw_parent_object.java -text whitespace=cr-at-eol

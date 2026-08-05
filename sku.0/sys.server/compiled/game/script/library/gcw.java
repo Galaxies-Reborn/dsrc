@@ -633,16 +633,44 @@ public class gcw extends script.base_script
     }
     public static void changeGCWScore(location locTest, int intValue, String strFaction) throws InterruptedException
     {
+        if (locTest == null || intValue == 0 || (!"Imperial".equals(strFaction) && !"Rebel".equals(strFaction)))
+        {
+            return;
+        }
+        obj_id objParent = getGCWMasterObject(locTest);
+        if (!isIdValid(objParent))
+        {
+            return;
+        }
         dictionary dctParams = new dictionary();
         dctParams.put("intScoreChange", intValue);
         dctParams.put("strFaction", strFaction);
-        obj_id objParent = getGCWMasterObject(locTest);
         messageTo(objParent, "updateGCWScore", dctParams, 0, true);
+    }
+    public static void synchronizePlanetaryBaseControlScore(location locTest, int imperialScore, int rebelScore) throws InterruptedException
+    {
+        if (locTest == null)
+        {
+            return;
+        }
+        obj_id objParent = getGCWMasterObject(locTest);
+        if (!isIdValid(objParent))
+        {
+            return;
+        }
+        dictionary dctParams = new dictionary();
+        dctParams.put("imperialScore", Math.max(0, imperialScore));
+        dctParams.put("rebelScore", Math.max(0, rebelScore));
+        messageTo(objParent, "synchronizeGCWScore", dctParams, 0, true);
     }
     public static void incrementGCWScore(obj_id objObject) throws InterruptedException
     {
         location locTest = getLocation(objObject);
         int intScoreChange = faction_perk.grabFactionBasePointValue(objObject);
+        if (intScoreChange < 1)
+        {
+            return;
+        }
         String strFaction = getStringObjVar(objObject, "faction");
         changeGCWScore(locTest, intScoreChange, strFaction);
     }
@@ -650,6 +678,10 @@ public class gcw extends script.base_script
     {
         location locTest = getLocation(objObject);
         int intScoreChange = faction_perk.grabFactionBasePointValue(objObject);
+        if (intScoreChange < 1)
+        {
+            return;
+        }
         intScoreChange = intScoreChange * -1;
         String strFaction = getStringObjVar(objObject, "faction");
         changeGCWScore(locTest, intScoreChange, strFaction);
@@ -815,40 +847,13 @@ public class gcw extends script.base_script
     }
     public static void checkAndUpdateGCWStanding(obj_id self, int intAddedPoints) throws InterruptedException
     {
-        String area = getLocation(self).area;
-        if (area.equals("dungeon1") || area.equals("adventure1") || area.equals("adventure2"))
+        // Retained compatibility endpoint for queued legacy messages.  Publish
+        // 14 planet control is derived from deployed faction bases, not a
+        // per-player kill accumulator.
+        if (hasObjVar(self, "gcw.intKillScore"))
         {
-            return;
+            removeObjVar(self, "gcw.intKillScore");
         }
-        final int SCORE_THRESHOLD = 25;
-        final int POINT_EXCHANGE_RATE = 25;
-        int intCurrentScore = getIntObjVar(self, "gcw.intKillScore");
-        intCurrentScore = intCurrentScore + intAddedPoints;
-        if (intCurrentScore >= SCORE_THRESHOLD)
-        {
-            int intPlanetPoints = intCurrentScore / POINT_EXCHANGE_RATE;
-            intCurrentScore = intCurrentScore - (intPlanetPoints * POINT_EXCHANGE_RATE);
-            prose_package ppTest = new prose_package();
-            string_id strSpam = new string_id("faction_perk", "earned_gcw_points");
-            ppTest = prose.setStringId(ppTest, strSpam);
-            ppTest = prose.setDI(ppTest, intPlanetPoints);
-            sendSystemMessageProse(self, ppTest);
-            String strFaction = "";
-            if (factions.isRebel(self))
-            {
-                playClientEffectObj(self, "clienteffect/holoemote_rebel.cef", self, "head");
-                play2dNonLoopingSound(self, "sound/music_themequest_victory_rebel.snd");
-                strFaction = "Rebel";
-            }
-            else
-            {
-                playClientEffectObj(self, "clienteffect/holoemote_imperial.cef", self, "head");
-                play2dNonLoopingSound(self, "sound/music_themequest_victory_imperial.snd");
-                strFaction = "Imperial";
-            }
-            changeGCWScore(getLocation(self), intPlanetPoints, strFaction);
-        }
-        setObjVar(self, "gcw.intKillScore", intCurrentScore);
     }
     public static obj_id getPub30StaticBaseControllerId(obj_id subject) throws InterruptedException
     {

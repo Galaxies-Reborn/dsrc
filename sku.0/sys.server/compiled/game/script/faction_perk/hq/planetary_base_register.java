@@ -7,6 +7,7 @@ import script.obj_id;
 
 public class planetary_base_register extends script.base_script
 {
+    private static final float PRECU_BASE_RECONCILIATION_PULSE = 3600.0f;
     public planetary_base_register()
     {
     }
@@ -28,6 +29,7 @@ public class planetary_base_register extends script.base_script
     public int performQuery(obj_id self, dictionary params) throws InterruptedException
     {
         queryPlanetaryBaseData(self);
+        messageTo(self, "performQuery", null, PRECU_BASE_RECONCILIATION_PULSE, false);
         return SCRIPT_CONTINUE;
     }
     private void setControlData(obj_id self) throws InterruptedException
@@ -41,20 +43,32 @@ public class planetary_base_register extends script.base_script
             if (dungeon_datas == null || dungeon_datas.length == 0)
             {
                 releaseClusterWideDataLock(manage_name, lock_key);
-                addToBaseCount(self, 0, 0);
+                setBaseCount(self, 0, 0);
+                gcw.synchronizePlanetaryBaseControlScore(getLocation(self), 0, 0);
                 return SCRIPT_CONTINUE;
             }
             int imperial = 0;
             int rebel = 0;
+            int imperialScore = 0;
+            int rebelScore = 0;
             for (dictionary dataItem : dungeon_datas) {
-                if (dataItem.getInt("faction") == gcw.FACTION_REBEL && (dataItem.getString("scene")).equals(getLocation(self).area)) {
-                    rebel++;
+                String scene = dataItem.getString("scene");
+                if (scene == null || !scene.equals(getLocation(self).area)) {
+                    continue;
                 }
-                if (dataItem.getInt("faction") == gcw.FACTION_IMPERIAL && (dataItem.getString("scene")).equals(getLocation(self).area)) {
+                int pointValue = dataItem.containsKey("pointValue") ? Math.max(0, dataItem.getInt("pointValue")) : 0;
+                if (dataItem.getInt("faction") == gcw.FACTION_REBEL) {
+                    rebel++;
+                    rebelScore += pointValue;
+                }
+                if (dataItem.getInt("faction") == gcw.FACTION_IMPERIAL) {
                     imperial++;
+                    imperialScore += pointValue;
                 }
             }
-            addToBaseCount(self, rebel, imperial);
+            releaseClusterWideDataLock(manage_name, lock_key);
+            setBaseCount(self, rebel, imperial);
+            gcw.synchronizePlanetaryBaseControlScore(getLocation(self), imperialScore, rebelScore);
         }
         return SCRIPT_CONTINUE;
     }
@@ -69,6 +83,12 @@ public class planetary_base_register extends script.base_script
         int curImp = gcw.getImperialBaseCount(planet);
         utils.setScriptVar(planet, gcw.GCW_BASE_COUNT_REBEL, ((curReb + rebel) >= 0 ? (curReb + rebel) : 0));
         utils.setScriptVar(planet, gcw.GCW_BASE_COUNT_IMPERIAL, ((curImp + imperial) >= 0 ? (curImp + imperial) : 0));
+    }
+    private void setBaseCount(obj_id self, int rebel, int imperial) throws InterruptedException
+    {
+        obj_id planet = getPlanetByName(getLocation(self).area);
+        utils.setScriptVar(planet, gcw.GCW_BASE_COUNT_REBEL, Math.max(0, rebel));
+        utils.setScriptVar(planet, gcw.GCW_BASE_COUNT_IMPERIAL, Math.max(0, imperial));
     }
     public int alterBaseCount(obj_id self, dictionary params) throws InterruptedException
     {
