@@ -2203,7 +2203,8 @@ public class combat_base extends script.base_script
         }
 
         String weaponTemplate = getTemplateName(weaponData.id);
-        int weaponRow = getPrecuWeaponProfileRow(weaponData);
+        int weaponRow = dataTableSearchColumnForString(
+            weaponTemplate, "templateName", PRECU_WEAPON_PROFILES);
         if (weaponRow < 0)
         {
             recordPrecuLiveDiagnostic(
