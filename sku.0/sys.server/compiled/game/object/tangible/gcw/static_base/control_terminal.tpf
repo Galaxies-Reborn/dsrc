@@ -20,4 +20,4 @@
 
 sharedTemplate = "object/tangible/gcw/static_base/shared_control_terminal.iff"
 
-scripts = +[ "systems.gcw.static_base.control_terminal" ]
+scripts = +[ ]

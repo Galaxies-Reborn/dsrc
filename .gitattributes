@@ -25,6 +25,10 @@ sku.0/sys.server/compiled/game/script/systems/gcw/space/battle_spawner.java -tex
 sku.0/sys.server/compiled/game/script/library/holiday.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/systems/collections/collection_gcw.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/systems/gcw/pvp_region_bonus_controller.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/object/tangible/gcw/pvp_region_watcher.tpf -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/object/tangible/gcw/battlefield_terminal.tpf -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/object/tangible/gcw/battlefield_beacon.tpf -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/object/tangible/gcw/static_base/control_terminal.tpf -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/datatables/buildout/rori/rori_7_7.tab -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/library/guild.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/terminal/terminal_city.java -text whitespace=cr-at-eol

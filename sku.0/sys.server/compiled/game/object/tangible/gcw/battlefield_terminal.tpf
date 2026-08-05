@@ -20,4 +20,4 @@
 
 sharedTemplate = "object/tangible/gcw/shared_battlefield_terminal.iff"
 
-scripts = +[ "systems.gcw.battlefield_terminal" ]
+scripts = +[ ]

@@ -24,4 +24,4 @@ sharedTemplate = "object/tangible/gcw/shared_pvp_region_watcher.iff"
 
 visibleFlags = [ VF_gm ]
 
-scripts = ["systems.gcw.pvp_region_bonus_controller"]
+scripts = [ ]
