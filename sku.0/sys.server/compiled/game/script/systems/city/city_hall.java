@@ -94,29 +94,8 @@ public class city_hall extends script.base_script
         dictionary params = new dictionary();
         params.put("number_of_retry", numberOfRetry);
         messageTo(self, "retryDepersistCityFactionalAlignment", params, 60.0f, false);
-        String region = null;
-        int regionTimeStartDefend = 0;
-        int regionTimeEndDefend = 0;
-        if (hasObjVar(self, "cityGcwRegionDefender.region"))
-        {
-            region = getStringObjVar(self, "cityGcwRegionDefender.region");
-        }
-        if (hasObjVar(self, "cityGcwRegionDefender.timeBegin"))
-        {
-            regionTimeStartDefend = getIntObjVar(self, "cityGcwRegionDefender.timeBegin");
-        }
-        if (hasObjVar(self, "cityGcwRegionDefender.timeEnd"))
-        {
-            regionTimeEndDefend = getIntObjVar(self, "cityGcwRegionDefender.timeEnd");
-        }
-        if ((region != null) && (region.length() > 0) && (regionTimeStartDefend > 0) && (regionTimeEndDefend <= 0))
-        {
-            citySetGcwDefenderRegion(city_id, region, regionTimeStartDefend, false);
-            numberOfRetry = 0;
-            params = new dictionary();
-            params.put("number_of_retry", numberOfRetry);
-            messageTo(self, "retryDepersistCityGcwRegionDefender", params, 60.0f, false);
-        }
+        removeObjVar(self, "cityGcwRegionDefender");
+        citySetGcwDefenderRegion(city_id, "", 0, false);
         return SCRIPT_CONTINUE;
     }
     public int OnDestroy(obj_id self) throws InterruptedException
@@ -690,47 +669,11 @@ public class city_hall extends script.base_script
     }
     public int retryDepersistCityGcwRegionDefender(obj_id self, dictionary params) throws InterruptedException
     {
-        int numberOfRetry = params.getInt("number_of_retry");
-        if (numberOfRetry >= 5)
+        removeObjVar(self, "cityGcwRegionDefender");
+        final int city_id = findCityByCityHall(self);
+        if (city_id > 0)
         {
-            return SCRIPT_CONTINUE;
-        }
-        String region = null;
-        int regionTimeStartDefend = 0;
-        int regionTimeEndDefend = 0;
-        if (hasObjVar(self, "cityGcwRegionDefender.region"))
-        {
-            region = getStringObjVar(self, "cityGcwRegionDefender.region");
-        }
-        if (hasObjVar(self, "cityGcwRegionDefender.timeBegin"))
-        {
-            regionTimeStartDefend = getIntObjVar(self, "cityGcwRegionDefender.timeBegin");
-        }
-        if (hasObjVar(self, "cityGcwRegionDefender.timeEnd"))
-        {
-            regionTimeEndDefend = getIntObjVar(self, "cityGcwRegionDefender.timeEnd");
-        }
-        if ((region != null) && (region.length() > 0) && (regionTimeStartDefend > 0) && (regionTimeEndDefend <= 0))
-        {
-            int city_id = findCityByCityHall(self);
-            if (city_id > 0)
-            {
-                final String gcwDefenderRegion = cityGetGcwDefenderRegion(city_id);
-                if ((gcwDefenderRegion != null) && (gcwDefenderRegion.length() > 0) && gcwDefenderRegion.equals(region))
-                {
-                    return SCRIPT_CONTINUE;
-                }
-                else
-                {
-                    citySetGcwDefenderRegion(city_id, region, regionTimeStartDefend, false);
-                }
-            }
-            ++numberOfRetry;
-            if (numberOfRetry < 5)
-            {
-                params.put("number_of_retry", numberOfRetry);
-                messageTo(self, "retryDepersistCityGcwRegionDefender", params, 60.0f, false);
-            }
+            citySetGcwDefenderRegion(city_id, "", 0, false);
         }
         return SCRIPT_CONTINUE;
     }

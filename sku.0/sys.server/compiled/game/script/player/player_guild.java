@@ -1916,99 +1916,11 @@ public class player_guild extends script.base_script
     }
     public int handleGuildGcwRegionDefenderChoice(obj_id self, dictionary params) throws InterruptedException
     {
-        final int bp = sui.getIntButtonPressed(params);
-        if (bp != sui.BP_OK)
-        {
-            return SCRIPT_CONTINUE;
-        }
-        String[] gcwDefenderRegions = getGcwDefenderRegions();
-        if ((gcwDefenderRegions == null) || (gcwDefenderRegions.length <= 0))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        int rowSelected = sui.getTableSelectedRow(params);
-        if ((rowSelected < 0) || (rowSelected >= gcwDefenderRegions.length))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        rowSelected = sui.getTableLogicalIndex(params);
-        if ((rowSelected < 0) || (rowSelected >= gcwDefenderRegions.length))
-        {
-            return SCRIPT_CONTINUE;
-        }
         final int guildId = getGuildId(self);
-        if (guildId <= 0)
+        if (guildId > 0)
         {
-            return SCRIPT_CONTINUE;
+            guildSetGcwDefenderRegion(guildId, "");
         }
-        final obj_id guildLeader = guildGetLeader(guildId);
-        if (!isIdValid(guildLeader))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        if ((guildLeader != self) && !isGod(self))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        final int factionId = guildGetCurrentFaction(guildId);
-        if (factionId == 0)
-        {
-            return SCRIPT_CONTINUE;
-        }
-        if (guildGetCountMembersOnly(guildId) < utils.stringToInt(getConfigSetting("GameServer", "gcwGuildMinMembersForGcwRegionDefender")))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        String selectedGcwDefenderRegion = gcwDefenderRegions[rowSelected];
-        final int indexSeparator = selectedGcwDefenderRegion.indexOf(":");
-        if ((indexSeparator < 0) || ((indexSeparator + 1) >= selectedGcwDefenderRegion.length()))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        selectedGcwDefenderRegion = selectedGcwDefenderRegion.substring(indexSeparator + 1);
-        final String gcwCurrentDefenderRegion = guildGetCurrentGcwDefenderRegion(guildId);
-        if ((gcwCurrentDefenderRegion != null) && (gcwCurrentDefenderRegion.length() > 0))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        final String gcwPreviousDefenderRegion = guildGetPreviousGcwDefenderRegion(guildId);
-        final int timeLeftPreviousGcwDefenderRegion = guildGetTimeLeftPreviousGcwDefenderRegion(guildId);
-        if ((gcwPreviousDefenderRegion != null) && (gcwPreviousDefenderRegion.length() > 0) && (timeLeftPreviousGcwDefenderRegion > 0))
-        {
-            final int cooldown = timeLeftPreviousGcwDefenderRegion + (isGod(self) ? 10 : 86400) - getCalendarTime();
-            if ((cooldown > 0) && !selectedGcwDefenderRegion.equals(gcwPreviousDefenderRegion))
-            {
-                String cooldownStr = "" + cooldown + "s";
-                int[] convertedTime = player_structure.convertSecondsTime(cooldown);
-                if ((convertedTime != null) && (convertedTime.length == 4))
-                {
-                    if (convertedTime[0] > 0)
-                    {
-                        cooldownStr = "" + convertedTime[0] + "d:" + convertedTime[1] + "h:" + convertedTime[2] + "m:" + convertedTime[3] + "s";
-                    }
-                    else if (convertedTime[1] > 0)
-                    {
-                        cooldownStr = "" + convertedTime[1] + "h:" + convertedTime[2] + "m:" + convertedTime[3] + "s";
-                    }
-                    else if (convertedTime[2] > 0)
-                    {
-                        cooldownStr = "" + convertedTime[2] + "m:" + convertedTime[3] + "s";
-                    }
-                    else if (convertedTime[3] > 0)
-                    {
-                        cooldownStr = "" + convertedTime[3] + "s";
-                    }
-                    else 
-                    {
-                        cooldownStr = "" + cooldown + "s";
-                    }
-                }
-                sendSystemMessage(self, "You must wait " + cooldownStr + " before you can defend a different GCW region. You can immediately defend the GCW region you most recently defended (" + localize(new string_id("gcw_regions", gcwPreviousDefenderRegion)) + ").", "");
-                return SCRIPT_CONTINUE;
-            }
-        }
-        sendSystemMessage(self, "Setting the guild's GCW defender region to " + localize(new string_id("gcw_regions", selectedGcwDefenderRegion)) + ". This may take a few seconds. You will receive mail confirmation once the change has been completed.", "");
-        guildSetGcwDefenderRegion(guildId, selectedGcwDefenderRegion);
         return SCRIPT_CONTINUE;
     }
 }
