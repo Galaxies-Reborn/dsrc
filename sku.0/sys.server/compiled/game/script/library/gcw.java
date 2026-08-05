@@ -796,8 +796,8 @@ public class gcw extends script.base_script
     }
     public static dictionary getGCWDictionary(obj_id self) throws InterruptedException
     {
-        int intImperialControlScore = getIntObjVar(self, "Imperial.controlScore");
-        int intRebelControlScore = getIntObjVar(self, "Rebel.controlScore");
+        int intImperialControlScore = getImperialPlanetControlScore(self);
+        int intRebelControlScore = getRebelPlanetControlScore(self);
         dictionary dctParams = new dictionary();
         LOG("gcw", "Putting Imperial " + intImperialControlScore);
         LOG("gcw", "Putting Rebel " + intRebelControlScore);
@@ -833,8 +833,8 @@ public class gcw extends script.base_script
     }
     public static float getImperialRatio(obj_id objNPC) throws InterruptedException
     {
-        float fltImperialControlScore = getIntObjVar(objNPC, "Imperial.controlScore");
-        float fltRebelControlScore = getIntObjVar(objNPC, "Rebel.controlScore");
+        float fltImperialControlScore = getImperialPlanetControlScore(objNPC);
+        float fltRebelControlScore = getRebelPlanetControlScore(objNPC);
         if ((fltImperialControlScore == 0) && (fltRebelControlScore == 0))
         {
             return 1.0f;
@@ -848,8 +848,8 @@ public class gcw extends script.base_script
     }
     public static float getRebelRatio(obj_id objNPC) throws InterruptedException
     {
-        float fltImperialControlScore = getIntObjVar(objNPC, "Imperial.controlScore");
-        float fltRebelControlScore = getIntObjVar(objNPC, "Rebel.controlScore");
+        float fltImperialControlScore = getImperialPlanetControlScore(objNPC);
+        float fltRebelControlScore = getRebelPlanetControlScore(objNPC);
         if ((fltImperialControlScore == 0) && (fltRebelControlScore == 0))
         {
             return 1.0f;

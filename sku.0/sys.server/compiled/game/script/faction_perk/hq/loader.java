@@ -9,6 +9,9 @@ import java.util.Vector;
 
 public class loader extends script.base_script
 {
+    private static final String PRECU_BASE_CWD_MANAGER = "gcw_player_base";
+    private static final String PRECU_BASE_CWD_ELEMENT_PREFIX = "base_cwdata_manager";
+
     public loader()
     {
     }
@@ -167,6 +170,7 @@ public class loader extends script.base_script
         hq.cleanUpHackAlarms(self);
         String myFac = factions.getFaction(self);
         int intFac = myFac.equals("Rebel") ? gcw.FACTION_REBEL : gcw.FACTION_IMPERIAL;
+        removeClusterWideData(PRECU_BASE_CWD_MANAGER, PRECU_BASE_CWD_ELEMENT_PREFIX + "-" + self, 0);
         gcw.modifyPlanetaryBaseCount(self, intFac, -1);
         gcw.decrementGCWScore(self);
         hq.refundBaseUnit(self);
@@ -174,7 +178,7 @@ public class loader extends script.base_script
     }
     private void setCWData(obj_id self) throws InterruptedException
     {
-        getClusterWideData("gcw_player_base", "base_cwdata_manager", true, self);
+        getClusterWideData(PRECU_BASE_CWD_MANAGER, PRECU_BASE_CWD_ELEMENT_PREFIX, true, self);
     }
     public int OnClusterWideDataResponse(obj_id self, String manage_name, String dungeon_name, int request_id, String[] element_name_list, dictionary[] dungeon_data, int lock_key) throws InterruptedException
     {
@@ -189,7 +193,7 @@ public class loader extends script.base_script
         dungeon_info.put("position_x", loc.x);
         dungeon_info.put("position_y", loc.y);
         dungeon_info.put("position_z", loc.z);
-        replaceClusterWideData(manage_name, "base_cwdata_manager" + "-" + self, dungeon_info, true, lock_key);
+        replaceClusterWideData(manage_name, PRECU_BASE_CWD_ELEMENT_PREFIX + "-" + self, dungeon_info, true, lock_key);
         releaseClusterWideDataLock(manage_name, lock_key);
         return SCRIPT_CONTINUE;
     }
