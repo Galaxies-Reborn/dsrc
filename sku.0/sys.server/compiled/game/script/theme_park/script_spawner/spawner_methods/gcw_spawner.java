@@ -279,14 +279,14 @@ public class gcw_spawner extends script.base_script
     public dictionary getSpawnFactionData(obj_id self) throws InterruptedException
     {
         dictionary webster = new dictionary();
-        float imp_r = gcw.getImperialRatio(self);
-        float reb_r = gcw.getRebelRatio(self);
+        int imperialScore = gcw.getImperialPlanetControlScore(self);
+        int rebelScore = gcw.getRebelPlanetControlScore(self);
         boolean hard = false;
         String faction = null;
-        if (imp_r >= reb_r)
+        if (imperialScore >= rebelScore)
         {
             faction = "imperial";
-            if (imp_r > 2.0)
+            if (imperialScore - rebelScore >= gcw.PRECU_GCW_DIFFICULTY_SCORE_DELTA)
             {
                 hard = true;
             }
@@ -294,7 +294,7 @@ public class gcw_spawner extends script.base_script
         else 
         {
             faction = "rebel";
-            if (reb_r > 2.0)
+            if (rebelScore - imperialScore >= gcw.PRECU_GCW_DIFFICULTY_SCORE_DELTA)
             {
                 hard = true;
             }

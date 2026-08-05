@@ -27,10 +27,13 @@ public class gcw_data_updater extends script.base_script
             LOG("gcwdata", "I'm located at " + getLocation(self));
             return SCRIPT_CONTINUE;
         }
-        int imperial = gcw.getImperialPercentileByRegion(self);
-        int rebel = gcw.getRebelPercentileByRegion(self);
+        int imperial = gcw.getImperialPlanetControlScore(self);
+        int rebel = gcw.getRebelPlanetControlScore(self);
         int oldImperial = getIntObjVar(self, "Imperial.controlScore");
-        if ((oldImperial < 50 && imperial > 50) || (oldImperial > 50 && imperial < 50))
+        int oldRebel = getIntObjVar(self, "Rebel.controlScore");
+        int oldWinner = oldImperial == oldRebel ? gcw.NO_CONTROL : (oldImperial > oldRebel ? gcw.IMPERIAL_CONTROL : gcw.REBEL_CONTROL);
+        int newWinner = imperial == rebel ? gcw.NO_CONTROL : (imperial > rebel ? gcw.IMPERIAL_CONTROL : gcw.REBEL_CONTROL);
+        if (oldWinner != newWinner)
         {
             messageTo(self, "destroyChildren", null, 1.0f, false);
         }

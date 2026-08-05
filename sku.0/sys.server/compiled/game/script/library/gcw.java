@@ -27,6 +27,9 @@ public class gcw extends script.base_script
     public static final String GCW_BASE_MANAGER = "gcw.base_manager.master_object";
     public static final String GCW_BASE_COUNT_REBEL = "gcw.player_base_count.rebel";
     public static final String GCW_BASE_COUNT_IMPERIAL = "gcw.player_base_count.imperial";
+    public static final String GCW_CONTROL_SCORE_REBEL = "Rebel.controlScore";
+    public static final String GCW_CONTROL_SCORE_IMPERIAL = "Imperial.controlScore";
+    public static final int PRECU_GCW_DIFFICULTY_SCORE_DELTA = 64;
     public static final String VAR_BASE_HACK_DICTIONARY = "gcw.player_base_hack.dictionary";
     public static final String GCW_SEQUENCER_KEREN = "-292452502778781373";
     public static final String GCW_SEQUENCER_DEARIC = "-348184546868074204";
@@ -88,6 +91,19 @@ public class gcw extends script.base_script
         "space_lok",
         "space_naboo",
         "space_yavin4"
+    };
+    public static final String PRECU_GCW_CONTROL_PLANETS[] =
+    {
+        "tatooine",
+        "corellia",
+        "dantooine",
+        "dathomir",
+        "endor",
+        "lok",
+        "naboo",
+        "rori",
+        "talus",
+        "yavin4"
     };
     public static final String defaultRegions[] =
     {
@@ -617,26 +633,26 @@ public class gcw extends script.base_script
     }
     public static obj_id getGCWMasterObject(location locTest) throws InterruptedException
     {
-        String strPlanet = locTest.area;
-        dictionary dctObjectInfo = dataTableGetRow("datatables/gcw/gcw_master_objects.iff", strPlanet);
-        if (dctObjectInfo == null)
+        if (locTest == null || locTest.area == null || !isPrecuGcwControlPlanet(locTest.area))
         {
-            LOG("gcw", "No object for " + strPlanet);
             return null;
         }
-        String strObjId = dctObjectInfo.getString("strObjId");
-        Long lngId;
-        try
+        return getPlanetByName(locTest.area);
+    }
+    public static boolean isPrecuGcwControlPlanet(String scene) throws InterruptedException
+    {
+        if (scene == null)
         {
-            lngId = Long.valueOf(strObjId);
+            return false;
         }
-        catch(NumberFormatException err)
+        for (String planet : PRECU_GCW_CONTROL_PLANETS)
         {
-            LOG("gcw", "Bad object id format for " + strPlanet);
-            return null;
+            if (planet.equals(scene))
+            {
+                return true;
+            }
         }
-        obj_id objMaster = obj_id.getObjId(lngId.longValue());
-        return objMaster;
+        return false;
     }
     public static void changeGCWScore(location locTest, int intValue, String strFaction) throws InterruptedException
     {
@@ -788,6 +804,32 @@ public class gcw extends script.base_script
         dctParams.put("intImperialControlScore", intImperialControlScore);
         dctParams.put("intRebelControlScore", intRebelControlScore);
         return dctParams;
+    }
+    public static int getImperialPlanetControlScore(obj_id target) throws InterruptedException
+    {
+        return getPlanetControlScore(target, GCW_CONTROL_SCORE_IMPERIAL);
+    }
+    public static int getRebelPlanetControlScore(obj_id target) throws InterruptedException
+    {
+        return getPlanetControlScore(target, GCW_CONTROL_SCORE_REBEL);
+    }
+    private static int getPlanetControlScore(obj_id target, String scoreObjVar) throws InterruptedException
+    {
+        if (!isIdValid(target) || !exists(target))
+        {
+            return 0;
+        }
+        location targetLocation = getLocation(target);
+        if (targetLocation == null || !isPrecuGcwControlPlanet(targetLocation.area))
+        {
+            return 0;
+        }
+        obj_id planet = getPlanetByName(targetLocation.area);
+        if (!isIdValid(planet) || !exists(planet) || !hasObjVar(planet, scoreObjVar))
+        {
+            return 0;
+        }
+        return Math.max(0, getIntObjVar(planet, scoreObjVar));
     }
     public static float getImperialRatio(obj_id objNPC) throws InterruptedException
     {
@@ -1465,16 +1507,14 @@ public class gcw extends script.base_script
     }
     public static int getImperialPercentileByRegion(obj_id target) throws InterruptedException
     {
-        if (!isIdValid(target) || !exists(target))
+        int imperial = getImperialPlanetControlScore(target);
+        int rebel = getRebelPlanetControlScore(target);
+        long total = (long)imperial + (long)rebel;
+        if (total <= 0L)
         {
             return 50;
         }
-        String category = getGcwRegion(target);
-        if (category == null || category.length() <= 0)
-        {
-            return 50;
-        }
-        return getGcwImperialScorePercentile(category);
+        return (int)Math.max(0L, Math.min(100L, (((long)imperial * 100L) + (total / 2L)) / total));
     }
     public static int getRebelPercentileByRegion(obj_id target) throws InterruptedException
     {
@@ -1482,17 +1522,13 @@ public class gcw extends script.base_script
     }
     public static String getRegionFactionOwner(obj_id target) throws InterruptedException
     {
-        String category = getGcwRegion(target);
-        if (category == null || category.length() <= 0)
-        {
-            return null;
-        }
-        int imperial = getImperialPercentileByRegion(target);
-        if (imperial > 50)
+        int imperial = getImperialPlanetControlScore(target);
+        int rebel = getRebelPlanetControlScore(target);
+        if (imperial > rebel)
         {
             return "imperial";
         }
-        if (imperial < 50)
+        if (imperial < rebel)
         {
             return "rebel";
         }

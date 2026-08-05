@@ -44,31 +44,24 @@ public class planetary_base_register extends script.base_script
             {
                 releaseClusterWideDataLock(manage_name, lock_key);
                 setBaseCount(self, 0, 0);
-                gcw.synchronizePlanetaryBaseControlScore(getLocation(self), 0, 0);
                 return SCRIPT_CONTINUE;
             }
             int imperial = 0;
             int rebel = 0;
-            int imperialScore = 0;
-            int rebelScore = 0;
             for (dictionary dataItem : dungeon_datas) {
                 String scene = dataItem.getString("scene");
                 if (scene == null || !scene.equals(getLocation(self).area)) {
                     continue;
                 }
-                int pointValue = dataItem.containsKey("pointValue") ? Math.max(0, dataItem.getInt("pointValue")) : 0;
                 if (dataItem.getInt("faction") == gcw.FACTION_REBEL) {
                     rebel++;
-                    rebelScore += pointValue;
                 }
                 if (dataItem.getInt("faction") == gcw.FACTION_IMPERIAL) {
                     imperial++;
-                    imperialScore += pointValue;
                 }
             }
             releaseClusterWideDataLock(manage_name, lock_key);
             setBaseCount(self, rebel, imperial);
-            gcw.synchronizePlanetaryBaseControlScore(getLocation(self), imperialScore, rebelScore);
         }
         return SCRIPT_CONTINUE;
     }

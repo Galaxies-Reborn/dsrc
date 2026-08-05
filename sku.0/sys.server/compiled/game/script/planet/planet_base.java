@@ -12,6 +12,8 @@ import java.util.Vector;
 
 public class planet_base extends script.base_script
 {
+    private static final float PRECU_GCW_RECONCILIATION_PULSE = 3600.0f;
+
     public planet_base()
     {
     }
@@ -20,7 +22,109 @@ public class planet_base extends script.base_script
         CustomerServiceLog("holidayEvent", "planet_base.OnUniverseComplete: trigger initialized.");
         dictionary dctParams = new dictionary();
         messageTo(self, "doSpawnSetup", dctParams, 60, true);
+        String planetName = getNameForPlanetObject(self);
+        if (gcw.isPrecuGcwControlPlanet(planetName))
+        {
+            ensurePrecuGcwControlScoreState(self);
+            messageTo(self, "reconcilePrecuGcwBaseControl", null, 60.0f, false);
+        }
         return SCRIPT_CONTINUE;
+    }
+    public int reconcilePrecuGcwBaseControl(obj_id self, dictionary params) throws InterruptedException
+    {
+        if (!gcw.isPrecuGcwControlPlanet(getNameForPlanetObject(self)))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        getClusterWideData("gcw_player_base", "base_cwdata_manager*", false, self);
+        messageTo(self, "reconcilePrecuGcwBaseControl", null, PRECU_GCW_RECONCILIATION_PULSE, false);
+        return SCRIPT_CONTINUE;
+    }
+    public int OnClusterWideDataResponse(obj_id self, String manageName, String elementNameRegex, int requestId, String[] elementNameList, dictionary[] baseData, int lockKey) throws InterruptedException
+    {
+        if (!"gcw_player_base".equals(manageName) || elementNameRegex == null || !elementNameRegex.startsWith("base_cwdata_manager"))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        String planetName = getNameForPlanetObject(self);
+        if (!gcw.isPrecuGcwControlPlanet(planetName))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        long imperialScore = 0L;
+        long rebelScore = 0L;
+        if (baseData != null)
+        {
+            for (dictionary dataItem : baseData)
+            {
+                if (dataItem == null || !planetName.equals(dataItem.getString("scene")))
+                {
+                    continue;
+                }
+                int pointValue = dataItem.containsKey("pointValue") ? Math.max(0, dataItem.getInt("pointValue")) : 0;
+                if (dataItem.getInt("faction") == gcw.FACTION_IMPERIAL)
+                {
+                    imperialScore += pointValue;
+                }
+                else if (dataItem.getInt("faction") == gcw.FACTION_REBEL)
+                {
+                    rebelScore += pointValue;
+                }
+            }
+        }
+        applyPrecuGcwControlScores(self, clampPrecuGcwScore(imperialScore), clampPrecuGcwScore(rebelScore));
+        return SCRIPT_CONTINUE;
+    }
+    public int updateGCWScore(obj_id self, dictionary params) throws InterruptedException
+    {
+        if (params == null || !params.containsKey("intScoreChange") || !params.containsKey("strFaction"))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        String faction = params.getString("strFaction");
+        if (!"Imperial".equals(faction) && !"Rebel".equals(faction))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        ensurePrecuGcwControlScoreState(self);
+        String scoreObjVar = faction + ".controlScore";
+        long adjustedScore = (long)Math.max(0, getIntObjVar(self, scoreObjVar)) + (long)params.getInt("intScoreChange");
+        setObjVar(self, scoreObjVar, clampPrecuGcwScore(adjustedScore));
+        return SCRIPT_CONTINUE;
+    }
+    public int synchronizeGCWScore(obj_id self, dictionary params) throws InterruptedException
+    {
+        if (params == null || !params.containsKey("imperialScore") || !params.containsKey("rebelScore"))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        applyPrecuGcwControlScores(self, Math.max(0, params.getInt("imperialScore")), Math.max(0, params.getInt("rebelScore")));
+        return SCRIPT_CONTINUE;
+    }
+    public int updateGCWData(obj_id self, dictionary params) throws InterruptedException
+    {
+        ensurePrecuGcwControlScoreState(self);
+        return SCRIPT_CONTINUE;
+    }
+    private void applyPrecuGcwControlScores(obj_id self, int imperialScore, int rebelScore) throws InterruptedException
+    {
+        setObjVar(self, gcw.GCW_CONTROL_SCORE_IMPERIAL, imperialScore);
+        setObjVar(self, gcw.GCW_CONTROL_SCORE_REBEL, rebelScore);
+    }
+    private void ensurePrecuGcwControlScoreState(obj_id self) throws InterruptedException
+    {
+        if (!hasObjVar(self, gcw.GCW_CONTROL_SCORE_IMPERIAL))
+        {
+            setObjVar(self, gcw.GCW_CONTROL_SCORE_IMPERIAL, 0);
+        }
+        if (!hasObjVar(self, gcw.GCW_CONTROL_SCORE_REBEL))
+        {
+            setObjVar(self, gcw.GCW_CONTROL_SCORE_REBEL, 0);
+        }
+    }
+    private int clampPrecuGcwScore(long score) throws InterruptedException
+    {
+        return score > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int)Math.max(0L, score);
     }
     public int doSpawnSetup(obj_id self, dictionary params) throws InterruptedException
     {

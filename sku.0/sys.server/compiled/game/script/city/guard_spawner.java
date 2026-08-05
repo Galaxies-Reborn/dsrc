@@ -283,12 +283,12 @@ public class guard_spawner extends script.base_script
         if ((city != null) && (planet.equals("tatooine") || planet.equals("naboo") || planet.equals("corellia")))
         {
             String test_city = city;
-            float imp_r = gcw.getImperialPercentileByRegion(self);
-            float reb_r = gcw.getRebelPercentileByRegion(self);
-            if (imp_r >= reb_r)
+            int imperialScore = gcw.getImperialPlanetControlScore(self);
+            int rebelScore = gcw.getRebelPlanetControlScore(self);
+            if (imperialScore >= rebelScore)
             {
-                float delta = imp_r - reb_r;
-                if (delta > 2.0f)
+                int scoreDelta = imperialScore - rebelScore;
+                if (scoreDelta >= gcw.PRECU_GCW_DIFFICULTY_SCORE_DELTA)
                 {
                     test_city = test_city + "_imperial_hard";
                 }
@@ -299,8 +299,8 @@ public class guard_spawner extends script.base_script
             }
             else 
             {
-                float delta = reb_r - imp_r;
-                if (delta > 2.0f)
+                int scoreDelta = rebelScore - imperialScore;
+                if (scoreDelta >= gcw.PRECU_GCW_DIFFICULTY_SCORE_DELTA)
                 {
                     test_city = test_city + "_rebel_hard";
                 }
