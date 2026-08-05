@@ -13363,23 +13363,6 @@ public class base_player extends script.base_script
         {
             return SCRIPT_CONTINUE;
         }
-        if (utils.isProfession(self, utils.FORCE_SENSITIVE))
-        {
-            int value = 0;
-            if (utils.hasScriptVar(self, meditation.VAR_MEDITATION_BASE))
-            {
-                value = utils.getIntScriptVar(self, meditation.VAR_MEDITATION_BASE);
-                value++;
-                if (value >= 3)
-                {
-                    stealth.checkForAndMakeVisibleNoRecourse(self);
-                    String meditateBuff = meditation.MEDITATE_BUFFS[rand(0, meditation.MEDITATE_BUFFS.length - 1)];
-                    buff.applyBuff(self, meditateBuff);
-                    value = 0;
-                }
-            }
-            utils.setScriptVar(self, meditation.VAR_MEDITATION_BASE, value);
-        }
         messageTo(self, meditation.HANDLER_MEDITATION_TICK, trial.getSessionDict(self, meditation.HANDLER_MEDITATION_TICK), delay, false);
         return SCRIPT_CONTINUE;
     }
