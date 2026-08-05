@@ -155,7 +155,7 @@ public class barn_beast extends script.base_script
             attribs[idx] = "true";
             idx++;
         }
-        else 
+        else
         {
             names[idx] = "exp_off";
             attribs[idx] = "true";
@@ -201,9 +201,6 @@ public class barn_beast extends script.base_script
         {
             int minDamage = getWeaponMinDamage(beastWeapon);
             int maxDamage = getWeaponMaxDamage(beastWeapon);
-            int expertiseDamageBonus = getEnhancedSkillStatisticModifierUncapped(self, "expertise_damage_all");
-            minDamage = (int)(minDamage * (1.0f + (expertiseDamageBonus / 100.0f)));
-            maxDamage = (int)(maxDamage * (1.0f + (expertiseDamageBonus / 100.0f)));
             float weaponSpeed = getWeaponAttackSpeed(beastWeapon);
             names[idx] = "damage";
             attribs[idx] = "" + minDamage + " - " + maxDamage;
@@ -216,7 +213,7 @@ public class barn_beast extends script.base_script
             attribs[idx] = "" + beastDPS;
             idx++;
         }
-        else 
+        else
         {
             obj_id defaultWeapon = getDefaultWeapon(self);
             if (isIdValid(defaultWeapon))
@@ -224,9 +221,6 @@ public class barn_beast extends script.base_script
                 int minDamage = getWeaponMinDamage(defaultWeapon);
                 int maxDamage = getWeaponMaxDamage(defaultWeapon);
                 float weaponSpeed = getWeaponAttackSpeed(defaultWeapon);
-                int expertiseDamageBonus = getEnhancedSkillStatisticModifierUncapped(self, "expertise_damage_all");
-                minDamage = (int)(minDamage * (1.0f + (expertiseDamageBonus / 100.0f)));
-                maxDamage = (int)(maxDamage * (1.0f + (expertiseDamageBonus / 100.0f)));
                 names[idx] = "damage";
                 attribs[idx] = "" + minDamage + " - " + maxDamage;
                 idx++;
@@ -252,7 +246,7 @@ public class barn_beast extends script.base_script
                         attribs[idx] = "" + utils.roundFloatByDecimal((utils.getFloatScriptVar(self, beast_lib.ARRAY_BEAST_INCUBATION_STATS[i]) * beast_lib.DISPLAY_CONVERSION_RATES[i])) + "%";
                         idx++;
                     }
-                    else 
+                    else
                     {
                         names[idx] = beast_lib.DISPLAY_NAMES[i];
                         attribs[idx] = "" + utils.roundFloatByDecimal(utils.getFloatScriptVar(self, beast_lib.ARRAY_BEAST_INCUBATION_STATS[i]));
@@ -260,7 +254,7 @@ public class barn_beast extends script.base_script
                     }
                     continue;
                 }
-                else 
+                else
                 {
                     names[idx] = beast_lib.DISPLAY_NAMES[i];
                     attribs[idx] = "" + utils.roundFloatByDecimal(utils.getFloatScriptVar(self, beast_lib.ARRAY_BEAST_INCUBATION_STATS[i]));
