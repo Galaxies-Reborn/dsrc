@@ -15,6 +15,14 @@ public class expertise extends script.base_script
     public static final string_id SID_SUI_EXPERTISE_INTRODUCTION_BODY = new string_id("expertise_d", "sui_expertise_introduction_body");
     public static void cacheExpertiseProcReacList(obj_id player) throws InterruptedException
     {
+        if (proc.isRetiredPostNgePlayerProcActor(player))
+        {
+            // Publish 14.1 players have no expertise-driven proc list.  This
+            // shared helper is reached from login and delayed buff callbacks,
+            // so it must fail closed before inspecting or caching NGE mods.
+            proc.retirePostNgePlayerProcState(player);
+            return;
+        }
         String[] skillModList = getSkillStatModListingForPlayer(player);
         Vector expertiseProcReacList = new Vector();
         expertiseProcReacList.setSize(0);
