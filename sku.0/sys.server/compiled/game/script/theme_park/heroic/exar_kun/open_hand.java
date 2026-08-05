@@ -14,7 +14,7 @@ public class open_hand extends script.base_script
     public int OnAttach(obj_id self) throws InterruptedException
     {
         trial.setHp(self, trial.HP_EXAR_OPEN);
-        String[] cultists = 
+        String[] cultists =
         {
             "one",
             "two",
@@ -116,11 +116,7 @@ public class open_hand extends script.base_script
         {
             buff.applyBuff(self, sacBuff);
         }
-        int healingReduction = getEnhancedSkillStatisticModifierUncapped(self, "expertise_healing_reduction");
-        float redux = healingReduction / (healingReduction + 75.0f);
-        int toHeal = (int)(125000.0f - (125000.0f * redux));
-        toHeal = toHeal < 1 ? 1 : toHeal;
-        healing.healDamage(self, HEALTH, toHeal);
+        healing.healDamage(self, HEALTH, 125000);
         playClientEffectLoc(self, "clienteffect/bacta_bomb.cef", getLocation(self), 0);
         return SCRIPT_CONTINUE;
     }
