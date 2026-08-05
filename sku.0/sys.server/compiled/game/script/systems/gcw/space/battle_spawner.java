@@ -140,10 +140,10 @@ public class battle_spawner extends script.base_class {
         // tell the controller we've started the battle
         setObjVar(controller, "space_gcw." + self + ".active", 1);
 
-        String planetName = spaceLocation.area.substring(6);
-
-        // get defending faction
-        String defendingFaction = (getGcwGroupImperialScorePercentile(planetName + "_pvp") >= 50 ? "imperial" : "rebel");
+        // The retained space battle is later content, but regional GCW control
+        // is not a Publish 14 gameplay authority. Give both authored factions
+        // an equal chance to defend instead of consulting the retired score.
+        String defendingFaction = (rand(0, 1) == 0 ? "imperial" : "rebel");
 
         // spawn defender capital ship
         transform defenseSpawnPoint = transform.identity.setPosition_p(spaceLocation.x, spaceLocation.y, spaceLocation.z);

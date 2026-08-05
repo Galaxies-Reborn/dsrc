@@ -470,145 +470,24 @@ public class travel extends script.base_script
     }
     public static boolean qualifiesForGcwTravelPerks(obj_id player) throws InterruptedException
     {
-        if (!isIdValid(player))
-        {
-            return false;
-        }
-        final int faction = pvpGetAlignedFaction(player);
-        if (faction == 0)
-        {
-            return false;
-        }
-        if (pvpGetCurrentGcwRank(player) < 7)
-        {
-            return false;
-        }
-        final int imperialScore = getGcwGroupImperialScorePercentile(getCurrentSceneName());
-        if ((-615855020) == faction)
-        {
-            return (imperialScore >= 70);
-        }
-        else if ((370444368) == faction)
-        {
-            return (imperialScore <= 30);
-        }
+        // Publish 14 has no regional-control travel-timer bypass. Keep the
+        // later callable for compatibility, but do not grant its NGE perk.
         return false;
     }
     public static boolean restrictedByGcwTravelRestrictions(obj_id player) throws InterruptedException
     {
-        if (!isIdValid(player))
-        {
-            return false;
-        }
-        final int faction = pvpGetAlignedFaction(player);
-        if (faction == 0)
-        {
-            return false;
-        }
-        if (pvpGetCurrentGcwRank(player) < 7)
-        {
-            return false;
-        }
-        final int imperialScore = getGcwGroupImperialScorePercentile(getCurrentSceneName());
-        if ((-615855020) == faction)
-        {
-            return (imperialScore <= 30);
-        }
-        else if ((370444368) == faction)
-        {
-            return (imperialScore >= 70);
-        }
+        // Publish 14 travel remains available regardless of later regional
+        // control. This compatibility predicate therefore always fails open.
         return false;
     }
     public static int getGcwTravelRestrictionsSurcharge(obj_id player, String departPlanet, String arrivePlanet) throws InterruptedException
     {
-        if (!isIdValid(player))
-        {
-            return 0;
-        }
-        final int faction = pvpGetAlignedFaction(player);
-        if (faction == 0)
-        {
-            return 0;
-        }
-        if (pvpGetCurrentGcwRank(player) < 7)
-        {
-            return 0;
-        }
-        final int imperialScoreDepartPlanet = getGcwGroupImperialScorePercentile(departPlanet);
-        final int imperialScoreArrivePlanet = getGcwGroupImperialScorePercentile(arrivePlanet);
-        if ((-615855020) == faction)
-        {
-            final int largerRebelScore = Math.max(100 - imperialScoreDepartPlanet, 100 - imperialScoreArrivePlanet);
-            if (largerRebelScore > 70)
-            {
-                return (largerRebelScore - 70) * 500;
-            }
-        }
-        else if ((370444368) == faction)
-        {
-            final int largerImperialScore = Math.max(imperialScoreDepartPlanet, imperialScoreArrivePlanet);
-            if (largerImperialScore > 70)
-            {
-                return (largerImperialScore - 70) * 500;
-            }
-        }
+        // Regional-score travel surcharges are later-era authority.
         return 0;
     }
     public static String getGcwTravelRestrictionsAvailableStarport(obj_id player, String planet) throws InterruptedException
     {
-        if (!isIdValid(player))
-        {
-            return null;
-        }
-        if ((planet == null) || (planet.length() <= 0))
-        {
-            return null;
-        }
-        final int faction = pvpGetAlignedFaction(player);
-        if (faction == 0)
-        {
-            return null;
-        }
-        if (pvpGetCurrentGcwRank(player) < 7)
-        {
-            return null;
-        }
-        final int imperialScore = getGcwGroupImperialScorePercentile(planet);
-        if ((((-615855020) == faction) && (imperialScore <= 30)) || (((370444368) == faction) && (imperialScore >= 70)))
-        {
-            String availableStarport = null;
-            int highestScore = -1;
-            String[] planetTravelPoints = getPlanetTravelPoints(planet);
-            if ((planetTravelPoints != null) && (planetTravelPoints.length > 0))
-            {
-                int numStarport = 0;
-                String gcwContestedRegion;
-
-                for (String planetTravelPoint : planetTravelPoints) {
-                    if (getPlanetTravelPointInterplanetary(planet, planetTravelPoint)) {
-                        ++numStarport;
-                        int score = 50;
-                        gcwContestedRegion = getPlanetTravelPointGcwContestedRegion(planet, planetTravelPoint);
-                        if ((gcwContestedRegion != null) && (gcwContestedRegion.length() > 0)) {
-                            score = getGcwImperialScorePercentile(gcwContestedRegion);
-                            if ((370444368) == faction) {
-                                score = 100 - score;
-                            }
-                        }
-                        if (score > highestScore) {
-                            availableStarport = planetTravelPoint;
-                            highestScore = score;
-                        }
-                    }
-                }
-                if (numStarport <= 1)
-                {
-                    return null;
-                }
-            }
-            return availableStarport;
-        }
+        // Publish 14 does not reduce a planet to one score-selected starport.
         return null;
     }
     public static obj_id getTravelShuttle(obj_id player) throws InterruptedException

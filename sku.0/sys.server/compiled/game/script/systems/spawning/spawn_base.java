@@ -83,46 +83,17 @@ public class spawn_base extends script.base_script
         String[] strTemplates = dataTableGetStringColumn(strFileName, "strTemplate");
         int[] intMinDifficulties = dataTableGetIntColumn(strFileName, "intMinDifficulty");
         int[] intMaxDifficulties = dataTableGetIntColumn(strFileName, "intMaxDifficulty");
-        int[] intGcwFactions = null;
-        int[] intGcwThresholds = null;
-        int[] intGcwScoreTypes = null;
-        String[] strGcwSpecificRegions = null;
-        if (dataTableHasColumn(strFileName, "intGCWFaction"))
-        {
-            intGcwFactions = dataTableGetIntColumn(strFileName, "intGCWFaction");
-            intGcwThresholds = dataTableGetIntColumn(strFileName, "intGCWThreshold");
-            intGcwScoreTypes = dataTableGetIntColumn(strFileName, "intGCWScoreType");
-            strGcwSpecificRegions = dataTableGetStringColumn(strFileName, "strGCWSpecificRegion");
-        }
-        boolean checkGCWStats = true;
         if (strTemplates == null || strTemplates.length == 0 || intMinDifficulties == null || intMaxDifficulties == null)
         {
             LOG("spawning", "Invalid spawn template, or min/max difficulty values are invalid. Filename = " + strFileName);
             return null;
         }
-        location currentLoc = getLocation(objPlayer);
-        if (intGcwFactions == null || intGcwThresholds == null || intGcwScoreTypes == null)
-        {
-            checkGCWStats = false;
-        }
         Vector validTemplateIndices = new Vector();
         validTemplateIndices.setSize(0);
-        String strSpecificRegion;
         for (int i = 0; i < strTemplates.length; ++i)
         {
             int intMinDifficulty = intMinDifficulties[i];
             int intMaxDifficulty = intMaxDifficulties[i];
-            if (checkGCWStats)
-            {
-                int intGcwFaction = intGcwFactions[i];
-                int intGcwThreshold = intGcwThresholds[i];
-                int intGcwScoreType = intGcwScoreTypes[i];
-                strSpecificRegion = strGcwSpecificRegions == null || strGcwSpecificRegions.length == 0 ? "" : strGcwSpecificRegions[i];
-                if (!checkGalacticCivilWarStandings(intGcwFaction, intGcwThreshold, intGcwScoreType, strSpecificRegion, currentLoc))
-                {
-                    continue;
-                }
-            }
             if (checkDifficulty(intMinDifficulty, intMaxDifficulty, dctPlayerStats))
             {
                 if (!boolTheatersAllowed && strTemplates[i].indexOf("theater") > 0)
@@ -612,59 +583,14 @@ public class spawn_base extends script.base_script
     }
     public boolean isGalaticCivilWarWinner(int faction, int threshold, int imperialScore) throws InterruptedException
     {
-        if (faction == 1 && threshold < imperialScore)
-        {
-            return true;
-        }
-        else if (faction == 2 && threshold < (100 - imperialScore))
-        {
-            return true;
-        }
-        return false;
+        // The later regional-control score does not gate Publish 14 ambient
+        // encounters. Retain the callable only as a fail-open compatibility shim.
+        return true;
     }
     public boolean checkGalacticCivilWarStandings(int gcwFaction, int gcwThreshold, int gcwScoreType, String gcwSpecificRegion, location loc) throws InterruptedException
     {
-        if (gcwFaction > 0 && gcwThreshold > 0)
-        {
-            if (gcwScoreType == 0)
-            {
-                int ImperialScore = getGcwGroupImperialScorePercentile(toLower(getCurrentSceneName()));
-                return isGalaticCivilWarWinner(gcwFaction, gcwThreshold, ImperialScore);
-            }
-            else if (gcwScoreType == 1)
-            {
-                int ImperialScore = 0;
-                region[] allRegions = getRegionsAtPoint(loc);
-                if (allRegions != null && allRegions.length > 0)
-                {
-                    for (region gcwRegion : allRegions) {
-                        if ((gcwRegion.getName()).startsWith("gcw")) {
-                            ImperialScore = getGcwImperialScorePercentile(toLower(gcwRegion.getName()));
-                            break;
-                        }
-                    }
-                }
-                else
-                {
-                    return false;
-                }
-                return isGalaticCivilWarWinner(gcwFaction, gcwThreshold, ImperialScore);
-            }
-            else if (gcwScoreType == 2)
-            {
-                if (gcwSpecificRegion == null || gcwSpecificRegion.equals(""))
-                {
-                    LOG("GCWSpawnError", "Invalid Specific region specified");
-                    return false;
-                }
-                int ImperialScore = getGcwImperialScorePercentile(toLower(gcwSpecificRegion));
-                return isGalaticCivilWarWinner(gcwFaction, gcwThreshold, ImperialScore);
-            }
-            else
-            {
-                return false;
-            }
-        }
+        // Preserve later datatable columns as content metadata without allowing
+        // their post-NGE regional score to suppress the authored spawn row.
         return true;
     }
 }
