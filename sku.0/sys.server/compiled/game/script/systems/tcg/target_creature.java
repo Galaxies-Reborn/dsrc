@@ -55,15 +55,6 @@ public class target_creature extends script.base_script
             target_dummy.removeCombatAi(self);
             int difficulty = target_dummy.getTargetDummyDifficulty(controller);
             target_dummy.initializeTargetDummy(self, combatLevel, difficulty);
-            for (int i = 0; i < target_dummy.TARGET_DUMMY_DEFENSES.length; i++)
-            {
-                String skillModName = target_dummy.TARGET_DUMMY_DEFENSES[i];
-                if (hasObjVar(controller, "target_dummy_defense." + skillModName))
-                {
-                    int value = getIntObjVar(controller, "target_dummy_defense." + skillModName);
-                    target_dummy.setTargetDummyDefensiveValue(self, obj_id.NULL_ID, value, skillModName);
-                }
-            }
         }
         else
         {
@@ -406,6 +397,11 @@ public class target_creature extends script.base_script
         obj_id player = sui.getPlayerId(params);
         String text = sui.getInputBoxText(params);
         int value = utils.stringToInt(text);
+        if (value == -1 && (text == null || !text.trim().equals("-1")))
+        {
+            sendSystemMessage(player, "Enter a whole-number PRE-CU defense value.", "");
+            return SCRIPT_CONTINUE;
+        }
         target_dummy.setTargetDummyDefensiveValue(self, player, value);
         return SCRIPT_CONTINUE;
     }

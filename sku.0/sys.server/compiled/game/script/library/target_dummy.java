@@ -21,14 +21,21 @@ public class target_dummy extends script.base_script
     public static final String TARGET_DUMMY_ID_OBJVAR = "targetDummyId";
     public static final String TARGET_DUMMY_SOUND_DELAY = "targetDummySoundDelay";
     public static final String TARGET_DUMMY_NO_SOUND = "targetDummyNoSound";
-    public static final String[] TARGET_DUMMY_DEFENSES = 
+    public static final String[] TARGET_DUMMY_DEFENSES =
     {
-        "expertise_innate_protection_all",
-        "expertise_dodge",
-        "expertise_parry",
-        "expertise_block_chance",
-        "expertise_glancing_blow_all",
-        "expertise_evasion_chance"
+        "precu_armor_rating",
+        "precu_armor_kinetic",
+        "precu_armor_energy",
+        "precu_armor_blast",
+        "precu_armor_heat",
+        "precu_armor_cold",
+        "precu_armor_electricity",
+        "precu_armor_acid",
+        "precu_armor_stun",
+        "precu_armor_lightsaber",
+        "ranged_defense",
+        "melee_defense",
+        "unarmed_passive_defense"
     };
     public static final String BASE_TARGET_DUMMY_VAR = "target_dummy";
     public static final String ALL_ATTACKS_SUB_VAR = "all_attacks";
@@ -48,7 +55,7 @@ public class target_dummy extends script.base_script
     public static final int INDEX_NUM_BLOCKED_HITS = 11;
     public static final int INDEX_NUM_SUCCESSFUL_HITS = 12;
     public static final int INDEX_NUM_NORMAL_HITS = 13;
-    public static final String[] ATTACK_DATA_ARRAY = 
+    public static final String[] ATTACK_DATA_ARRAY =
     {
         "numAttacks",
         "totalDamageDone",
@@ -94,7 +101,7 @@ public class target_dummy extends script.base_script
     public static final String BLUE = "  \\#0099FF ";
     public static final String YELLOW = "  \\#FFFF00 ";
     public static final String LINE = "  \n ";
-    public static final String[] TARGET_DUMMY_ANIMS = 
+    public static final String[] TARGET_DUMMY_ANIMS =
     {
         "shiver",
         "shake_head_no",
@@ -157,7 +164,7 @@ public class target_dummy extends script.base_script
             messageTo(creatureObject, "checkCurrentLocation", null, 1, false);
             return creatureObject;
         }
-        else 
+        else
         {
             location where = getLocation(controller);
             if (!permittedToCallTargetDummy(player, where))
@@ -205,12 +212,12 @@ public class target_dummy extends script.base_script
                     {
                         faceTo(npc, player);
                     }
-                    else 
+                    else
                     {
                         setYaw(npc, controllerYaw);
                     }
                 }
-                else 
+                else
                 {
                     setYaw(npc, controllerYaw);
                 }
@@ -267,7 +274,7 @@ public class target_dummy extends script.base_script
         {
             return owner;
         }
-        else 
+        else
         {
             CustomerServiceLog("target_dummy", "target_dummy.scriptlib:setTargetDummyOwner - The Target Dummy System is attempting to assign an owner for controller: " + controller);
             owner = utils.getContainingPlayer(controller);
@@ -340,7 +347,7 @@ public class target_dummy extends script.base_script
                 return false;
             }
         }
-        else 
+        else
         {
             if (!isIdValid(myCell))
             {
@@ -385,6 +392,7 @@ public class target_dummy extends script.base_script
             {
                 setObjVar(controller, "intCombatDifficulty", combatLevel);
                 setObjVar(controller, "difficultyClass", difficulty);
+                applyPersistedTargetDummyDefenses(targetDummy);
                 return true;
             }
         }
@@ -421,7 +429,7 @@ public class target_dummy extends script.base_script
         String normal = utils.packStringId(new string_id("target_dummy", "difficulty_normal"));
         String elite = utils.packStringId(new string_id("target_dummy", "difficulty_elite"));
         String boss = utils.packStringId(new string_id("target_dummy", "difficulty_boss"));
-        String[] difficulties = 
+        String[] difficulties =
         {
             normal,
             elite,
@@ -449,73 +457,183 @@ public class target_dummy extends script.base_script
         String[] targetDummySkillMods = new String[TARGET_DUMMY_DEFENSES.length];
         for (int i = 0; i < TARGET_DUMMY_DEFENSES.length; i++)
         {
-            String skillModName = TARGET_DUMMY_DEFENSES[i];
-            String skillModOption = utils.packStringId(new string_id("target_dummy", TARGET_DUMMY_DEFENSES[i]));
-            targetDummySkillMods[i] = skillModOption + " [current value: " + getEnhancedSkillStatisticModifier(targetDummy, skillModName) + "]";
+            String defenseName = TARGET_DUMMY_DEFENSES[i];
+            targetDummySkillMods[i] = getTargetDummyDefenseDisplayName(defenseName) +
+                " [current value: " + getTargetDummyDefenseValue(targetDummy, defenseName) + "]";
         }
         return targetDummySkillMods;
     }
     public static void promptForDefensiveValue(obj_id targetDummy, obj_id player, int skill_mod_selected) throws InterruptedException
     {
+        if (skill_mod_selected < 0 || skill_mod_selected >= TARGET_DUMMY_DEFENSES.length)
+        {
+            return;
+        }
         utils.setScriptVar(player, "targetDummySkillModSelected", skill_mod_selected);
         String prompt = utils.packStringId(new string_id("target_dummy", "combat_defensive_skill_mod_prompt"));
-        prompt += "  " + utils.packStringId(new string_id("target_dummy", target_dummy.TARGET_DUMMY_DEFENSES[skill_mod_selected])) + " :";
+        String defenseName = TARGET_DUMMY_DEFENSES[skill_mod_selected];
+        prompt += "  " + getTargetDummyDefenseDisplayName(defenseName) +
+            getTargetDummyDefenseValueRange(defenseName) + " :";
         sui.inputbox(targetDummy, player, prompt, "handleTargetDummyDefensiveSkillModSet");
     }
     public static void setTargetDummyDefensiveValue(obj_id targetDummy, obj_id player, int value) throws InterruptedException
     {
         int skillModIndex = utils.getIntScriptVar(player, "targetDummySkillModSelected");
-        String skillModName = target_dummy.TARGET_DUMMY_DEFENSES[skillModIndex];
-        setTargetDummyDefensiveValue(targetDummy, player, value, skillModName);
-    }
-    public static void setTargetDummyDefensiveValue(obj_id targetDummy, obj_id player, int value, String skillModName) throws InterruptedException
-    {
-        int previousValue = getEnhancedSkillStatisticModifier(targetDummy, skillModName);
-        if (skillModName.equals("expertise_innate_protection_all"))
+        if (skillModIndex < 0 || skillModIndex >= TARGET_DUMMY_DEFENSES.length)
         {
-            if (value < 0 || value > 12000)
-            {
-                if (isIdValid(player))
-                {
-                    sendSystemMessage(player, new string_id("target_dummy", "combat_armor_mod_invalid"));
-                    return;
-                }
-            }
-            else 
-            {
-                applySkillStatisticModifier(targetDummy, skillModName, 0 - previousValue);
-                applySkillStatisticModifier(targetDummy, skillModName, value);
-                armor.recalculateArmorForMob(targetDummy);
-            }
+            return;
         }
-        else 
+        String defenseName = TARGET_DUMMY_DEFENSES[skillModIndex];
+        setTargetDummyDefensiveValue(targetDummy, player, value, defenseName);
+    }
+    public static void setTargetDummyDefensiveValue(obj_id targetDummy, obj_id player, int value, String defenseName) throws InterruptedException
+    {
+        if (!isTargetDummyDefenseConfiguration(defenseName))
         {
-            if (value < 0 || value > 99)
+            return;
+        }
+        if (defenseName.equals("precu_armor_rating"))
+        {
+            if (value < 0 || value > 3)
             {
                 if (isIdValid(player))
                 {
-                    sendSystemMessage(player, new string_id("target_dummy", "combat_skill_mod_invalid"));
-                    return;
+                    sendSystemMessage(player,
+                        "Armor rating must be 0 (none), 1 (light), 2 (medium), or 3 (heavy).", "");
                 }
+                return;
             }
-            else 
+            setObjVar(targetDummy, "precu.armor.rating", value);
+        }
+        else if (isPrecuTargetDummyArmorResistance(defenseName))
+        {
+            if (value < -1 || value > 200)
             {
-                applySkillStatisticModifier(targetDummy, skillModName, 0 - previousValue);
-                applySkillStatisticModifier(targetDummy, skillModName, value);
+                if (isIdValid(player))
+                {
+                    sendSystemMessage(player,
+                        "PRE-CU armor resistance must be -1 (vulnerable) through 200 (special protection).", "");
+                }
+                return;
             }
+            setObjVar(targetDummy, getPrecuTargetDummyArmorObjVar(defenseName), value);
+        }
+        else
+        {
+            if (value < 0 || value > 125)
+            {
+                if (isIdValid(player))
+                {
+                    sendSystemMessage(player,
+                        "PRE-CU defense skill modifiers must be between 0 and 125.", "");
+                }
+                return;
+            }
+            int previousValue = getEnhancedSkillStatisticModifier(targetDummy, defenseName);
+            applySkillStatisticModifier(targetDummy, defenseName, 0 - previousValue);
+            applySkillStatisticModifier(targetDummy, defenseName, value);
         }
         if (isIdValid(player))
         {
-            string_id message = new string_id("target_dummy", "combat_skill_mod_set");
-            prose_package pp = prose.getPackage(message, player, player);
-            prose.setTO(pp, utils.packStringId(new string_id("target_dummy", skillModName)));
-            prose.setDI(pp, value);
-            sendSystemMessageProse(player, pp);
+            sendSystemMessage(player, "Target dummy " +
+                getTargetDummyDefenseDisplayName(defenseName) + " set to " + value + ".", "");
         }
         obj_id controller = getTargetDummyController(targetDummy);
         if (isIdValid(controller))
         {
-            setObjVar(controller, "target_dummy_defense." + skillModName, value);
+            setObjVar(controller, "target_dummy_defense." + defenseName, value);
+        }
+    }
+    public static void applyPersistedTargetDummyDefenses(obj_id targetDummy) throws InterruptedException
+    {
+        obj_id controller = getTargetDummyController(targetDummy);
+        if (!isIdValid(controller))
+        {
+            return;
+        }
+        for (int i = 0; i < TARGET_DUMMY_DEFENSES.length; i++)
+        {
+            String defenseName = TARGET_DUMMY_DEFENSES[i];
+            String persistenceObjVar = "target_dummy_defense." + defenseName;
+            if (hasObjVar(controller, persistenceObjVar))
+            {
+                setTargetDummyDefensiveValue(targetDummy, obj_id.NULL_ID,
+                    getIntObjVar(controller, persistenceObjVar), defenseName);
+            }
+        }
+    }
+    public static boolean isTargetDummyDefenseConfiguration(String defenseName) throws InterruptedException
+    {
+        if (defenseName == null)
+        {
+            return false;
+        }
+        for (int i = 0; i < TARGET_DUMMY_DEFENSES.length; i++)
+        {
+            if (defenseName.equals(TARGET_DUMMY_DEFENSES[i]))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isPrecuTargetDummyArmorResistance(String defenseName) throws InterruptedException
+    {
+        return defenseName != null && defenseName.startsWith("precu_armor_") &&
+            !defenseName.equals("precu_armor_rating");
+    }
+    public static String getPrecuTargetDummyArmorObjVar(String defenseName) throws InterruptedException
+    {
+        if (defenseName == null || !defenseName.startsWith("precu_armor_"))
+        {
+            return null;
+        }
+        return "precu.armor." + defenseName.substring("precu_armor_".length());
+    }
+    public static int getTargetDummyDefenseValue(obj_id targetDummy, String defenseName) throws InterruptedException
+    {
+        if (defenseName.equals("precu_armor_rating"))
+        {
+            return hasObjVar(targetDummy, "precu.armor.rating") ?
+                getIntObjVar(targetDummy, "precu.armor.rating") : 0;
+        }
+        if (isPrecuTargetDummyArmorResistance(defenseName))
+        {
+            String armorObjVar = getPrecuTargetDummyArmorObjVar(defenseName);
+            return hasObjVar(targetDummy, armorObjVar) ?
+                getIntObjVar(targetDummy, armorObjVar) : -1;
+        }
+        return getEnhancedSkillStatisticModifier(targetDummy, defenseName);
+    }
+    public static String getTargetDummyDefenseValueRange(String defenseName) throws InterruptedException
+    {
+        if (defenseName.equals("precu_armor_rating"))
+        {
+            return " (0 none, 1 light, 2 medium, 3 heavy)";
+        }
+        if (isPrecuTargetDummyArmorResistance(defenseName))
+        {
+            return " (-1 vulnerable, 0-100 normal, 101-200 special)";
+        }
+        return " (0-125)";
+    }
+    public static String getTargetDummyDefenseDisplayName(String defenseName) throws InterruptedException
+    {
+        if (defenseName.equals("precu_armor_rating")) return "Armor Rating";
+        if (defenseName.equals("precu_armor_kinetic")) return "Kinetic Resistance";
+        if (defenseName.equals("precu_armor_energy")) return "Energy Resistance";
+        if (defenseName.equals("precu_armor_blast")) return "Blast Resistance";
+        if (defenseName.equals("precu_armor_heat")) return "Heat Resistance";
+        if (defenseName.equals("precu_armor_cold")) return "Cold Resistance";
+        if (defenseName.equals("precu_armor_electricity")) return "Electricity Resistance";
+        if (defenseName.equals("precu_armor_acid")) return "Acid Resistance";
+        if (defenseName.equals("precu_armor_stun")) return "Stun Resistance";
+        if (defenseName.equals("precu_armor_lightsaber")) return "Lightsaber Resistance";
+        if (defenseName.equals("ranged_defense")) return "Ranged Defense";
+        if (defenseName.equals("melee_defense")) return "Melee Defense";
+        if (defenseName.equals("unarmed_passive_defense")) return "Unarmed Passive Defense";
+        return defenseName;
+    }
         }
     }
     public static void confirmClearYourCombatData(obj_id targetDummy, obj_id player) throws InterruptedException
@@ -617,7 +735,7 @@ public class target_dummy extends script.base_script
         {
             allAttacksData = utils.getIntArrayScriptVar(controller, baseAllAttacksVar);
         }
-        else 
+        else
         {
             for (int i = 0; i < allAttacksData.length; i++)
             {
@@ -629,7 +747,7 @@ public class target_dummy extends script.base_script
         {
             specificAttackData = utils.getIntArrayScriptVar(controller, baseSpecificAttackVar);
         }
-        else 
+        else
         {
             for (int i = 0; i < specificAttackData.length; i++)
             {
@@ -653,14 +771,14 @@ public class target_dummy extends script.base_script
             {
                 indexOfAvoidanceType = INDEX_NUM_PARRIED;
             }
-            else 
+            else
             {
                 indexOfAvoidanceType = INDEX_NUM_MISSED;
             }
             storeCumulativeCombatData(allAttacksData, indexOfAvoidanceType, 1);
             storeCumulativeCombatData(specificAttackData, indexOfAvoidanceType, 1);
         }
-        else 
+        else
         {
             storeCumulativeCombatData(allAttacksData, INDEX_TOTAL_DAMAGE_DONE, damageDone);
             storeComparisonCombatData(allAttacksData, damageDone);
@@ -764,7 +882,7 @@ public class target_dummy extends script.base_script
             utils.setScriptVar(player, "target_dummy.openCombatReportSui", pid);
             sui.showSUIPage(pid);
         }
-        else 
+        else
         {
             sendSystemMessage(player, new string_id("target_dummy", "placement_no_combat_data"));
         }
@@ -871,7 +989,7 @@ public class target_dummy extends script.base_script
                 report += WHITE + utils.packStringId(REPORT_LINE_BREAK_SID) + addLineBreaks(2);
             }
         }
-        else 
+        else
         {
             report = utils.packStringId(new string_id("target_dummy", "placement_no_combat_data"));
         }
@@ -935,7 +1053,7 @@ public class target_dummy extends script.base_script
                     }
                 }
             }
-            else 
+            else
             {
                 report = utils.packStringId(new string_id("target_dummy", "placement_no_combat_data"));
             }
@@ -1030,7 +1148,7 @@ public class target_dummy extends script.base_script
     public static final String RANDON_ANIM_COLUMN = "random_anims";
     public static final String TRICK_ANIM_COLUMN = "trick_anims";
     public static final String TARGET_DUMMY_LAST_EXTRAS_ANIM = "targetDummyLastAnim";
-    public static final String[] EXTRA_TYPES = 
+    public static final String[] EXTRA_TYPES =
     {
         RANDON_ANIM_COLUMN,
         TRICK_ANIM_COLUMN
