@@ -27,6 +27,18 @@ public class buff_handler extends script.base_script
     public static final int IMMUNITY_TO_ACID = 6;
     public static final int IMMUNITY_TO_ENERGY = 7;
     public static final int IMMUNITY_TO_STUN = 12;
+
+    public boolean isRetiredNgeExpertiseModifier(String modifierName) throws InterruptedException
+    {
+        return modifierName != null && modifierName.startsWith("expertise_");
+    }
+    public void retireNgeExpertiseModifier(obj_id self, String effectName) throws InterruptedException
+    {
+        if (hasSkillModModifier(self, effectName))
+        {
+            removeAttribOrSkillModModifier(self, effectName);
+        }
+    }
     
     public int OnCreatureDamaged(obj_id self, obj_id attacker, obj_id weapon, int[] damage) throws InterruptedException
     {
@@ -138,7 +150,14 @@ public class buff_handler extends script.base_script
     {
         long stack = buff.getBuffStackCount(self, buffName) > 1 ? buff.getBuffStackCount(self, buffName) : 1;
         value *= (int)stack;
-        addSkillModModifier(self, effectName, subtype, (int)value, duration, false, true);
+        if (isRetiredNgeExpertiseModifier(subtype))
+        {
+            retireNgeExpertiseModifier(self, effectName);
+        }
+        else
+        {
+            addSkillModModifier(self, effectName, subtype, (int)value, duration, false, true);
+        }
         if ((subtype.startsWith("constitution")) || (subtype.startsWith("stamina")))
         {
             messageTo(self, "recalcPools", null, 1, false);
@@ -183,37 +202,11 @@ public class buff_handler extends script.base_script
     }
     public int armorBreakAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
-        long stack = buff.getBuffStackCount(self, buffName) > 1 ? buff.getBuffStackCount(self, buffName) : 1;
-        value *= (int)stack;
-        int armorScriptVarValue = 0;
-        if (stack == 1)
+        retireNgeExpertiseModifier(self, effectName);
+        utils.removeScriptVar(self, INITIAL_GENERAL_PROTECTION);
+        if (utils.isProfession(caster, utils.BOUNTY_HUNTER))
         {
-            armorScriptVarValue = utils.getIntScriptVar(self, armor.SCRIPTVAR_CACHED_GENERAL_PROTECTION);
-            utils.setScriptVar(self, INITIAL_GENERAL_PROTECTION, armorScriptVarValue);
-        }
-        else 
-        {
-            armorScriptVarValue = utils.getIntScriptVar(self, INITIAL_GENERAL_PROTECTION);
-        }
-        if (subtype.equals("player") && isPlayer(self))
-        {
-            float baseMod = getSkillStatisticModifier(self, "expertise_innate_protection");
-            baseMod += armorScriptVarValue;
-            baseMod += getEnhancedSkillStatisticModifierUncapped(self, "expertise_innate_protection_all");
-            float modIncrease = baseMod * (value / 100.0f);
-            addSkillModModifier(self, effectName, "expertise_innate_protection_all", (int)modIncrease, duration, false, false);
-            if (utils.isProfession(caster, utils.BOUNTY_HUNTER))
-            {
-                buff.applyBuff(self, caster, "bh_crit_hit_vuln");
-            }
-        }
-        else if (subtype.equals("mob") && !isPlayer(self))
-        {
-            addSkillModModifier(self, effectName, "expertise_innate_protection_all", (int)value, duration, false, true);
-            if (utils.isProfession(caster, utils.BOUNTY_HUNTER))
-            {
-                buff.applyBuff(self, caster, "bh_crit_hit_vuln");
-            }
+            buff.applyBuff(self, caster, "bh_crit_hit_vuln");
         }
         messageTo(self, "recalcArmor", null, 1, false);
         trial.bumpSession(self, "displayDefensiveMods");
@@ -227,6 +220,7 @@ public class buff_handler extends script.base_script
         {
             removeAttribOrSkillModModifier(self, effectName);
         }
+        utils.removeScriptVar(self, INITIAL_GENERAL_PROTECTION);
         if (effectName.lastIndexOf("_") > 0)
         {
             effectName = effectName.substring(0, (effectName.lastIndexOf("_")));
@@ -241,10 +235,17 @@ public class buff_handler extends script.base_script
     }
     public int skillPercentAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
-        float baseMod = getSkillStatisticModifier(self, subtype.substring(0, (subtype.lastIndexOf("_"))));
-        baseMod += getEnhancedSkillStatisticModifierUncapped(self, subtype);
-        float modIncrease = baseMod * (value / 100.0f);
-        addSkillModModifier(self, effectName, subtype, (int)modIncrease, duration, false, false);
+        if (isRetiredNgeExpertiseModifier(subtype))
+        {
+            retireNgeExpertiseModifier(self, effectName);
+        }
+        else
+        {
+            float baseMod = getSkillStatisticModifier(self, subtype.substring(0, (subtype.lastIndexOf("_"))));
+            baseMod += getEnhancedSkillStatisticModifierUncapped(self, subtype);
+            float modIncrease = baseMod * (value / 100.0f);
+            addSkillModModifier(self, effectName, subtype, (int)modIncrease, duration, false, false);
+        }
         if ((subtype.startsWith("constitution")) || (subtype.startsWith("stamina")))
         {
             messageTo(self, "recalcPools", null, 0.25f, false);
@@ -530,7 +531,14 @@ public class buff_handler extends script.base_script
     }
     public int forcePowerAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
-        addSkillModModifier(self, effectName, subtype, (int)value, duration, false, false);
+        if (isRetiredNgeExpertiseModifier(subtype))
+        {
+            retireNgeExpertiseModifier(self, effectName);
+        }
+        else
+        {
+            addSkillModModifier(self, effectName, subtype, (int)value, duration, false, false);
+        }
         messageTo(self, "handleRecalculateForce", null, 0.1f, false);
         return SCRIPT_CONTINUE;
     }
@@ -711,16 +719,13 @@ public class buff_handler extends script.base_script
                 buff.applyBuff(self, self, "fs_reactive_response_2");
             }
             int stanceForceClarity = (int)getSkillStatisticModifier(self, "expertise_stance_fs_force_clarity");
-            if (stanceForceClarity > 0)
-            {
-                addSkillModModifier(self, "expertise_fs_force_clarity_1_proc", "expertise_fs_force_clarity_1_proc", (int)stanceForceClarity, -1, false, true);
-            }
             int stanceFlurryProc = (int)getSkillStatisticModifier(self, "expertise_stance_flurry_proc");
-            if (stanceFlurryProc > 0)
-            {
-                addSkillModModifier(self, "expertise_fs_flurry_charge_proc", "expertise_fs_flurry_charge_proc", (int)stanceFlurryProc, -1, false, true);
-            }
-            if (stanceForceClarity > 0 || stanceFlurryProc > 0)
+            boolean retiredExpertiseProc =
+                hasSkillModModifier(self, "expertise_fs_force_clarity_1_proc") ||
+                hasSkillModModifier(self, "expertise_fs_flurry_charge_proc");
+            retireNgeExpertiseModifier(self, "expertise_fs_force_clarity_1_proc");
+            retireNgeExpertiseModifier(self, "expertise_fs_flurry_charge_proc");
+            if (retiredExpertiseProc || stanceForceClarity > 0 || stanceFlurryProc > 0)
             {
                 messageTo(self, "cacheExpertiseProcReacList", null, 2, false);
             }
