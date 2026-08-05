@@ -725,6 +725,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int co_kill_trap_1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeCommandoPlayerAction(self, "co_kill_trap_1"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!stealth.canDisarmTrap(self, target))
         {
             return SCRIPT_OVERRIDE;

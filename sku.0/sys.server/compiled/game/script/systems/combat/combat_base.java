@@ -122,6 +122,13 @@ public class combat_base extends script.base_script
         // class/expertise rows, so keep it usable by NPC/content scripts only.
         return isPlayer(self) && actionName != null && actionName.startsWith("bh_");
     }
+    public static boolean isRetiredPostNgeCommandoPlayerAction(obj_id self, String actionName) throws InterruptedException
+    {
+        // Publish 14.1 Commando progression uses combat_commando and classic
+        // heavy-weapon commands such as flameSingle*, flameCone*, acid*, and
+        // launcher*. Retain co_* for NPC/content compatibility, not players.
+        return isPlayer(self) && actionName != null && actionName.startsWith("co_");
+    }
     public boolean combatStandardAction(String actionName, obj_id self, obj_id target, String params, String successHandler, String failHandler) throws InterruptedException
     {
         return combatStandardAction(actionName, self, target, getCurrentWeapon(self), params, null, false, false, 0);
@@ -241,6 +248,10 @@ public class combat_base extends script.base_script
             return false;
         }
         if (isRetiredPostNgeBountyHunterPlayerAction(self, actionName))
+        {
+            return false;
+        }
+        if (isRetiredPostNgeCommandoPlayerAction(self, actionName))
         {
             return false;
         }
