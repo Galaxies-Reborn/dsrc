@@ -4383,6 +4383,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int of_rally_point_off(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeOfficerPlayerAction(self, "of_rally_point_off"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         location eggLoc = combat.getCommandGroundTargetLocation(params);
         location myLoc = getLocation(self);
         float distance = getDistance(myLoc, eggLoc);
@@ -4436,6 +4440,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int of_rally_point_def(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeOfficerPlayerAction(self, "of_rally_point_def"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         location eggLoc = combat.getCommandGroundTargetLocation(params);
         location myLoc = getLocation(self);
         float distance = getDistance(myLoc, eggLoc);
@@ -5873,6 +5881,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int of_last_words_recourse(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isRetiredPostNgeOfficerPlayerAction(self, "of_last_words_recourse"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!buff.hasBuff(self, "of_last_words_recourse"))
         {
             buff.applyBuff(self, self, "of_last_words_recourse");

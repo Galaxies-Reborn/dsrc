@@ -9,8 +9,23 @@ public class combat_supply_drop_crate extends script.base_script
     public combat_supply_drop_crate()
     {
     }
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        retirePostNgeOfficerSupplyCrate(self);
+        return SCRIPT_CONTINUE;
+    }
+    public int OnInitialize(obj_id self) throws InterruptedException
+    {
+        retirePostNgeOfficerSupplyCrate(self);
+        return SCRIPT_CONTINUE;
+    }
     public int OnAboutToLoseItem(obj_id self, obj_id srcContainer, obj_id transferer, obj_id item) throws InterruptedException
     {
+        if (isIdValid(transferer) && isPlayer(transferer))
+        {
+            sendSystemMessage(transferer, new string_id("spam", "no_access_not_in_group"));
+            return SCRIPT_OVERRIDE;
+        }
         obj_id owner = utils.getObjIdScriptVar(self, "supply_drop.crateOwner");
         obj_id ownerGroup = getGroupObject(owner);
         obj_id[] ownerGroupMembers = null;
@@ -32,5 +47,18 @@ public class combat_supply_drop_crate extends script.base_script
         }
         sendSystemMessage(transferer, new string_id("spam", "no_access_not_in_group"));
         return SCRIPT_OVERRIDE;
+    }
+    public boolean retirePostNgeOfficerSupplyCrate(obj_id self) throws InterruptedException
+    {
+        obj_id owner = utils.getObjIdScriptVar(self, "supply_drop.crateOwner");
+        if (!isIdValid(owner) || !isPlayer(owner))
+        {
+            return false;
+        }
+        if (isIdValid(self) && exists(self))
+        {
+            destroyObject(self);
+        }
+        return true;
     }
 }

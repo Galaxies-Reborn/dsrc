@@ -24,6 +24,10 @@ public class combat_supply_drop_controller extends script.base_script
     public int startLandingSequence(obj_id self, dictionary params) throws InterruptedException
     {
         obj_id owner = params.getObjId("owner");
+        if (retirePostNgeOfficerSupplyDrop(self, owner))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         int supplyId = params.getInt("supplyId");
         queueCommand(self, (-1114832209), self, "", COMMAND_PRIORITY_FRONT);
         setPosture(self, POSTURE_PRONE);
@@ -34,7 +38,7 @@ public class combat_supply_drop_controller extends script.base_script
         {
             messageTo(self, "dropSupplies", d, 22.0f, false);
         }
-        else 
+        else
         {
             messageTo(self, "dropReinforcements", d, 22.0f, false);
         }
@@ -43,6 +47,10 @@ public class combat_supply_drop_controller extends script.base_script
     public int dropReinforcements(obj_id self, dictionary params) throws InterruptedException
     {
         obj_id owner = params.getObjId("owner");
+        if (retirePostNgeOfficerSupplyDrop(self, owner))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         int supplyId = params.getInt("supplyId");
         location loc = getLocation(self);
         String itemString = "";
@@ -76,6 +84,10 @@ public class combat_supply_drop_controller extends script.base_script
     public int dropSupplies(obj_id self, dictionary params) throws InterruptedException
     {
         obj_id owner = params.getObjId("owner");
+        if (retirePostNgeOfficerSupplyDrop(self, owner))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         int supplyId = params.getInt("supplyId");
         int level = getLevel(owner);
         location loc = getLocation(self);
@@ -98,7 +110,7 @@ public class combat_supply_drop_controller extends script.base_script
             {
                 foodList = FOOD_MID;
             }
-            else 
+            else
             {
                 foodList = FOOD_HIGH;
             }
@@ -172,6 +184,11 @@ public class combat_supply_drop_controller extends script.base_script
     }
     public void summonOfficerPet(obj_id owner, String itemString, location spawnPoint) throws InterruptedException
     {
+        if (isIdValid(owner) && isPlayer(owner))
+        {
+            pet_lib.destroyOfficerPets(owner);
+            return;
+        }
         if (!pet_lib.hasMaxPets(owner, pet_lib.PET_TYPE_NPC) && !pet_lib.hasMaxStoredPetsOfType(owner, pet_lib.PET_TYPE_NPC))
         {
             obj_id hireling = create.createCreature(itemString, spawnPoint, true);
@@ -193,5 +210,18 @@ public class combat_supply_drop_controller extends script.base_script
             messageTo(hireling, "handleAddMaster", params, 0, false);
         }
         return;
+    }
+    public boolean retirePostNgeOfficerSupplyDrop(obj_id self, obj_id owner) throws InterruptedException
+    {
+        if (!isIdValid(owner) || !isPlayer(owner))
+        {
+            return false;
+        }
+        pet_lib.destroyOfficerPets(owner);
+        if (isIdValid(self) && exists(self))
+        {
+            destroyObject(self);
+        }
+        return true;
     }
 }

@@ -3,7 +3,6 @@ package script.ai;
 import script.dictionary;
 import script.library.pet_lib;
 import script.obj_id;
-import script.string_id;
 
 public class officer_pet extends script.base_script
 {
@@ -24,12 +23,16 @@ public class officer_pet extends script.base_script
     }
     public int getAndFollowMaster(obj_id self, dictionary params) throws InterruptedException
     {
-        setCondition(self, CONDITION_CONVERSABLE);
         obj_id master = getMaster(self);
         if (isIdNull(master))
         {
             return SCRIPT_CONTINUE;
         }
+        if (retirePostNgeOfficerPet(self, master))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        setCondition(self, CONDITION_CONVERSABLE);
         pet_lib.doCommandNum(self, pet_lib.COMMAND_FOLLOW, master);
         return SCRIPT_CONTINUE;
     }
@@ -40,11 +43,23 @@ public class officer_pet extends script.base_script
         {
             return SCRIPT_CONTINUE;
         }
-        if (!hasSkill(master, "expertise_of_reinforcements_1"))
+        if (retirePostNgeOfficerPet(self, master))
         {
-            sendSystemMessage(master, new string_id("spam", "off_pet_no_skill"));
-            pet_lib.destroyOfficerPets(master);
+            return SCRIPT_OVERRIDE;
         }
         return SCRIPT_CONTINUE;
+    }
+    public boolean retirePostNgeOfficerPet(obj_id self, obj_id master) throws InterruptedException
+    {
+        if (!isIdValid(master) || !isPlayer(master))
+        {
+            return false;
+        }
+        pet_lib.destroyOfficerPets(master);
+        if (isIdValid(self) && exists(self))
+        {
+            destroyObject(self);
+        }
+        return true;
     }
 }

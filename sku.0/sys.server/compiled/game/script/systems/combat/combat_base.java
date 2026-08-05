@@ -93,6 +93,10 @@ public class combat_base extends script.base_script
     {
         return beast_lib.isRetiredPostNgeBeastMasterPlayerAction(self, actionName);
     }
+    public static boolean isRetiredPostNgeOfficerPlayerAction(obj_id self, String actionName) throws InterruptedException
+    {
+        return isPlayer(self) && actionName != null && actionName.startsWith("of_");
+    }
     public boolean combatStandardAction(String actionName, obj_id self, obj_id target, String params, String successHandler, String failHandler) throws InterruptedException
     {
         return combatStandardAction(actionName, self, target, getCurrentWeapon(self), params, null, false, false, 0);
@@ -196,6 +200,10 @@ public class combat_base extends script.base_script
             return false;
         }
         if (isRetiredPostNgeBeastMasterPlayerAction(self, actionName))
+        {
+            return false;
+        }
+        if (isRetiredPostNgeOfficerPlayerAction(self, actionName))
         {
             return false;
         }
