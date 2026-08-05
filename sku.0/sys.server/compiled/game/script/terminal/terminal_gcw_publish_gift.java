@@ -23,11 +23,9 @@ public class terminal_gcw_publish_gift extends script.terminal.base.base_termina
     public static final string_id SID_IN_INVENTORY_ONLY = new string_id("gcw", "gcw_intelpad_used_in_inventory_only");
     public static final String WAR_INTELPAD_TEMPLATE = "object/tangible/droid/war_intel_datapad.iff";
     public static final String WAR_TERMINAL_TEMPLATE = "object/tangible/terminal/terminal_gcw_publish_gift.iff";
-    public static final string_id SID_MENU_WAR_TERMINAL_BATTLEFIELD = new string_id("spam", "battlefield_war_terminal_menu");
     public static final string_id SID_MENU_GCW = new string_id("gcw", "gcw_war_terminal_menu");
     public static final string_id SID_MENU_GCW_REPORT = new string_id("gcw", "gcw_report_war_terminal_menu");
     public static final string_id SID_MENU_GCW_FACTIONAL_PRESENCE = new string_id("gcw", "gcw_factional_presence_war_terminal_menu");
-    public static final string_id SID_MENU_GCW_PERSONAL_CONTRIBUTION = new string_id("gcw", "gcw_personal_contribution_war_terminal_menu");
     public static final String[] STAIC_BASE_PLANETS = 
     {
         "corellia",
@@ -57,8 +55,42 @@ public class terminal_gcw_publish_gift extends script.terminal.base.base_termina
             "TATOOINE"
         }
     };
+    private void retirePostNgeWarTerminalState(obj_id self, obj_id player) throws InterruptedException
+    {
+        // The GU10 queue and the later 30-day GCW point-contribution ledger are
+        // retired. Preserve the terminal/report asset and planetary presentation,
+        // but scrub cached actions and contribution UI state from older sessions.
+        if (isValidId(self) && hasObjVar(self, "gcwWarIntelPadMostRecentAction"))
+        {
+            int action = getIntObjVar(self, "gcwWarIntelPadMostRecentAction");
+            if (action == menu_info_types.SERVER_MENU1 || action == menu_info_types.SERVER_MENU3)
+            {
+                removeObjVar(self, "gcwWarIntelPadMostRecentAction");
+            }
+        }
+        if (!isValidId(player))
+        {
+            return;
+        }
+        if (utils.hasScriptVar(player, "gcw.gcwPersonalContributionTablePid"))
+        {
+            int existingPid = utils.getIntScriptVar(player, "gcw.gcwPersonalContributionTablePid");
+            utils.removeScriptVar(player, "gcw.gcwPersonalContributionTablePid");
+            forceCloseSUIPage(existingPid);
+        }
+        obj_id playerObject = getPlayerObject(player);
+        if (isValidId(playerObject))
+        {
+            utils.removeLocalVar(playerObject, "gcwContributionTrackingLastUpdated");
+            utils.removeLocalVar(playerObject, "gcwContributionTrackingColumnName");
+            utils.removeLocalVar(playerObject, "gcwContributionTrackingColumnType");
+            utils.removeLocalVar(playerObject, "gcwContributionTrackingColumn0");
+            utils.removeLocalVar(playerObject, "gcwContributionTrackingColumn1");
+        }
+    }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        retirePostNgeWarTerminalState(self, player);
         menu_info_data data = mi.getMenuItemByType(menu_info_types.ITEM_USE);
         if (!isGod(player))
         {
@@ -73,11 +105,9 @@ public class terminal_gcw_publish_gift extends script.terminal.base.base_termina
                 return super.OnObjectMenuRequest(self, player, mi);
             }
         }
-        mi.addRootMenu(menu_info_types.SERVER_MENU1, SID_MENU_WAR_TERMINAL_BATTLEFIELD);
         int gcwMenu = mi.addRootMenu(menu_info_types.SERVER_MENU5, SID_MENU_GCW);
         mi.addSubMenu(gcwMenu, menu_info_types.SERVER_MENU6, SID_MENU_GCW_REPORT);
         mi.addSubMenu(gcwMenu, menu_info_types.SERVER_MENU2, SID_MENU_GCW_FACTIONAL_PRESENCE);
-        mi.addSubMenu(gcwMenu, menu_info_types.SERVER_MENU3, SID_MENU_GCW_PERSONAL_CONTRIBUTION);
         // The post-NGE city/guild regional-defender report is not part of Publish 14.
         updateGCWInfo(self);
         return super.OnObjectMenuRequest(self, player, mi);
@@ -85,6 +115,7 @@ public class terminal_gcw_publish_gift extends script.terminal.base.base_termina
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
         final boolean isIntelPad = (getTemplateName(self)).equals(WAR_INTELPAD_TEMPLATE);
+        retirePostNgeWarTerminalState(self, player);
         if (!isGod(player))
         {
             if (utils.isNestedWithinAPlayer(self) && (getTemplateName(self)).equals(WAR_TERMINAL_TEMPLATE))
@@ -124,13 +155,11 @@ public class terminal_gcw_publish_gift extends script.terminal.base.base_termina
             }
             openSui(player);
         }
-        else if (item == menu_info_types.SERVER_MENU1)
+        else if (item == menu_info_types.SERVER_MENU1 || item == menu_info_types.SERVER_MENU3)
         {
-            if (isIntelPad)
-            {
-                setObjVar(self, "gcwWarIntelPadMostRecentAction", item);
-            }
-            messageTo(player, "displayBattlefieldSui", null, 0.0f, false);
+            // Fail closed for a stale radial selection or cached datapad action.
+            retirePostNgeWarTerminalState(self, player);
+            return SCRIPT_CONTINUE;
         }
         else if (item == menu_info_types.SERVER_MENU2)
         {
@@ -179,125 +208,6 @@ public class terminal_gcw_publish_gift extends script.terminal.base.base_termina
             else 
             {
                 sendSystemMessage(player, "There is currently no factional presence activity in any GCW region.", "");
-            }
-        }
-        else if (item == menu_info_types.SERVER_MENU3)
-        {
-            if (isIntelPad)
-            {
-                setObjVar(self, "gcwWarIntelPadMostRecentAction", item);
-            }
-            if (utils.hasScriptVar(player, "gcw.gcwPersonalContributionTablePid"))
-            {
-                int existingPid = utils.getIntScriptVar(player, "gcw.gcwPersonalContributionTablePid");
-                utils.removeScriptVar(player, "gcw.gcwPersonalContributionTablePid");
-                forceCloseSUIPage(existingPid);
-            }
-            boolean usingCachedData = true;
-            String[] columnHeader = null;
-            String[] columnHeaderType = null;
-            String[][] columnData = null;
-            final obj_id playerObject = getPlayerObject(player);
-            if (isIdValid(playerObject) && utils.hasLocalVar(playerObject, "gcwContributionTrackingLastUpdated") && hasObjVar(playerObject, "gcwContributionTrackingLastUpdated") && (utils.getIntLocalVar(playerObject, "gcwContributionTrackingLastUpdated") == getIntObjVar(playerObject, "gcwContributionTrackingLastUpdated")))
-            {
-                columnHeader = utils.getStringArrayLocalVar(playerObject, "gcwContributionTrackingColumnName");
-                if ((columnHeader != null) && (columnHeader.length > 0))
-                {
-                    columnHeaderType = utils.getStringArrayLocalVar(playerObject, "gcwContributionTrackingColumnType");
-                    if ((columnHeaderType != null) && (columnHeaderType.length > 0) && (columnHeaderType.length == columnHeader.length))
-                    {
-                        columnData = new String[columnHeader.length][0];
-                        for (int i = 0; i < columnHeader.length; ++i)
-                        {
-                            columnData[i] = utils.getStringArrayLocalVar(playerObject, "gcwContributionTrackingColumn" + i);
-                            if ((columnData[i] == null) || (columnData[i].length <= 0))
-                            {
-                                columnHeader = null;
-                                columnHeaderType = null;
-                                columnData = null;
-                                break;
-                            }
-                        }
-                    }
-                    else 
-                    {
-                        columnHeader = null;
-                        columnHeaderType = null;
-                        columnData = null;
-                    }
-                }
-                else 
-                {
-                    columnHeader = null;
-                    columnHeaderType = null;
-                    columnData = null;
-                }
-            }
-            if ((columnHeader == null) || (columnHeaderType == null) || (columnData == null))
-            {
-                usingCachedData = false;
-                columnHeader = null;
-                columnHeaderType = null;
-                columnData = null;
-                dictionary dict = getGcwContributionTrackingTableDictionary(player);
-                if (dict != null)
-                {
-                    columnHeader = dict.getStringArray("column");
-                    if ((columnHeader != null) && (columnHeader.length > 0))
-                    {
-                        columnHeaderType = dict.getStringArray("columnType");
-                        if ((columnHeaderType != null) && (columnHeaderType.length > 0) && (columnHeaderType.length == columnHeader.length))
-                        {
-                            columnData = new String[columnHeader.length][0];
-                            for (int i = 0; i < columnHeader.length; ++i)
-                            {
-                                columnData[i] = dict.getStringArray("column" + i);
-                                if ((columnData[i] == null) || (columnData[i].length <= 0))
-                                {
-                                    columnHeader = null;
-                                    columnHeaderType = null;
-                                    columnData = null;
-                                    break;
-                                }
-                            }
-                        }
-                        else 
-                        {
-                            columnHeader = null;
-                            columnHeaderType = null;
-                            columnData = null;
-                        }
-                    }
-                    else 
-                    {
-                        columnHeader = null;
-                        columnHeaderType = null;
-                        columnData = null;
-                    }
-                }
-            }
-            int newPid = -1;
-            if ((columnHeader != null) && (columnHeaderType != null) && (columnData != null))
-            {
-                if (!usingCachedData && isIdValid(playerObject) && hasObjVar(playerObject, "gcwContributionTrackingLastUpdated"))
-                {
-                    utils.setLocalVar(playerObject, "gcwContributionTrackingLastUpdated", getIntObjVar(playerObject, "gcwContributionTrackingLastUpdated"));
-                    utils.setLocalVar(playerObject, "gcwContributionTrackingColumnName", columnHeader);
-                    utils.setLocalVar(playerObject, "gcwContributionTrackingColumnType", columnHeaderType);
-                    for (int i = 0; i < columnHeader.length; ++i)
-                    {
-                        utils.setLocalVar(playerObject, "gcwContributionTrackingColumn" + i, columnData[i]);
-                    }
-                }
-                newPid = sui.tableColumnMajor(player, player, sui.OK_ONLY, "@" + SID_MENU_GCW_PERSONAL_CONTRIBUTION.toString(), "onGcwPersonalContributionTableDictionaryResponse", "@gcw:gcw_personal_contribution_sui_table_header", columnHeader, columnHeaderType, columnData, true);
-            }
-            if (newPid > 0)
-            {
-                utils.setScriptVar(player, "gcw.gcwPersonalContributionTablePid", newPid);
-            }
-            else 
-            {
-                sendSystemMessage(player, "You have not contributed to the GCW score for any GCW region/category over the past 30 days.", "");
             }
         }
         else if (item == menu_info_types.SERVER_MENU4)
