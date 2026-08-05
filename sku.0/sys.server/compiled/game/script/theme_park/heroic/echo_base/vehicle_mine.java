@@ -11,7 +11,6 @@ public class vehicle_mine extends script.base_script
     public int OnAttach(obj_id self) throws InterruptedException
     {
         createTriggerVolume("hoth_vehicle_mine", 10.0f, true);
-        addSkillModModifier(self, "strength_modified", "strength_modified", 1000, -1, false, true);
         return SCRIPT_CONTINUE;
     }
     public int OnTriggerVolumeEntered(obj_id self, String volumeName, obj_id breacher) throws InterruptedException
