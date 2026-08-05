@@ -56,7 +56,8 @@ public class buff extends script.base_script
         "fs_imp_force_drain_1",
         "fs_imp_force_drain_2",
         "fs_imp_force_drain_3",
-        "fs_imp_force_drain_4"
+        "fs_imp_force_drain_4",
+        "invis_fs_buff_invis_1"
     };
     public static boolean isRetiredPostNgeForceSensitiveStanceBuff(String buffName)
     {

@@ -2865,7 +2865,8 @@ public class buff_handler extends script.base_script
     public void invisBuffAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
         if (isPlayer(self) &&
-            script.systems.skills.stealth.player_stealth.isRetiredPostNgeSpyBuffName(effectName))
+            (script.systems.skills.stealth.player_stealth.isRetiredPostNgeSpyBuffName(effectName) ||
+                buff.isRetiredPostNgeForceSensitiveStanceBuff(buffName)))
         {
             buff.removeBuff(self, buffName);
             return;
