@@ -69,7 +69,7 @@ public class analysis_tool extends script.base_script
                     {
                         return SCRIPT_CONTINUE;
                     }
-                    else 
+                    else
                     {
                         string_id errormessage = new string_id(space_crafting.STF_COMPONENT_TOOL, "invalid");
                         sendSystemMessage(transferer, errormessage);
@@ -137,7 +137,7 @@ public class analysis_tool extends script.base_script
             {
                 return SCRIPT_CONTINUE;
             }
-            else 
+            else
             {
                 if (toolContents[0] != null)
                 {
@@ -339,19 +339,10 @@ public class analysis_tool extends script.base_script
         {
             return true;
         }
-        else 
+        else
         {
             return false;
         }
-    }
-    public float getReverseEngineeringExpertiseBonus(obj_id player) throws InterruptedException
-    {
-        float skillMod = getEnhancedSkillStatisticModifier(player, "expertise_reverse_engineering_bonus");
-        if (skillMod > 10)
-        {
-            skillMod = 10.0f;
-        }
-        return skillMod;
     }
     public float getLevelBonus(obj_id player, int level) throws InterruptedException
     {
@@ -380,7 +371,6 @@ public class analysis_tool extends script.base_script
         {
             fltBonus = 0.06f;
         }
-        fltBonus += Math.round(getReverseEngineeringExpertiseBonus(player)) * 0.001;
         return fltBonus;
     }
     public obj_id createLegendaryLoot(obj_id player, obj_id tool, String category) throws InterruptedException
@@ -445,7 +435,7 @@ public class analysis_tool extends script.base_script
             entries[2] = strArmorHpAvg + " " + fltArmorHpAverage + " --- " + strBonusApplied + " " + (fltBonus * 100) + "%" + " --- " + strFinalOutput + " " + fltArmorHp;
             finishReverseEngineering(newComponent, player, objComponents, entries);
         }
-        else 
+        else
         {
             string_id error = new string_id(space_crafting.STF_COMPONENT_TOOL, "invfull");
             sendSystemMessage(player, error);
@@ -559,7 +549,7 @@ public class analysis_tool extends script.base_script
             entries[8] = strBoosterSpeed + " " + fltBoosterSpeedAverage + " --- " + strBonusApplied + " " + (fltBonus * 100) + "%" + " --- " + strFinalOutput + " " + fltBoosterSpeed;
             finishReverseEngineering(newComponent, player, objComponents, entries);
         }
-        else 
+        else
         {
             string_id error = new string_id(space_crafting.STF_COMPONENT_TOOL, "invfull");
             sendSystemMessage(player, error);
@@ -646,7 +636,7 @@ public class analysis_tool extends script.base_script
             entries[5] = strCapRecharge + " " + fltCapRechargeAverage + " --- " + strBonusApplied + " " + (fltBonus * 100) + "%" + " --- " + strFinalOutput + " " + fltCapRecharge;
             finishReverseEngineering(newComponent, player, objComponents, entries);
         }
-        else 
+        else
         {
             string_id error = new string_id(space_crafting.STF_COMPONENT_TOOL, "invfull");
             sendSystemMessage(player, error);
@@ -723,7 +713,7 @@ public class analysis_tool extends script.base_script
             entries[4] = strDroidInterfaceSpeed + " " + fltDroidInterfaceSpeedAverage + " --- " + strBonusApplied + " " + (fltBonus * 100) + "%" + " --- " + strFinalOutput + " " + fltDroidInterfaceSpeed;
             finishReverseEngineering(newComponent, player, objComponents, entries);
         }
-        else 
+        else
         {
             string_id error = new string_id(space_crafting.STF_COMPONENT_TOOL, "invfull");
             sendSystemMessage(player, error);
@@ -841,7 +831,7 @@ public class analysis_tool extends script.base_script
             entries[7] = strEngineSpeed + " " + fltEngineSpeedAvg + " --- " + strBonusApplied + " " + (fltBonus * 100) + "%" + " --- " + strFinalOutput + " " + fltEngineSpeed;
             finishReverseEngineering(newComponent, player, objComponents, entries);
         }
-        else 
+        else
         {
             string_id error = new string_id(space_crafting.STF_COMPONENT_TOOL, "invfull");
             sendSystemMessage(player, error);
@@ -909,7 +899,7 @@ public class analysis_tool extends script.base_script
             entries[3] = strReactorEnergy + " " + fltReactorEnergyAvg + " --- " + strBonusApplied + " " + (fltBonus * 100) + "%" + " --- " + strFinalOutput + " " + fltReactorEnergy;
             finishReverseEngineering(newComponent, player, objComponents, entries);
         }
-        else 
+        else
         {
             string_id error = new string_id(space_crafting.STF_COMPONENT_TOOL, "invfull");
             sendSystemMessage(player, error);
@@ -1006,7 +996,7 @@ public class analysis_tool extends script.base_script
             entries[6] = strShdRecharge + " " + fltShdRechargeAvg + " --- " + strBonusApplied + " " + (fltBonus * 100) + "%" + " --- " + strFinalOutput + " " + fltShdRecharge;
             finishReverseEngineering(newComponent, player, objComponents, entries);
         }
-        else 
+        else
         {
             string_id error = new string_id(space_crafting.STF_COMPONENT_TOOL, "invfull");
             sendSystemMessage(player, error);
@@ -1122,14 +1112,14 @@ public class analysis_tool extends script.base_script
             entries[3] = strEnergyMaintenance + " " + fltEnergyMaintenance + " --- " + strBonusApplied + " " + (int)(fltBonus * 100) + "%" + " --- " + strFinalOutput + " " + fltEnergyMaintenanceFinal;
             entries[4] = strWpnMaxDamage + " " + fltWpnMaxDamageAvg + " --- " + strBonusApplied + " " + (fltBonus * 100) + "%" + " --- " + strFinalOutput + " " + fltWpnMaxDamage;
             entries[5] = strWpnMinDamage + " " + fltWpnMinDamageAvg + " --- " + strBonusApplied + " " + (fltBonus * 100) + "%" + " --- " + strFinalOutput + " " + fltWpnMinDamage;
-            
+
             entries[6] = strWpnShdEffectiveness + " " + fltWpnShdEffectivenessAvg + " --- " + strBonusApplied + " " + (fltBonus * 100) + "%" + " --- " + strFinalOutput + " " + fltWpnShdEffectiveness;
             entries[7] = strWpnArmEffectiveness + " " + fltWpnArmEffectivenessAvg + " --- " + strBonusApplied + " " + (fltBonus * 100) + "%" + " --- " + strFinalOutput + " " + fltWpnArmEffectiveness;
             entries[8] = strWpnEnergyPerShot + " " + fltWpnEnergyPerShotAvg + " --- " + strBonusApplied + " " + (fltBonus * 100) + "%" + " --- " + strFinalOutput + " " + fltWpnEnergyPerShot;
             entries[9] = strWpnRefireRate + " " + fltWpnRefireRateAvg + " --- " + strBonusApplied + " " + (fltBonus * 100) + "%" + " --- " + strFinalOutput + " " + fltWpnRefireRate;
             finishReverseEngineering(newComponent, player, objComponents, entries);
         }
-        else 
+        else
         {
             string_id error = new string_id(space_crafting.STF_COMPONENT_TOOL, "invfull");
             sendSystemMessage(player, error);
@@ -1150,7 +1140,7 @@ public class analysis_tool extends script.base_script
         {
             showSUIPage(pid);
         }
-        else 
+        else
         {
             string_id error = new string_id(space_crafting.STF_COMPONENT_TOOL, "bad_data");
             sendSystemMessage(player, error);
