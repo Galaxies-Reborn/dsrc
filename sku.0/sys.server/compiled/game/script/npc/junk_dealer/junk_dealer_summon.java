@@ -6,8 +6,6 @@ import script.obj_id;
 import script.prose_package;
 import script.string_id;
 
-import java.util.Vector;
-
 public class junk_dealer_summon extends script.base_script
 {
     public junk_dealer_summon()
@@ -18,52 +16,6 @@ public class junk_dealer_summon extends script.base_script
         messageTo(self, "timeUp", null, 300, true);
         messageTo(self, "handleGreeting", null, 2.0f, false);
         return SCRIPT_CONTINUE;
-    }
-    public void buffParty(obj_id self, obj_id player) throws InterruptedException
-    {
-        if (!isIdValid(player))
-        {
-            return;
-        }
-        String buffName = "sm_junk_dealer_1";
-        int precisionBonus = (int)getSkillStatisticModifier(player, "expertise_buff_under_the_counter");
-        int damageDecrease = (int)getSkillStatisticModifier(player, "expertise_buff_best_deal_ever");
-        if (damageDecrease >= 6)
-        {
-            buffName = "sm_junk_dealer_5";
-        }
-        else if (damageDecrease >= 3)
-        {
-            buffName = "sm_junk_dealer_4";
-        }
-        else if (precisionBonus >= 50)
-        {
-            buffName = "sm_junk_dealer_3";
-        }
-        else if (precisionBonus >= 25)
-        {
-            buffName = "sm_junk_dealer_2";
-        }
-        else 
-        {
-            buffName = "sm_junk_dealer_1";
-        }
-        if (group.isGrouped(player))
-        {
-            Vector party = group.getPCMembersInRange(player, 32.0f);
-            if (party != null)
-            {
-                for (int i = 0; i < party.size(); i++)
-                {
-                    obj_id who = (obj_id)party.elementAt(i);
-                    buff.applyBuff(who, buffName);
-                }
-            }
-        }
-        else 
-        {
-            buff.applyBuff(player, buffName);
-        }
     }
     public void totalProfits(obj_id self, obj_id player) throws InterruptedException
     {
@@ -91,7 +43,7 @@ public class junk_dealer_summon extends script.base_script
             pp = prose.setTU(pp, name);
             chat.chat(self, master, chat.CHAT_SAY, null, chat.ChatFlag_targetGroupOnly, pp);
         }
-        else 
+        else
         {
             destroyObject(self);
         }
@@ -100,10 +52,6 @@ public class junk_dealer_summon extends script.base_script
     public int timeUp(obj_id self, dictionary params) throws InterruptedException
     {
         obj_id player = utils.getObjIdScriptVar(self, "smugglerMaster");
-        if (isIdValid(player))
-        {
-            buffParty(self, player);
-        }
         utils.setScriptVar(self, "dismissed", 1);
         messageTo(self, "handleRunAway", null, 1, false);
         totalProfits(self, player);
@@ -117,7 +65,6 @@ public class junk_dealer_summon extends script.base_script
         {
             return SCRIPT_CONTINUE;
         }
-        buffParty(self, player);
         utils.setScriptVar(self, "dismissed", 1);
         messageTo(self, "handleRunAway", null, 1, false);
         totalProfits(self, player);
