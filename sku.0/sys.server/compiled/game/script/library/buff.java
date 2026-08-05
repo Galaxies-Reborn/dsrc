@@ -21,6 +21,94 @@ public class buff extends script.base_script
     {
         return true;
     }
+    private static final String[] RETIRED_POST_NGE_FORCE_SENSITIVE_STANCE_BUFFS =
+    {
+        "fs_buff_def_1_1",
+        "fs_buff_ca_1",
+        "jedi_reflect_flurry",
+        "fs_saber_shackle_1",
+        "fs_saber_shackle_2",
+        "fs_saber_shackle_3",
+        "fs_saber_shackle_4",
+        "fs_soothing_aura_1",
+        "fs_soothing_aura_2",
+        "fs_soothing_aura_3",
+        "fs_soothing_aura_4",
+        "fs_anticipate_aggression_1",
+        "fs_anticipate_aggression_2",
+        "fs_reactive_response_1",
+        "fs_reactive_response_2",
+        "fs_perceptive_sentinel_1",
+        "fs_perceptive_sentinel_2",
+        "fs_perceptive_sentinel_3",
+        "fs_perceptive_sentinel_4",
+        "fs_saber_reflect",
+        "fs_ruthless_precision_1",
+        "fs_ruthless_precision_2",
+        "fs_ruthless_precision_3",
+        "fs_ruthless_precision_4",
+        "fs_tempt_hatred_1",
+        "fs_tempt_hatred_2",
+        "fs_wracking_energy_1",
+        "fs_wracking_energy_2",
+        "fs_wracking_energy_3",
+        "fs_wracking_energy_4",
+        "fs_imp_force_drain_1",
+        "fs_imp_force_drain_2",
+        "fs_imp_force_drain_3",
+        "fs_imp_force_drain_4"
+    };
+    public static boolean isRetiredPostNgeForceSensitiveStanceBuff(String buffName)
+    {
+        if (buffName == null)
+        {
+            return false;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_FORCE_SENSITIVE_STANCE_BUFFS)
+        {
+            if (buffName.equals(retiredBuff))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void retirePostNgeForceSensitiveStanceState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_FORCE_SENSITIVE_STANCE_BUFFS)
+        {
+            if (hasBuff(player, retiredBuff))
+            {
+                removeBuff(player, retiredBuff);
+            }
+        }
+        String[] retiredModifiers =
+        {
+            "stanceParry",
+            "stanceEvasion",
+            "stanceConstitution",
+            "focusStamina",
+            "focusStrength",
+            "expertise_fs_force_clarity_1_proc",
+            "expertise_fs_flurry_charge_proc"
+        };
+        for (String retiredModifier : retiredModifiers)
+        {
+            if (hasSkillModModifier(player, retiredModifier))
+            {
+                removeAttribOrSkillModModifier(player, retiredModifier);
+            }
+        }
+        utils.removeScriptVarTree(player, "expertise_stance_critical");
+        utils.removeScriptVarTree(player, "stance.expertise_stance");
+        utils.removeScriptVarTree(player, "stance.expertise_focus");
+        combat.removeCombatBuffEffect(player, "fs_buff_def_1_1");
+        combat.removeCombatBuffEffect(player, "fs_buff_ca_1");
+    }
     public static boolean isRetiredPostNgeBountyHunterShieldBuff(String buffName)
     {
         return buffName != null &&
@@ -69,6 +157,7 @@ public class buff extends script.base_script
             removeBuff(player, "general_inspiration");
         }
         retirePostNgeMeditationBuffs(player);
+        retirePostNgeForceSensitiveStanceState(player);
         retirePostNgeBountyHunterShieldState(player);
         utils.removeScriptVarTree(player, "performance.buildabuff");
         utils.removeScriptVarTree(player, "buff.xpBonus");
@@ -168,7 +257,9 @@ public class buff extends script.base_script
         {
             return false;
         }
-        if (isPlayer(target) && isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName))
+        if (isPlayer(target) &&
+            (isRetiredPostNgeForceSensitiveStanceBuff(bdata.buffName) ||
+                isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName)))
         {
             return false;
         }
@@ -1339,27 +1430,21 @@ public class buff extends script.base_script
     }
     public static boolean isInStance(obj_id player) throws InterruptedException
     {
-        if (!isPlayer(player))
+        if (isPlayer(player))
         {
-            return true;
+            retirePostNgeForceSensitiveStanceState(player);
+            return false;
         }
-        if (hasBuff(player, "fs_buff_def_1_1"))
-        {
-            return true;
-        }
-        return false;
+        return true;
     }
     public static boolean isInFocus(obj_id player) throws InterruptedException
     {
-        if (!isPlayer(player))
+        if (isPlayer(player))
         {
-            return true;
+            retirePostNgeForceSensitiveStanceState(player);
+            return false;
         }
-        if (hasBuff(player, "fs_buff_ca_1"))
-        {
-            return true;
-        }
-        return false;
+        return true;
     }
     public static boolean playStanceVisual(obj_id target, String effectName) throws InterruptedException
     {

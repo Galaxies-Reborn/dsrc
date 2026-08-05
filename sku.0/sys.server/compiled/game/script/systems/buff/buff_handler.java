@@ -663,6 +663,12 @@ public class buff_handler extends script.base_script
     }
     public int stanceAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) &&
+            buff.isRetiredPostNgeForceSensitiveStanceBuff(buffName))
+        {
+            buff.retirePostNgeForceSensitiveStanceState(self);
+            return SCRIPT_CONTINUE;
+        }
         buff.playStanceVisual(self, effectName);
         if (subtype.equals("expertise_stance"))
         {

@@ -18,8 +18,7 @@ public class base_player extends script.base_script
         // NGE class/expertise progression. NGE GCW rank abilities are likewise
         // not part of Publish 14 faction rank. Retain their data for expansion
         // compatibility, but never let it provide player runtime authority.
-        buff.removeBuff(self, jedi.JEDI_STANCE);
-        buff.removeBuff(self, jedi.JEDI_FOCUS);
+        buff.retirePostNgeForceSensitiveStanceState(self);
         removeSmugglingBuffs(self);
         factions.retirePostNgePvpRewardState(self);
     }
