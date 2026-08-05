@@ -35,7 +35,7 @@ public class battlefield_vehicle extends script.base_script
         {
             return;
         }
-        applySkillStatisticModifier(target, "expertise_innate_protection_all", amount);
+        setObjVar(target, armor.OBJVAR_ARMOR_BASE + "." + armor.OBJVAR_GENERAL_PROTECTION, amount);
         armor.recalculateArmorForMob(target);
         return;
     }
