@@ -65,19 +65,9 @@ public class creature_combat extends script.systems.combat.combat_base
         {
             setRegenRate(self, ACTION, 20);
         }
-        else 
+        else
         {
             int actionRegen = 4;
-            obj_id master = getMaster(self);
-            int expertiseRegen = 0;
-            if (isIdValid(master) && exists(master))
-            {
-                expertiseRegen = getEnhancedSkillStatisticModifierUncapped(master, "expertise_bm_pet_regen");
-            }
-            if (expertiseRegen > 0)
-            {
-                actionRegen += (int)(actionRegen * (expertiseRegen / 100.0f));
-            }
             setRegenRate(self, ACTION, actionRegen);
         }
         if (combat.isPersistCombatMode(self))
@@ -113,17 +103,6 @@ public class creature_combat extends script.systems.combat.combat_base
         {
             int healthRegen = 150;
             int actionRegen = 10;
-            obj_id master = getMaster(self);
-            int expertiseRegen = 0;
-            if (isIdValid(master) && exists(master))
-            {
-                expertiseRegen = getEnhancedSkillStatisticModifierUncapped(master, "expertise_bm_pet_regen");
-            }
-            if (expertiseRegen > 0)
-            {
-                actionRegen += (int)(actionRegen * (expertiseRegen / 100.0f));
-                healthRegen += (int)(healthRegen * (expertiseRegen / 100.0f));
-            }
             setRegenRate(self, HEALTH, healthRegen);
             setRegenRate(self, ACTION, actionRegen);
             if (stealth.canBeastStealth(self))

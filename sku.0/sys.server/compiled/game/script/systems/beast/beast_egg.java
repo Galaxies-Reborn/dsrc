@@ -54,11 +54,7 @@ public class beast_egg extends script.base_script
             {
                 mi.addRootMenu(menu_info_types.ITEM_USE, SID_EGG_HATCH);
             }
-            if (incubator.isEggMountType(egg) && hasSkill(player, "expertise_bm_train_mount_1") && !incubator.isEggMountFlagged(egg))
-            {
-                mi.addRootMenu(menu_info_types.SERVER_MENU1, SID_MAKE_MOUNT);
-            }
-            else if (incubator.isEggMountType(egg) && incubator.isEggMountFlagged(egg))
+            if (incubator.isEggMountType(egg) && incubator.isEggMountFlagged(egg))
             {
                 mi.addRootMenu(menu_info_types.SERVER_MENU1, SID_HATCH_MOUNT);
             }
@@ -98,16 +94,7 @@ public class beast_egg extends script.base_script
                     return SCRIPT_CONTINUE;
                 }
             }
-            if (item == menu_info_types.SERVER_MENU1 && hasSkill(player, "expertise_bm_train_mount_1") && !incubator.isEggMountFlagged(egg))
-            {
-                if (!incubator.isEggMountType(egg))
-                {
-                    return SCRIPT_CONTINUE;
-                }
-                int pid = sui.msgbox(self, player, "@" + SID_MOUNT_CONVERT_PROMPT, sui.YES_NO, "@" + SID_MOUNT_CONVERT_TITLE, "handleStampEggAsMount");
-                return SCRIPT_CONTINUE;
-            }
-            else if (item == menu_info_types.SERVER_MENU1 && incubator.isEggMountType(egg) && incubator.isEggMountFlagged(egg))
+            if (item == menu_info_types.SERVER_MENU1 && incubator.isEggMountType(egg) && incubator.isEggMountFlagged(egg))
             {
                 if (!incubator.isEggMountType(egg))
                 {

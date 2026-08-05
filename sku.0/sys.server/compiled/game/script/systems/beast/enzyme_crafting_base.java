@@ -394,10 +394,6 @@ public class enzyme_crafting_base extends script.base_script
         float craftedPurity = (machinePurity + trayPurity) / 2.0f;
         float craftedMutagen = (machineMutagen + trayMutagen) / 2.0f;
         craftedPurity = craftedPurity > SINGLE_STAGE_CAP ? SINGLE_STAGE_CAP : craftedPurity;
-        int geneticEngineeringMod = getEnhancedSkillStatisticModifierUncapped(player, "expertise_bm_genetic_engineering");
-        float ge_mod = 1.0f + (geneticEngineeringMod / 100.0f);
-        craftedPurity *= ge_mod;
-        craftedMutagen *= ge_mod;
         int addedTime = time < 0 ? CENTRIFUGE_RUNTIME : time;
         int timeAtComplete = getGameTime() + addedTime;
         setObjVar(getSelf(), PROCESS_PURITY, craftedPurity);
@@ -420,10 +416,6 @@ public class enzyme_crafting_base extends script.base_script
         float craftedPurity = (machinePurity + capsulePurity) / 2.0f;
         float craftedMutagen = (machineMutagen + capsuleMutagen) / 2.0f;
         craftedPurity = craftedPurity > SINGLE_STAGE_CAP ? SINGLE_STAGE_CAP : craftedPurity;
-        int geneticEngineeringMod = getEnhancedSkillStatisticModifierUncapped(player, "expertise_bm_genetic_engineering");
-        float ge_mod = 1 + (geneticEngineeringMod / 100.0f);
-        craftedPurity *= ge_mod;
-        craftedMutagen *= ge_mod;
         int addedTime = time < 0 ? PROCESSOR_RUNTIME : time;
         int timeAtComplete = getGameTime() + addedTime;
         setObjVar(getSelf(), PROCESS_PURITY, craftedPurity);
@@ -446,10 +438,6 @@ public class enzyme_crafting_base extends script.base_script
         float craftedPurity = (machinePurity + moldPurity) / 2.0f;
         float craftedMutagen = (machineMutagen + moldMutagen) / 2.0f;
         craftedPurity = craftedPurity > SINGLE_STAGE_CAP ? SINGLE_STAGE_CAP : craftedPurity;
-        int geneticEngineeringMod = getEnhancedSkillStatisticModifierUncapped(player, "expertise_bm_genetic_engineering");
-        float ge_mod = 1 + (geneticEngineeringMod / 100.0f);
-        craftedPurity *= ge_mod;
-        craftedMutagen *= ge_mod;
         int addedTime = time < 0 ? COMBINER_RUNTIME : time;
         int timeAtComplete = getGameTime() + addedTime;
         setObjVar(getSelf(), PROCESS_PURITY, craftedPurity);

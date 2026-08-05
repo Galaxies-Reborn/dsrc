@@ -104,7 +104,7 @@ public class beast extends script.base_script
             attribs[idx] = "true";
             idx++;
         }
-        else 
+        else
         {
             names[idx] = "exp_off";
             attribs[idx] = "true";
@@ -144,29 +144,10 @@ public class beast extends script.base_script
             }
         }
         String[] abilityList = beast_lib.getBeastmasterPetBarData(player, self);
-        int slotsAvalable = getSkillStatisticModifier(player, "expertise_bm_add_pet_bar");
-        if (!abilityList[3].equals("") && slotsAvalable >= 0 && !abilityList[3].equals("empty") && !abilityList[3].equals("disabled"))
+        if (!abilityList[3].equals("") && !abilityList[3].equals("empty") && !abilityList[3].equals("disabled"))
         {
             names[idx] = "bm_ability_1";
             attribs[idx] = String.valueOf(utils.packStringId(new string_id("cmd_n", abilityList[3])));
-            idx++;
-        }
-        if (!abilityList[4].equals("") && slotsAvalable >= 1 && !abilityList[4].equals("empty") && !abilityList[4].equals("disabled"))
-        {
-            names[idx] = "bm_ability_2";
-            attribs[idx] = String.valueOf(utils.packStringId(new string_id("cmd_n", abilityList[4])));
-            idx++;
-        }
-        if (!abilityList[5].equals("") && slotsAvalable >= 2 && !abilityList[5].equals("empty") && !abilityList[5].equals("disabled"))
-        {
-            names[idx] = "bm_ability_3";
-            attribs[idx] = String.valueOf(utils.packStringId(new string_id("cmd_n", abilityList[5])));
-            idx++;
-        }
-        if (!abilityList[6].equals("") && slotsAvalable >= 3 && !abilityList[6].equals("empty") && !abilityList[6].equals("disabled"))
-        {
-            names[idx] = "bm_ability_4";
-            attribs[idx] = String.valueOf(utils.packStringId(new string_id("cmd_n", abilityList[6])));
             idx++;
         }
         names[idx] = "armorhpmax";
@@ -177,9 +158,6 @@ public class beast extends script.base_script
         {
             int minDamage = getWeaponMinDamage(beastWeapon);
             int maxDamage = getWeaponMaxDamage(beastWeapon);
-            int expertiseDamageBonus = getEnhancedSkillStatisticModifierUncapped(self, "expertise_damage_all");
-            minDamage = (int)(minDamage * (1.0f + (expertiseDamageBonus / 100.0f)));
-            maxDamage = (int)(maxDamage * (1.0f + (expertiseDamageBonus / 100.0f)));
             float weaponSpeed = getWeaponAttackSpeed(beastWeapon);
             names[idx] = "damage";
             attribs[idx] = minDamage + " - " + maxDamage;
@@ -192,7 +170,7 @@ public class beast extends script.base_script
             attribs[idx] = String.valueOf(beastDPS);
             idx++;
         }
-        else 
+        else
         {
             obj_id defaultWeapon = getDefaultWeapon(self);
             if (isIdValid(defaultWeapon))
@@ -200,9 +178,6 @@ public class beast extends script.base_script
                 int minDamage = getWeaponMinDamage(defaultWeapon);
                 int maxDamage = getWeaponMaxDamage(defaultWeapon);
                 float weaponSpeed = getWeaponAttackSpeed(defaultWeapon);
-                int expertiseDamageBonus = getEnhancedSkillStatisticModifierUncapped(self, "expertise_damage_all");
-                minDamage = (int)(minDamage * (1.0f + (expertiseDamageBonus / 100.0f)));
-                maxDamage = (int)(maxDamage * (1.0f + (expertiseDamageBonus / 100.0f)));
                 names[idx] = "damage";
                 attribs[idx] = minDamage + " - " + maxDamage;
                 idx++;
@@ -228,7 +203,7 @@ public class beast extends script.base_script
                         attribs[idx] = String.valueOf(utils.roundFloatByDecimal((utils.getFloatScriptVar(self, beast_lib.ARRAY_BEAST_INCUBATION_STATS[i]) * beast_lib.DISPLAY_CONVERSION_RATES[i]))) + "%";
                         idx++;
                     }
-                    else 
+                    else
                     {
                         names[idx] = beast_lib.DISPLAY_NAMES[i];
                         attribs[idx] = String.valueOf(utils.roundFloatByDecimal(utils.getFloatScriptVar(self, beast_lib.ARRAY_BEAST_INCUBATION_STATS[i])));
@@ -236,7 +211,7 @@ public class beast extends script.base_script
                     }
                     continue;
                 }
-                else 
+                else
                 {
                     names[idx] = beast_lib.DISPLAY_NAMES[i];
                     attribs[idx] = String.valueOf(utils.roundFloatByDecimal(utils.getFloatScriptVar(self, beast_lib.ARRAY_BEAST_INCUBATION_STATS[i])));
@@ -354,7 +329,7 @@ public class beast extends script.base_script
             {
                 return SCRIPT_CONTINUE;
             }
-            else 
+            else
             {
                 blog("beastPing() failed to destroy the beast with no master online");
             }
@@ -368,7 +343,7 @@ public class beast extends script.base_script
             {
                 return SCRIPT_CONTINUE;
             }
-            else 
+            else
             {
                 blog("beastPing() failed to destroy the beast with no BCD online");
             }
@@ -460,18 +435,18 @@ public class beast extends script.base_script
             {
                 return SCRIPT_CONTINUE;
             }
-            else 
+            else
             {
                 return SCRIPT_OVERRIDE;
             }
         }
-        else 
+        else
         {
             if (doAgitatedBehavior(self, newBehavior, oldBehavior) == SCRIPT_CONTINUE)
             {
                 return SCRIPT_CONTINUE;
             }
-            else 
+            else
             {
                 return SCRIPT_OVERRIDE;
             }
@@ -590,7 +565,7 @@ public class beast extends script.base_script
             {
                 mi.addRootMenu(menu_info_types.SERVER_MENU1, new string_id(MENU_FILE, "exp_on"));
             }
-            else 
+            else
             {
                 mi.addRootMenu(menu_info_types.SERVER_MENU1, new string_id(MENU_FILE, "exp_off"));
             }
@@ -783,14 +758,14 @@ public class beast extends script.base_script
         {
             ai_lib.resumeFormationFollowing(self);
         }
-        else 
+        else
         {
             obj_id master = getMaster(self);
             if (isIdValid(master) && master.isLoaded())
             {
                 pet_lib.petFollow(self, master);
             }
-            else 
+            else
             {
                 stop(self);
             }
@@ -806,7 +781,7 @@ public class beast extends script.base_script
             pet_lib.releasePet(self);
             return SCRIPT_CONTINUE;
         }
-        else 
+        else
         {
             setObjVar(self, "ai.pet.ignoredForDays", ignoredForDays);
         }
@@ -928,7 +903,7 @@ public class beast extends script.base_script
         {
             aiSetHomeLocation(self, getLocation(master));
         }
-        else 
+        else
         {
             aiSetHomeLocation(self, getLocation(self));
         }
@@ -986,19 +961,19 @@ public class beast extends script.base_script
                     utils.setScriptVar(self, "petIgnoreAttacks", getGameTime());
                 }
             }
-            else 
+            else
             {
                 aiSetHomeLocation(self, getLocation(self));
             }
         }
-        else 
+        else
         {
             obj_id master = getMaster(self);
             if (isIdValid(master) && master.isLoaded())
             {
                 beast_lib.doStayCommand(self, master);
             }
-            else 
+            else
             {
                 ai_lib.aiStopFollowing(self);
                 location myLocation = getLocation(self);
@@ -1046,7 +1021,7 @@ public class beast extends script.base_script
                     {
                         ai_lib.aiSetPosture(self, POSTURE_SITTING);
                     }
-                    else 
+                    else
                     {
                         ai_lib.aiSetPosture(self, POSTURE_LYING_DOWN);
                     }
@@ -1056,7 +1031,7 @@ public class beast extends script.base_script
                     ai_lib.aiSetPosture(self, POSTURE_LYING_DOWN);
                 }
             }
-            else 
+            else
             {
                 ai_lib.doAction(self, "happy");
             }
@@ -1075,7 +1050,7 @@ public class beast extends script.base_script
             {
                 ai_lib.doAction(self, "confused");
             }
-            else 
+            else
             {
                 beast_lib.doFollowCommand(self, master);
             }

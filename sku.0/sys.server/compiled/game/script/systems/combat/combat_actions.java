@@ -10570,8 +10570,7 @@ public class combat_actions extends script.systems.combat.combat_base
         }
         messageTo(self, "channelRevivePet", null, 0, false);
         float baseCooldownTime = getBaseCooldownTime("bm_revive_pet_1");
-        float cooldownTimeMod = getEnhancedSkillStatisticModifierUncapped(self, "expertise_bm_pet_revive_time");
-        setCommandTimerValue(self, TIMER_COOLDOWN, baseCooldownTime - cooldownTimeMod);
+        setCommandTimerValue(self, TIMER_COOLDOWN, baseCooldownTime);
         return SCRIPT_CONTINUE;
     }
     public int bm_paralytic_poison_recourse(obj_id self, dictionary params) throws InterruptedException

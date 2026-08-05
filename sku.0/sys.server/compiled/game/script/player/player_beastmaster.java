@@ -72,6 +72,11 @@ public class player_beastmaster extends script.base_script
     }
     public int OnLogin(obj_id self) throws InterruptedException
     {
+        if (beast_lib.isRetiredPostNgeBeastMasterPlayer(self))
+        {
+            beast_lib.retirePostNgeBeastMasterPlayerState(self);
+            return SCRIPT_OVERRIDE;
+        }
         obj_id beast = beast_lib.getBeastOnPlayer(self);
         if (beast_lib.isValidBeast(beast))
         {
@@ -85,51 +90,13 @@ public class player_beastmaster extends script.base_script
     }
     public int OnSkillGranted(obj_id self, String skill) throws InterruptedException
     {
-        if (skill.equals("expertise_bm_attack_1"))
-        {
-            obj_id beast = beast_lib.getBeastOnPlayer(self);
-            if (!isIdValid(beast))
-            {
-                return SCRIPT_CONTINUE;
-            }
-            obj_id bcd = beast_lib.getBeastBCD(beast);
-            beast_lib.updatePetAbilityList(bcd, beast);
-        }
-        if (skill.endsWith("pet_bar_1"))
-        {
-            obj_id beast = beast_lib.getBeastOnPlayer(self);
-            if (!isIdValid(beast))
-            {
-                return SCRIPT_CONTINUE;
-            }
-            obj_id bcd = beast_lib.getBeastBCD(beast);
-            beast_lib.updatePetAbilityList(bcd, beast);
-        }
-        return SCRIPT_CONTINUE;
+        beast_lib.retirePostNgeBeastMasterPlayerState(self);
+        return SCRIPT_OVERRIDE;
     }
     public int OnSkillRevoked(obj_id self, String skill) throws InterruptedException
     {
-        if (skill.equals("expertise_bm_attack_1"))
-        {
-            obj_id beast = beast_lib.getBeastOnPlayer(self);
-            if (!isIdValid(beast))
-            {
-                return SCRIPT_CONTINUE;
-            }
-            obj_id bcd = beast_lib.getBeastBCD(beast);
-            beast_lib.updatePetAbilityList(bcd, beast);
-        }
-        if (skill.endsWith("pet_bar_1"))
-        {
-            obj_id beast = beast_lib.getBeastOnPlayer(self);
-            if (!isIdValid(beast))
-            {
-                return SCRIPT_CONTINUE;
-            }
-            obj_id bcd = beast_lib.getBeastBCD(beast);
-            beast_lib.updatePetAbilityList(bcd, beast);
-        }
-        return SCRIPT_CONTINUE;
+        beast_lib.retirePostNgeBeastMasterPlayerState(self);
+        return SCRIPT_OVERRIDE;
     }
     public int OnEnteredCombat(obj_id self) throws InterruptedException
     {
@@ -615,6 +582,11 @@ public class player_beastmaster extends script.base_script
     }
     public int channelRevivePet(obj_id self, dictionary params) throws InterruptedException
     {
+        if (beast_lib.isRetiredPostNgeBeastMasterPlayer(self))
+        {
+            beast_lib.retirePostNgeBeastMasterPlayerState(self);
+            return SCRIPT_OVERRIDE;
+        }
         if (utils.hasScriptVar(self, "bm_revive.suiPid"))
         {
             return SCRIPT_CONTINUE;
@@ -630,8 +602,6 @@ public class player_beastmaster extends script.base_script
         }
         location myStartLocation = getLocation(self);
         int duration = 20;
-        int reviveTimeMod = getEnhancedSkillStatisticModifierUncapped(self, "expertise_bm_pet_revive_time");
-        duration -= reviveTimeMod;
         int flags = sui.CD_EVENT_INCAPACITATE;
         int pid = sui.smartCountdownTimerSUI(self, self, "bm_revive_pet", null, 0, duration, "", 0, flags);
         duration += getGameTime();
@@ -676,6 +646,11 @@ public class player_beastmaster extends script.base_script
     }
     public void reviveBeast(obj_id self, obj_id beast) throws InterruptedException
     {
+        if (beast_lib.isRetiredPostNgeBeastMasterPlayer(self))
+        {
+            beast_lib.retirePostNgeBeastMasterPlayerState(self);
+            return;
+        }
         obj_id bcd = beast_lib.getBeastBCD(beast);
         if (!exists(beast) || isIdNull(beast))
         {
@@ -688,7 +663,6 @@ public class player_beastmaster extends script.base_script
         }
         float revivePercent = 10;
         float maxHealthFloat = getMaxAttrib(beast, HEALTH);
-        revivePercent += getEnhancedSkillStatisticModifierUncapped(self, "expertise_bm_pet_recovery");
         maxHealthFloat = maxHealthFloat * (revivePercent / 100);
         int maxHealth = (int)maxHealthFloat;
         beast_lib.checkForFavoriteLocation(bcd);

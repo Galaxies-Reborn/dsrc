@@ -671,18 +671,8 @@ public class incubator extends script.base_script
         if (isIdValid(player) && isIdValid(station))
         {
             int currentTime = getGameTime();
-            int expertiseModifier = (int)getSkillStatisticModifier(player, "expertise_bm_incubation_time");
             float stationFunctionality = getFloatObjVar(station, STATION_FUNCTIONALITY_OBJVAR);
             int modifiedTime = currentTime + NEXT_SESSION_TIME;
-            if (expertiseModifier > 0)
-            {
-                modifiedTime -= expertiseModifier * 3600;
-            }
-            int skillModifier = (int)getSkillStatisticModifier(player, "incubation_time_reduction");
-            if (skillModifier > 0)
-            {
-                modifiedTime -= skillModifier * 60;
-            }
             int city_id = city.checkCity(player, false);
             if (city.cityHasSpec(city_id, city.SF_SPEC_INCUBATOR))
             {
@@ -845,11 +835,7 @@ public class incubator extends script.base_script
         }
         if (!hasObjVar(dna, DNA_OLD_PET_IDENTIFIER) && !hasObjVar(dna, DNA_CS))
         {
-            int expertiseQualityBonus = getEnhancedSkillStatisticModifierUncapped(player, "expertise_bm_dna_harvesting_1");
-            blog("BEAST_DNA", "expertiseQualityBonus " + expertiseQualityBonus);
-            float modifiedExpertiseBonus = (expertiseQualityBonus * 0.01f) * 50;
-            blog("BEAST_DNA", "modifiedExpertiseBonus " + modifiedExpertiseBonus);
-            float min_range = MIN_QUALITY_RANGE + modifiedExpertiseBonus;
+            float min_range = MIN_QUALITY_RANGE;
             blog("BEAST_DNA", "min_range " + min_range);
             float quality = rand(min_range, MAX_QUALITY_RANGE);
             blog("BEAST_DNA", "quality " + quality);

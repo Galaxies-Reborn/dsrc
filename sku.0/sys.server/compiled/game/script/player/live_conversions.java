@@ -681,7 +681,11 @@ public class live_conversions extends script.base_script
         {
             attachScript(player, "player.veteran_rewards");
         }
-        if (!hasScript(player, "player.player_beastmaster"))
+        if (beast_lib.isPostNgeBeastMasterPlayerRuntimeRetired())
+        {
+            beast_lib.retirePostNgeBeastMasterPlayerState(player);
+        }
+        else if (!hasScript(player, "player.player_beastmaster"))
         {
             attachScript(player, "player.player_beastmaster");
         }

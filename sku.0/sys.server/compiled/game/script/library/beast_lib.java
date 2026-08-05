@@ -366,7 +366,9 @@ public class beast_lib extends script.base_script
         {
             buff.removeBuff(player, playerBuff);
         }
+        utils.removeBatchObjVar(player, PLAYER_KNOWN_SKILLS_LIST);
         setBeastmasterPet(player, null);
+        setBeastmasterPetCommands(player, new String[0]);
         if (hasScript(player, "player.player_beastmaster"))
         {
             detachScript(player, "player.player_beastmaster");
@@ -382,18 +384,9 @@ public class beast_lib extends script.base_script
     }
     public static boolean isBeastMaster(obj_id player) throws InterruptedException
     {
-        if (!isIdValid(player))
+        if (!isIdValid(player) || !isPlayer(player))
         {
             return false;
-        }
-        if (isRetiredPostNgeBeastMasterPlayer(player))
-        {
-            return false;
-        }
-        int skill = getSkillStatisticModifier(player, "expertise_bm_base_mod");
-        if (skill > 0)
-        {
-            return true;
         }
         return false;
     }
@@ -1417,7 +1410,6 @@ public class beast_lib extends script.base_script
         {
             happiness += utils.getIntScriptVar(bcd, PET_ACTIVITY_SCRIPTVAR);
         }
-        happiness += (int)getSkillStatisticModifier(player, "expertise_bm_pet_happiness");
         setBCDBeastHappiness(bcd, happiness);
         applyHappinessBuffIcon(beast);
     }
@@ -1721,28 +1713,17 @@ public class beast_lib extends script.base_script
         }
         addSkillModModifier(beast, "slope_move", "slope_move", 50, -1, false, false);
         updateBeastHappiness(bcd, beast);
-        int expertiseRegen = getEnhancedSkillStatisticModifierUncapped(getMaster(beast), "expertise_bm_pet_regen");
-        int expertiseHealth = getEnhancedSkillStatisticModifierUncapped(getMaster(beast), "expertise_bm_pet_health");
-        int expertiseAttackSpeed = getEnhancedSkillStatisticModifierUncapped(getMaster(beast), "expertise_bm_pet_attack_speed");
-        int expertiseArmor = getEnhancedSkillStatisticModifierUncapped(getMaster(beast), "expertise_bm_pet_armor");
-        int expertiseDamage = getEnhancedSkillStatisticModifierUncapped(getMaster(beast), "expertise_bm_pet_damage");
         float incubationArmorBonus = utils.getFloatScriptVar(beast, OBJVAR_INCREASE_ARMOR);
         float incubationDamageBonus = utils.getFloatScriptVar(beast, OBJVAR_INCREASE_DPS);
         float incubationHealthBonus = utils.getFloatScriptVar(beast, OBJVAR_INCREASE_HEALTH);
         int intMinDamage = (int)beastStatsDict.getInt("MinDmg");
         int intMaxDamage = (int)beastStatsDict.getInt("MaxDmg");
-        intMinDamage = getExpertiseStat(intMinDamage, expertiseDamage, 0.5f);
-        intMaxDamage = getExpertiseStat(intMaxDamage, expertiseDamage, 0.5f);
         float floatMinDamage = intMinDamage * (1.0f + incubationDamageBonus / 100.0f);
         float floatMaxDamage = intMaxDamage * (1.0f + incubationDamageBonus / 100.0f);
         intMinDamage = (int)floatMinDamage;
         intMaxDamage = (int)floatMaxDamage;
-        int specialDamagePercent = getExpertiseStat(100, expertiseDamage, 0.5f) - 100;
-        if (!hasSkillModModifier(beast, "expertise_damage_line_beast_only"))
-        {
-            addSkillModModifier(beast, "expertise_damage_line_beast_only", "expertise_damage_line_beast_only", specialDamagePercent, -1, false, false);
-        }
-        float primarySpeed = getExpertiseSpeed(BEAST_WEAPON_SPEED, expertiseAttackSpeed);
+        removeAttribOrSkillModModifier(beast, "expertise_damage_line_beast_only");
+        float primarySpeed = BEAST_WEAPON_SPEED;
         obj_id beastWeapon = getCurrentWeapon(beast);
         if (isIdValid(beastWeapon))
         {
@@ -1761,10 +1742,7 @@ public class beast_lib extends script.base_script
             weapons.setWeaponData(defaultWeapon);
             utils.setScriptVar(defaultWeapon, "isCreatureWeapon", 1);
         }
-        int beastHealth = (int)(getExpertiseStat(beastStatsDict.getInt("HP"), expertiseHealth, 0.5f) * (1.0f + (incubationHealthBonus * 0.2f) / 100.0f));
-        int constitutionBonus = getEnhancedSkillStatisticModifierUncapped(beast, "constitution_modified");
-        int staminaBonus = getEnhancedSkillStatisticModifierUncapped(beast, "stamina_modified");
-        beastHealth += (constitutionBonus * 8) + (staminaBonus * 2);
+        int beastHealth = (int)(beastStatsDict.getInt("HP") * (1.0f + (incubationHealthBonus * 0.2f) / 100.0f));
         setMaxAttrib(beast, HEALTH, beastHealth);
         beastHealth = getBCDBeastHealth(bcd);
         if (beastHealth <= 0)
@@ -1786,8 +1764,8 @@ public class beast_lib extends script.base_script
         setMaxAttrib(beast, ACTION, 100);
         if (!combat.isInCombat(beast))
         {
-            int healthRegen = getExpertiseStat(beastStatsDict.getInt("HealthRegen"), expertiseRegen, 0.5f);
-            int actionRegen = getExpertiseStat(beastStatsDict.getInt("ActionRegen"), expertiseRegen, 0.5f);
+            int healthRegen = beastStatsDict.getInt("HealthRegen");
+            int actionRegen = beastStatsDict.getInt("ActionRegen");
             setRegenRate(beast, HEALTH, healthRegen);
             setRegenRate(beast, ACTION, actionRegen);
         }
@@ -1798,8 +1776,7 @@ public class beast_lib extends script.base_script
             setBaseWalkSpeed(beast, runSpeed);
         }
         armor.removeAllArmorData(beast);
-        int intArmor = (int)(getExpertiseStat(beastStatsDict.getInt("Armor"), expertiseArmor, 0.5f) * (1.0f + incubationArmorBonus / 100.0f));
-        intArmor += (int)getSkillStatisticModifier(beast, "expertise_innate_protection_all");
+        int intArmor = (int)(beastStatsDict.getInt("Armor") * (1.0f + incubationArmorBonus / 100.0f));
         utils.setScriptVar(beast, "beast.display.armor", intArmor);
         if (intArmor >= 0)
         {
@@ -1813,21 +1790,7 @@ public class beast_lib extends script.base_script
         }
         setBeastExperience(beast, getBCDBeastExperience(bcd));
         setBeastCanLevel(beast, getBCDBeastCanLevel(bcd));
-        int attentionPenaltyReduction = getEnhancedSkillStatisticModifierUncapped(getMaster(beast), "expertise_bm_self_debuff_reduction");
-        int attentionPenalty = BASE_ATTENTION_PENALTY + attentionPenaltyReduction;
-        int hackeyWorkAroundValue = (attentionPenalty / 5) * -1;
-        if (hackeyWorkAroundValue > 5)
-        {
-            hackeyWorkAroundValue = 5;
-        }
-        if (attentionPenalty < 0 || hackeyWorkAroundValue > 0)
-        {
-            buff.applyBuff(getMaster(beast), ATTENTION_PENALTY_DEBUFF + hackeyWorkAroundValue);
-        }
-        else 
-        {
-            removeAttentionPenaltyDebuff(getMaster(beast));
-        }
+        removeAttentionPenaltyDebuff(getMaster(beast));
     }
     public static void storeBeast(obj_id bcd) throws InterruptedException
     {
@@ -1990,7 +1953,6 @@ public class beast_lib extends script.base_script
         if (isValidPlayer(master))
         {
             int experienceGain = Math.round(100 * percentageBonuses);
-            experienceGain += experienceGain * 0.01f * getEnhancedSkillStatisticModifierUncapped(master, "bm_xp_mod_boost");
             int multiplier = utils.stringToInt(getConfigSetting("GameServer", "xpMultiplier"));
             if (multiplier > 1)
             {
@@ -2811,7 +2773,11 @@ public class beast_lib extends script.base_script
     }
     public static boolean canPerformCommand(obj_id player, obj_id pet, String command) throws InterruptedException
     {
-        int additionalAbilitySlot = getSkillStatisticModifier(player, "expertise_bm_add_pet_bar");
+        if (isRetiredPostNgeBeastMasterPlayer(player))
+        {
+            return false;
+        }
+        int highestAvailableAbilitySlot = 0;
         String[] abilityList = getTrainedSkills(pet);
         for (int i = 0; i < abilityList.length; i++)
         {
@@ -2819,7 +2785,7 @@ public class beast_lib extends script.base_script
             {
                 continue;
             }
-            if (abilityList[i].equals(command) && i <= additionalAbilitySlot)
+            if (abilityList[i].equals(command) && i <= highestAvailableAbilitySlot)
             {
                 return true;
             }
@@ -2829,7 +2795,12 @@ public class beast_lib extends script.base_script
     public static int getAvailableTrainingSlots(obj_id pet, String abilityName) throws InterruptedException
     {
         String[] knownSkills = getTrainedSkills(pet);
-        int additionalAbilitySlot = getSkillStatisticModifier(getBCDPlayer(getBeastBCD(pet)), "expertise_bm_add_pet_bar");
+        obj_id player = getBCDPlayer(getBeastBCD(pet));
+        if (isRetiredPostNgeBeastMasterPlayer(player))
+        {
+            return 0;
+        }
+        int highestAvailableAbilitySlot = 0;
         int openSlots = 0;
         if (!hasCommand(getMaster(pet), BM_COMMAND_ATTACK) && getBeastMasterSpecialType(abilityName) != ABILITY_TYPE_NONCOMBAT)
         {
@@ -2837,7 +2808,7 @@ public class beast_lib extends script.base_script
         }
         for (int i = 0; i < knownSkills.length; i++)
         {
-            if (i <= additionalAbilitySlot)
+            if (i <= highestAvailableAbilitySlot)
             {
                 if (knownSkills[i].equals("empty") || isSkillUpgrade(pet, abilityName))
                 {
@@ -2998,6 +2969,11 @@ public class beast_lib extends script.base_script
     }
     public static String[] playerLearnBeastMasterSkill(obj_id player, String newSkill, boolean notify) throws InterruptedException
     {
+        if (isRetiredPostNgeBeastMasterPlayer(player))
+        {
+            utils.removeBatchObjVar(player, PLAYER_KNOWN_SKILLS_LIST);
+            return null;
+        }
         Vector abilityCrcList = new Vector();
         abilityCrcList.setSize(0);
         if (!isLearnableBeastMasterSkill(newSkill))
@@ -3063,6 +3039,11 @@ public class beast_lib extends script.base_script
     }
     public static boolean hasBeastMasterSkill(obj_id player, String beastAbility) throws InterruptedException
     {
+        if (isRetiredPostNgeBeastMasterPlayer(player))
+        {
+            utils.removeBatchObjVar(player, PLAYER_KNOWN_SKILLS_LIST);
+            return false;
+        }
         if (isIdValid(player))
         {
             if (beastAbility != null && !beastAbility.equals(""))
@@ -3113,6 +3094,11 @@ public class beast_lib extends script.base_script
     }
     public static Vector getKnownSkillsCrc(obj_id player) throws InterruptedException
     {
+        if (isRetiredPostNgeBeastMasterPlayer(player))
+        {
+            utils.removeBatchObjVar(player, PLAYER_KNOWN_SKILLS_LIST);
+            return null;
+        }
         if (!utils.hasIntBatchObjVar(player, PLAYER_KNOWN_SKILLS_LIST))
         {
             return null;
@@ -3145,30 +3131,13 @@ public class beast_lib extends script.base_script
         pp.actor.set(new string_id("cmd_n", abilityName));
         sendSystemMessageProse(master, pp);
     }
-    public static int getExpertiseStat(int baseStat, int expertiseMod, float nerfPercent) throws InterruptedException
-    {
-        float expertisePercent = (float)expertiseMod / 100;
-        float baseStatFloat = baseStat;
-        float expertiseStatFloat = baseStatFloat - (baseStatFloat * (nerfPercent - (nerfPercent * expertisePercent)));
-        int expertiseStat = (int)expertiseStatFloat;
-        return expertiseStat;
-    }
-    public static float getExpertiseSpeed(float baseStat, int expertiseMod) throws InterruptedException
-    {
-        float expertisePercent = (float)expertiseMod / 100;
-        float expertiseSpeed = baseStat + (baseStat * (1.0f - expertisePercent));
-        return expertiseSpeed;
-    }
     public static boolean isPreparedToLearnCreatureAbility(obj_id player) throws InterruptedException
     {
         return buff.hasBuff(player, "bm_creature_knowledge");
     }
     public static float getCreatureKnowledgeLevel(obj_id player) throws InterruptedException
     {
-        int ck_skill = getEnhancedSkillStatisticModifier(player, "bm_creature_knowledge");
-        int level = getLevel(player);
-        float learningPotential = (((float)ck_skill + level) / 10.0f);
-        return learningPotential;
+        return 0.0f;
     }
     public static boolean makeAbilityLearnSkillCheck(obj_id player, String ability) throws InterruptedException
     {
@@ -3503,8 +3472,6 @@ public class beast_lib extends script.base_script
             setObjVar(newEnzyme, "enzyme.trait", trait);
             return newEnzyme;
         }
-        int skillMod = getEnhancedSkillStatisticModifierUncapped(player, "expertise_bm_genetic_engineering");
-        float ge_mod = 1.0f + (skillMod / 1000.0f);
         float levelDifference = (float)getLevel(target) / getLevel(player);
         levelDifference = levelDifference > 1.0f ? 1.0f : levelDifference;
         float valuePerLevel = 0.02f;
@@ -3533,8 +3500,6 @@ public class beast_lib extends script.base_script
         float baseMutagen = distributedRand(randomFloor, randomCeiling, seed);
         enzymePurity += basePurity;
         enzymeMutagen += baseMutagen;
-        enzymePurity *= ge_mod;
-        enzymeMutagen *= ge_mod;
         enzymePurity *= levelDifference;
         enzymeMutagen *= levelDifference;
         addToExtractionList(player, target);
@@ -3647,9 +3612,11 @@ public class beast_lib extends script.base_script
     public static String[] getBeastmasterPetBarData(obj_id player, obj_id pet) throws InterruptedException
     {
         String[] barData = (String[])PET_BAR_DEFAULT_ARRAY.clone();
+        if (isRetiredPostNgeBeastMasterPlayer(player))
+        {
+            return barData;
+        }
         String[] knownSkills = getTrainedSkills(pet);
-        int additionalAbilitySlot = 0;
-        additionalAbilitySlot = getSkillStatisticModifier(player, "expertise_bm_add_pet_bar");
         if (hasCommand(player, BM_COMMAND_ATTACK))
         {
             barData[0] = BM_COMMAND_ATTACK;
@@ -3657,18 +3624,6 @@ public class beast_lib extends script.base_script
         if (hasCommand(player, BM_COMMAND_ATTACK) || getBeastMasterSpecialType(knownSkills[0]) == ABILITY_TYPE_NONCOMBAT)
         {
             barData[3] = knownSkills[0];
-        }
-        if (additionalAbilitySlot == 0)
-        {
-            return barData;
-        }
-        for (int i = 0; i < additionalAbilitySlot; i++)
-        {
-            if (additionalAbilitySlot > 3)
-            {
-                break;
-            }
-            barData[i + 4] = knownSkills[i + 1];
         }
         return barData;
     }
@@ -3970,7 +3925,7 @@ public class beast_lib extends script.base_script
         {
             return dict;
         }
-        int ck_skill = getEnhancedSkillStatisticModifierUncapped(player, "bm_creature_knowledge");
+        int ck_skill = 0;
         String creatureName = getCreatureName(creature);
         dictionary creatureDict = dataTableGetRow("datatables/mob/creatures.iff", creatureName);
         if (ck_skill > -1)
@@ -4174,12 +4129,9 @@ public class beast_lib extends script.base_script
             blog("updateBeastStats() missing entry in the " + BEASTS_STATS + " table for beastType: " + beastType + ".");
             return;
         }
-        int expertiseDamage = getEnhancedSkillStatisticModifierUncapped(getMaster(beast), "expertise_bm_pet_damage");
         float incubationDamageBonus = utils.getFloatScriptVar(beast, OBJVAR_INCREASE_DPS);
         int intMinDamage = (int)beastStatsDict.getInt("MinDmg");
         int intMaxDamage = (int)beastStatsDict.getInt("MaxDmg");
-        intMinDamage = getExpertiseStat(intMinDamage, expertiseDamage, 0.5f);
-        intMaxDamage = getExpertiseStat(intMaxDamage, expertiseDamage, 0.5f);
         float floatMinDamage = intMinDamage * (1.0f + incubationDamageBonus / 100.0f);
         float floatMaxDamage = intMaxDamage * (1.0f + incubationDamageBonus / 100.0f);
         intMinDamage = (int)floatMinDamage;

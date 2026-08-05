@@ -15,6 +15,10 @@ public class trainer_beast_master extends script.base_script
     }
     public boolean trainer_beast_master_condition_canLearnNextProvoke(obj_id player, obj_id npc) throws InterruptedException
     {
+        if (beast_lib.isRetiredPostNgeBeastMasterPlayer(player))
+        {
+            return false;
+        }
         String bestProvoke = beast_lib.getBestBeastMasterSkill(player, "bm_provoke_1");
         if (bestProvoke.equals("bm_provoke_5"))
         {
@@ -46,6 +50,10 @@ public class trainer_beast_master extends script.base_script
     }
     public boolean trainer_beast_master_condition_canPayFee(obj_id player, obj_id npc) throws InterruptedException
     {
+        if (beast_lib.isRetiredPostNgeBeastMasterPlayer(player))
+        {
+            return false;
+        }
         int balance = getTotalMoney(player);
         return 5000 <= balance;
     }
@@ -79,19 +87,22 @@ public class trainer_beast_master extends script.base_script
     }
     public void trainer_beast_master_action_clearPetSkills(obj_id player, obj_id npc) throws InterruptedException
     {
+        if (beast_lib.isRetiredPostNgeBeastMasterPlayer(player))
+        {
+            beast_lib.retirePostNgeBeastMasterPlayerState(player);
+            return;
+        }
         money.requestPayment(player, money.ACCT_SKILL_TRAINING, 5000, "none", null, false);
         obj_id beast = beast_lib.getBeastOnPlayer(player);
         beast_lib.clearTrainedSkills(beast);
     }
     public void trainer_beast_master_action_teachNextProvoke(obj_id player, obj_id npc) throws InterruptedException
     {
-        String current_provoke = beast_lib.getBestBeastMasterSkill(player, "bm_provoke_1");
-        String nextProvoke = beast_lib.getNextSkillInLine(current_provoke);
-        beast_lib.playerLearnBeastMasterSkill(player, nextProvoke, true);
+        beast_lib.retirePostNgeBeastMasterPlayerState(player);
     }
     public void trainer_beast_master_action_teachFirstProvoke(obj_id player, obj_id npc) throws InterruptedException
     {
-        beast_lib.playerLearnBeastMasterSkill(player, "bm_provoke_1");
+        beast_lib.retirePostNgeBeastMasterPlayerState(player);
     }
     public int trainer_beast_master_handleBranch1(obj_id player, obj_id npc, string_id response) throws InterruptedException
     {
