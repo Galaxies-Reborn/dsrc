@@ -2556,6 +2556,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int me_buff_health_1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeMedicPlayerAction(self, "me_buff_health_1"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!isIdValid(target) || !pvpCanHelp(self, target) || vehicle.isVehicle(target) || isDead(target))
         {
             target = self;
@@ -3301,6 +3305,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int me_enhance_action_1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeMedicPlayerAction(self, "me_enhance_action_1"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!isIdValid(target) || !pvpCanHelp(self, target) || vehicle.isVehicle(target) || isDead(target))
         {
             target = self;
@@ -3320,6 +3328,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int me_enhance_action_2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeMedicPlayerAction(self, "me_enhance_action_2"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!isIdValid(target) || !pvpCanHelp(self, target) || vehicle.isVehicle(target) || isDead(target))
         {
             target = self;
@@ -3339,6 +3351,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int me_enhance_action_3(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeMedicPlayerAction(self, "me_enhance_action_3"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!isIdValid(target) || !pvpCanHelp(self, target) || vehicle.isVehicle(target) || isDead(target))
         {
             target = self;
@@ -3729,6 +3745,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int me_enhance_strength_1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeMedicPlayerAction(self, "me_enhance_strength_1"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!isIdValid(target) || !pvpCanHelp(self, target) || vehicle.isVehicle(target) || isDead(target))
         {
             target = self;
@@ -3748,6 +3768,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int me_enhance_strength_2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeMedicPlayerAction(self, "me_enhance_strength_2"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!isIdValid(target) || !pvpCanHelp(self, target) || vehicle.isVehicle(target) || isDead(target))
         {
             target = self;
@@ -3767,6 +3791,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int me_enhance_strength_3(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeMedicPlayerAction(self, "me_enhance_strength_3"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!isIdValid(target) || !pvpCanHelp(self, target) || vehicle.isVehicle(target) || isDead(target))
         {
             target = self;
@@ -3826,6 +3854,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int me_enhance_agility_1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeMedicPlayerAction(self, "me_enhance_agility_1"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!isIdValid(target) || !pvpCanHelp(self, target) || vehicle.isVehicle(target) || isDead(target))
         {
             target = self;
@@ -3845,6 +3877,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int me_enhance_agility_2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeMedicPlayerAction(self, "me_enhance_agility_2"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!isIdValid(target) || !pvpCanHelp(self, target) || vehicle.isVehicle(target) || isDead(target))
         {
             target = self;
@@ -3864,6 +3900,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int me_enhance_agility_3(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeMedicPlayerAction(self, "me_enhance_agility_3"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!isIdValid(target) || !pvpCanHelp(self, target) || vehicle.isVehicle(target) || isDead(target))
         {
             target = self;
@@ -3939,6 +3979,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int me_enhance_precision_1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeMedicPlayerAction(self, "me_enhance_precision_1"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!isIdValid(target) || !pvpCanHelp(self, target) || vehicle.isVehicle(target) || isDead(target))
         {
             target = self;
@@ -3958,6 +4002,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int me_enhance_precision_2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeMedicPlayerAction(self, "me_enhance_precision_2"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!isIdValid(target) || !pvpCanHelp(self, target) || vehicle.isVehicle(target) || isDead(target))
         {
             target = self;
@@ -3977,6 +4025,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int me_enhance_precision_3(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeMedicPlayerAction(self, "me_enhance_precision_3"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!isIdValid(target) || !pvpCanHelp(self, target) || vehicle.isVehicle(target) || isDead(target))
         {
             target = self;
@@ -3996,6 +4048,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int me_enhance_block_1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeMedicPlayerAction(self, "me_enhance_block_1"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!isIdValid(target) || !pvpCanHelp(self, target) || vehicle.isVehicle(target) || isDead(target))
         {
             target = self;
@@ -4015,6 +4071,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int me_enhance_dodge_1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeMedicPlayerAction(self, "me_enhance_dodge_1"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!isIdValid(target) || !pvpCanHelp(self, target) || vehicle.isVehicle(target) || isDead(target))
         {
             target = self;
@@ -4038,6 +4098,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int me_buff_health_2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeMedicPlayerAction(self, "me_buff_health_2"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!isIdValid(target) || !pvpCanHelp(self, target) || vehicle.isVehicle(target) || isDead(target))
         {
             target = self;
@@ -4057,6 +4121,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int me_buff_health_3(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeMedicPlayerAction(self, "me_buff_health_3"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!isIdValid(target) || !pvpCanHelp(self, target) || vehicle.isVehicle(target) || isDead(target))
         {
             target = self;
@@ -10077,6 +10145,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int en_holographic_image(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeEntertainerPlayerAction(self, "en_holographic_image"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (combat.isInCombat(self))
         {
             sendSystemMessage(self, new string_id("spam", "cant_do_holo_combat"));
@@ -10095,6 +10167,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int en_holographic_recall(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeEntertainerPlayerAction(self, "en_holographic_recall"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!utils.hasScriptVar(self, "holoMessageTime"))
         {
             sendSystemMessage(self, new string_id("spam", "no_holo_recall"));

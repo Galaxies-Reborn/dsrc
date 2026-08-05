@@ -129,6 +129,22 @@ public class combat_base extends script.base_script
         // launcher*. Retain co_* for NPC/content compatibility, not players.
         return isPlayer(self) && actionName != null && actionName.startsWith("co_");
     }
+    public static boolean isRetiredPostNgeMedicPlayerAction(obj_id self, String actionName) throws InterruptedException
+    {
+        // Publish 14.1 healing progression uses science_medic, science_doctor,
+        // and science_combatmedic with classic commands such as healDamage,
+        // healWound, quickHeal, applyPoison, applyDisease, and revivePlayer.
+        // Retain me_* for NPC/content compatibility, not player authority.
+        return isPlayer(self) && actionName != null && actionName.startsWith("me_");
+    }
+    public static boolean isRetiredPostNgeEntertainerPlayerAction(obj_id self, String actionName) throws InterruptedException
+    {
+        // Publish 14.1 entertainment progression uses social_entertainer,
+        // social_dancer, social_musician, and social_imagedesigner with their
+        // classic performance, flourish, wound-healing, and image commands.
+        // Retain en_* for NPC/content compatibility, not player authority.
+        return isPlayer(self) && actionName != null && actionName.startsWith("en_");
+    }
     public boolean combatStandardAction(String actionName, obj_id self, obj_id target, String params, String successHandler, String failHandler) throws InterruptedException
     {
         return combatStandardAction(actionName, self, target, getCurrentWeapon(self), params, null, false, false, 0);
@@ -252,6 +268,14 @@ public class combat_base extends script.base_script
             return false;
         }
         if (isRetiredPostNgeCommandoPlayerAction(self, actionName))
+        {
+            return false;
+        }
+        if (isRetiredPostNgeMedicPlayerAction(self, actionName))
+        {
+            return false;
+        }
+        if (isRetiredPostNgeEntertainerPlayerAction(self, actionName))
         {
             return false;
         }
