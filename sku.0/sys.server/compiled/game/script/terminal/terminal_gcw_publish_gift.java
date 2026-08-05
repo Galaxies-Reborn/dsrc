@@ -28,7 +28,6 @@ public class terminal_gcw_publish_gift extends script.terminal.base.base_termina
     public static final string_id SID_MENU_GCW_REPORT = new string_id("gcw", "gcw_report_war_terminal_menu");
     public static final string_id SID_MENU_GCW_FACTIONAL_PRESENCE = new string_id("gcw", "gcw_factional_presence_war_terminal_menu");
     public static final string_id SID_MENU_GCW_PERSONAL_CONTRIBUTION = new string_id("gcw", "gcw_personal_contribution_war_terminal_menu");
-    public static final string_id SID_MENU_GCW_REGION_DEFENDER = new string_id("gcw", "gcw_region_defender_war_terminal_menu");
     public static final String[] STAIC_BASE_PLANETS = 
     {
         "corellia",
@@ -79,7 +78,7 @@ public class terminal_gcw_publish_gift extends script.terminal.base.base_termina
         mi.addSubMenu(gcwMenu, menu_info_types.SERVER_MENU6, SID_MENU_GCW_REPORT);
         mi.addSubMenu(gcwMenu, menu_info_types.SERVER_MENU2, SID_MENU_GCW_FACTIONAL_PRESENCE);
         mi.addSubMenu(gcwMenu, menu_info_types.SERVER_MENU3, SID_MENU_GCW_PERSONAL_CONTRIBUTION);
-        mi.addSubMenu(gcwMenu, menu_info_types.SERVER_MENU4, SID_MENU_GCW_REGION_DEFENDER);
+        // The post-NGE city/guild regional-defender report is not part of Publish 14.
         updateGCWInfo(self);
         return super.OnObjectMenuRequest(self, player, mi);
     }
@@ -303,10 +302,6 @@ public class terminal_gcw_publish_gift extends script.terminal.base.base_termina
         }
         else if (item == menu_info_types.SERVER_MENU4)
         {
-            if (isIntelPad)
-            {
-                setObjVar(self, "gcwWarIntelPadMostRecentAction", item);
-            }
             if (utils.hasScriptVar(player, "gcw.gcwRegionDefenderTablePid"))
             {
                 final int existingPid = utils.getIntScriptVar(player, "gcw.gcwRegionDefenderTablePid");
@@ -318,41 +313,6 @@ public class terminal_gcw_publish_gift extends script.terminal.base.base_termina
                 final int existingPid = utils.getIntScriptVar(player, "gcw.gcwRegionDefenderDetailsTablePid");
                 utils.removeScriptVar(player, "gcw.gcwRegionDefenderDetailsTablePid");
                 forceCloseSUIPage(existingPid);
-            }
-            final String[] gcwDefenderRegions = getGcwDefenderRegions();
-            final String[] gcwDefenderRegionsCitiesImperial = getGcwDefenderRegionsCitiesImperial();
-            final String[] gcwDefenderRegionsCitiesRebel = getGcwDefenderRegionsCitiesRebel();
-            final String[] gcwDefenderRegionsGuildsImperial = getGcwDefenderRegionsGuildsImperial();
-            final String[] gcwDefenderRegionsGuildsRebel = getGcwDefenderRegionsGuildsRebel();
-            if ((gcwDefenderRegions != null) && (gcwDefenderRegions.length > 0) && (gcwDefenderRegionsCitiesImperial != null) && (gcwDefenderRegionsCitiesImperial.length == gcwDefenderRegions.length) && (gcwDefenderRegionsCitiesRebel != null) && (gcwDefenderRegionsCitiesRebel.length == gcwDefenderRegions.length) && (gcwDefenderRegionsGuildsImperial != null) && (gcwDefenderRegionsGuildsImperial.length == gcwDefenderRegions.length) && (gcwDefenderRegionsGuildsRebel != null) && (gcwDefenderRegionsGuildsRebel.length == gcwDefenderRegions.length))
-            {
-                final String[] columnHeader = 
-                {
-                    "GCW Region",
-                    "Rebel Cities",
-                    "Rebel Guilds",
-                    "Imperial Cities",
-                    "Imperial Guilds"
-                };
-                final String[] columnHeaderType = 
-                {
-                    "text",
-                    "text",
-                    "text",
-                    "text",
-                    "text"
-                };
-                final String[][] columnData = new String[5][0];
-                columnData[0] = gcwDefenderRegions;
-                columnData[1] = gcwDefenderRegionsCitiesRebel;
-                columnData[2] = gcwDefenderRegionsGuildsRebel;
-                columnData[3] = gcwDefenderRegionsCitiesImperial;
-                columnData[4] = gcwDefenderRegionsGuildsImperial;
-                final int newPid = sui.tableColumnMajor(player, player, sui.OK_CANCEL, "@" + SID_MENU_GCW_REGION_DEFENDER.toString(), "onGcwRegionDefenderTableDictionaryResponse", "@gcw:gcw_region_defender_sui_table_header", columnHeader, columnHeaderType, columnData, true);
-                if (newPid > 0)
-                {
-                    utils.setScriptVar(player, "gcw.gcwRegionDefenderTablePid", newPid);
-                }
             }
         }
         return SCRIPT_CONTINUE;

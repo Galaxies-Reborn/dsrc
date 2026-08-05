@@ -82,8 +82,6 @@ public class terminal_guild extends script.terminal.base.base_terminal
     public static final string_id SID_ALIGN_IMPERIAL = new string_id("guild", "align_imperial");
     public static final string_id SID_ALIGN_REBEL = new string_id("guild", "align_rebel");
     public static final string_id SID_ALIGN_NEUTRAL = new string_id("guild", "align_neutral");
-    public static final string_id SID_BEGIN_GCW_REGION_DEFENDER = new string_id("guild", "begin_gcw_region_defender");
-    public static final string_id SID_END_GCW_REGION_DEFENDER = new string_id("guild", "end_gcw_region_defender");
     public int getStructureGuildId(obj_id self) throws InterruptedException
     {
         int guildId = 0;
@@ -264,15 +262,7 @@ public class terminal_guild extends script.terminal.base.base_terminal
                     mi.addSubMenu(guildManagementMenu, menu_info_types.SERVER_MENU20, SID_ALIGN_IMPERIAL);
                     mi.addSubMenu(guildManagementMenu, menu_info_types.SERVER_MENU21, SID_ALIGN_REBEL);
                 }
-                final String gcwDefenderRegion = guildGetCurrentGcwDefenderRegion(guildId);
-                if ((gcwDefenderRegion != null) && (gcwDefenderRegion.length() > 0))
-                {
-                    mi.addSubMenu(guildManagementMenu, menu_info_types.SERVER_MENU22, SID_END_GCW_REGION_DEFENDER);
-                }
-                else 
-                {
-                    mi.addSubMenu(guildManagementMenu, menu_info_types.SERVER_MENU23, SID_BEGIN_GCW_REGION_DEFENDER);
-                }
+                // Publish 14 has no guild GCW regional-defender enrollment menu.
             }
             int memberManagementMenu = mi.addRootMenu(menu_info_types.SERVER_GUILD_MEMBER_MANAGEMENT, SID_GUILD_MEMBER_MANAGEMENT);
             mi.addSubMenu(memberManagementMenu, menu_info_types.SERVER_GUILD_MEMBERS, SID_GUILD_MEMBERS);
@@ -506,16 +496,8 @@ public class terminal_guild extends script.terminal.base.base_terminal
                 final int factionId = guildGetCurrentFaction(guildId);
                 if (((-615855020) == factionId) || ((370444368) == factionId))
                 {
-                    final String gcwDefenderRegion = guildGetCurrentGcwDefenderRegion(guildId);
-                    if ((gcwDefenderRegion != null) && (gcwDefenderRegion.length() > 0))
-                    {
-                        sendSystemMessage(player, "You cannot change the guild's factional alignment to Neutral while it is a GCW region defender.", "");
-                    }
-                    else 
-                    {
-                        sendSystemMessage(player, "Setting the guild's factional alignment to Neutral. This may take a few seconds. You will receive mail confirmation once the change has been completed.", "");
-                        guildSetFaction(guildId, 0);
-                    }
+                    sendSystemMessage(player, "Setting the guild's factional alignment to Neutral. This may take a few seconds. You will receive mail confirmation once the change has been completed.", "");
+                    guildSetFaction(guildId, 0);
                 }
             }
         }
@@ -623,95 +605,11 @@ public class terminal_guild extends script.terminal.base.base_terminal
                 }
             }
         }
-        else if (item == menu_info_types.SERVER_MENU22)
+        else if (item == menu_info_types.SERVER_MENU22 || item == menu_info_types.SERVER_MENU23)
         {
             if (player == guildLeader || isGod(player))
             {
-                final String gcwDefenderRegion = guildGetCurrentGcwDefenderRegion(guildId);
-                if ((gcwDefenderRegion != null) && (gcwDefenderRegion.length() > 0))
-                {
-                    sendSystemMessage(player, "Setting the guild's GCW defender region to (None). This may take a few seconds. You will receive mail confirmation once the change has been completed.", "");
-                    guildSetGcwDefenderRegion(guildId, "");
-                }
-            }
-        }
-        else if (item == menu_info_types.SERVER_MENU23)
-        {
-            if (player == guildLeader || isGod(player))
-            {
-                final String gcwCurrentDefenderRegion = guildGetCurrentGcwDefenderRegion(guildId);
-                if ((gcwCurrentDefenderRegion == null) || (gcwCurrentDefenderRegion.length() <= 0))
-                {
-                    final int factionId = guildGetCurrentFaction(guildId);
-                    if (((-615855020) == factionId) || ((370444368) == factionId))
-                    {
-                        final int requiredMemberCountNumber = utils.stringToInt(getConfigSetting("GameServer", "gcwGuildMinMembersForGcwRegionDefender"));
-                        if (guildGetCountMembersOnly(guildId) < requiredMemberCountNumber)
-                        {
-                            sendSystemMessage(player, "The guild cannot become a GCW region defender until it has at least " + requiredMemberCountNumber + " members.", "");
-                        }
-                        else 
-                        {
-                            String announcement = "Select a GCW region for your guild to defend.";
-                            final String gcwPreviousDefenderRegion = guildGetPreviousGcwDefenderRegion(guildId);
-                            final int timeLeftPreviousGcwDefenderRegion = guildGetTimeLeftPreviousGcwDefenderRegion(guildId);
-                            if ((gcwPreviousDefenderRegion != null) && (gcwPreviousDefenderRegion.length() > 0) && (timeLeftPreviousGcwDefenderRegion > 0))
-                            {
-                                final int cooldown = timeLeftPreviousGcwDefenderRegion + (isGod(player) ? 10 : 86400) - getCalendarTime();
-                                if (cooldown > 0)
-                                {
-                                    String cooldownStr = "" + cooldown + "s";
-                                    int[] convertedTime = player_structure.convertSecondsTime(cooldown);
-                                    if ((convertedTime != null) && (convertedTime.length == 4))
-                                    {
-                                        if (convertedTime[0] > 0)
-                                        {
-                                            cooldownStr = "" + convertedTime[0] + "d:" + convertedTime[1] + "h:" + convertedTime[2] + "m:" + convertedTime[3] + "s";
-                                        }
-                                        else if (convertedTime[1] > 0)
-                                        {
-                                            cooldownStr = "" + convertedTime[1] + "h:" + convertedTime[2] + "m:" + convertedTime[3] + "s";
-                                        }
-                                        else if (convertedTime[2] > 0)
-                                        {
-                                            cooldownStr = "" + convertedTime[2] + "m:" + convertedTime[3] + "s";
-                                        }
-                                        else if (convertedTime[3] > 0)
-                                        {
-                                            cooldownStr = "" + convertedTime[3] + "s";
-                                        }
-                                        else 
-                                        {
-                                            cooldownStr = "" + cooldown + "s";
-                                        }
-                                    }
-                                    announcement += "\n";
-                                    announcement += "You can immediately defend the GCW region you most recently defended (" + localize(new string_id("gcw_regions", gcwPreviousDefenderRegion)) + ").\n";
-                                    announcement += "You must wait " + cooldownStr + " before you can defend a different GCW region.";
-                                }
-                            }
-                            String[] gcwDefenderRegions = getGcwDefenderRegions();
-                            if ((gcwDefenderRegions != null) && (gcwDefenderRegions.length > 0))
-                            {
-                                final String[] columnHeader = 
-                                {
-                                    "GCW Region"
-                                };
-                                final String[] columnHeaderType = 
-                                {
-                                    "text"
-                                };
-                                final String[][] columnData = new String[1][0];
-                                columnData[0] = gcwDefenderRegions;
-                                sui.tableColumnMajor(player, player, sui.OK_CANCEL, "@gcw:gcw_region_defender_war_terminal_menu", "handleGuildGcwRegionDefenderChoice", announcement, columnHeader, columnHeaderType, columnData, false);
-                            }
-                        }
-                    }
-                    else 
-                    {
-                        sendSystemMessage(player, "The guild cannot become a GCW region defender until it is aligned with a faction.", "");
-                    }
-                }
+                guildSetGcwDefenderRegion(guildId, "");
             }
         }
         return SCRIPT_CONTINUE;

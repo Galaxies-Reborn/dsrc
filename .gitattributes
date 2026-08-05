@@ -21,3 +21,7 @@ sku.0/sys.server/compiled/game/datatables/faction_perk/hq/hq_point_values.tab -t
 sku.0/sys.server/compiled/game/script/faction_perk/hq/loader.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/faction_perk/hq/planetary_base_register.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/systems/gcw/gcw_parent_object.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/library/guild.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/terminal/terminal_city.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/terminal/terminal_gcw_publish_gift.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/terminal/terminal_guild.java -text whitespace=cr-at-eol

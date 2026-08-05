@@ -1659,47 +1659,6 @@ public class guild extends script.base_script
         guildInfoStr += "\n";
         guildInfoStr += ("Guild Abbreviation: " + guildGetAbbrev(guildId) + "\n");
         guildInfoStr += ("Guild Leader: " + guildGetMemberName(guildId, guildGetLeader(guildId)) + "\n");
-        final String gcwDefenderRegion = guildGetCurrentGcwDefenderRegion(guildId);
-        if ((gcwDefenderRegion != null) && (gcwDefenderRegion.length() > 0))
-        {
-            guildInfoStr += ("GCW Region Defender: " + localize(new string_id("gcw_regions", gcwDefenderRegion)));
-            final int timeJoinedGcwDefenderRegion = guildGetTimeJoinedCurrentGcwDefenderRegion(guildId);
-            if (timeJoinedGcwDefenderRegion > 0)
-            {
-                guildInfoStr += (" (started defending on " + getCalendarTimeStringLocal(timeJoinedGcwDefenderRegion) + ")\n");
-                final int gcwDaysRequiredForGcwRegionDefenderBonus = utils.stringToInt(getConfigSetting("GameServer", "gcwDaysRequiredForGcwRegionDefenderBonus"));
-                final int age = getCalendarTime() - timeJoinedGcwDefenderRegion;
-                if (age > (gcwDaysRequiredForGcwRegionDefenderBonus * 86400))
-                {
-                    if ((-615855020) == factionId)
-                    {
-                        guildInfoStr += ("GCW Region Defender Bonus: " + getGcwDefenderRegionImperialBonus(gcwDefenderRegion) + "%\n");
-                    }
-                    else if ((370444368) == factionId)
-                    {
-                        guildInfoStr += ("GCW Region Defender Bonus: " + getGcwDefenderRegionRebelBonus(gcwDefenderRegion) + "%\n");
-                    }
-                    else 
-                    {
-                        guildInfoStr += "GCW Region Defender Bonus: (None - cannot determine factional alignment)\n";
-                    }
-                }
-                else 
-                {
-                    guildInfoStr += ("GCW Region Defender Bonus: (None - hasn't defended for " + gcwDaysRequiredForGcwRegionDefenderBonus + " days)\n");
-                }
-            }
-            else 
-            {
-                guildInfoStr += "\n";
-                guildInfoStr += "GCW Region Defender Bonus: (None - cannot determine time started defending)\n";
-            }
-        }
-        else 
-        {
-            guildInfoStr += "GCW Region Defender: (None)\n";
-            guildInfoStr += "GCW Region Defender Bonus: (None)\n";
-        }
         guildInfoStr += ("Members: " + memberIds.length);
         sui.msgbox(player, player, guildInfoStr, sui.OK_ONLY, STR_GUILD_INFO_TITLE, sui.MSG_NORMAL, "onGuildInfoResponse");
     }

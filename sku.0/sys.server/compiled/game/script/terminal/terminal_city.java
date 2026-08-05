@@ -136,8 +136,6 @@ public class terminal_city extends script.base_script
     public static final string_id SID_ALIGN_IMPERIAL = new string_id(STF, "align_imperial");
     public static final string_id SID_ALIGN_REBEL = new string_id(STF, "align_rebel");
     public static final string_id SID_ALIGN_NEUTRAL = new string_id(STF, "align_neutral");
-    public static final string_id SID_BEGIN_GCW_REGION_DEFENDER = new string_id(STF, "begin_gcw_region_defender");
-    public static final string_id SID_END_GCW_REGION_DEFENDER = new string_id(STF, "end_gcw_region_defender");
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
         obj_id structure = getTopMostContainer(self);
@@ -204,15 +202,7 @@ public class terminal_city extends script.base_script
                 mi.addSubMenu(menu, menu_info_types.SERVER_MENU14, SID_ALIGN_IMPERIAL);
                 mi.addSubMenu(menu, menu_info_types.SERVER_MENU15, SID_ALIGN_REBEL);
             }
-            final String gcwDefenderRegion = cityGetGcwDefenderRegion(city_id);
-            if ((gcwDefenderRegion == null) || (gcwDefenderRegion.length() <= 0))
-            {
-                mi.addSubMenu(menu, menu_info_types.SERVER_MENU17, SID_BEGIN_GCW_REGION_DEFENDER);
-            }
-            else 
-            {
-                mi.addSubMenu(menu, menu_info_types.SERVER_MENU18, SID_END_GCW_REGION_DEFENDER);
-            }
+            // Publish 14 has no city GCW regional-defender enrollment menu.
         }
         if (isGod(player))
         {
@@ -450,124 +440,30 @@ public class terminal_city extends script.base_script
             }
             else if (item == menu_info_types.SERVER_MENU16)
             {
-                final String gcwDefenderRegion = cityGetGcwDefenderRegion(city_id);
-                if ((gcwDefenderRegion != null) && (gcwDefenderRegion.length() > 0))
+                int factionId = cityGetFaction(city_id);
+                if ((-615855020) == factionId)
                 {
-                    sendSystemMessage(player, "You cannot change the city's factional alignment to Neutral while it is a GCW region defender.", "");
+                    setObjVar(structure, "cityTimeEndImperialAlign", getCalendarTime());
+                    removeObjVar(structure, "cityTimeEndRebelAlign");
                 }
-                else 
+                else if ((370444368) == factionId)
                 {
-                    int factionId = cityGetFaction(city_id);
-                    if ((-615855020) == factionId)
-                    {
-                        setObjVar(structure, "cityTimeEndImperialAlign", getCalendarTime());
-                        removeObjVar(structure, "cityTimeEndRebelAlign");
-                    }
-                    else if ((370444368) == factionId)
-                    {
-                        setObjVar(structure, "cityTimeEndRebelAlign", getCalendarTime());
-                        removeObjVar(structure, "cityTimeEndImperialAlign");
-                    }
-                    else if (factionId != 0)
-                    {
-                        removeObjVar(structure, "cityTimeEndImperialAlign");
-                        removeObjVar(structure, "cityTimeEndRebelAlign");
-                    }
-                    sendSystemMessage(player, "Setting the city's factional alignment to Neutral. This may take a few seconds. You will receive mail confirmation once the change has been completed.", "");
-                    removeObjVar(structure, "cityFactionAlign");
-                    citySetFaction(city_id, 0, true);
+                    setObjVar(structure, "cityTimeEndRebelAlign", getCalendarTime());
+                    removeObjVar(structure, "cityTimeEndImperialAlign");
                 }
+                else if (factionId != 0)
+                {
+                    removeObjVar(structure, "cityTimeEndImperialAlign");
+                    removeObjVar(structure, "cityTimeEndRebelAlign");
+                }
+                sendSystemMessage(player, "Setting the city's factional alignment to Neutral. This may take a few seconds. You will receive mail confirmation once the change has been completed.", "");
+                removeObjVar(structure, "cityFactionAlign");
+                citySetFaction(city_id, 0, true);
             }
-            else if (item == menu_info_types.SERVER_MENU17)
+            else if (item == menu_info_types.SERVER_MENU17 || item == menu_info_types.SERVER_MENU18)
             {
-                final int factionId = cityGetFaction(city_id);
-                if (factionId == 0)
-                {
-                    sendSystemMessage(player, "The city cannot become a GCW region defender until it is aligned with a faction.", "");
-                }
-                else 
-                {
-                    final String gcwDefenderRegion = cityGetGcwDefenderRegion(city_id);
-                    if ((gcwDefenderRegion == null) || (gcwDefenderRegion.length() <= 0))
-                    {
-                        String[] gcwDefenderRegions = getGcwDefenderRegions();
-                        if ((gcwDefenderRegions != null) && (gcwDefenderRegions.length > 0))
-                        {
-                            String previousRegion = null;
-                            int previousRegionTimeStartDefend = 0;
-                            int previousRegionTimeEndDefend = 0;
-                            if (hasObjVar(structure, "cityGcwRegionDefender.region"))
-                            {
-                                previousRegion = getStringObjVar(structure, "cityGcwRegionDefender.region");
-                            }
-                            if (hasObjVar(structure, "cityGcwRegionDefender.timeBegin"))
-                            {
-                                previousRegionTimeStartDefend = getIntObjVar(structure, "cityGcwRegionDefender.timeBegin");
-                            }
-                            if (hasObjVar(structure, "cityGcwRegionDefender.timeEnd"))
-                            {
-                                previousRegionTimeEndDefend = getIntObjVar(structure, "cityGcwRegionDefender.timeEnd");
-                            }
-                            String announcement = "Select a GCW region for your city to defend.";
-                            if ((previousRegion != null) && (previousRegion.length() > 0) && (previousRegionTimeStartDefend > 0) && (previousRegionTimeEndDefend > 0))
-                            {
-                                final int cooldown = previousRegionTimeEndDefend + (isGod(player) ? 10 : 86400) - getCalendarTime();
-                                if (cooldown > 0)
-                                {
-                                    String cooldownStr = "" + cooldown + "s";
-                                    int[] convertedTime = player_structure.convertSecondsTime(cooldown);
-                                    if ((convertedTime != null) && (convertedTime.length == 4))
-                                    {
-                                        if (convertedTime[0] > 0)
-                                        {
-                                            cooldownStr = "" + convertedTime[0] + "d:" + convertedTime[1] + "h:" + convertedTime[2] + "m:" + convertedTime[3] + "s";
-                                        }
-                                        else if (convertedTime[1] > 0)
-                                        {
-                                            cooldownStr = "" + convertedTime[1] + "h:" + convertedTime[2] + "m:" + convertedTime[3] + "s";
-                                        }
-                                        else if (convertedTime[2] > 0)
-                                        {
-                                            cooldownStr = "" + convertedTime[2] + "m:" + convertedTime[3] + "s";
-                                        }
-                                        else if (convertedTime[3] > 0)
-                                        {
-                                            cooldownStr = "" + convertedTime[3] + "s";
-                                        }
-                                        else 
-                                        {
-                                            cooldownStr = "" + cooldown + "s";
-                                        }
-                                    }
-                                    announcement += "\n";
-                                    announcement += "You can immediately defend the GCW region you most recently defended (" + localize(new string_id("gcw_regions", previousRegion)) + ").\n";
-                                    announcement += "You must wait " + cooldownStr + " before you can defend a different GCW region.";
-                                }
-                            }
-                            final String[] columnHeader = 
-                            {
-                                "GCW Region"
-                            };
-                            final String[] columnHeaderType = 
-                            {
-                                "text"
-                            };
-                            final String[][] columnData = new String[1][0];
-                            columnData[0] = gcwDefenderRegions;
-                            sui.tableColumnMajor(player, player, sui.OK_CANCEL, "@gcw:gcw_region_defender_war_terminal_menu", "handleCityGcwRegionDefenderChoice", announcement, columnHeader, columnHeaderType, columnData, false);
-                        }
-                    }
-                }
-            }
-            else if (item == menu_info_types.SERVER_MENU18)
-            {
-                final String gcwDefenderRegion = cityGetGcwDefenderRegion(city_id);
-                if ((gcwDefenderRegion != null) && (gcwDefenderRegion.length() > 0))
-                {
-                    setObjVar(structure, "cityGcwRegionDefender.timeEnd", getCalendarTime());
-                    citySetGcwDefenderRegion(city_id, "", 0, true);
-                    sendSystemMessage(player, "Setting the city's GCW defender region to (None). This may take a few seconds. You will receive mail confirmation once the change has been completed.", "");
-                }
+                removeObjVar(structure, "cityGcwRegionDefender");
+                citySetGcwDefenderRegion(city_id, "", 0, false);
             }
         }
         else 
@@ -967,7 +863,7 @@ public class terminal_city extends script.base_script
             return;
         }
         obj_id cityHall = cityGetCityHall(city_id);
-        String[] city_info = new String[12];
+        String[] city_info = new String[10];
         string_id city_name_text = new string_id(STF, "name_prompt");
         final String city_name = cityGetName(city_id);
         String city_data = city_name;
@@ -1001,65 +897,25 @@ public class terminal_city extends script.base_script
         obj_id mayor = cityGetLeader(city_id);
         string_id city_mayor_text = new string_id(STF, "mayor_prompt");
         city_info[1] = getString(city_mayor_text) + cityGetCitizenName(city_id, mayor);
-        final String gcwDefenderRegion = cityGetGcwDefenderRegion(city_id);
-        if ((gcwDefenderRegion == null) || (gcwDefenderRegion.length() <= 0))
-        {
-            city_info[2] = "GCW Region Defender: (None)";
-            city_info[3] = "GCW Region Defender Bonus: (None)";
-        }
-        else 
-        {
-            final int timeJoinedGcwDefenderRegion = cityGetTimeJoinedGcwDefenderRegion(city_id);
-            city_info[2] = "GCW Region Defender: " + localize(new string_id("gcw_regions", gcwDefenderRegion));
-            if (timeJoinedGcwDefenderRegion > 0)
-            {
-                city_info[2] += (" (started defending on " + getCalendarTimeStringLocal(timeJoinedGcwDefenderRegion) + ")");
-                final int gcwDaysRequiredForGcwRegionDefenderBonus = utils.stringToInt(getConfigSetting("GameServer", "gcwDaysRequiredForGcwRegionDefenderBonus"));
-                final int age = getCalendarTime() - timeJoinedGcwDefenderRegion;
-                if (age > (gcwDaysRequiredForGcwRegionDefenderBonus * 86400))
-                {
-                    if ((-615855020) == factionId)
-                    {
-                        city_info[3] = "GCW Region Defender Bonus: " + getGcwDefenderRegionImperialBonus(gcwDefenderRegion) + "%";
-                    }
-                    else if ((370444368) == factionId)
-                    {
-                        city_info[3] = "GCW Region Defender Bonus: " + getGcwDefenderRegionRebelBonus(gcwDefenderRegion) + "%";
-                    }
-                    else 
-                    {
-                        city_info[3] = "GCW Region Defender Bonus: (None - cannot determine factional alignment)";
-                    }
-                }
-                else 
-                {
-                    city_info[3] = ("GCW Region Defender Bonus: (None - hasn't defended for " + gcwDaysRequiredForGcwRegionDefenderBonus + " days)\n");
-                }
-            }
-            else 
-            {
-                city_info[3] = "GCW Region Defender Bonus: (None - cannot determine time started defending)";
-            }
-        }
         location city_loc = cityGetLocation(city_id);
         string_id city_location_text = new string_id(STF, "location_prompt");
         string_id city_radius_text = new string_id(STF, "radius_prompt");
-        city_info[4] = getString(city_location_text) + (int)city_loc.x + ", " + (int)city_loc.z + getString(city_radius_text) + cityGetRadius(city_id) + "m";
+        city_info[2] = getString(city_location_text) + (int)city_loc.x + ", " + (int)city_loc.z + getString(city_radius_text) + cityGetRadius(city_id) + "m";
         string_id citizens_text = new string_id(STF, "citizen_prompt");
         string_id structures_text = new string_id(STF, "structures_prompt");
-        city_info[5] = getString(citizens_text) + cityGetCitizenIds(city_id).length + getString(structures_text) + cityGetStructureIds(city_id).length;
+        city_info[3] = getString(citizens_text) + cityGetCitizenIds(city_id).length + getString(structures_text) + cityGetStructureIds(city_id).length;
         string_id city_specialization_text = new string_id(STF, "specialization_prompt");
-        city_info[6] = getString(city_specialization_text) + localize(new string_id(STF, city.cityGetSpecString(city_id)));
-        city_info[7] = "@city/city:income_tax" + " -- " + cityGetIncomeTax(city_id) + " cr";
-        city_info[8] = "@city/city:property_tax" + " -- " + cityGetPropertyTax(city_id) + "%";
-        city_info[9] = "@city/city:sales_tax" + " -- " + cityGetSalesTax(city_id) + "%";
-        city_info[10] = "@city/city:travel_tax" + " -- " + cityGetTravelCost(city_id) + " cr";
+        city_info[4] = getString(city_specialization_text) + localize(new string_id(STF, city.cityGetSpecString(city_id)));
+        city_info[5] = "@city/city:income_tax" + " -- " + cityGetIncomeTax(city_id) + " cr";
+        city_info[6] = "@city/city:property_tax" + " -- " + cityGetPropertyTax(city_id) + "%";
+        city_info[7] = "@city/city:sales_tax" + " -- " + cityGetSalesTax(city_id) + "%";
+        city_info[8] = "@city/city:travel_tax" + " -- " + cityGetTravelCost(city_id) + " cr";
         String garage = city_name + ".garageFee";
         if (!hasObjVar(cityHall, garage))
         {
             setObjVar(cityHall, garage, 0);
         }
-        city_info[11] = "@city/city:garage_tax" + " -- " + getIntObjVar(cityHall, garage) + "%";
+        city_info[9] = "@city/city:garage_tax" + " -- " + getIntObjVar(cityHall, garage) + "%";
         sui.listbox(self, player, "@city/city:city_info_d", sui.OK_CANCEL, "@city/city:city_info_t", city_info, "handleCityInfoSelect", true);
     }
     public void showCitizensList(obj_id player, obj_id self, int city_id) throws InterruptedException
