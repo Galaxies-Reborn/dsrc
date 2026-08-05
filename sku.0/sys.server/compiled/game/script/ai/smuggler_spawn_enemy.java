@@ -17,6 +17,9 @@ public class smuggler_spawn_enemy extends script.base_script
     public static final int FLAG_FOLLOW = 3;
     public static final String VOL_PATROL_WATCH = "smugglerPatrolWatch";
     public static final float VOL_PATROL_RANGE = 12.0f;
+    public static final int CONTRABAND_BASE_PASS_CHANCE = 5;
+    public static final int SLY_LIE_BASE_BONUS = 10;
+    public static final int FAST_TALK_BASE_CHANCE = 25;
     public int OnAttach(obj_id self) throws InterruptedException
     {
         messageTo(self, "startContrabandCheck", null, 2.0f, false);
@@ -329,21 +332,18 @@ public class smuggler_spawn_enemy extends script.base_script
             {
                 return SCRIPT_CONTINUE;
             }
-            int expertiseIncrease = 0;
-            int rankIncrease = 0;
+            int passChance = CONTRABAND_BASE_PASS_CHANCE;
+            boolean usedSlyLie = false;
             if (utils.hasScriptVar(self, "slyLie"))
             {
-                float underworldFaction = factions.getFactionStanding(playerSmuggler, "underworld");
-                int smugglerRank = smuggler.getSmugglerRank(underworldFaction);
-                expertiseIncrease = 10 + (int)getSkillStatisticModifier(playerSmuggler, "expertise_sly_lie_bonus");
-                rankIncrease = (int)getSkillStatisticModifier(self, "expertise_sly_lie_rank") * smugglerRank;
+                passChance += SLY_LIE_BASE_BONUS;
+                usedSlyLie = true;
                 utils.removeScriptVar(self, "slyLie");
             }
-            int finalChance = expertiseIncrease + rankIncrease;
-            if (rand(1, 100) > (finalChance + 5))
+            if (rand(1, 100) > passChance)
             {
                 string_id barkString = new string_id(STRING_FILE, "bark_attack");
-                if (finalChance > 0)
+                if (usedSlyLie)
                 {
                     barkString = new string_id(STRING_FILE, "bark_lies_failed");
                 }
@@ -410,21 +410,11 @@ public class smuggler_spawn_enemy extends script.base_script
         {
             return SCRIPT_CONTINUE;
         }
-        float underworldFaction = factions.getFactionStanding(playerSmuggler, "underworld");
-        int smugglerRank = smuggler.getSmugglerRank(underworldFaction);
-        int expertiseIncrease = (int)getSkillStatisticModifier(playerSmuggler, "expertise_fast_talk_bonus");
-        int rankIncrease = (int)getSkillStatisticModifier(self, "expertise_fast_talk_rank") * smugglerRank;
-        int finalChance = expertiseIncrease + rankIncrease;
         int roll = rand(1, 100);
-        if (roll > (finalChance + 25))
+        if (roll > FAST_TALK_BASE_CHANCE)
         {
             string_id barkString = new string_id(STRING_FILE, "bark_fast_talk_failed");
             chat.chat(self, barkString);
-            return SCRIPT_CONTINUE;
-        }
-        if (roll < (finalChance - 10))
-        {
-            doConfuseAttack(playerSmuggler, self);
             return SCRIPT_CONTINUE;
         }
         doConfuse(playerSmuggler, self);
