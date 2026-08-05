@@ -109,7 +109,7 @@ i	i	h	i	f	f	f	f	f	f	f	s	p
 -1344528741	0	object/static/item/item_container_plain_s04.iff	0	1033.94	50	613.26	1	0	0	0		$|
 -1332827099	0	object/static/particle/pt_smoke.iff	0	1216.45	73.8561	945.503	1	0	0	0		$|
 -1326565966	0	object/static/structure/military/military_wall_strong_imperial_style_01.iff	0	1510.64	15.3581	871.169	0.92388	0	0.382683	0		$|
--1324255298	0	object/tangible/gcw/pvp_region_watcher.iff	0	1206.77	66	987.337	1	0	0	0	systems.gcw.pvp_region_bonus_controller	$|
+-1324255298	0	object/tangible/gcw/pvp_region_watcher.iff	0	1206.77	66	987.337	1	0	0	0		$|
 -1320263118	0	object/static/item/item_container_electronics.iff	0	1527.82	18	857.315	0.471328	0	0.881958	0		$|
 -1302569132	0	object/static/item/item_container_electronics.iff	0	1524.88	18	854.546	0.94441	0	0.328769	0		$|
 -1293539705	0	object/static/structure/military/military_wall_med_imperial_style_01.iff	0	1513.51	18.612	892.103	0.0526747	0	0.998612	0		$|

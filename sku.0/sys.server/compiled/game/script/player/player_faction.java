@@ -40,19 +40,29 @@ public class player_faction extends script.base_script
         }
         utils.removeScriptVarTree(self, "gcw.static_base");
     }
+    public void cleanupRetiredPvpRegionBonusState(obj_id self) throws InterruptedException
+    {
+        if (gcw.isPostNgePvpRegionBonusRetired())
+        {
+            utils.removeScriptVar(self, gcw.PVP_REGION_ACTIVITY_PERFORMED);
+        }
+    }
     public int OnAttach(obj_id self) throws InterruptedException
     {
         cleanupRetiredFixedStaticBaseState(self);
+        cleanupRetiredPvpRegionBonusState(self);
         return SCRIPT_CONTINUE;
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
         cleanupRetiredFixedStaticBaseState(self);
+        cleanupRetiredPvpRegionBonusState(self);
         return SCRIPT_CONTINUE;
     }
     public int OnLogin(obj_id self) throws InterruptedException
     {
         cleanupRetiredFixedStaticBaseState(self);
+        cleanupRetiredPvpRegionBonusState(self);
         return SCRIPT_CONTINUE;
     }
     public int cmdPVP(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
@@ -411,6 +421,11 @@ public class player_faction extends script.base_script
     }
     public int recievePvpRegionBonus(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgePvpRegionBonusRetired())
+        {
+            cleanupRetiredPvpRegionBonusState(self);
+            return SCRIPT_CONTINUE;
+        }
         if (!utils.hasScriptVar(self, gcw.PVP_REGION_ACTIVITY_PERFORMED))
         {
             return SCRIPT_CONTINUE;

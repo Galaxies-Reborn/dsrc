@@ -120,7 +120,7 @@ i	i	h	i	f	f	f	f	f	f	f	s	p
 -572614872	0	object/static/structure/corellia/corl_power_transformer_s01.iff	0	713.851	95	913.164	1	0	0	0		$|
 -551989076	0	object/static/structure/general/data_terminal_free_s2.iff	0	1188.53	26.9641	525.525	-0.0192025	0	0.999816	0		$|
 -538959233	0	object/static/structure/corellia/corl_power_transformer_s01.iff	0	656.06	95	884.077	-0.707107	0	0.707107	0		$|
--537065502	0	object/tangible/gcw/pvp_region_watcher.iff	0	676.293	95	910.329	1	0	0	0	systems.gcw.pvp_region_bonus_controller	$|
+-537065502	0	object/tangible/gcw/pvp_region_watcher.iff	0	676.293	95	910.329	1	0	0	0		$|
 -531830962	0	object/static/structure/corellia/corl_power_connector.iff	0	690.656	98.159	871.708	-0.314567	0	0.949235	0		$|
 -525797723	0	object/static/structure/general/data_terminal_free_s1.iff	0	142.039	256.871	1194.89	0.382683	0	0.92388	0		$|
 -518408842	0	object/static/structure/corellia/corl_power_transformer_s01.iff	0	656.064	95	888.053	1	0	0	0		$|

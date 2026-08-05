@@ -425,7 +425,7 @@ i	i	h	i	f	f	f	f	f	f	f	s	p
 -564581103	0	object/building/kashyyyk/myyydril_cave_naktra_crystal_sml.iff	0	1936.24	313.005	477.67	0.34215	0.939645	0	0		$|
 -539265117	0	object/static/structure/corellia/corl_power_connector.iff	0	989.714	301.159	562.171	1	0	0	0		$|
 -532559020	0	object/static/structure/dantooine/dant_fence_4m.iff	0	541.041	343	600.562	0.707107	0	0.707107	0		$|
--529152824	0	object/tangible/gcw/pvp_region_watcher.iff	0	1011.44	298	521.28	1	0	0	0	systems.gcw.pvp_region_bonus_controller	$|
+-529152824	0	object/tangible/gcw/pvp_region_watcher.iff	0	1011.44	298	521.28	1	0	0	0		$|
 -518803153	0	object/static/structure/dantooine/dant_fence_4m.iff	0	545.058	343	600.591	0.707107	0	0.707107	0		$|
 -514557716	0	object/building/kashyyyk/myyydril_cave_naktra_crystal_lrg.iff	0	1937.39	306.467	470.878	0.743597	0.275656	0.0819872	0.603619		$|
 -480820959	0	object/static/structure/corellia/corl_tent_small.iff	0	1501.58	303	484.653	0.990901	0	-0.13459	0		$|

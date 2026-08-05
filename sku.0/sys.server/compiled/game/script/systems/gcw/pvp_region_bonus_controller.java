@@ -6,6 +6,7 @@ import script.library.gcw;
 import script.library.trial;
 import script.library.utils;
 import script.obj_id;
+import script.region;
 
 import java.util.Vector;
 
@@ -21,13 +22,47 @@ public class pvp_region_bonus_controller extends script.base_script
     public static final String CYCLE_ITTERATION = "gcw_pvp_region.cycle_itteration";
     public static final String GCW_REGION_DATA = "gcw_pvp_region";
     public static final String LAST_CYCLE = "gcw_pvp_region.lastCycle";
+    public static final String SCRIPT_NAME = "systems.gcw.pvp_region_bonus_controller";
+    private void retirePostNgePvpRegionBonus(obj_id self) throws InterruptedException
+    {
+        trial.bumpSession(self);
+        String regionName = utils.hasScriptVar(self, "pvp_region") ? utils.getStringScriptVar(self, "pvp_region") : "";
+        if (regionName == null || regionName.length() == 0)
+        {
+            region pvpRegion = gcw.getPvPRegion(self);
+            if (pvpRegion != null)
+            {
+                regionName = pvpRegion.getName();
+            }
+        }
+        obj_id planet = getPlanetByName(getLocation(self).area);
+        String registration = gcw.REGION_CONTROLLER + "." + regionName;
+        if (isIdValid(planet) && regionName != null && regionName.length() > 0 &&
+            utils.hasScriptVar(planet, registration) && utils.getObjIdScriptVar(planet, registration) == self)
+        {
+            utils.removeScriptVar(planet, registration);
+        }
+        utils.removeScriptVarTree(self, GCW_REGION_DATA);
+        utils.removeScriptVar(self, "pvp_region");
+        detachScript(self, SCRIPT_NAME);
+    }
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgePvpRegionBonusRetired())
+        {
+            retirePostNgePvpRegionBonus(self);
+            return SCRIPT_CONTINUE;
+        }
         gcw.getRegionToRegister(self);
         return SCRIPT_CONTINUE;
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgePvpRegionBonusRetired())
+        {
+            retirePostNgePvpRegionBonus(self);
+            return SCRIPT_CONTINUE;
+        }
         gcw.getRegionToRegister(self);
         return SCRIPT_CONTINUE;
     }
@@ -79,6 +114,11 @@ public class pvp_region_bonus_controller extends script.base_script
     }
     public int cycleUpdate(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgePvpRegionBonusRetired())
+        {
+            retirePostNgePvpRegionBonus(self);
+            return SCRIPT_CONTINUE;
+        }
         if (!trial.verifySession(self, params))
         {
             return SCRIPT_CONTINUE;
@@ -97,6 +137,11 @@ public class pvp_region_bonus_controller extends script.base_script
     }
     public int diedInPvpRegion(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgePvpRegionBonusRetired())
+        {
+            retirePostNgePvpRegionBonus(self);
+            return SCRIPT_CONTINUE;
+        }
         obj_id player = params.getObjId("player");
         Vector recordList = new Vector();
         recordList.setSize(0);

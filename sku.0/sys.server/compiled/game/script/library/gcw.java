@@ -272,6 +272,13 @@ public class gcw extends script.base_script
         // faction standing/rank, and open-world battlefields instead.
         return true;
     }
+    public static boolean isPostNgePvpRegionBonusRetired()
+    {
+        // The later fixed-base/Restuss PvP-region death tracker fed the NGE
+        // regional GCW point system. PRE-CU retains ordinary open-world PvP and
+        // battlefields without registering these regional bonus controllers.
+        return true;
+    }
     public static final String GCW_TUTORIAL_FLAG = "gcw_tutorial_flag.has_received_tutorial";
     public static final String COLOR_REBELS = "\\" + colors_hex.COLOR_REBELS;
     public static final String COLOR_IMPERIALS = "\\" + colors_hex.COLOR_IMPERIALS;
@@ -1068,6 +1075,12 @@ public class gcw extends script.base_script
     }
     public static boolean releaseGcwPointCredit(obj_id player) throws InterruptedException
     {
+        if (isPostNgePvpRegionBonusRetired())
+        {
+            utils.removeScriptVar(player, PVP_REGION_ACTIVITY_PERFORMED);
+            utils.removeBatchScriptVar(player, LIST_CREDIT_FOR_KILLS);
+            return false;
+        }
         obj_id[] gcwEnemiesList = new obj_id[0];
         if (verifyPvpRegionStatus(player))
         {
@@ -1146,6 +1159,11 @@ public class gcw extends script.base_script
     }
     public static void notifyPvpRegionWatcherOfDeath(obj_id player) throws InterruptedException
     {
+        if (isPostNgePvpRegionBonusRetired())
+        {
+            utils.removeScriptVar(player, PVP_REGION_ACTIVITY_PERFORMED);
+            return;
+        }
         obj_id pvpRegionController = gcw.getPvpRegionControllerIdByPlayer(player);
         dictionary dict = new dictionary();
         dict.put("player", player);
@@ -1482,6 +1500,11 @@ public class gcw extends script.base_script
     }
     public static boolean verifyPvpRegionStatus(obj_id player) throws InterruptedException
     {
+        if (isPostNgePvpRegionBonusRetired())
+        {
+            utils.removeScriptVar(player, PVP_REGION_ACTIVITY_PERFORMED);
+            return false;
+        }
         obj_id region_controller = getPvpRegionControllerIdByPlayer(player);
         if (!isIdValid(region_controller))
         {
@@ -1559,17 +1582,30 @@ public class gcw extends script.base_script
     }
     public static void registerPvpRegionControllerWithPlanet(obj_id controlObject, String regionName) throws InterruptedException
     {
+        if (isPostNgePvpRegionBonusRetired())
+        {
+            return;
+        }
         obj_id planetId = getPlanetByName(getLocation(controlObject).area);
         utils.setScriptVar(planetId, REGION_CONTROLLER + "." + regionName, controlObject);
     }
     public static obj_id getPvpRegionControllerIdByName(obj_id player, String regionName) throws InterruptedException
     {
+        if (isPostNgePvpRegionBonusRetired())
+        {
+            return null;
+        }
         obj_id planetId = getPlanetByName(getLocation(player).area);
         String packedRegion = REGION_CONTROLLER + "." + regionName;
         return utils.hasScriptVar(planetId, packedRegion) ? utils.getObjIdScriptVar(planetId, packedRegion) : null;
     }
     public static obj_id getPvpRegionControllerIdByPlayer(obj_id player) throws InterruptedException
     {
+        if (isPostNgePvpRegionBonusRetired())
+        {
+            utils.removeScriptVar(player, PVP_REGION_ACTIVITY_PERFORMED);
+            return null;
+        }
         region[] regionList = getRegionsAtPoint(getLocation(player));
         obj_id planetId = getPlanetByName(getLocation(player).area);
         obj_id regionController = null;
@@ -1588,6 +1624,11 @@ public class gcw extends script.base_script
     }
     public static void notifyPvpRegionControllerOfPlayerEnter(obj_id controllerId, obj_id player) throws InterruptedException
     {
+        if (isPostNgePvpRegionBonusRetired())
+        {
+            utils.removeScriptVar(player, PVP_REGION_ACTIVITY_PERFORMED);
+            return;
+        }
         dictionary dict = new dictionary();
         dict.put("player", player);
         messageTo(controllerId, "newPlayerNotify", dict, 0, false);
@@ -1888,6 +1929,10 @@ public class gcw extends script.base_script
     }
     public static void getRegionToRegister(obj_id controller) throws InterruptedException
     {
+        if (isPostNgePvpRegionBonusRetired())
+        {
+            return;
+        }
         if (!isIdValid(controller))
         {
             return;
