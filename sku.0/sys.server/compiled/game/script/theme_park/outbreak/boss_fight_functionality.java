@@ -25,7 +25,6 @@ public class boss_fight_functionality extends script.base_script
         CustomerServiceLog("outbreak_themepark", "boss_fight_functionality.OnAttach() trigger initialized.");
         moveCreatureToWaypoint(self);
         trial.setHp(self, trial.HP_UNCLE_JOE);
-        applySkillStatisticModifier(self, "expertise_glancing_blow_reduction", 100);
         messageTo(self, "warnPlayerTimerBegin", null, 1, false);
         messageTo(self, "warnPlayerTimerEnd", null, 540, false);
         return SCRIPT_CONTINUE;
@@ -170,7 +169,7 @@ public class boss_fight_functionality extends script.base_script
             dictionary webster = trial.getSessionDict(parent);
             messageTo(parent, "defaultEventReset", webster, 2, false);
         }
-        else 
+        else
         {
             messageTo(self, "handleBossDistanceCheck", null, 3, false);
         }
@@ -276,7 +275,7 @@ public class boss_fight_functionality extends script.base_script
                 sendSystemMessage(obj_id, BOSS_BEGIN);
             }
         }
-        else 
+        else
         {
             sendSystemMessage(playerEnemy, BOSS_BEGIN);
         }
@@ -307,7 +306,7 @@ public class boss_fight_functionality extends script.base_script
                 sendSystemMessage(obj_id, BOSS_LEAVING);
             }
         }
-        else 
+        else
         {
             sendSystemMessage(playerEnemy, BOSS_LEAVING);
         }

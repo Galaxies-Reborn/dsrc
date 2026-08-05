@@ -22,7 +22,6 @@ public class wampa_boss extends script.base_script
     public int OnAttach(obj_id self) throws InterruptedException
     {
         trial.setHp(self, trial.HP_UNCLE_JOE);
-        applySkillStatisticModifier(self, "expertise_glancing_blow_reduction", 100);
         return SCRIPT_CONTINUE;
     }
     public int OnEnteredCombat(obj_id self) throws InterruptedException
