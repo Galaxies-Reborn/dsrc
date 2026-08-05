@@ -97,6 +97,14 @@ public class combat_base extends script.base_script
     {
         return isPlayer(self) && actionName != null && actionName.startsWith("of_");
     }
+    public static boolean isRetiredPostNgeForceSensitivePlayerAction(obj_id self, String actionName) throws InterruptedException
+    {
+        // Publish 14.1 Jedi and Village progression use their authored
+        // force*, saber*, heal*, mindBlast*, and jediMindTrick commands.
+        // The fs_* family belongs only to the retained NGE class/expertise
+        // rows, so keep it available to NPC/content scripts but not players.
+        return isPlayer(self) && actionName != null && actionName.startsWith("fs_");
+    }
     public boolean combatStandardAction(String actionName, obj_id self, obj_id target, String params, String successHandler, String failHandler) throws InterruptedException
     {
         return combatStandardAction(actionName, self, target, getCurrentWeapon(self), params, null, false, false, 0);
@@ -204,6 +212,10 @@ public class combat_base extends script.base_script
             return false;
         }
         if (isRetiredPostNgeOfficerPlayerAction(self, actionName))
+        {
+            return false;
+        }
+        if (isRetiredPostNgeForceSensitivePlayerAction(self, actionName))
         {
             return false;
         }

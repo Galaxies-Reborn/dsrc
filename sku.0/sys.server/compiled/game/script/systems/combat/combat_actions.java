@@ -10378,6 +10378,11 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int fs_dot_immunity_recourse(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isRetiredPostNgeForceSensitivePlayerAction(self, "fs_dot_immunity_recourse"))
+        {
+            buff.removeBuff(self, "fs_dot_immunity_recourse");
+            return SCRIPT_CONTINUE;
+        }
         if (!buff.hasBuff(self, "fs_dot_immunity_recourse"))
         {
             buff.applyBuff(self, self, "fs_dot_immunity_recourse");
