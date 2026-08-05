@@ -13133,7 +13133,7 @@ public class base_player extends script.base_script
         {
             return SCRIPT_CONTINUE;
         }
-        String[] variousMods = 
+        String[] legacyNgeDisplayOnlyMods =
         {
             "display_only_glancing_blow",
             "display_only_dodge",
@@ -13150,35 +13150,12 @@ public class base_player extends script.base_script
             "display_only_expertise_critical_hit_reduction",
             "display_only_expertise_critical_hit_pvp_reduction"
         };
-        float glancingBlowChance = combat.getDefenderGlancingBlowChance(self) * 100;
-        float dodgeChance = combat.getDefenderDodgeChance(self) * 100;
-        float parryChance = combat.getDefenderParryChance(self) * 100;
-        float blockChance = combat.getDefenderBlockChance(self) * 100;
-        float evasionChance = combat.getDefenderEvasionChance(self) * 100;
-        float strikeThroughChance = combat.getAttackerStrikethroughChance(self) * 100;
-        float toHitBonus = combat.getToHitBonus(self) * 100;
-        float criticalChance = (combat.getAttackerCritMod(self)) * 100;
-        float parryRedcution = combat.getAttackerParryReduction(self) * 100;
-        float dodgeReduction = combat.getAttackerDodgeReduction(self) * 100;
-        float blockReduction = combat.getAttackerBlockReduction(self) * 100;
-        float hitReduction = combat.getDefenderCriticalChance(self) * 100;
-        float hitPvPReduction = (combat.getDefenderCriticalChance(self) + combat.getPvPHitReductionChance(self)) * 100;
-        for (String variousMod : variousMods) {
-            removeAttribOrSkillModModifier(self, variousMod);
+        // Publish 14.1 has no NGE expertise display-only combat-stat surface.
+        // Keep this production callback as a migration path so login, equipment,
+        // armor, buff, and skill-mod changes remove persisted legacy modifiers.
+        for (String legacyNgeDisplayOnlyMod : legacyNgeDisplayOnlyMods) {
+            removeAttribOrSkillModModifier(self, legacyNgeDisplayOnlyMod);
         }
-        addSkillModModifier(self, "display_only_glancing_blow", "display_only_glancing_blow", (int)glancingBlowChance, -1, false, false);
-        addSkillModModifier(self, "display_only_dodge", "display_only_dodge", (int)dodgeChance, -1, false, false);
-        addSkillModModifier(self, "display_only_parry", "display_only_parry", (int)parryChance, -1, false, false);
-        addSkillModModifier(self, "display_only_block", "display_only_block", (int)blockChance, -1, false, false);
-        addSkillModModifier(self, "display_only_tohit", "display_only_tohit", (int)toHitBonus, -1, false, false);
-        addSkillModModifier(self, "display_only_evasion", "display_only_evasion", (int)evasionChance, -1, false, false);
-        addSkillModModifier(self, "display_only_strikethrough", "display_only_strikethrough", (int)strikeThroughChance, -1, false, false);
-        addSkillModModifier(self, "display_only_critical", "display_only_critical", (int)criticalChance, -1, false, false);
-        addSkillModModifier(self, "display_only_parry_reduction", "display_only_parry_reduction", (int)parryRedcution, -1, false, false);
-        addSkillModModifier(self, "display_only_opp_dodge_reduction", "display_only_opp_dodge_reduction", (int)dodgeReduction, -1, false, false);
-        addSkillModModifier(self, "display_only_opp_block_reduction", "display_only_opp_block_reduction", (int)blockReduction, -1, false, false);
-        addSkillModModifier(self, "display_only_expertise_critical_hit_reduction", "display_only_expertise_critical_hit_reduction", (int)hitReduction, -1, false, false);
-        addSkillModModifier(self, "display_only_expertise_critical_hit_pvp_reduction", "display_only_expertise_critical_hit_pvp_reduction", (int)hitPvPReduction, -1, false, false);
         return SCRIPT_CONTINUE;
     }
     public int OnGetAttributes(obj_id self, obj_id player, String[] names, String[] attribs) throws InterruptedException
