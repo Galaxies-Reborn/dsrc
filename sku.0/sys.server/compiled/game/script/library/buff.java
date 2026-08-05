@@ -21,6 +21,39 @@ public class buff extends script.base_script
     {
         return true;
     }
+    public static boolean isRetiredPostNgeBountyHunterShieldBuff(String buffName)
+    {
+        return buffName != null &&
+            (buffName.equals("bh_shields_handler") ||
+                buffName.equals("bh_shields") ||
+                buffName.equals("bh_shields_block") ||
+                buffName.equals("bh_shields_charged"));
+    }
+    public static void retirePostNgeBountyHunterShieldState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        String[] retiredBuffs =
+        {
+            "bh_shields_handler",
+            "bh_shields",
+            "bh_shields_block",
+            "bh_shields_charged"
+        };
+        for (String retiredBuff : retiredBuffs)
+        {
+            if (hasBuff(player, retiredBuff))
+            {
+                removeBuff(player, retiredBuff);
+            }
+        }
+        if (hasScript(player, "player.skill.bh_shields"))
+        {
+            detachScript(player, "player.skill.bh_shields");
+        }
+    }
     public static void retirePostNgeBuffProgression(obj_id player) throws InterruptedException
     {
         if (!isPostNgeBuffProgressionRetired() || !isIdValid(player) || !exists(player))
@@ -36,6 +69,7 @@ public class buff extends script.base_script
             removeBuff(player, "general_inspiration");
         }
         retirePostNgeMeditationBuffs(player);
+        retirePostNgeBountyHunterShieldState(player);
         utils.removeScriptVarTree(player, "performance.buildabuff");
         utils.removeScriptVarTree(player, "buff.xpBonus");
         utils.removeScriptVarTree(player, "buff.xpBonusGeneral");
@@ -131,6 +165,10 @@ public class buff extends script.base_script
         }
         buff_data bdata = combat_engine.getBuffData(nameCrc);
         if (bdata == null)
+        {
+            return false;
+        }
+        if (isPlayer(target) && isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName))
         {
             return false;
         }

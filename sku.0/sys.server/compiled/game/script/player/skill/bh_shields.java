@@ -8,8 +8,29 @@ public class bh_shields extends script.base_script
     public bh_shields()
     {
     }
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        if (isPlayer(self))
+        {
+            buff.retirePostNgeBountyHunterShieldState(self);
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int OnInitialize(obj_id self) throws InterruptedException
+    {
+        if (isPlayer(self))
+        {
+            buff.retirePostNgeBountyHunterShieldState(self);
+        }
+        return SCRIPT_CONTINUE;
+    }
     public int OnCreatureDamaged(obj_id self, obj_id attacker, obj_id weapon, int[] damage) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.retirePostNgeBountyHunterShieldState(self);
+            return SCRIPT_CONTINUE;
+        }
         String shield_buff = "bh_shields";
         String shield_charge = "bh_shields_charged";
         if (!buff.hasBuff(self, shield_buff))

@@ -4282,6 +4282,11 @@ public class buff_handler extends script.base_script
     }
     public int bhShieldsAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.retirePostNgeBountyHunterShieldState(self);
+            return SCRIPT_CONTINUE;
+        }
         attachScript(self, "player.skill.bh_shields");
         String shield_buff = "bh_shields";
         buff.applyBuff(self, shield_buff);
