@@ -9,7 +9,7 @@ visibleFlags = [ VF_gm ]
 
 sharedTemplate = "object/tangible/destructible/shared_gcw_kit_turret.iff"
 
-scripts =+ [ "systems.gcw.gcw_city_kit_turret" ]
+scripts =+ [ ]
 
 invulnerable = true
 

@@ -10,7 +10,7 @@ sharedTemplate = "object/tangible/destructible/shared_gcw_rebel_tower.iff"
 
 invulnerable = false
 
-scripts =+ [ "systems.gcw.gcw_tower" ]
+scripts =+ [ ]
 
 updateRanges[UR_near] = 300
 updateRanges[UR_normal] = 300

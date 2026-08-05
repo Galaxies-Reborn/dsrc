@@ -10,7 +10,7 @@ maxHitPoints = 100000
 
 sharedTemplate = "object/tangible/destructible/shared_gcw_imperial_patrol.iff"
 
-scripts =+ [ "systems.gcw.gcw_patrol" ]
+scripts =+ [ ]
 
 invulnerable = false
 

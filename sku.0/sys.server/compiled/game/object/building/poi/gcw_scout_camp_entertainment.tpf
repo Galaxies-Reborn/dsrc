@@ -8,7 +8,7 @@
 
 sharedTemplate = "object/building/poi/shared_gcw_scout_camp_entertainment.iff"
 
-scripts = +["item.camp.camp_advanced","systems.gcw.gcw_camp"]
+scripts = +["item.camp.camp_advanced"]
 
 objvars =+["theater" = [
 		"tbl" = "datatables/poi/gcw_offensive_camp_s01.iff",

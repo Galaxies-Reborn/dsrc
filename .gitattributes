@@ -29,6 +29,8 @@ sku.0/sys.server/compiled/game/object/tangible/gcw/pvp_region_watcher.tpf -text 
 sku.0/sys.server/compiled/game/object/tangible/gcw/battlefield_terminal.tpf -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/object/tangible/gcw/battlefield_beacon.tpf -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/object/tangible/gcw/static_base/control_terminal.tpf -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/object/tangible/destructible/gcw_*.tpf -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/object/building/poi/gcw_scout_camp_entertainment.tpf -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/datatables/buildout/rori/rori_7_7.tab -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/library/guild.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/terminal/terminal_city.java -text whitespace=cr-at-eol

@@ -8,7 +8,7 @@ maxHitPoints = 100000
 
 sharedTemplate = "object/tangible/destructible/shared_gcw_rebel_barricade.iff"
 
-scripts =+ [ "systems.gcw.gcw_barricade","systems.combat.credit_for_kills" ]
+scripts =+ [ "systems.combat.credit_for_kills" ]
 
 objvars = ["faction" = "Rebel"]
 
