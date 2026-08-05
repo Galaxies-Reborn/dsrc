@@ -12131,11 +12131,7 @@ public class combat_actions extends script.systems.combat.combat_base
         {
             return SCRIPT_CONTINUE;
         }
-        int healingReduction = getEnhancedSkillStatisticModifierUncapped(gorvo, "expertise_healing_reduction");
-        float redux = healingReduction / (healingReduction + 75.0f);
-        int toHeal = (int)(50000.0f - (50000.0f * redux));
-        toHeal = toHeal < 1 ? 1 : toHeal;
-        healing.healDamage(gorvo, HEALTH, toHeal);
+        healing.healDamage(gorvo, HEALTH, 50000);
         playClientEffectLoc(gorvo, "clienteffect/bacta_bomb.cef", getLocation(target), 0);
         return SCRIPT_CONTINUE;
     }
