@@ -1862,7 +1862,11 @@ public class combat_base extends script.base_script
                     ppc = prose.setStringId(ppc, critSpam);
                     showFlyTextPrivateProseWithFlags(defenderData[i].id, defenderData[i].id, ppc, 1.5f, colors.LIMEGREEN, FLY_TEXT_FLAG_IS_GLANCING_BLOW);
                 }
-                if (hitData[i].critical)
+                // Publish 14.1's authenticated primary resolver does not emit
+                // the NGE critical result.  Keep the inherited NGE critical
+                // effect stack on the compatibility route even if a future
+                // PRE-CU result change accidentally sets this flag.
+                if (!precuAuthoritativeAttack && hitData[i].critical)
                 {
                     float damageMod = combat.doCriticalHitEffect(attackerData, defenderData[i], weaponData, hitData[i], actionData);
                     float critBonus = 1.0f + (critDamageIncrease / 100.0f);
