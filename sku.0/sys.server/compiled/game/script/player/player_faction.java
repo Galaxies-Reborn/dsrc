@@ -51,18 +51,21 @@ public class player_faction extends script.base_script
     {
         cleanupRetiredFixedStaticBaseState(self);
         cleanupRetiredPvpRegionBonusState(self);
+        factions.cleanupRetiredNeutralMercenaryState(self);
         return SCRIPT_CONTINUE;
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
         cleanupRetiredFixedStaticBaseState(self);
         cleanupRetiredPvpRegionBonusState(self);
+        factions.cleanupRetiredNeutralMercenaryState(self);
         return SCRIPT_CONTINUE;
     }
     public int OnLogin(obj_id self) throws InterruptedException
     {
         cleanupRetiredFixedStaticBaseState(self);
         cleanupRetiredPvpRegionBonusState(self);
+        factions.cleanupRetiredNeutralMercenaryState(self);
         return SCRIPT_CONTINUE;
     }
     public int cmdPVP(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
@@ -441,11 +444,21 @@ public class player_faction extends script.base_script
     }
     public int cmdFactionalHelper(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (factions.isPostNgeNeutralMercenaryRetired())
+        {
+            factions.cleanupRetiredNeutralMercenaryState(self);
+            return SCRIPT_OVERRIDE;
+        }
         factions.neutralMercenaryStatusMenu(self);
         return SCRIPT_CONTINUE;
     }
     public int handleFactionalHelperChoice(obj_id self, dictionary params) throws InterruptedException
     {
+        if (factions.isPostNgeNeutralMercenaryRetired())
+        {
+            factions.cleanupRetiredNeutralMercenaryState(self);
+            return SCRIPT_CONTINUE;
+        }
         if (!utils.hasScriptVar(self, factions.SCRIPTVAR_FACTIONAL_HELPER_SUI_ID))
         {
             return SCRIPT_CONTINUE;
@@ -527,6 +540,11 @@ public class player_faction extends script.base_script
     }
     public int executeFactionalHelperChoice(obj_id self, dictionary params) throws InterruptedException
     {
+        if (factions.isPostNgeNeutralMercenaryRetired())
+        {
+            factions.cleanupRetiredNeutralMercenaryState(self);
+            return SCRIPT_CONTINUE;
+        }
         if (0 != pvpGetAlignedFaction(self))
         {
             sendSystemMessage(self, "You must be a Civilian to be a factional helper.", "");

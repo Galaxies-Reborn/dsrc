@@ -138,6 +138,36 @@ public class factions extends script.base_script
     public static final string_id SID_MERC_REBEL_SF_TERMINATED = new string_id("gcw", "merc_rebel_sf_status_terminated");
     public static final string_id SID_MERC_REBEL_COMBATANT_GRANTED = new string_id("gcw", "merc_rebel_combatant_status_granted");
     public static final string_id SID_MERC_REBEL_COMBATANT_TERMINATED = new string_id("gcw", "merc_rebel_combatant_status_terminated");
+    public static boolean isPostNgeNeutralMercenaryRetired()
+    {
+        return true;
+    }
+    public static void cleanupRetiredNeutralMercenaryState(obj_id player) throws InterruptedException
+    {
+        if (!isPostNgeNeutralMercenaryRetired() || !isIdValid(player) || !exists(player))
+        {
+            return;
+        }
+        if (utils.hasScriptVar(player, SCRIPTVAR_FACTIONAL_HELPER_SUI_ID))
+        {
+            int pageId = utils.getIntScriptVar(player, SCRIPTVAR_FACTIONAL_HELPER_SUI_ID);
+            if (pageId > 0)
+            {
+                forceCloseSUIPage(pageId);
+            }
+        }
+        utils.removeScriptVar(player, SCRIPTVAR_FACTIONAL_HELPER_SUI_ID);
+        utils.removeScriptVar(player, SCRIPTVAR_FACTIONAL_HELPER_SUI_CHOICES);
+        utils.removeScriptVarTree(player, "factionalHelper");
+        if (hasObjVar(player, "factionalHelper"))
+        {
+            removeObjVar(player, "factionalHelper");
+        }
+        if (pvpNeutralGetMercenaryFaction(player) != 0)
+        {
+            pvpNeutralSetMercenaryFaction(player, 0, false);
+        }
+    }
     public static void goCovertWithDelay(obj_id objPlayer, float fltDelay) throws InterruptedException
     {
         if (!canGoCovert(objPlayer))
@@ -2206,6 +2236,11 @@ public class factions extends script.base_script
     }
     public static boolean canChangeNeutralMercenaryStatus(obj_id player, String faction) throws InterruptedException
     {
+        if (isPostNgeNeutralMercenaryRetired())
+        {
+            cleanupRetiredNeutralMercenaryState(player);
+            return false;
+        }
         if (!isValidId(player) || !exists(player))
         {
             return false;
@@ -2245,6 +2280,11 @@ public class factions extends script.base_script
     }
     public static boolean neutralMercenaryStatusMenu(obj_id player) throws InterruptedException
     {
+        if (isPostNgeNeutralMercenaryRetired())
+        {
+            cleanupRetiredNeutralMercenaryState(player);
+            return false;
+        }
         if (!isValidId(player) || !exists(player))
         {
             return false;
@@ -2408,6 +2448,11 @@ public class factions extends script.base_script
     }
     public static boolean setNeturalMercenaryCovert(obj_id player, int factionFlag) throws InterruptedException
     {
+        if (isPostNgeNeutralMercenaryRetired())
+        {
+            cleanupRetiredNeutralMercenaryState(player);
+            return false;
+        }
         if (!isValidId(player) || !exists(player))
         {
             return false;
@@ -2446,6 +2491,11 @@ public class factions extends script.base_script
     }
     public static boolean setNeturalMercenaryOvert(obj_id player, int factionFlag) throws InterruptedException
     {
+        if (isPostNgeNeutralMercenaryRetired())
+        {
+            cleanupRetiredNeutralMercenaryState(player);
+            return false;
+        }
         if (!isValidId(player) || !exists(player))
         {
             return false;
@@ -2484,6 +2534,11 @@ public class factions extends script.base_script
     }
     public static boolean removeNeturalMercenary(obj_id player, int factionFlag) throws InterruptedException
     {
+        if (isPostNgeNeutralMercenaryRetired())
+        {
+            cleanupRetiredNeutralMercenaryState(player);
+            return false;
+        }
         if (!isValidId(player) || !exists(player))
         {
             return false;
