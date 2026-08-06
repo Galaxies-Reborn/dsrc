@@ -1555,7 +1555,6 @@ public class combat_base extends script.base_script
             return hitData;
         }
         boolean isHeavyWeapon = combat.isHeavyWeapon(weaponData);
-        int attackerLevel = getLevel(attackerData.id);
         boolean criticalHit = false;
         boolean seriesStrikethrough = false;
         attackerData = combat.fillAttackerCombatAttributes(attackerData);
@@ -1602,7 +1601,6 @@ public class combat_base extends script.base_script
                 }
             }
             defenderData[i] = combat.fillDefenderCombatAttributes(defenderData[i]);
-            int defenderLevel = getLevel(defenderData[i].id);
             if (hitType == combat.NON_DAMAGE_ATTACK)
             {
                 hitData[i].success = true;
@@ -2983,7 +2981,7 @@ public class combat_base extends script.base_script
         String defenseSkill2 = dataTableGetString(PRECU_WEAPON_PROFILES, weaponRow, "defenseSkill2");
         float accuracyTotal = getPrecuAttackerAccuracyTotal(attackerData, defenderData, weaponRow, accuracyBonus);
 
-        int defenseSkillValue = getLevel(defenderData.id);
+        int defenseSkillValue = 0;
         defenseSkillValue += getEnhancedSkillStatisticModifierUncapped(defenderData.id, defenseSkill);
         defenseSkillValue += getEnhancedSkillStatisticModifierUncapped(defenderData.id, "private_" + defenseSkill);
         if (defenseSkill2 != null && defenseSkill2.length() > 0)
@@ -3318,7 +3316,7 @@ public class combat_base extends script.base_script
         {
             return HIT_RESULT_HIT;
         }
-        int evadeSkill = getLevel(defenderData.id);
+        int evadeSkill = 0;
         evadeSkill += getEnhancedSkillStatisticModifierUncapped(defenderData.id, secondaryDefenseSkill);
         evadeSkill += getEnhancedSkillStatisticModifierUncapped(defenderData.id, "private_" + secondaryDefenseSkill);
         if (evadeSkill > 125)
