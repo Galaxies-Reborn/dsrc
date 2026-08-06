@@ -6,7 +6,6 @@
 
     visibleFlags = [VF_gm]
 	
-    scripts = [ "systems.gcw.flip_terminal_spawner",
-    		"systems.gcw.gcw_data_updater" ]
+    scripts = [ "systems.gcw.gcw_data_updater" ]
 		    
 sharedTemplate = "object/tangible/gcw/shared_flip_terminal_spawner.iff"

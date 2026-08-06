@@ -1,32 +1,58 @@
 package script.systems.gcw;
 
 import script.dictionary;
-import script.library.factions;
-import script.library.gcw;
 import script.library.utils;
 import script.obj_id;
 
 public class flip_terminal_spawner extends script.base_script
 {
+    public static final String SCRIPT_NAME = "systems.gcw.flip_terminal_spawner";
+
     public flip_terminal_spawner()
     {
     }
+    public static boolean isPostNgeRegionalMissionTerminalRetired()
+    {
+        return true;
+    }
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        retireSpawner(self);
+        return SCRIPT_CONTINUE;
+    }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
-        messageTo(self, "checkTerminal", null, 1.0f, false);
+        retireSpawner(self);
         return SCRIPT_CONTINUE;
     }
     public void checkDestroy(obj_id self) throws InterruptedException
     {
-        if (!utils.hasScriptVar(self, "terminal"))
+        if (utils.hasScriptVar(self, "terminal"))
         {
-            return;
+            destroyRetiredTerminal(utils.getObjIdScriptVar(self, "terminal"));
+            utils.removeScriptVar(self, "terminal");
         }
-        obj_id terminal = utils.getObjIdScriptVar(self, "terminal");
-        if (isIdValid(terminal))
+        if (hasObjVar(self, "terminal"))
+        {
+            destroyRetiredTerminal(getObjIdObjVar(self, "terminal"));
+            removeObjVar(self, "terminal");
+        }
+    }
+    public void destroyRetiredTerminal(obj_id terminal) throws InterruptedException
+    {
+        if (isIdValid(terminal) && exists(terminal))
         {
             destroyObject(terminal);
         }
+    }
+    public void retireSpawner(obj_id self) throws InterruptedException
+    {
+        checkDestroy(self);
+        if (utils.hasScriptVar(self, "lastCheckTime"))
+        {
+            utils.removeScriptVar(self, "lastCheckTime");
+        }
+        detachScript(self, SCRIPT_NAME);
     }
     public int OnDestroy(obj_id self) throws InterruptedException
     {
@@ -40,60 +66,11 @@ public class flip_terminal_spawner extends script.base_script
     }
     public int checkTerminal(obj_id self, dictionary params) throws InterruptedException
     {
-        float imp_r = gcw.getImperialPercentileByRegion(self);
-        float reb_r = gcw.getRebelPercentileByRegion(self);
-        int lastCheckTime = utils.getIntScriptVar(self, "lastCheckTime");
-        if (getGameTime() - lastCheckTime < 5)
-        {
-            return SCRIPT_CONTINUE;
-        }
-        utils.setScriptVar(self, "lastCheckTime", getGameTime());
-        obj_id terminal = getObjIdObjVar(self, "terminal");
-        if (imp_r > reb_r)
-        {
-            if (isIdValid(terminal))
-            {
-                String faction = getStringObjVar(terminal, factions.FACTION);
-                if (faction.equalsIgnoreCase("rebel"))
-                {
-                    destroyObject(terminal);
-                    spawnTerminal(self, "imperial");
-                }
-            }
-            else 
-            {
-                spawnTerminal(self, "imperial");
-            }
-        }
-        else if (reb_r > imp_r)
-        {
-            if (isIdValid(terminal))
-            {
-                String faction = getStringObjVar(terminal, factions.FACTION);
-                if (faction.equalsIgnoreCase("imperial"))
-                {
-                    destroyObject(terminal);
-                    spawnTerminal(self, "rebel");
-                }
-            }
-            else 
-            {
-                spawnTerminal(self, "rebel");
-            }
-        }
-        messageTo(self, "checkTerminal", null, 3600.0f, false);
+        retireSpawner(self);
         return SCRIPT_CONTINUE;
     }
     public void spawnTerminal(obj_id self, String faction) throws InterruptedException
     {
-        obj_id terminal = createObject("object/tangible/terminal/terminal_mission_" + faction + ".iff", getLocation(self));
-        if (!isIdValid(terminal))
-        {
-            return;
-        }
-        setYaw(terminal, getYaw(self));
-        setObjVar(terminal, "spawner", self);
-        setObjVar(self, "terminal", terminal);
-        return;
+        retireSpawner(self);
     }
 }

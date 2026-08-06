@@ -71,3 +71,5 @@ sku.0/sys.server/compiled/game/script/systems/gcw/player_force_rank.java -text w
 sku.0/sys.server/compiled/game/script/theme_park/jedi_trials/knight_trials.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/conversation/faction_recruiter_imperial.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/conversation/faction_recruiter_rebel.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/flip_terminal_spawner.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/object/tangible/gcw/flip_terminal_spawner.tpf -text whitespace=cr-at-eol
