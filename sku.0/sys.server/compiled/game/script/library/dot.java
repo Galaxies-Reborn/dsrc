@@ -34,7 +34,6 @@ public class dot extends script.base_script
     public static final String VAR_LAST_PULSE = ".last_pulse";
     public static final String VAR_HANDLER = ".handler";
     public static final String VAR_ATTACKER = ".attacker";
-    public static final String VAR_PRECU_AUTHORITATIVE = ".precuAuthoritative";
     public static final String VAR_USES = ".uses";
     public static final int DOT_MAXIMUM_COUNT = 3;
     public static final int BASE_RESISTANCE = 100;
@@ -46,7 +45,6 @@ public class dot extends script.base_script
     public static final int ENERGY_PULSE = 1;
     public static final int DOT_GRACE_PERIOD = 60;
     public static final int MOD_DIVISOR = 3;
-    public static final int DOT_ARMOR_MITIGATION_PERCENT = 50;
     public static final float VAR_EFFECT_DISPLAY_RADIUS = 45.0f;
     public static final String SCRIPT_VAR_DOT_GRACE = "dot.dot_grace";
     public static final String[] HIT_LOCATIONS = 
@@ -125,13 +123,13 @@ public class dot extends script.base_script
     public static final string_id SID_KINETIC_DMG_ATKR = new string_id("dot_message", "kinetic_dmg_atkr");
     public static boolean applyDotEffect(obj_id target, obj_id attacker, String type, String dot_id, int attribute, int potency, int strength, int duration, boolean verbose, String handler) throws InterruptedException
     {
-        return applyDotEffectInternal(target, attacker, type, dot_id, attribute, potency, strength, duration, verbose, handler, false);
+        return applyDotEffectInternal(target, attacker, type, dot_id, attribute, potency, strength, duration, verbose, handler);
     }
     public static boolean applyPrecuDotEffect(obj_id target, obj_id attacker, String type, String dot_id, int attribute, int potency, int strength, int duration) throws InterruptedException
     {
-        return applyDotEffectInternal(target, attacker, type, dot_id, attribute, potency, strength, duration, true, null, true);
+        return applyDotEffectInternal(target, attacker, type, dot_id, attribute, potency, strength, duration, true, null);
     }
-    private static boolean applyDotEffectInternal(obj_id target, obj_id attacker, String type, String dot_id, int attribute, int potency, int strength, int duration, boolean verbose, String handler, boolean precuAuthoritative) throws InterruptedException
+    private static boolean applyDotEffectInternal(obj_id target, obj_id attacker, String type, String dot_id, int attribute, int potency, int strength, int duration, boolean verbose, String handler) throws InterruptedException
     {
         if (!isIdValid(attacker))
         {
@@ -207,14 +205,6 @@ public class dot extends script.base_script
                 stacking = true;
             }
         }
-        if (!precuAuthoritative)
-        {
-            float expertiseDotIncrease = getEnhancedSkillStatisticModifierUncapped(attacker, "expertise_dot_increase");
-            if (expertiseDotIncrease > 0.0f)
-            {
-                strength += (int)(strength * (expertiseDotIncrease / 100.0f));
-            }
-        }
         int dissipation_mod;
         switch (type) {
             case DOT_BLEEDING:
@@ -256,14 +246,6 @@ public class dot extends script.base_script
         utils.setScriptVar(target, VAR_DOT_ROOT + dot_id + VAR_STRENGTH, strength);
         utils.setScriptVar(target, VAR_DOT_ROOT + dot_id + VAR_DURATION, duration);
         utils.setScriptVar(target, VAR_DOT_ROOT + dot_id + VAR_TIME_START, getGameTime());
-        if (precuAuthoritative)
-        {
-            utils.setScriptVar(target, VAR_DOT_ROOT + dot_id + VAR_PRECU_AUTHORITATIVE, true);
-        }
-        else
-        {
-            utils.removeScriptVar(target, VAR_DOT_ROOT + dot_id + VAR_PRECU_AUTHORITATIVE);
-        }
         if (handler != null)
         {
             utils.setScriptVar(target, VAR_DOT_ROOT + dot_id + VAR_HANDLER, handler);
@@ -703,8 +685,6 @@ public class dot extends script.base_script
         int strength = dot.getDotStrength(target, dot_id);
         int duration = dot.getDotDuration(target, dot_id);
         String dotScriptVar = getDotScriptVarName(dot_id);
-        boolean precuAuthoritative = utils.hasScriptVar(target, dotScriptVar + VAR_PRECU_AUTHORITATIVE) &&
-            utils.getBooleanScriptVar(target, dotScriptVar + VAR_PRECU_AUTHORITATIVE);
         if (!utils.hasScriptVar(target, SCRIPT_VAR_DOT_GRACE))
         {
             if (isDead(target) || isIncapacitated(target))
@@ -717,102 +697,24 @@ public class dot extends script.base_script
             return true;
         }
         int absorption_mod = 0;
-        int vulnerability_mod = precuAuthoritative ? 0 :
-            (int)getEnhancedSkillStatisticModifierUncapped(target, "dot_vulnerability_all");
-        dictionary protDic = null;
-        float resistance = 0.0f;
-        if (!precuAuthoritative)
-        {
-            protDic = armor.getCombatArmorSpecialProtections(target);
-            if (isPlayer(target))
-            {
-                resistance = armor.getCombatArmorGeneralProtection(target);
-            }
-        }
         switch (type) {
             case DOT_BLEEDING:
                 absorption_mod += getEnhancedSkillStatisticModifier(target, "absorption_bleeding");
-                if (!precuAuthoritative) {
-                    vulnerability_mod += getEnhancedSkillStatisticModifierUncapped(target, "dot_vulnerability_bleed");
-                    if (isPlayer(target) && protDic != null) {
-                        resistance += protDic.getFloat("cold");
-                    } else {
-                        resistance += utils.getIntScriptVar(target, armor.SCRIPTVAR_CACHED_GENERAL_PROTECTION);
-                    }
-                    absorption_mod /= MOD_DIVISOR;
-                    absorption_mod += (int) getSkillStatisticModifier(target, "expertise_dot_absorption_all");
-                    absorption_mod += (int) (combat.convertProtectionToPercent(resistance) * DOT_ARMOR_MITIGATION_PERCENT);
-                }
                 break;
             case DOT_POISON:
                 absorption_mod += getEnhancedSkillStatisticModifier(target, "absorption_poison");
-                if (!precuAuthoritative) {
-                    vulnerability_mod += getEnhancedSkillStatisticModifierUncapped(target, "dot_vulnerability_poison");
-                    if (isPlayer(target) && protDic != null) {
-                        resistance += protDic.getFloat("acid");
-                    } else {
-                        resistance += utils.getIntScriptVar(target, armor.SCRIPTVAR_CACHED_GENERAL_PROTECTION);
-                    }
-                    absorption_mod /= MOD_DIVISOR;
-                    absorption_mod += (int) getSkillStatisticModifier(target, "expertise_dot_absorption_all");
-                    absorption_mod += (int) (combat.convertProtectionToPercent(resistance) * DOT_ARMOR_MITIGATION_PERCENT);
-                }
                 break;
             case DOT_DISEASE:
                 absorption_mod += getEnhancedSkillStatisticModifier(target, "absorption_disease");
-                if (!precuAuthoritative) {
-                    vulnerability_mod += getEnhancedSkillStatisticModifierUncapped(target, "dot_vulnerability_disease");
-                    if (isPlayer(target) && protDic != null) {
-                        resistance += protDic.getFloat("cold");
-                    } else {
-                        resistance += utils.getIntScriptVar(target, armor.SCRIPTVAR_CACHED_GENERAL_PROTECTION);
-                    }
-                    absorption_mod /= MOD_DIVISOR;
-                    absorption_mod += (int) getSkillStatisticModifier(target, "expertise_dot_absorption_all");
-                    absorption_mod += (int) (combat.convertProtectionToPercent(resistance) * DOT_ARMOR_MITIGATION_PERCENT);
-                }
                 break;
             case DOT_FIRE:
                 absorption_mod += getEnhancedSkillStatisticModifier(target, "absorption_fire");
-                if (!precuAuthoritative) {
-                    vulnerability_mod += getEnhancedSkillStatisticModifierUncapped(target, "dot_vulnerability_fire");
-                    if (isPlayer(target) && protDic != null) {
-                        resistance += protDic.getFloat("heat");
-                    } else {
-                        resistance += utils.getIntScriptVar(target, armor.SCRIPTVAR_CACHED_GENERAL_PROTECTION);
-                    }
-                    absorption_mod /= MOD_DIVISOR;
-                    absorption_mod += (int) getSkillStatisticModifier(target, "expertise_dot_absorption_all");
-                    absorption_mod += (int) (combat.convertProtectionToPercent(resistance) * DOT_ARMOR_MITIGATION_PERCENT);
-                }
                 break;
             case DOT_ACID:
                 absorption_mod += getEnhancedSkillStatisticModifier(target, "absorption_acid");
-                if (!precuAuthoritative) {
-                    vulnerability_mod += getEnhancedSkillStatisticModifierUncapped(target, "dot_vulnerability_acid");
-                    if (isPlayer(target) && protDic != null) {
-                        resistance += protDic.getFloat("acid");
-                    } else {
-                        resistance += utils.getIntScriptVar(target, armor.SCRIPTVAR_CACHED_GENERAL_PROTECTION);
-                    }
-                    absorption_mod /= MOD_DIVISOR;
-                    absorption_mod += (int) getSkillStatisticModifier(target, "expertise_dot_absorption_all");
-                    absorption_mod += (int) (combat.convertProtectionToPercent(resistance) * DOT_ARMOR_MITIGATION_PERCENT);
-                }
                 break;
             case DOT_ENERGY:
                 absorption_mod += getEnhancedSkillStatisticModifier(target, "absorption_energy");
-                if (!precuAuthoritative) {
-                    vulnerability_mod += getEnhancedSkillStatisticModifierUncapped(target, "dot_vulnerability_energy");
-                    if (isPlayer(target) && protDic != null) {
-                        resistance += protDic.getFloat("energy");
-                    } else {
-                        resistance += utils.getIntScriptVar(target, armor.SCRIPTVAR_CACHED_GENERAL_PROTECTION);
-                    }
-                    absorption_mod /= MOD_DIVISOR;
-                    absorption_mod += (int) getSkillStatisticModifier(target, "expertise_dot_absorption_all");
-                    absorption_mod += (int) (combat.convertProtectionToPercent(resistance) * DOT_ARMOR_MITIGATION_PERCENT);
-                }
                 break;
             default:
                 return false;
@@ -826,20 +728,6 @@ public class dot extends script.base_script
             }
             damageAbsorbed = (int)(strength * (absorption_mod / 100.0f));
             strength = (int)(strength * (1.0f - (absorption_mod / 100.0f)));
-        }
-        if (!precuAuthoritative && vulnerability_mod > 0)
-        {
-            strength = (int)(strength * (1.0f + (vulnerability_mod / 100.0f)));
-        }
-        if (!precuAuthoritative)
-        {
-            int expertiseDamageBonus = getEnhancedSkillStatisticModifierUncapped(target, "combat_multiply_damage_taken");
-            float tempDamageFloat = strength;
-            tempDamageFloat = tempDamageFloat * (1.0f + (expertiseDamageBonus / 100.0f));
-            int expertiseDamageReduction = getEnhancedSkillStatisticModifierUncapped(target, "combat_divide_damage_taken");
-            expertiseDamageReduction = expertiseDamageReduction > 100 ? 100 : expertiseDamageReduction;
-            tempDamageFloat = tempDamageFloat * (1.0f - (expertiseDamageReduction / 100.0f));
-            strength = (int)tempDamageFloat;
         }
         int dotAttribute = getDotAttribute(target, dot_id);
         if (dotAttribute < HEALTH || dotAttribute > WILLPOWER)
@@ -858,13 +746,6 @@ public class dot extends script.base_script
             return false;
         }
         int damageResisted = 0;
-        if (!precuAuthoritative && attemptDotResist(target, type, 100, false))
-        {
-            int divisor = rand(2, 25);
-            int oldStrength = strength;
-            strength /= divisor;
-            damageResisted = oldStrength - strength;
-        }
         String mitigationString = "(" + damageAbsorbed + getString(new string_id("dot_message", "generic_absorbed")) + damageResisted + getString(new string_id("dot_message", "generic_resisted")) + ")";
         if (strength > 0)
         {
@@ -2191,109 +2072,30 @@ public class dot extends script.base_script
             return false;
         }
         int absorption_mod = 0;
-        int vulnerability_mod = (int)getEnhancedSkillStatisticModifierUncapped(target, "dot_vulnerability_all");
-        dictionary protDic = armor.getCombatArmorSpecialProtections(target);
-        float resistance = 0.0f;
-        if (isPlayer(target))
-        {
-            resistance = armor.getCombatArmorGeneralProtection(target);
-        }
         switch (type) {
             case DOT_FIRE:
                 absorption_mod += getEnhancedSkillStatisticModifier(target, "absorption_fire");
-                vulnerability_mod += getEnhancedSkillStatisticModifierUncapped(target, "dot_vulnerability_fire");
-                if (isPlayer(target)) {
-                    resistance += protDic.getFloat("heat");
-                } else {
-                    resistance += utils.getIntScriptVar(target, armor.SCRIPTVAR_CACHED_GENERAL_PROTECTION);
-                }
-                absorption_mod /= MOD_DIVISOR;
-                absorption_mod += (int) getSkillStatisticModifier(target, "expertise_dot_absorption_all");
-                absorption_mod += (int) (combat.convertProtectionToPercent(resistance) * DOT_ARMOR_MITIGATION_PERCENT);
                 break;
             case DOT_ACID:
                 absorption_mod += getEnhancedSkillStatisticModifier(target, "absorption_acid");
-                vulnerability_mod += getEnhancedSkillStatisticModifierUncapped(target, "dot_vulnerability_acid");
-                if (isPlayer(target)) {
-                    resistance += protDic.getFloat("acid");
-                } else {
-                    resistance += utils.getIntScriptVar(target, armor.SCRIPTVAR_CACHED_GENERAL_PROTECTION);
-                }
-                absorption_mod /= MOD_DIVISOR;
-                absorption_mod += (int) getSkillStatisticModifier(target, "expertise_dot_absorption_all");
-                absorption_mod += (int) (combat.convertProtectionToPercent(resistance) * DOT_ARMOR_MITIGATION_PERCENT);
                 break;
             case DOT_COLD:
                 absorption_mod += getEnhancedSkillStatisticModifier(target, "absorption_cold");
-                vulnerability_mod += getEnhancedSkillStatisticModifierUncapped(target, "dot_vulnerability_cold");
-                if (isPlayer(target)) {
-                    resistance += protDic.getFloat("cold");
-                } else {
-                    resistance += utils.getIntScriptVar(target, armor.SCRIPTVAR_CACHED_GENERAL_PROTECTION);
-                }
-                absorption_mod /= MOD_DIVISOR;
-                absorption_mod += (int) getSkillStatisticModifier(target, "expertise_dot_absorption_all");
-                absorption_mod += (int) (combat.convertProtectionToPercent(resistance) * DOT_ARMOR_MITIGATION_PERCENT);
                 break;
             case DOT_ELECTRICITY:
                 absorption_mod += getEnhancedSkillStatisticModifier(target, "absorption_electricity");
-                vulnerability_mod += getEnhancedSkillStatisticModifierUncapped(target, "dot_vulnerability_electricity");
-                if (isPlayer(target)) {
-                    resistance += protDic.getFloat("electricity");
-                } else {
-                    resistance += utils.getIntScriptVar(target, armor.SCRIPTVAR_CACHED_GENERAL_PROTECTION);
-                }
-                absorption_mod /= MOD_DIVISOR;
-                absorption_mod += (int) getSkillStatisticModifier(target, "expertise_dot_absorption_all");
-                absorption_mod += (int) (combat.convertProtectionToPercent(resistance) * DOT_ARMOR_MITIGATION_PERCENT);
                 break;
             case DOT_ENERGY:
                 absorption_mod += getEnhancedSkillStatisticModifier(target, "absorption_energy");
-                vulnerability_mod += getEnhancedSkillStatisticModifierUncapped(target, "dot_vulnerability_energy");
-                if (isPlayer(target)) {
-                    resistance += protDic.getFloat("energy");
-                } else {
-                    resistance += utils.getIntScriptVar(target, armor.SCRIPTVAR_CACHED_GENERAL_PROTECTION);
-                }
-                absorption_mod /= MOD_DIVISOR;
-                absorption_mod += (int) getSkillStatisticModifier(target, "expertise_dot_absorption_all");
-                absorption_mod += (int) (combat.convertProtectionToPercent(resistance) * DOT_ARMOR_MITIGATION_PERCENT);
                 break;
             case DOT_KINETIC:
                 absorption_mod += getEnhancedSkillStatisticModifier(target, "absorption_kinetic");
-                vulnerability_mod += getEnhancedSkillStatisticModifierUncapped(target, "dot_vulnerability_kinetic");
-                if (isPlayer(target)) {
-                    resistance += protDic.getFloat("kinetic");
-                } else {
-                    resistance += utils.getIntScriptVar(target, armor.SCRIPTVAR_CACHED_GENERAL_PROTECTION);
-                }
-                absorption_mod /= MOD_DIVISOR;
-                absorption_mod += (int) getSkillStatisticModifier(target, "expertise_dot_absorption_all");
-                absorption_mod += (int) (combat.convertProtectionToPercent(resistance) * DOT_ARMOR_MITIGATION_PERCENT);
                 break;
             case DOT_BLEEDING:
                 absorption_mod += getEnhancedSkillStatisticModifier(target, "absorption_bleeding");
-                vulnerability_mod += getEnhancedSkillStatisticModifierUncapped(target, "dot_vulnerability_bleed");
-                if (isPlayer(target)) {
-                    resistance += protDic.getFloat("cold");
-                } else {
-                    resistance += utils.getIntScriptVar(target, armor.SCRIPTVAR_CACHED_GENERAL_PROTECTION);
-                }
-                absorption_mod /= MOD_DIVISOR;
-                absorption_mod += (int) getSkillStatisticModifier(target, "expertise_dot_absorption_all");
-                absorption_mod += (int) (combat.convertProtectionToPercent(resistance) * DOT_ARMOR_MITIGATION_PERCENT);
                 break;
             case DOT_POISON:
                 absorption_mod += getEnhancedSkillStatisticModifier(target, "absorption_poison");
-                vulnerability_mod += getEnhancedSkillStatisticModifierUncapped(target, "dot_vulnerability_poison");
-                if (isPlayer(target)) {
-                    resistance += protDic.getFloat("acid");
-                } else {
-                    resistance += utils.getIntScriptVar(target, armor.SCRIPTVAR_CACHED_GENERAL_PROTECTION);
-                }
-                absorption_mod /= MOD_DIVISOR;
-                absorption_mod += (int) getSkillStatisticModifier(target, "expertise_dot_absorption_all");
-                absorption_mod += (int) (combat.convertProtectionToPercent(resistance) * DOT_ARMOR_MITIGATION_PERCENT);
                 break;
             default:
                 return false;
@@ -2308,19 +2110,6 @@ public class dot extends script.base_script
             damageAbsorbed = (int)(strength * (absorption_mod / 100.0f));
             strength = (int)(strength * (1.0f - (absorption_mod / 100.0f)));
         }
-        if (vulnerability_mod > 0)
-        {
-            strength = (int)(strength * (1.0f + (vulnerability_mod / 100.0f)));
-        }
-        int expertiseDamageBonus = getEnhancedSkillStatisticModifierUncapped(caster, "combat_multiply_damage_dealt");
-        expertiseDamageBonus += getEnhancedSkillStatisticModifierUncapped(target, "combat_multiply_damage_taken");
-        float tempDamageFloat = strength;
-        tempDamageFloat = tempDamageFloat * (1.0f + (expertiseDamageBonus / 100.0f));
-        int expertiseDamageReduction = getEnhancedSkillStatisticModifierUncapped(caster, "combat_divide_damage_dealt");
-        expertiseDamageReduction += getEnhancedSkillStatisticModifierUncapped(target, "combat_divide_damage_taken");
-        expertiseDamageReduction = expertiseDamageReduction > 100 ? 100 : expertiseDamageReduction;
-        tempDamageFloat = tempDamageFloat * (1.0f - (expertiseDamageReduction / 100.0f));
-        strength = (int)tempDamageFloat;
         int current_attrib = getAttrib(target, HEALTH);
         if ((caster != target) && !pvpCanAttack(caster, target))
         {

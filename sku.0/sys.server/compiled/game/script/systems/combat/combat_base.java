@@ -4538,31 +4538,14 @@ public class combat_base extends script.base_script
         if (dotType != null && dotType.length() > 0)
         {
             int dotIntensity = actionData.dotIntensity;
-            int dotDuration = actionData.dotDuration;
             if (dotIntensity == 0)
             {
                 dotIntensity = (int)(hitData.rawDamage * actionData.percentAddFromWeapon);
             }
-            String specialName = actionData.actionName;
-            int expertiseDotDurationBonus = 0;
-            float expertiseDotDamageBonus = getEnhancedSkillStatisticModifierUncapped(attacker, "expertise_damage_all");
-            if (isMob(defender) && !isPlayer(defender) && !isIdValid(getMaster(defender)))
-            {
-                expertiseDotDamageBonus += getEnhancedSkillStatisticModifierUncapped(attacker, "expertise_damage_npc");
-            }
-            if (specialLine != null && specialLine.length() > 0)
-            {
-                expertiseDotDurationBonus = getEnhancedSkillStatisticModifierUncapped(attacker, "expertise_dot_duration_line_" + specialLine);
-                expertiseDotDurationBonus += getEnhancedSkillStatisticModifierUncapped(attacker, "expertise_dot_duration_single_" + specialName);
-                expertiseDotDamageBonus += getEnhancedSkillStatisticModifierUncapped(attacker, "expertise_dot_damage_line_" + specialLine);
-            }
-            float dotIntensityFloat = dotIntensity * (1.0f + (expertiseDotDamageBonus / 100.0f));
-            dotIntensity = (int)dotIntensityFloat;
-            dotDuration += expertiseDotDurationBonus;
             int targetAttrib = actionData.precuDotAttribute >= 0 ?
                 actionData.precuDotAttribute :
                 (dotType.equals("disease") ? ACTION : HEALTH);
-            boolean rslt = dot.applyDotEffect(defender, attacker, dotType, dotType + "" + attacker, targetAttrib, 100, dotIntensity, dotDuration);
+            boolean rslt = dot.applyPrecuDotEffect(defender, attacker, dotType, dotType + "" + attacker, targetAttrib, 100, dotIntensity, actionData.dotDuration);
         }
         hitData.damage = (hitData.rawDamage);
         hitData.damageType = weaponData.damageType;
