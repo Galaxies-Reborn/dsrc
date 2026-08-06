@@ -17,4 +17,4 @@
 
 sharedTemplate = "object/tangible/medicine/instant_stimpack/shared_stimpack_syren.iff"
 
-objvars =+ ["healing.combat_level_required" = 1, "healing.power" = 1500, "charges" = 3]
+objvars =+ ["healing.power" = 1500, "charges" = 3]

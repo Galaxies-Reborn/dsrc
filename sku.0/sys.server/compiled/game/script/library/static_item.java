@@ -1673,6 +1673,13 @@ public class static_item extends script.base_script
             }
         }
     }
+    public static void removeLegacyNgeItemCombatLevelRequirement(obj_id item) throws InterruptedException
+    {
+        if (hasObjVar(item, "healing.combat_level_required"))
+        {
+            removeObjVar(item, "healing.combat_level_required");
+        }
+    }
     public static int generateStatMod(int level) throws InterruptedException
     {
         final float BASE_MOD = 0.2f;

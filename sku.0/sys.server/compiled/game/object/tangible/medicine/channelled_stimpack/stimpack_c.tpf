@@ -17,6 +17,6 @@
 
 sharedTemplate = "object/tangible/medicine/channelled_stimpack/shared_stimpack_c.iff"
 
-objvars =+ ["healing.power" = 4000, "healing.combat_level_required" = 65]
+objvars =+ ["healing.power" = 4000]
 
 scripts = ["item.medicine.stimpack_crafted"]

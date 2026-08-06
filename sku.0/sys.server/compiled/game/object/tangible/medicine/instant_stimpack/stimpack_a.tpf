@@ -16,5 +16,3 @@
 @class object_template 10
 
 sharedTemplate = "object/tangible/medicine/instant_stimpack/shared_stimpack_a.iff"
-
-objvars =+ ["healing.combat_level_required" = 1]

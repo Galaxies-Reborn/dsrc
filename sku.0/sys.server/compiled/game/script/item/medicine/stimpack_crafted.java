@@ -2,6 +2,7 @@ package script.item.medicine;
 
 import script.library.buff;
 import script.library.healing;
+import script.library.static_item;
 import script.library.utils;
 import script.*;
 
@@ -11,8 +12,19 @@ public class stimpack_crafted extends script.base_script
     {
     }
     public static final string_id SID_STIMPACK_TOO_SOON = new string_id("healing", "channel_heal_stimpack_too_soon");
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        static_item.removeLegacyNgeItemCombatLevelRequirement(self);
+        return SCRIPT_CONTINUE;
+    }
+    public int OnInitialize(obj_id self) throws InterruptedException
+    {
+        static_item.removeLegacyNgeItemCombatLevelRequirement(self);
+        return SCRIPT_CONTINUE;
+    }
     public int OnGetAttributes(obj_id self, obj_id player, String[] names, String[] attribs) throws InterruptedException
     {
+        static_item.removeLegacyNgeItemCombatLevelRequirement(self);
         int idx = utils.getValidAttributeIndex(names);
         if (idx == -1)
         {
@@ -48,6 +60,7 @@ public class stimpack_crafted extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        static_item.removeLegacyNgeItemCombatLevelRequirement(self);
         if (isDead(player) || isIncapacitated(player))
         {
             return SCRIPT_CONTINUE;

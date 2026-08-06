@@ -3,7 +3,6 @@ s	s	"e(unknown=0,int=1,float=2,string=3,enum=4)[unknown]"	s	s	s	s	s	s	s	s	s	s	s	
 armor	@obj_attr_n:efficiency	float
 	@obj_attr_n:recharge_rate	float
 	@proc/proc:proc_name	enum	@ui_buff:towhelmetaccuracy
-	@proc/proc:required_combat_level	int
 	@spam:pup_expire_time	int
 	@spam:pup_modifier	enum	@stat_n:armor_assembly	@stat_n:expertise_reverse_engineering_bonus	@stat_n:luck_modified	@stat_n:agility_modified	@stat_n:expertise_glancing_blow_all	@stat_n:combat_block_value
 	@spam:pup_power	int
@@ -249,7 +248,6 @@ misc_crafting_station	contents	int
 	stationmod	float
 	stationmod_1	float
 misc_food	@proc/proc:proc_name	enum	@ui_buff:mtp_meatlump_lump_buff	@ui_buff:pub28meatpie	@ui_buff:treasure_bonus_combat_block_chance	@ui_buff:treasure_bonus_combat_evasion_chance	@ui_buff:treasure_bonus_snare_immunity
-	@proc/proc:required_combat_level	int
 	@proc/proc:reuse_time	int
 	@spam:reuse_time_counted	int
 	count	int
@@ -284,7 +282,6 @@ misc_food	@proc/proc:proc_name	enum	@ui_buff:mtp_meatlump_lump_buff	@ui_buff:pub
 	food_strength_modified	float
 	food_surveying	float
 	food_treasure_forage_mod	float
-	healing_combat_level_required	int
 	healing_power	int
 	num_in_stack	int
 	serial_number	string
@@ -309,7 +306,6 @@ misc_pharmaceutical	beastSteroidBonus	int
 	examine_heal_wound_ACTION	int
 	examine_heal_wound_HEALTH	int
 	healing_ability	int
-	healing_combat_level_required	int
 	healing_power	float
 	serial_number	string
 	strength	int
@@ -411,8 +407,7 @@ misc_trap	complexity	int
 	crafter	string
 	quantity	int
 	serial_number	string
-misc_container_wearable	@proc/proc:required_combat_level	int
-	bio_link	enum	@obj_attr_n:bio_link_pending
+misc_container_wearable	bio_link	enum	@obj_attr_n:bio_link_pending
 	cat_skill_mod_bonus.@stat_n:agility_modified	int
 	cat_skill_mod_bonus.@stat_n:aim	int
 	cat_skill_mod_bonus.@stat_n:camouflage	int
@@ -477,7 +472,6 @@ misc_firework	crafter	string
 	serial_number	string
 misc_item_usable	@proc/proc:effect_level	int
 	@proc/proc:proc_name	enum	@ui_buff:agiconsumable5 @ui_buff:agiconsumable10 @ui_buff:agiconsumable15 @ui_buff:agiconsumable20 @ui_buff:agiconsumable25 @ui_buff:agiconsumable30 @ui_buff:agiconsumable35 @ui_buff:agiconsumable40 @ui_buff:agiconsumable45	@ui_buff:burstrun	@ui_buff:conconsumable5 @ui_buff:conconsumable10 @ui_buff:conconsumable15 @ui_buff:conconsumable20 @ui_buff:conconsumable25 @ui_buff:conconsumable30 @ui_buff:conconsumable35 @ui_buff:conconsumable40 @ui_buff:conconsumable45	@ui_buff:detecthiddenconsumable100	@ui_buff:detecthiddenconsumable20	@ui_buff:detecthiddenconsumable40	@ui_buff:detecthiddenconsumable65	@ui_buff:forcecrystalhealth	@ui_buff:lckconsumable5 @ui_buff:lckconsumable10 @ui_buff:lckconsumable15 @ui_buff:lckconsumable20 @ui_buff:lckconsumable25 @ui_buff:lckconsumable30 @ui_buff:lckconsumable35 @ui_buff:lckconsumable40 @ui_buff:lckconsumable45	@ui_buff:npebugjuice	@ui_buff:npecomboacclongduration	@ui_buff:npehealthbuff	@ui_buff:npemanualacuity	@ui_buff:npemeleeaccuracy	@ui_buff:npemeleespeedlongduration	@ui_buff:nperngaccuracy	@ui_buff:nperngspeedlongduration	@ui_buff:npestaminabuff	@ui_buff:npevisualacuity	@ui_buff:npewilllongduration	@ui_buff:preconsumable5 @ui_buff:preconsumable10 @ui_buff:preconsumable15 @ui_buff:preconsumable20 @ui_buff:preconsumable25 @ui_buff:preconsumable30 @ui_buff:preconsumable35 @ui_buff:preconsumable40 @ui_buff:preconsumable45	@ui_buff:proc_tow_proc_b_3 @ui_buff:towprocb_3	@ui_buff:proc_tow_proc_b_6 @ui_buff:proc_tow_proc_b_7 @ui_buff:towprocb_6 @ui_buff:towprocb_7	@ui_buff:staconsumable5 @ui_buff:staconsumable10 @ui_buff:staconsumable15 @ui_buff:staconsumable20 @ui_buff:staconsumable25 @ui_buff:staconsumable30 @ui_buff:staconsumable35 @ui_buff:staconsumable40 @ui_buff:staconsumable45 @ui_buff:statconsumable25	@ui_buff:strconsumable5 @ui_buff:strconsumable10 @ui_buff:strconsumable15 @ui_buff:strconsumable20 @ui_buff:strconsumable25 @ui_buff:strconsumable30 @ui_buff:strconsumable35 @ui_buff:strconsumable40 @ui_buff:strconsumable45	@ui_buff:towbleedabsorb_1	@ui_buff:towbleedabsorb_2	@ui_buff:towbleedabsorb_3	@ui_buff:towbleedresist_1	@ui_buff:towbleedresist_2	@ui_buff:towbleedresist_3	@ui_buff:towbleedresistabsorb_1	@ui_buff:towbleedresistabsorb_2	@ui_buff:towbleedresistabsorb_3	@ui_buff:towcombods_1	@ui_buff:towcombods_2	@ui_buff:towcombods_3	@ui_buff:towconstitution_1	@ui_buff:towconstitution_2	@ui_buff:towconstitution_3	@ui_buff:towcrystalabimmune	@ui_buff:towcrystaldefenseburst	@ui_buff:towcrystaldotimmunity	@ui_buff:towcrystaloffenseburst	@ui_buff:towcrystaluberds	@ui_buff:towdiseaseabsorb_1	@ui_buff:towdiseaseabsorb_2	@ui_buff:towdiseaseabsorb_3	@ui_buff:towdiseaseresist_1	@ui_buff:towdiseaseresist_2	@ui_buff:towdiseaseresist_3	@ui_buff:towdiseaseresistabsorb_1	@ui_buff:towdiseaseresistabsorb_2	@ui_buff:towdiseaseresistabsorb_3	@ui_buff:towfireabsorb_1	@ui_buff:towfireabsorb_2	@ui_buff:towfireabsorb_3	@ui_buff:towfireresist_1	@ui_buff:towfireresist_2	@ui_buff:towfireresist_3	@ui_buff:towhealth_1	@ui_buff:towhealth_2	@ui_buff:towhealth_3	@ui_buff:towhealthconst_1	@ui_buff:towhealthconst_2	@ui_buff:towhealthconstawill	@ui_buff:towhealthconststamina	@ui_buff:towhealthwillpower_1	@ui_buff:towhealthwillpower_2	@ui_buff:towmeleeacc_1	@ui_buff:towmeleeacc_2	@ui_buff:towmeleeacc_3	@ui_buff:towmeleedef_1	@ui_buff:towmeleedef_2	@ui_buff:towmeleedef_3	@ui_buff:towmeleeds_1	@ui_buff:towmeleeds_2	@ui_buff:towmeleeds_3	@ui_buff:towpoisonresist_1	@ui_buff:towpoisonresist_2	@ui_buff:towpoisonresist_3	@ui_buff:towpoisonresistabsorb_1	@ui_buff:towpoisonresistabsorb_2	@ui_buff:towpoisonresistabsorb_3	@ui_buff:towrngdef_1	@ui_buff:towrngdef_2	@ui_buff:towrngdef_3	@ui_buff:towrngds_1	@ui_buff:towrngds_2	@ui_buff:towrngds_3	@ui_buff:towwillpower_1	@ui_buff:towwillpower_2	@ui_buff:towwillpower_3	@ui_buff:treasure_bonus_combat_critical_hit	@ui_buff:treasure_bonus_combat_strikethrough_chance	@ui_buff:npedefensebuff	@ui_buff:forcecrystalforce	@ui_buff:npehealeff	@ui_buff:npestaminalongduration	@ui_buff:proc_tow_proc_a_1	@ui_buff:proc_tow_proc_a_2	@ui_buff:proc_tow_proc_a_3	@ui_buff:proc_tow_proc_b_1	@ui_buff:proc_tow_proc_b_2	@ui_buff:towcomboacc_1	@ui_buff:towcomboacc_3	@ui_buff:towconststamina_1	@ui_buff:towconststaminawillpower	@ui_buff:towconstwillpower_2	@ui_buff:towfireresistabsorb_1	@ui_buff:towfireresistabsorb_2	@ui_buff:towfireresistabsorb_3	@ui_buff:towhaste_2	@ui_buff:towhealthconstwillpower	@ui_buff:towhealthstamina_1	@ui_buff:towhealthstamina_2	@ui_buff:towhealthstaminawillpower	@ui_buff:towpoisonabsorb_1	@ui_buff:towpoisonabsorb_3	@ui_buff:towprivatedef_1	@ui_buff:towrngacc_1	@ui_buff:towrngacc_3	@ui_buff:towstamina_1	@ui_buff:towstamina_2	@ui_buff:towstamina_3	@ui_buff:towstaminawillpower_1	@ui_buff:towstaminawillpower_2	@ui_buff:trader_assembly_collection_buff	@ui_buff:treasure_bonus_combat_critical_hit_reduction	@ui_buff:treasure_bonus_combat_parry	@ui_buff:treasure_bonus_combat_dodge	@ui_buff:treasure_bonus_heal_health_action	@ui_buff:towpoisonabsorb_2
-	@proc/proc:required_combat_level	int
 	@proc/proc:reuse_time	int
 	@spam:reuse_time_counted	int
 	@stat_n:absorption_bleeding	int
@@ -1108,7 +1102,6 @@ weapon	@proc/proc:proc_name	enum	@ui_buff:proc_tow_proc_b_3 @ui_buff:towprocb_3	
 	counter_uses_remaining	int
 	crafter	string
 	faction_restriction	string	Imperial	Rebel
-	healing_combat_level_required @proc/proc:required_combat_level	int
 	race_requirement	enum	@weapon_detail:species_4
 	serial_number	string
 	skillmodmin	enum	@ui_roadmap:title_bounty_hunter	@ui_roadmap:title_commando	@ui_roadmap:title_entertainer	@ui_roadmap:title_force_sensitive	@ui_roadmap:title_medic	@ui_roadmap:title_officer	@ui_roadmap:title_smuggler	@ui_roadmap:title_spy	@ui_roadmap:title_trader	None	@ui_roadmap:title_disabled
@@ -1218,7 +1211,6 @@ component	no child inherit
 	filling_bonus	int
 	flavor_bonus	int
 	harvest_power	int
-	healing_combat_level_required	int
 	is_repair_droid	enum	yes <<<a_blank_space>>>
 	mechanism_quality	int
 	merchant_barker	string	installed
@@ -1356,7 +1348,6 @@ component_new_armor	cat_attrib_mod_bonus.@att_bonus_n:health	int
 	serial_number	string
 jewelry	@proc/proc:effect_level	int
 	@proc/proc:proc_name	enum	@ui_buff:proc_tow_proc_bracelet_range	@ui_buff:towarmorassembly	@ui_buff:towdroidassembly	@ui_buff:towfireresist_3	@ui_buff:towfoodassembly	@ui_buff:towmedassembly	@ui_buff:towweaponassembly	@ui_buff:trivialcomboresist	@ui_buff:trivialhealefficiency	@ui_buff:proc_tow_proc_bracelet_combo	@ui_buff:proc_tow_proc_bracelet_melee
-	@proc/proc:required_combat_level	int
 	@proc/proc:required_skill	enum	@ui_roadmap:bounty_hunter	@ui_roadmap:commando	@ui_roadmap:entertainer	@ui_roadmap:force_sensitive	@ui_roadmap:medic	@ui_roadmap:officer	@ui_roadmap:smuggler	@ui_roadmap:spy	@ui_roadmap:trader
 	bio_link	enum	@obj_attr_n:bio_link_pending
 	cat_skill_mod_bonus.@stat_n:absorption_bleeding	int
@@ -1549,7 +1540,6 @@ deed_droid	ai_diction	string	Default	Geek	Prissy	Sarcastic	Slang	Stupid	Worshipf
 	struct_module_rating	int
 clothing	@obj_attr_n:protection_level	enum	@obj_attr_n:pseudo_3	@obj_attr_n:pseudo_4
 	@proc/proc:proc_name	enum	@ui_buff:towgloveshealeff
-	@proc/proc:required_combat_level	int
 	@proc/proc:required_skill	enum	@ui_roadmap:bounty_hunter	@ui_roadmap:commando	@ui_roadmap:entertainer	@ui_roadmap:force_sensitive	@ui_roadmap:medic	@ui_roadmap:officer	@ui_roadmap:smuggler	@ui_roadmap:spy	@ui_roadmap:trader
 	@spam:pup_expire_time	int
 	@spam:pup_modifier	enum	@stat_n:expertise_reverse_engineering_bonus	@stat_n:expertise_glancing_blow_all	@stat_n:combat_strikethrough_chance	@stat_n:jedi_saber_assembly	@stat_n:luck_modified

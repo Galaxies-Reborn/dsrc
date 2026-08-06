@@ -1,5 +1,6 @@
 package script.item.plant;
 
+import script.library.static_item;
 import script.obj_id;
 
 public class force_melon extends script.base_script
@@ -21,10 +22,7 @@ public class force_melon extends script.base_script
         {
             setObjVar(self, "healing.power", 1000);
         }
-        if (hasObjVar(self, "healing.combat_level_required"))
-        {
-            removeObjVar(self, "healing.combat_level_required");
-        }
+        static_item.removeLegacyNgeItemCombatLevelRequirement(self);
         return SCRIPT_CONTINUE;
     }
 }

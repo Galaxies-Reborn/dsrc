@@ -198,14 +198,7 @@ public class crafting_weapon_component_attribute extends script.base_script
             dictionary weaponCoreDat = new dictionary();
             if (hasObjVar(self, craftinglib.COMPONENT_ATTRIBUTE_OBJVAR_NAME + "." + "coreLevel"))
             {
-                names[idx] = "healing_combat_level_required";
                 coreLevel = (int)getFloatObjVar(self, craftinglib.COMPONENT_ATTRIBUTE_OBJVAR_NAME + "." + "coreLevel");
-                attribs[idx] = Integer.toString(coreLevel);
-                idx++;
-                if (idx >= names.length)
-                {
-                    return SCRIPT_CONTINUE;
-                }
                 weaponCoreDat = weapons.getWeaponCoreData(coreLevel);
             }
             float coreQualityMin = 0.0f;

@@ -17,4 +17,4 @@
 
 sharedTemplate = "object/tangible/medicine/instant_stimpack/shared_stimpack_noob.iff"
 
-objvars =+ ["healing.combat_level_required" = 1, "noTrade" = 1]
+objvars =+ ["noTrade" = 1]
