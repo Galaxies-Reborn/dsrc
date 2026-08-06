@@ -38,6 +38,18 @@ public class static_item extends script.base_script
         "agility_modified",
         "luck_modified"
     };
+    public static final String[] RETIRED_NGE_STATIC_ITEM_MODIFIERS =
+    {
+        "bh_dire_root",
+        "bh_dire_snare",
+        "combat_block_chance",
+        "combat_block_value",
+        "combat_strikethrough_chance",
+        "cooldown_percent_of_group_buff",
+        "incubation_time_reduction",
+        "rally_point_duration",
+        "tka_armor"
+    };
     public static final java.text.NumberFormat noDecimalFormat = new java.text.DecimalFormat("###");
     public static final String SET_BONUS_TABLE = "datatables/item/item_sets.iff";
     public static obj_id createNewItemFunction(String itemName, obj_id container) throws InterruptedException
@@ -187,9 +199,20 @@ public class static_item extends script.base_script
         {
             return true;
         }
+        if (modifier.startsWith("fast_attack_line_") || modifier.startsWith("bm_"))
+        {
+            return true;
+        }
         for (String legacyPrimaryModifier : LEGACY_NGE_DYNAMIC_PRIMARY_MODIFIERS)
         {
             if (modifier.equals(legacyPrimaryModifier))
+            {
+                return true;
+            }
+        }
+        for (String retiredModifier : RETIRED_NGE_STATIC_ITEM_MODIFIERS)
+        {
+            if (modifier.equals(retiredModifier))
             {
                 return true;
             }
