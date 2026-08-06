@@ -94,6 +94,11 @@ public class loot_schematic extends script.base_script
             return SCRIPT_CONTINUE;
         }
         int type = getLootItemType(self);
+        if (isRetiredPostNgePlayerKnowledgeItem(self, player))
+        {
+            retirePostNgePlayerKnowledgeItemState(self, player);
+            return SCRIPT_CONTINUE;
+        }
         switch (type)
         {
             case TYPE_SCHEMATIC:
@@ -121,6 +126,11 @@ public class loot_schematic extends script.base_script
         if (!isIdValid(self))
         {
             return SCRIPT_CONTINUE;
+        }
+        if (isRetiredPostNgePlayerKnowledgeItem(self, player))
+        {
+            retirePostNgePlayerKnowledgeItemState(self, player);
+            return SCRIPT_OVERRIDE;
         }
         if (hasObjVar(self, township.OBJECT_FOR_SALE_ON_VENDOR))
         {
@@ -309,6 +319,11 @@ public class loot_schematic extends script.base_script
     }
     public int OnGetAttributes(obj_id self, obj_id player, String[] names, String[] attribs) throws InterruptedException
     {
+        if (isRetiredPostNgePlayerKnowledgeItem(self, player))
+        {
+            retirePostNgePlayerKnowledgeItemState(self, player);
+            return SCRIPT_CONTINUE;
+        }
         int idx = utils.getValidAttributeIndex(names);
         if (idx == -1)
         {
@@ -360,6 +375,22 @@ public class loot_schematic extends script.base_script
         else 
         {
             return 1;
+        }
+    }
+    public boolean isRetiredPostNgePlayerKnowledgeItem(obj_id item, obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(item) || !isIdValid(player) || !isPlayer(player))
+        {
+            return false;
+        }
+        int type = getLootItemType(item);
+        return type == TYPE_SKILL || type == TYPE_ABILITY || type == TYPE_BEAST_ABILITY;
+    }
+    public void retirePostNgePlayerKnowledgeItemState(obj_id item, obj_id player) throws InterruptedException
+    {
+        if (isRetiredPostNgePlayerKnowledgeItem(item, player) && getLootItemType(item) == TYPE_BEAST_ABILITY)
+        {
+            beast_lib.retirePostNgeBeastMasterPlayerState(player);
         }
     }
     public void test(obj_id player) throws InterruptedException
