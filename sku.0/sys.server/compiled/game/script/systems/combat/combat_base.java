@@ -76,6 +76,61 @@ public class combat_base extends script.base_script
         "combat.precuNextAttackDelayResult";
     public static final String PRECU_NEXT_ATTACK_DELAY_REMAINING =
         "combat.precuNextAttackDelayRemaining";
+    private static final String[] RETIRED_POST_NGE_SPECIES_PLAYER_ACTIONS =
+    {
+        "human_ability_1",
+        "wookiee_ability_1",
+        "rodian_ability_1",
+        "bothan_ability_1",
+        "ithorian_ability_1",
+        "twilek_ability_1",
+        "sullustan_ability_1",
+        "moncal_ability_1",
+        "trandoshan_ability_1",
+        "zabrak_ability_1"
+    };
+    public static boolean isRetiredPostNgeSpeciesPlayerAction(obj_id self, String actionName) throws InterruptedException
+    {
+        if (!isPlayer(self) || actionName == null)
+        {
+            return false;
+        }
+        for (String retiredAction : RETIRED_POST_NGE_SPECIES_PLAYER_ACTIONS)
+        {
+            if (actionName.equals(retiredAction))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void retirePostNgeSpeciesAbilityState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        boolean retiredTrandoshanHot = buff.hasBuff(player, "trandoshan_ability_1");
+        for (String retiredAction : RETIRED_POST_NGE_SPECIES_PLAYER_ACTIONS)
+        {
+            while (hasCommand(player, retiredAction))
+            {
+                revokeCommand(player, retiredAction);
+            }
+            if (buff.hasBuff(player, retiredAction))
+            {
+                buff.removeBuff(player, retiredAction);
+            }
+        }
+        if (buff.hasBuff(player, "invis_bothan_ability_1"))
+        {
+            buff.removeBuff(player, "invis_bothan_ability_1");
+        }
+        if (retiredTrandoshanHot)
+        {
+            utils.removeScriptVar(player, healing.VAR_PLAYER_HOT_ID);
+        }
+    }
     public static boolean isRetiredPostNgeSpyPlayerAction(obj_id self, String actionName) throws InterruptedException
     {
         if (!isPlayer(self) || actionName == null)
@@ -253,6 +308,11 @@ public class combat_base extends script.base_script
     }
     public boolean combatStandardAction(String actionName, obj_id self, obj_id target, obj_id objWeapon, String params, combat_data actionData, boolean isTangibleAttacking, boolean testPetBar, int overloadDamage) throws InterruptedException
     {
+        if (isRetiredPostNgeSpeciesPlayerAction(self, actionName))
+        {
+            retirePostNgeSpeciesAbilityState(self);
+            return false;
+        }
         if (isRetiredPostNgeMigrationPlayerAction(self, actionName))
         {
             return false;

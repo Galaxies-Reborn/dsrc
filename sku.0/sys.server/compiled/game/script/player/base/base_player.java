@@ -692,6 +692,7 @@ public class base_player extends script.base_script
         removeObjVar(self, "clickRespec");
         removeObjVar(self, "npcRespec");
         script.player.live_conversions.retirePostNgePlayerMigrationState(self);
+        script.systems.combat.combat_base.retirePostNgeSpeciesAbilityState(self);
         skill.validateExpertise(self);
         retirePostNgePassiveProfessionState(self);
         detachScript(self, group.SCRIPT_GROUP_MEMBER);
