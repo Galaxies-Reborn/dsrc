@@ -18,6 +18,57 @@ public class cybernetic extends script.base_script
     public static final int MAX_INSTALLED = 4;
     public static final int CYBERNETIC_TORSO_COST = 6;
     public static final int CYBERNETIC_LEGS_COST = 5;
+    public static final String[] POST_NGE_CYBERNETIC_PLAYER_COMMANDS =
+    {
+        "cyborgStrengthBuff",
+        "cyborgLightning",
+        "cyborgBurstRun",
+        "cyborgRevive",
+        "cyborgSureShot",
+        "cyborgCriticalSnipe",
+        "cyborgKickDown"
+    };
+    public static boolean isPostNgePlayerCyberneticCommandRuntimeRetired() throws InterruptedException
+    {
+        return true;
+    }
+    public static boolean isRetiredPostNgePlayerCyberneticCommandActor(obj_id actor) throws InterruptedException
+    {
+        return isPostNgePlayerCyberneticCommandRuntimeRetired() && isIdValid(actor) && isPlayer(actor);
+    }
+    public static boolean isRetiredPostNgePlayerCyberneticCommand(String commandName) throws InterruptedException
+    {
+        if (commandName == null || commandName.equals(""))
+        {
+            return false;
+        }
+        for (String retiredCommand : POST_NGE_CYBERNETIC_PLAYER_COMMANDS)
+        {
+            if (retiredCommand.equals(commandName))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void retirePostNgePlayerCyberneticCommandState(obj_id player) throws InterruptedException
+    {
+        if (!isRetiredPostNgePlayerCyberneticCommandActor(player))
+        {
+            return;
+        }
+        for (String retiredCommand : POST_NGE_CYBERNETIC_PLAYER_COMMANDS)
+        {
+            while (hasCommand(player, retiredCommand))
+            {
+                revokeCommand(player, retiredCommand);
+            }
+            if (buff.hasBuff(player, retiredCommand))
+            {
+                buff.removeBuff(player, retiredCommand);
+            }
+        }
+    }
     public static final int CYBERNETIC_FULL_ARM_COST = 3;
     public static final int CYBERNETIC_FOREARM_COST = 2;
     public static final int CYBERNETIC_HAND_COST = 1;
@@ -494,6 +545,11 @@ public class cybernetic extends script.base_script
     }
     public static void grantSpecialCommands(obj_id player, String templateName) throws InterruptedException
     {
+        if (isRetiredPostNgePlayerCyberneticCommandActor(player))
+        {
+            retirePostNgePlayerCyberneticCommandState(player);
+            return;
+        }
         String specialCommands = dataTableGetString(CYBORG_TABLE, templateName, "specialCommand");
         if (specialCommands == null || specialCommands.equals(""))
         {
@@ -688,6 +744,7 @@ public class cybernetic extends script.base_script
     }
     public static void validateSkillMods(obj_id player) throws InterruptedException
     {
+        retirePostNgePlayerCyberneticCommandState(player);
         int skillMod = getSkillStatMod(player, "cybernetic_throw_range");
         if (skillMod != 0)
         {
@@ -811,6 +868,11 @@ public class cybernetic extends script.base_script
     }
     public static boolean hasUndamagedCybernetic(obj_id player, String commandName) throws InterruptedException
     {
+        if (isRetiredPostNgePlayerCyberneticCommandActor(player) && isRetiredPostNgePlayerCyberneticCommand(commandName))
+        {
+            retirePostNgePlayerCyberneticCommandState(player);
+            return false;
+        }
         obj_id cyberneticItem = getSpecificCybernetic(player, commandName);
         if (!isIdValid(cyberneticItem))
         {
