@@ -1471,6 +1471,7 @@ public class base_player extends script.base_script
     public int OnLogin(obj_id self) throws InterruptedException
     {
         script.player.live_conversions.retirePostNgePlayerMigrationState(self);
+        script.systems.combat.combat_base.retirePostNgeSpeciesAbilityState(self);
         if (gcw.isPostNgeQueuedBattlefieldRetired())
         {
             retirePostNgeQueuedBattlefieldPlayerState(self);
