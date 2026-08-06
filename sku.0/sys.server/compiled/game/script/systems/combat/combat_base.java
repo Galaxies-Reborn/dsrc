@@ -1828,8 +1828,6 @@ public class combat_base extends script.base_script
                     prose_package ppc = new prose_package();
                     ppc = prose.setStringId(ppc, critSpam);
                     showFlyTextPrivateProseWithFlags(defenderData[i].id, defenderData[i].id, ppc, 1.5f, colors.LIMEGREEN, FLY_TEXT_FLAG_IS_GLANCING_BLOW);
-                    hasSkill(defenderData[i].id, "expertise_fs_general_alacrity_1");
-                    playClientEffectObj(defenderData[i].id, "appearance/pt_jedi_alacrity.prt", defenderData[i].id, "");
                 }
                 if (hitData[i].critical)
                 {
