@@ -84,6 +84,11 @@ public class reverse_engineering extends script.base_script
     }
     public static void applyPowerupItemEquipped(obj_id player, obj_id itemWithPowerUp) throws InterruptedException
     {
+        if (isRetiredNgePowerupModifier(itemWithPowerUp))
+        {
+            retireNgePowerupModifier(player, itemWithPowerUp);
+            return;
+        }
         float dieTime = getDieTime(EXPIRATION_TIME, itemWithPowerUp);
         if (dieTime < 1)
         {
@@ -230,6 +235,11 @@ public class reverse_engineering extends script.base_script
     }
     public static void addModsAndScript(obj_id player, obj_id powerUp, obj_id itemToPowerUp, float remainingTime) throws InterruptedException
     {
+        if (isRetiredNgePowerupModifier(powerUp))
+        {
+            sendSystemMessage(player, new string_id("spam", "invalid_powerup"));
+            return;
+        }
         float timeStamp = getGameTime();
         if (remainingTime > 0.0f)
         {
@@ -268,6 +278,11 @@ public class reverse_engineering extends script.base_script
     }
     public static void powerUpAttached(obj_id player, obj_id itemWithPowerUp) throws InterruptedException
     {
+        if (isRetiredNgePowerupModifier(itemWithPowerUp))
+        {
+            retireNgePowerupModifier(player, itemWithPowerUp);
+            return;
+        }
         float dieTime = getDieTime(reverse_engineering.EXPIRATION_TIME, itemWithPowerUp);
         if (dieTime < 1)
         {
@@ -291,7 +306,31 @@ public class reverse_engineering extends script.base_script
     }
     public static boolean canMakePowerUp(String mod) throws InterruptedException
     {
-        return dataTableGetInt(SPECIAL_MOD_TABLE, mod, "no_pup") <= 0;
+        return !static_item.isRetiredNgeStaticItemSkillModifier(mod) &&
+            dataTableGetInt(SPECIAL_MOD_TABLE, mod, "no_pup") <= 0;
+    }
+    public static boolean isRetiredNgePowerupModifier(obj_id item) throws InterruptedException
+    {
+        if (!isIdValid(item) || !hasObjVar(item, ENGINEERING_MODIFIER))
+        {
+            return false;
+        }
+        return static_item.isRetiredNgeStaticItemSkillModifier(
+            getStringObjVar(item, ENGINEERING_MODIFIER));
+    }
+    public static void retireNgePowerupModifier(obj_id player, obj_id item) throws InterruptedException
+    {
+        String modifier = getStringObjVar(item, ENGINEERING_MODIFIER);
+        String slotName = getMyEquippedSlot(item);
+        if (isIdValid(player) && !slotName.equals("none"))
+        {
+            removeAttribOrSkillModModifier(player, slotName + "_powerup");
+        }
+        removeModsAndScript(player, item);
+        if (isIdValid(player))
+        {
+            recalcPoolsIfNeeded(player, modifier);
+        }
     }
     public static boolean canStaticItemBeReversedEngineered(obj_id item) throws InterruptedException
     {

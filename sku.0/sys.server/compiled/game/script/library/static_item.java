@@ -50,6 +50,23 @@ public class static_item extends script.base_script
         "rally_point_duration",
         "tka_armor"
     };
+    public static final String[] RETIRED_NGE_ITEM_WRITER_MODIFIERS =
+    {
+        "combat_critical_hit_reduction",
+        "combat_dodge",
+        "combat_parry",
+        "combat_evasion_chance",
+        "combat_evasion_value",
+        "combat_strikethrough_value",
+        "commando_devastation",
+        "exotic_heal_action_reduction",
+        "exotic_dodge_reduction",
+        "exotic_parry_reduction",
+        "exotic_acid_penetration",
+        "exotic_cold_penetration",
+        "exotic_heat_penetration",
+        "exotic_electricity_penetration"
+    };
     public static final java.text.NumberFormat noDecimalFormat = new java.text.DecimalFormat("###");
     public static final String SET_BONUS_TABLE = "datatables/item/item_sets.iff";
     public static obj_id createNewItemFunction(String itemName, obj_id container) throws InterruptedException
@@ -211,6 +228,13 @@ public class static_item extends script.base_script
             }
         }
         for (String retiredModifier : RETIRED_NGE_STATIC_ITEM_MODIFIERS)
+        {
+            if (modifier.equals(retiredModifier))
+            {
+                return true;
+            }
+        }
+        for (String retiredModifier : RETIRED_NGE_ITEM_WRITER_MODIFIERS)
         {
             if (modifier.equals(retiredModifier))
             {

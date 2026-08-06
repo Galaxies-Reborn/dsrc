@@ -103,7 +103,15 @@ public class crafting_base extends script.base_script
         }
         else if ((itemAttribute.name.getTable()).equals(craftinglib.OBJVAR_SKILLMOD_BONUS))
         {
-            setSkillModBonus(prototype, itemAttribute.name.getAsciiId(), (int)itemAttribute.currentValue);
+            String modifier = itemAttribute.name.getAsciiId();
+            if (static_item.isRetiredNgeStaticItemSkillModifier(modifier))
+            {
+                setSkillModBonus(prototype, modifier, 0);
+            }
+            else
+            {
+                setSkillModBonus(prototype, modifier, (int)itemAttribute.currentValue);
+            }
             result = true;
         }
         return result;

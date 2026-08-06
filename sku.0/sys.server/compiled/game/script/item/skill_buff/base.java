@@ -2,6 +2,7 @@ package script.item.skill_buff;
 
 import script.*;
 import script.library.buff;
+import script.library.static_item;
 import script.library.utils;
 
 public class base extends script.base_script
@@ -209,19 +210,30 @@ public class base extends script.base_script
             sendSystemMessage(player, sid);
             return SCRIPT_CONTINUE;
         }
+        boolean applied = false;
         if (hasObjVar(self, OBJVAR_SKILL_BUFF_SKILL1))
         {
             String skill1 = getStringObjVar(self, OBJVAR_SKILL_BUFF_SKILL1);
             int amount1 = getIntObjVar(self, OBJVAR_SKILL_BUFF_AMOUNT1);
             int length1 = getIntObjVar(self, OBJVAR_SKILL_BUFF_LENGTH1);
-            addSkillModModifier(player, name, skill1, amount1, length1, false, true);
+            if (!static_item.isRetiredNgeStaticItemSkillModifier(skill1))
+            {
+                applied |= addSkillModModifier(player, name, skill1, amount1, length1, false, true);
+            }
         }
         if (hasObjVar(self, OBJVAR_SKILL_BUFF_SKILL2))
         {
             String skill2 = getStringObjVar(self, OBJVAR_SKILL_BUFF_SKILL2);
             int amount2 = getIntObjVar(self, OBJVAR_SKILL_BUFF_AMOUNT2);
             int length2 = getIntObjVar(self, OBJVAR_SKILL_BUFF_LENGTH2);
-            addSkillModModifier(player, name, skill2, amount2, length2, false, true);
+            if (!static_item.isRetiredNgeStaticItemSkillModifier(skill2))
+            {
+                applied |= addSkillModModifier(player, name, skill2, amount2, length2, false, true);
+            }
+        }
+        if (!applied)
+        {
+            return SCRIPT_CONTINUE;
         }
         LOG("skill_buf", "handleUseSkillBuff decrementing count on " + self);
         incrementCount(self, -1);

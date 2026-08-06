@@ -24,6 +24,7 @@ public class magic_item extends script.base_script
         {
             return false;
         }
+        static_item.removeRetiredNgeStaticItemSkillModifiers(item);
         LOG("magic_item", "params: item = " + item + " mobLevel = " + mobLevel);
         int total = getBuyPoints(mobLevel);
         if (total < 1)
@@ -287,7 +288,7 @@ public class magic_item extends script.base_script
         {
             return null;
         }
-        return new Vector(Arrays.asList(mods));
+        return new Vector(Arrays.asList(getPrecuMagicItemMods(mods)));
     }
     public static obj_id makeGem(obj_id targetContainer, String gemType, int mobLevel) throws InterruptedException
     {
@@ -434,7 +435,7 @@ public class magic_item extends script.base_script
         {
             return null;
         }
-        String[] allMods = dataTableGetStringColumn(TBL_COST, "MOD");
+        String[] allMods = getPrecuMagicItemMods(dataTableGetStringColumn(TBL_COST, "MOD"));
         if (allMods == null || allMods.length == 0)
         {
             return null;
@@ -464,5 +465,28 @@ public class magic_item extends script.base_script
             }
         }
         return null;
+    }
+    public static String[] getPrecuMagicItemMods(String[] modifiers) throws InterruptedException
+    {
+        if (modifiers == null || modifiers.length == 0)
+        {
+            return new String[0];
+        }
+        Vector precuModifiers = new Vector();
+        for (String modifier : modifiers)
+        {
+            if (modifier == null || modifier.equals(""))
+            {
+                continue;
+            }
+            String modifierName = modifier.startsWith("-") ? modifier.substring(1) : modifier;
+            if (!static_item.isRetiredNgeStaticItemSkillModifier(modifierName))
+            {
+                precuModifiers.add(modifier);
+            }
+        }
+        String[] result = new String[precuModifiers.size()];
+        precuModifiers.toArray(result);
+        return result;
     }
 }

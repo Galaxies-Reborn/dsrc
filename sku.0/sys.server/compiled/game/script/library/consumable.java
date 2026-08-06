@@ -860,6 +860,10 @@ public class consumable extends script.base_script
         else if (hasObjVar(item, "skill_mod"))
         {
             String mod_name = getStringObjVar(item, "skill_mod.name");
+            if (static_item.isRetiredNgeStaticItemSkillModifier(mod_name))
+            {
+                return;
+            }
             int amount = (int)getFloatObjVar(item, "skill_mod.amount");
             int duration = (int)getFloatObjVar(item, "skill_mod.dur");
             String mod_id = "food_" + mod_name;

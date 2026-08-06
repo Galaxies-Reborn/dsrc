@@ -27,13 +27,18 @@ public class reverse_engineering_poweredup_item extends script.base_script
         }
         int power = getIntObjVar(self, reverse_engineering.ENGINEERING_POWER);
         String mod = getStringObjVar(self, reverse_engineering.ENGINEERING_MODIFIER);
+        obj_id player = getContainedBy(self);
+        if (reverse_engineering.isRetiredNgePowerupModifier(self))
+        {
+            reverse_engineering.retireNgePowerupModifier(player, self);
+            return SCRIPT_CONTINUE;
+        }
         int ratio = getIntObjVar(self, reverse_engineering.ENGINEERING_RATIO);
         int finalPower = power / ratio;
         if (finalPower < 1)
         {
             finalPower = 1;
         }
-        obj_id player = getContainedBy(self);
         addSkillModModifier(player, slotName + "_powerup", mod, (int)finalPower, -1, false, false);
         reverse_engineering.applyBuffIcon(player, self);
         reverse_engineering.recalcPoolsIfNeeded(player, mod);
@@ -71,6 +76,12 @@ public class reverse_engineering_poweredup_item extends script.base_script
             {
                 int power = getIntObjVar(self, reverse_engineering.ENGINEERING_POWER);
                 String mod = getStringObjVar(self, reverse_engineering.ENGINEERING_MODIFIER);
+                obj_id player = getFirstParentInWorld(self);
+                if (reverse_engineering.isRetiredNgePowerupModifier(self))
+                {
+                    reverse_engineering.retireNgePowerupModifier(player, self);
+                    return SCRIPT_CONTINUE;
+                }
                 int ratio = getIntObjVar(self, reverse_engineering.ENGINEERING_RATIO);
                 int finalPower = power / ratio;
                 if (finalPower < 1)
@@ -79,7 +90,6 @@ public class reverse_engineering_poweredup_item extends script.base_script
                 }
                 if (!hasSkillModModifier(transferer, slotName + "_powerup"))
                 {
-                    obj_id player = getFirstParentInWorld(self);
                     reverse_engineering.applyBuffIcon(player, self);
                     addSkillModModifier(player, slotName + "_powerup", mod, (int)finalPower, -1, false, false);
                     reverse_engineering.recalcPoolsIfNeeded(player, mod);

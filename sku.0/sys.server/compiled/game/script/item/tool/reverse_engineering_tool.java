@@ -25,14 +25,14 @@ public class reverse_engineering_tool extends script.base_script
     };
     public static final String[] BASIC_MOD_LIST = 
     {
-        "precision_modified",
-        "strength_modified",
-        "agility_modified",
-        "stamina_modified",
-        "constitution_modified",
-        "luck_modified",
+        "general_assembly",
+        "weapon_assembly",
+        "armor_assembly",
+        "clothing_assembly",
+        "droid_assembly",
+        "food_assembly",
         "camouflage",
-        "combat_block_value"
+        "droid_find_speed"
     };
     public static final String[] FINAL_ATTACHMENT_TEMPLATE = 
     {
@@ -323,7 +323,7 @@ public class reverse_engineering_tool extends script.base_script
             obj_id inventory = utils.getInventoryContainer(player);
             int power = 1;
             int ratio = 100;
-            String mod = "strength_modified";
+            String mod = "general_assembly";
             for (obj_id obj_id1 : stuff) {
                 if (getPowerBitType(obj_id1) > 0) {
                     power = getIntObjVar(obj_id1, "reverse_engineering.reverse_engineering_power");
@@ -358,7 +358,7 @@ public class reverse_engineering_tool extends script.base_script
                 int power = 1;
                 int attachmentLevel = 1;
                 int ratio = 100;
-                String mod = "strength_modified";
+                String mod = "general_assembly";
                 int[] whosWho = 
                 {
                     -1,
@@ -445,7 +445,7 @@ public class reverse_engineering_tool extends script.base_script
             obj_id inventory = utils.getInventoryContainer(player);
             int power = 1;
             int ratio = 100;
-            String mod = "strength_modified";
+            String mod = "general_assembly";
             for (obj_id obj_id1 : stuff) {
                 if (getPowerBitType(obj_id1) > 0) {
                     power = getIntObjVar(obj_id1, "reverse_engineering.reverse_engineering_power");
@@ -517,9 +517,11 @@ public class reverse_engineering_tool extends script.base_script
         for (obj_id obj_id1 : stuff) {
             int rows = dataTableGetNumRows(MODS_TABLE);
             for (int j = 0; j < rows; j++) {
-                if (hasObjVar(obj_id1, STAT_OBJVAR_SUFFIX + dataTableGetString(MODS_TABLE, j, "name"))) {
+                String modifier = dataTableGetString(MODS_TABLE, j, "name");
+                if (!static_item.isRetiredNgeStaticItemSkillModifier(modifier) &&
+                    hasObjVar(obj_id1, STAT_OBJVAR_SUFFIX + modifier)) {
                     numStats++;
-                    int stat = getIntObjVar(obj_id1, STAT_OBJVAR_SUFFIX + dataTableGetString(MODS_TABLE, j, "name"));
+                    int stat = getIntObjVar(obj_id1, STAT_OBJVAR_SUFFIX + modifier);
                     statTotal += stat;
                     if (stat > maxStat) {
                         maxStat = stat;
@@ -630,10 +632,14 @@ public class reverse_engineering_tool extends script.base_script
         {
             if (junkProduct >= minSpecial[i] && junkProduct <= maxSpecial[i])
             {
-                isRare = true;
-                modName = dataTableGetString(SPECIAL_MOD_TABLE, i, "mod");
-                ratio = dataTableGetInt(SPECIAL_MOD_TABLE, i, "ratio");
-                break;
+                String candidateModifier = dataTableGetString(SPECIAL_MOD_TABLE, i, "mod");
+                if (!static_item.isRetiredNgeStaticItemSkillModifier(candidateModifier))
+                {
+                    isRare = true;
+                    modName = candidateModifier;
+                    ratio = dataTableGetInt(SPECIAL_MOD_TABLE, i, "ratio");
+                    break;
+                }
             }
         }
         if (!isRare)
@@ -690,7 +696,21 @@ public class reverse_engineering_tool extends script.base_script
         {
             return false;
         }
-        return hasObjVar(item, "skillmod.bonus");
+        dictionary bonuses = getSkillModBonuses(item);
+        if (bonuses == null)
+        {
+            return false;
+        }
+        java.util.Enumeration keys = bonuses.keys();
+        while (keys.hasMoreElements())
+        {
+            String modifier = (String)keys.nextElement();
+            if (!static_item.isRetiredNgeStaticItemSkillModifier(modifier))
+            {
+                return true;
+            }
+        }
+        return false;
     }
     public int getPowerBitType(obj_id item) throws InterruptedException
     {
@@ -716,7 +736,15 @@ public class reverse_engineering_tool extends script.base_script
     }
     public boolean isModifierBit(obj_id item) throws InterruptedException
     {
-        return hasObjVar(item, "reverse_engineering.reverse_engineering_modifier") && hasObjVar(item, "reverse_engineering.reverse_engineering_ratio") && !hasScript(item, "item.tool.reverse_engineering_powerup") && !hasScript(item, "item.tool.reverse_engineering_poweredup_item");
+        if (!hasObjVar(item, "reverse_engineering.reverse_engineering_modifier") ||
+            !hasObjVar(item, "reverse_engineering.reverse_engineering_ratio") ||
+            hasScript(item, "item.tool.reverse_engineering_powerup") ||
+            hasScript(item, "item.tool.reverse_engineering_poweredup_item"))
+        {
+            return false;
+        }
+        String modifier = getStringObjVar(item, "reverse_engineering.reverse_engineering_modifier");
+        return !static_item.isRetiredNgeStaticItemSkillModifier(modifier);
     }
     public int getFinalAttachmentLevel(obj_id item) throws InterruptedException
     {
