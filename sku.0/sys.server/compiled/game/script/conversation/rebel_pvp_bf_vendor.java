@@ -3,6 +3,7 @@ package script.conversation;
 import script.*;
 import script.library.ai_lib;
 import script.library.chat;
+import script.library.gcw;
 import script.library.utils;
 
 public class rebel_pvp_bf_vendor extends script.base_script
@@ -11,15 +12,39 @@ public class rebel_pvp_bf_vendor extends script.base_script
     {
     }
     public static String c_stringFile = "conversation/rebel_pvp_bf_vendor";
+    private void retirePostNgeQueuedBattlefieldVendor(obj_id self) throws InterruptedException
+    {
+        if (!gcw.isPostNgeQueuedBattlefieldRetired())
+        {
+            return;
+        }
+        if (hasObjVar(self, "item.vendor.container_list"))
+        {
+            obj_id[] containers = getObjIdArrayObjVar(self, "item.vendor.container_list");
+            if (containers != null)
+            {
+                for (obj_id container : containers)
+                {
+                    if (isIdValid(container) && exists(container))
+                    {
+                        destroyObject(container);
+                    }
+                }
+            }
+            removeObjVar(self, "item.vendor.container_list");
+        }
+        if (hasScript(self, "npc.vendor.vendor"))
+        {
+            detachScript(self, "npc.vendor.vendor");
+        }
+    }
     public boolean rebel_pvp_bf_vendor_condition__defaultCondition(obj_id player, obj_id npc) throws InterruptedException
     {
         return true;
     }
     public void rebel_pvp_bf_vendor_action_showTokenVendorUI(obj_id player, obj_id npc) throws InterruptedException
     {
-        dictionary d = new dictionary();
-        d.put("player", player);
-        messageTo(npc, "showInventorySUI", d, 0, false);
+        retirePostNgeQueuedBattlefieldVendor(npc);
         return;
     }
     public int OnInitialize(obj_id self) throws InterruptedException
@@ -28,12 +53,14 @@ public class rebel_pvp_bf_vendor extends script.base_script
         {
             detachScript(self, "conversation.rebel_pvp_bf_vendor");
         }
+        retirePostNgeQueuedBattlefieldVendor(self);
         setCondition(self, CONDITION_CONVERSABLE);
         setCondition(self, CONDITION_SPACE_INTERESTING);
         return SCRIPT_CONTINUE;
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        retirePostNgeQueuedBattlefieldVendor(self);
         setCondition(self, CONDITION_CONVERSABLE);
         setCondition(self, CONDITION_SPACE_INTERESTING);
         return SCRIPT_CONTINUE;

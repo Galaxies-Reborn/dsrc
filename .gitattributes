@@ -74,3 +74,5 @@ sku.0/sys.server/compiled/game/script/conversation/faction_recruiter_rebel.java 
 sku.0/sys.server/compiled/game/script/systems/gcw/flip_terminal_spawner.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/object/tangible/gcw/flip_terminal_spawner.tpf -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/item/publish_gift/recruitment_letter.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/conversation/imperial_pvp_bf_vendor.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/conversation/rebel_pvp_bf_vendor.java -text whitespace=cr-at-eol
