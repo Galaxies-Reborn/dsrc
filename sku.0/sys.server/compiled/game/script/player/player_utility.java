@@ -3628,6 +3628,11 @@ public class player_utility extends script.base_script
     }
     public int handleEntertainingGcwTroops(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(self);
+            return SCRIPT_CONTINUE;
+        }
         if (params == null)
         {
             return SCRIPT_CONTINUE;
@@ -3781,6 +3786,11 @@ public class player_utility extends script.base_script
     }
     public int handleTraderRepairQuest(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(self);
+            return SCRIPT_CONTINUE;
+        }
         if (params == null)
         {
             removeTraderRepairScriptVars(self);
@@ -3884,6 +3894,11 @@ public class player_utility extends script.base_script
     }
     public int handleOpposingFactionScoutQuest(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(self);
+            return SCRIPT_CONTINUE;
+        }
         LOG("gcw_patrol_point", "handleOpposingFactionScoutQuest init");
         if (params == null)
         {
@@ -3972,6 +3987,11 @@ public class player_utility extends script.base_script
     }
     public int handleOpposingFactionDestroyQuest(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(self);
+            return SCRIPT_CONTINUE;
+        }
         if (params == null)
         {
             return SCRIPT_CONTINUE;

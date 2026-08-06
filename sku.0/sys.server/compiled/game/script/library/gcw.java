@@ -312,6 +312,56 @@ public class gcw extends script.base_script
         {
             removeObjVar(player, GCW_TUTORIAL_FLAG);
         }
+        if (buff.hasBuff(player, BUFF_PLAYER_FATIGUE))
+        {
+            buff.removeBuff(player, BUFF_PLAYER_FATIGUE);
+        }
+        if (buff.hasBuff(player, BUFF_SPY_EXPLOSIVES))
+        {
+            buff.removeBuff(player, BUFF_SPY_EXPLOSIVES);
+        }
+        if (utils.hasScriptVar(player, GCW_SCRIPTVAR_PARENT + ".gcwNpc"))
+        {
+            obj_id gcwNpc = utils.getObjIdScriptVar(player, GCW_SCRIPTVAR_PARENT + ".gcwNpc");
+            if (isValidId(gcwNpc) && exists(gcwNpc))
+            {
+                utils.removeScriptVarTree(gcwNpc, GCW_SCRIPTVAR_PARENT);
+                utils.removeScriptVar(gcwNpc, "ai.oldEntertainerSkillMod");
+                utils.removeScriptVar(gcwNpc, "ai.listeningTo");
+                messageTo(gcwNpc, "resumeDefaultCalmBehavior", null, 0, false);
+            }
+        }
+        utils.removeScriptVarTree(player, GCW_SCRIPTVAR_PARENT);
+        utils.removeScriptVar(player, "spyPatrolPoint");
+        utils.removeScriptVar(player, OBJECT_TO_REPAIR);
+        utils.removeScriptVar(player, GCW_REPAIR_RESOURCE_COUNT);
+        utils.removeScriptVar(player, GCW_REPAIR_QUEST);
+        utils.removeScriptVar(player, "gcw.fatigueTime");
+        String[] retiredCountdownPids =
+        {
+            ENTERTAIN_GCW_TROOPS_PID,
+            TRADER_REPAIR_PID,
+            SPY_SCOUT_PID,
+            SPY_DESTROY_PID
+        };
+        int countdownPid = hasObjVar(player, sui.COUNTDOWNTIMER_SUI_VAR) ? getIntObjVar(player, sui.COUNTDOWNTIMER_SUI_VAR) : 0;
+        for (String retiredCountdownPid : retiredCountdownPids)
+        {
+            if (!sui.hasPid(player, retiredCountdownPid))
+            {
+                continue;
+            }
+            int pid = sui.getPid(player, retiredCountdownPid);
+            sui.removePid(player, retiredCountdownPid);
+            if (pid > 0)
+            {
+                forceCloseSUIPage(pid);
+            }
+            if (pid == countdownPid && hasObjVar(player, sui.COUNTDOWNTIMER_SUI_VAR))
+            {
+                removeObjVar(player, sui.COUNTDOWNTIMER_SUI_VAR);
+            }
+        }
         String[] retiredWaypointNames =
         {
             "Defense Coordinator",
@@ -2067,6 +2117,11 @@ public class gcw extends script.base_script
     }
     public static boolean canEntertainGcwNonPlayingCharacter(obj_id player, obj_id npc) throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            cleanupRetiredCityInvasionPlayerState(player);
+            return false;
+        }
         if (!isValidId(player) || !exists(player))
         {
             return false;
@@ -2099,6 +2154,11 @@ public class gcw extends script.base_script
     }
     public static boolean setEntertainGcwNonPlayerCharacter(obj_id player, obj_id npc) throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            cleanupRetiredCityInvasionPlayerState(player);
+            return false;
+        }
         if (!isValidId(player) || !exists(player))
         {
             return false;
@@ -2128,6 +2188,10 @@ public class gcw extends script.base_script
     }
     public static boolean canGcwObjectBeRepaired(obj_id object) throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            return false;
+        }
         LOG("gcw_patrol_point", "canGcwObjectBeRepaired");
         if (!isValidId(object) || !exists(object))
         {
@@ -2161,6 +2225,11 @@ public class gcw extends script.base_script
     }
     public static boolean useGcwObjectForQuest(obj_id player, obj_id gcwObject, String questName) throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            cleanupRetiredCityInvasionPlayerState(player);
+            return false;
+        }
         LOG("gcw_patrol_point", "useGcwObjectForQuest init");
         if (!isValidId(player) || !exists(player))
         {
@@ -2266,6 +2335,11 @@ public class gcw extends script.base_script
     }
     public static boolean repairGcwObject(obj_id object, obj_id player, int resourceCount) throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            cleanupRetiredCityInvasionPlayerState(player);
+            return false;
+        }
         if (!isValidId(object) || !exists(object))
         {
             return false;
@@ -2315,6 +2389,10 @@ public class gcw extends script.base_script
     }
     public static void playQuestIconParticle(obj_id self) throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            return;
+        }
         dictionary params = new dictionary();
         location loc = getLocation(self);
         params.put("particleLoc", loc);
@@ -2325,6 +2403,10 @@ public class gcw extends script.base_script
     }
     public static void playQuestIconHandler(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            return;
+        }
         int playIconTime = utils.getIntScriptVar(self, "iconMessageTime");
         int messageTime = params.getInt("iconMessageTime");
         if (playIconTime != messageTime)
@@ -2352,6 +2434,10 @@ public class gcw extends script.base_script
     }
     public static boolean signalAllParticipantsForDamage(obj_id victimObject, String questName, String signalHasName, String signalSendName) throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            return false;
+        }
         LOG("signalAllParticipantsForDamage", "signalAllParticipantsForDamage init");
         if (!isValidId(victimObject) || !exists(victimObject))
         {
@@ -2398,6 +2484,11 @@ public class gcw extends script.base_script
     }
     public static boolean hasConstructionOrRepairTool(obj_id player, obj_id object) throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            cleanupRetiredCityInvasionPlayerState(player);
+            return false;
+        }
         LOG("gcw_patrol_point", "hasConstructionOrRepairTool 1");
         if (!isValidId(player) || !exists(player))
         {
@@ -2442,6 +2533,11 @@ public class gcw extends script.base_script
     }
     public static boolean useConstructionOrRepairTool(obj_id player, obj_id object) throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            cleanupRetiredCityInvasionPlayerState(player);
+            return false;
+        }
         if (!isValidId(player) || !exists(player))
         {
             return false;
@@ -2493,6 +2589,10 @@ public class gcw extends script.base_script
     }
     public static int getGcwCityInvasionPhase(obj_id childObject) throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            return GCW_CITY_PHASE_UNKNOWN;
+        }
         if (!isValidId(childObject) || !exists(childObject))
         {
             return GCW_CITY_PHASE_UNKNOWN;
@@ -2514,6 +2614,11 @@ public class gcw extends script.base_script
     }
     public static boolean playerSystemMessageResourceNeeded(obj_id player, obj_id object, boolean construction) throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            cleanupRetiredCityInvasionPlayerState(player);
+            return false;
+        }
         if (!isValidId(player) || !exists(player))
         {
             return false;
@@ -2568,6 +2673,11 @@ public class gcw extends script.base_script
     }
     public static int getFatigueTimerMod(obj_id player) throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            cleanupRetiredCityInvasionPlayerState(player);
+            return 0;
+        }
         int fatigueStack = (int)buff.getBuffStackCount(player, BUFF_PLAYER_FATIGUE);
         int fatigueMod = 0;
         if (fatigueStack > 0)
@@ -2578,6 +2688,10 @@ public class gcw extends script.base_script
     }
     public static obj_id getInvasionSequencerNearby(obj_id target) throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            return null;
+        }
         if (!isIdValid(target) || !exists(target))
         {
             return null;
@@ -2619,6 +2733,10 @@ public class gcw extends script.base_script
     }
     public static boolean awardGcwInvasionParticipants(Vector participantList, int factionFlag, int gcwTokenAmt, int gcwPointAmt, dictionary finalAnnouncementParams) throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            return false;
+        }
         if (participantList == null || participantList.size() <= 0)
         {
             CustomerServiceLog("gcw_city_invasion", "gcw.awardInvasionParticipants: participantList array invalid. Returning False.");
@@ -2679,6 +2797,10 @@ public class gcw extends script.base_script
     }
     public static boolean invasionIsValidAndEngaged() throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            return false;
+        }
         obj_id self = getSelf();
         if (!isIdValid(self) || !exists(self))
         {
@@ -2697,6 +2819,10 @@ public class gcw extends script.base_script
     }
     public static void gcwSetCredits(obj_id who, int playerGCW, int playerPvpKills, int playerKills, int playerAssists, int playerCraftedItems, int playerDestroyedItems) throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            return;
+        }
         if (!isIdValid(who) || !exists(who) || !isPlayer(who))
         {
             return;
@@ -2794,6 +2920,10 @@ public class gcw extends script.base_script
     }
     public static String getFormattedInvasionTime(obj_id self, int phase) throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            return "";
+        }
         obj_id planet = getPlanetByName("tatooine");
         if (!isIdValid(planet) || !exists(planet))
         {
@@ -2826,6 +2956,10 @@ public class gcw extends script.base_script
     }
     public static int gcwGetTimeToInvasion() throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            return 0;
+        }
         String timeConfig = getConfigSetting("GameServer", "gcwInvasionCycleTime");
         if (timeConfig == null || timeConfig.length() <= 0)
         {
@@ -2844,6 +2978,10 @@ public class gcw extends script.base_script
     }
     public static int gcwGetInvasionMaximumRunning() throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            return 0;
+        }
         String maxConfig = getConfigSetting("GameServer", "gcwInvasionCityMaximumRunning");
         int max = 3;
         if (maxConfig == null || maxConfig.length() <= 0)
@@ -2854,6 +2992,10 @@ public class gcw extends script.base_script
     }
     public static boolean gcwIsInvasionCityOn(String city) throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            return false;
+        }
         if (city == null || city.length() <= 0)
         {
             return false;
@@ -2868,6 +3010,10 @@ public class gcw extends script.base_script
     }
     public static int gcwGetNextInvasionHour(String cityName) throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            return -1;
+        }
         int activeCityCount = gcwGetActiveCityCount();
         int currentCycle = gcwCalculateInvasionCycle();
         int invasionInterval = gcwGetTimeToInvasion();
@@ -2892,6 +3038,10 @@ public class gcw extends script.base_script
     }
     public static boolean gcwHasInvasionInCycle(String cityName, int cycle) throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            return false;
+        }
 
         // if the max is set to 0 then nothing should happen.
         int maxRunning = gcwGetInvasionMaximumRunning();
@@ -3032,6 +3182,10 @@ public class gcw extends script.base_script
     }
     public static String[] gcwGetActiveCities() throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            return new String[0];
+        }
         Vector<String> activeCities = new Vector<>();
         for (String cityName : INVASION_CITIES){
             String value = getConfigSetting("GameServer", "gcwcity" + cityName);
@@ -3043,10 +3197,18 @@ public class gcw extends script.base_script
     }
     public static int gcwGetActiveCityCount() throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            return 0;
+        }
         return gcwGetActiveCities().length;
     }
     public static int gcwCalculateInvasionCycle() throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            return -1;
+        }
         int invasionInterval = gcwGetTimeToInvasion();  // from config setting.
         int totalActiveCities = gcwGetActiveCityCount();
         if (invasionInterval <= 0)
@@ -3062,6 +3224,10 @@ public class gcw extends script.base_script
     // Returns seconds until the next invasion
     public static int gcwGetNextInvasionTime(String cityName) throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            return -1;
+        }
         LOG("gcwlog", "gcwGetNextInvasionTime cityName: " + cityName);
         if (cityName == null || cityName.length() <= 0 || !gcwIsInvasionCityOn(cityName))
         {
