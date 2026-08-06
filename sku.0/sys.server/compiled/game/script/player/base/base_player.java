@@ -10459,6 +10459,10 @@ public class base_player extends script.base_script
                         String expType = (String) o;
                         if (expType != null) {
                             int expValue = experiencePoints.getInt(expType);
+                            if (expValue > 0 && xp.isRetiredNgeProgressionExperienceType(expType)) {
+                                CustomerServiceLog("CharacterTransfer", "ignored retired NGE progression experience " + expType + " for PRE-CU character " + self);
+                                continue;
+                            }
                             if (getExperiencePoints(self, expType) != expValue) {
                                 int result = grantExperiencePoints(self, expType, expValue);
                                 if (result == XP_ERROR) {

@@ -134,6 +134,10 @@ public class xp extends script.base_script
     public static final string_id SID_INSPIRE_BONUS = new string_id("performance", "perform_inspire_xp_bonus");
     public static final string_id SID_FLYTEXT_XP = new string_id("base_player", "prose_flytext_xp");
     public static final string_id SID_FLYTEXT_XP_GROUP = new string_id("base_player", "prose_flytext_xp_group");
+    public static boolean isRetiredNgeProgressionExperienceType(String xpType) throws InterruptedException
+    {
+        return xpType != null && xpType.equals("chronicles");
+    }
     public static int grant(obj_id target, String xp_type, int amt) throws InterruptedException
     {
         return grant(target, xp_type, amt, true, null, null, null);
@@ -165,6 +169,10 @@ public class xp extends script.base_script
             return 0;
         }
         if (xp_type.contains(" "))
+        {
+            return 0;
+        }
+        if (amt > 0 && isPlayer(target) && isRetiredNgeProgressionExperienceType(xp_type))
         {
             return 0;
         }
@@ -213,6 +221,10 @@ public class xp extends script.base_script
         {
             return false;
         }
+        if (amt > 0 && isPlayer(target) && isRetiredNgeProgressionExperienceType(xp_type))
+        {
+            return false;
+        }
         dictionary params = new dictionary();
         params.put("xp_type", xp_type);
         params.put("amt", amt);
@@ -237,6 +249,10 @@ public class xp extends script.base_script
     }
     public static boolean _grantUnmodifiedExperience(obj_id target, String xp_type, int amt, String callback, dictionary callbackData, obj_id callbackId) throws InterruptedException
     {
+        if (amt > 0 && isPlayer(target) && isRetiredNgeProgressionExperienceType(xp_type))
+        {
+            return false;
+        }
         int delta = 0;
         int prior = getExperiencePoints(target, xp_type);
         boolean result = false;

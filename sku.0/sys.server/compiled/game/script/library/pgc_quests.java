@@ -1072,6 +1072,10 @@ public class pgc_quests extends script.base_script
     }
     public static int grantChronicleXp(obj_id player, int xpAmount) throws InterruptedException
     {
+        if (xp.isRetiredNgeProgressionExperienceType(PGC_CHRONICLES_XP_TYPE))
+        {
+            return 0;
+        }
         String[] chronicleSkills = skill_template.getSkillTemplateSkillsByTemplateName(pgc_quests.PGC_CHRONICLES_XP_TYPE);
         if (chronicleSkills != null && chronicleSkills.length > 0)
         {
@@ -1102,6 +1106,10 @@ public class pgc_quests extends script.base_script
     }
     public static void checkForGainedChroniclesLevel(obj_id player) throws InterruptedException
     {
+        if (xp.isRetiredNgeProgressionExperienceType(PGC_CHRONICLES_XP_TYPE))
+        {
+            return;
+        }
         String[] chronicleSkills = skill_template.getSkillTemplateSkillsByTemplateName(pgc_quests.PGC_CHRONICLES_XP_TYPE);
         if (chronicleSkills != null && chronicleSkills.length > 0)
         {
