@@ -188,6 +188,50 @@ public class buff extends script.base_script
         }
         utils.removeScriptVarTree(player, "buff.gcwBonusGeneral");
     }
+    private static final String[] RETIRED_POST_P14_PLAYER_CONTROL_IMMUNITY_BUFFS =
+    {
+        "action_drain_immunity",
+        "dazeBlockDebuff",
+        "gcw_base_critical_heal_recourse",
+        "mezBlockDebuff",
+        "player_armor_break_immunity",
+        "player_mez_immunity",
+        "player_root_immunity",
+        "player_slow_immunity",
+        "player_snare_immunity",
+        "towHk47MoveImmuneItem",
+        "towMafosaMezImmune",
+        "treasure_bonus_snare_immunity"
+    };
+    public static boolean isRetiredPostP14PlayerControlImmunityBuff(String buffName)
+    {
+        if (buffName == null)
+        {
+            return false;
+        }
+        for (String retiredBuff : RETIRED_POST_P14_PLAYER_CONTROL_IMMUNITY_BUFFS)
+        {
+            if (buffName.equals(retiredBuff))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void retirePostP14PlayerControlImmunityState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        for (String retiredBuff : RETIRED_POST_P14_PLAYER_CONTROL_IMMUNITY_BUFFS)
+        {
+            if (hasBuff(player, retiredBuff))
+            {
+                removeBuff(player, retiredBuff);
+            }
+        }
+    }
     public static boolean isRetiredPostNgeBountyHunterShieldBuff(String buffName)
     {
         return buffName != null &&
@@ -239,6 +283,7 @@ public class buff extends script.base_script
         retirePostNgeForceSensitiveStanceState(player);
         retirePostNgeGcwBannerBuffState(player);
         retirePostNgeGcwConsumableBuffState(player);
+        retirePostP14PlayerControlImmunityState(player);
         retirePostNgeBountyHunterShieldState(player);
         static_item.removeRetiredNgePlayerSkillStatistics(player);
         utils.removeScriptVarTree(player, "performance.buildabuff");
@@ -344,6 +389,7 @@ public class buff extends script.base_script
                 isRetiredPostNgeForceSensitiveStanceBuff(bdata.buffName) ||
                 isRetiredPostNgeGcwBannerBuff(bdata.buffName) ||
                 isRetiredPostNgeGcwConsumableBuff(bdata.buffName) ||
+                isRetiredPostP14PlayerControlImmunityBuff(bdata.buffName) ||
                 isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName)))
         {
             return false;
