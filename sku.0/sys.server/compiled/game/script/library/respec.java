@@ -1,6 +1,7 @@
 package script.library;
 
 import script.*;
+import script.player.live_conversions;
 
 import java.util.Enumeration;
 
@@ -47,8 +48,26 @@ public class respec extends script.base_script
     public static final int PROF_LEVEL_COMBAT = 0;
     public static final int PROF_LEVEL_ENT = 1;
     public static final int PROF_LEVEL_TRADER = 2;
+    public static final boolean NGE_PLAYER_RESPEC_RUNTIME_RETIRED = true;
+    public static boolean isNgePlayerRespecRuntimeRetired() throws InterruptedException
+    {
+        return NGE_PLAYER_RESPEC_RUNTIME_RETIRED;
+    }
+    private static boolean retireNgePlayerRespecEntrypoint(obj_id player) throws InterruptedException
+    {
+        if (!NGE_PLAYER_RESPEC_RUNTIME_RETIRED || !isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return false;
+        }
+        live_conversions.retirePostNgePlayerMigrationState(player);
+        return true;
+    }
     public static void startClickRespec(obj_id player) throws InterruptedException
     {
+        if (retireNgePlayerRespecEntrypoint(player))
+        {
+            return;
+        }
         if (hasObjVar(player, "respecToken"))
         {
             removeObjVar(player, "respecToken");
@@ -81,6 +100,10 @@ public class respec extends script.base_script
     }
     public static void startNpcRespec(obj_id player, obj_id npcGrantingRespec, boolean isFree) throws InterruptedException
     {
+        if (retireNgePlayerRespecEntrypoint(player))
+        {
+            return;
+        }
         if (hasObjVar(player, "clickRespec.tokenId"))
         {
             sendSystemMessage(player, new string_id("spam", "cant_use_respec_npc"));
@@ -105,6 +128,10 @@ public class respec extends script.base_script
     }
     public static void handleNpcRespec(obj_id player, String skillTemplateName) throws InterruptedException
     {
+        if (retireNgePlayerRespecEntrypoint(player))
+        {
+            return;
+        }
         String oldTemplate = getStringObjVar(player, "npcRespec.oldTemplate");
         if (oldTemplate == null || oldTemplate.length() < 1 || oldTemplate.equals(getSkillTemplate(player)))
         {
@@ -196,6 +223,10 @@ public class respec extends script.base_script
     }
     public static void earnProfessionSkillsViaNpc(obj_id player, String skillTemplateName, boolean withItems, int level) throws InterruptedException
     {
+        if (retireNgePlayerRespecEntrypoint(player))
+        {
+            return;
+        }
         setObjVar(player, "npcRespec.granting", 1);
         callable.storeCallables(player);
         revokeAllSkillsAndExperience(player);
@@ -356,6 +387,10 @@ public class respec extends script.base_script
     }
     public static void handleNpcRealloc(obj_id player) throws InterruptedException
     {
+        if (retireNgePlayerRespecEntrypoint(player))
+        {
+            return;
+        }
         int cost = getReallocationCost(player);
         int balance = getTotalMoney(player);
         if (cost > balance)

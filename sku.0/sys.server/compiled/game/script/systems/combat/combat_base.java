@@ -148,6 +148,13 @@ public class combat_base extends script.base_script
         // Retain en_* for NPC/content compatibility, not player authority.
         return isPlayer(self) && actionName != null && actionName.startsWith("en_");
     }
+    public static boolean isRetiredPostNgeMigrationPlayerAction(obj_id self, String actionName) throws InterruptedException
+    {
+        // The NGE veteran migration command applies primary-stat bonuses and
+        // has no Publish 14.1 player progression source. Retain its data and
+        // handler for link compatibility, but never admit it for players.
+        return isPlayer(self) && actionName != null && actionName.equals("veteranPlayerBuff");
+    }
     public boolean combatStandardAction(String actionName, obj_id self, obj_id target, String params, String successHandler, String failHandler) throws InterruptedException
     {
         return combatStandardAction(actionName, self, target, getCurrentWeapon(self), params, null, false, false, 0);
@@ -246,6 +253,10 @@ public class combat_base extends script.base_script
     }
     public boolean combatStandardAction(String actionName, obj_id self, obj_id target, obj_id objWeapon, String params, combat_data actionData, boolean isTangibleAttacking, boolean testPetBar, int overloadDamage) throws InterruptedException
     {
+        if (isRetiredPostNgeMigrationPlayerAction(self, actionName))
+        {
+            return false;
+        }
         if (isRetiredPostNgeSpyPlayerAction(self, actionName))
         {
             return false;

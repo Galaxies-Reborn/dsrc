@@ -49,10 +49,36 @@ public class live_conversions extends script.base_script
         removeObjVar(player, "clickRespec");
         removeObjVar(player, "npcRespec");
         removeObjVar(player, "playerRespec");
+        removeObjVar(player, "respec");
+        removeObjVar(player, "respecToken");
         removeObjVar(player, "respecsBought");
         removeObjVar(player, "respec_voucher");
+        removeObjVar(player, "expertise_reset");
+        removeObjVar(player, respec.EXPERTISE_VERSION_OBJVAR);
         removeObjVar(player, FORCE_RESPEC_OBJVAR);
         removeObjVar(player, VAR_FLAGS);
+        if (hasCommand(player, "veteranPlayerBuff"))
+        {
+            revokeCommand(player, "veteranPlayerBuff");
+        }
+        if (buff.hasBuff(player, "veteranPlayerBuff"))
+        {
+            buff.removeBuff(player, "veteranPlayerBuff");
+        }
+        String[] retiredRespecScripts =
+        {
+            "systems.respec.click_combat_respec",
+            respec.SCRIPT_GRANT_ON_LOGIN,
+            respec.SCRIPT_GRANT_SINGLE_ON_LOGIN,
+            respec.SCRIPT_CHECK_INFORM
+        };
+        for (String retiredRespecScript : retiredRespecScripts)
+        {
+            if (hasScript(player, retiredRespecScript))
+            {
+                detachScript(player, retiredRespecScript);
+            }
+        }
         if (hasScript(player, "cureward.cureward"))
         {
             detachScript(player, "cureward.cureward");
@@ -360,6 +386,11 @@ public class live_conversions extends script.base_script
     public static final int NPE_BIRTH_DATE = 1777;
     public void grantElderBuff(obj_id player) throws InterruptedException
     {
+        if (isPostNgePlayerMigrationRuntimeRetired())
+        {
+            retirePostNgePlayerMigrationState(player);
+            return;
+        }
         String config = getConfigSetting("Custom", "grantElderBuff");
         if(config != null && utils.stringToInt(config) == 1) {
             if (!hasCommand(player, "veteranPlayerBuff")) {
@@ -369,6 +400,11 @@ public class live_conversions extends script.base_script
     }
     public int handleBirthDateCallBack(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isPostNgePlayerMigrationRuntimeRetired())
+        {
+            retirePostNgePlayerMigrationState(self);
+            return SCRIPT_CONTINUE;
+        }
         obj_id player = self;
         int myBirthDate = getPlayerBirthDate(player);
         if (myBirthDate == -1)
