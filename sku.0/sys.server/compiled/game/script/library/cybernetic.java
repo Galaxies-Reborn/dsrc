@@ -28,6 +28,21 @@ public class cybernetic extends script.base_script
         "cyborgCriticalSnipe",
         "cyborgKickDown"
     };
+    public static final String[] POST_NGE_CYBERNETIC_PLAYER_SKILL_MODIFIERS =
+    {
+        "cybernetic_throw_range",
+        "cybernetic_ranged_range",
+        "cybernetic_healing_mod",
+        "cybernetic_melee_acc",
+        "cybernetic_melee_def",
+        "cybernetic_ranged_acc",
+        "cybernetic_run_buff",
+        "cybernetic_heavy_weapon_legs"
+    };
+    public static final String[] POST_NGE_CYBERNETIC_PLAYER_BUFFS =
+    {
+        "cyberneticLegs"
+    };
     public static boolean isPostNgePlayerCyberneticCommandRuntimeRetired() throws InterruptedException
     {
         return true;
@@ -66,6 +81,21 @@ public class cybernetic extends script.base_script
             if (buff.hasBuff(player, retiredCommand))
             {
                 buff.removeBuff(player, retiredCommand);
+            }
+        }
+        for (String retiredBuff : POST_NGE_CYBERNETIC_PLAYER_BUFFS)
+        {
+            if (buff.hasBuff(player, retiredBuff))
+            {
+                buff.removeBuff(player, retiredBuff);
+            }
+        }
+        for (String retiredModifier : POST_NGE_CYBERNETIC_PLAYER_SKILL_MODIFIERS)
+        {
+            int currentValue = getSkillStatMod(player, retiredModifier);
+            if (currentValue != 0)
+            {
+                applySkillStatisticModifier(player, retiredModifier, -currentValue);
             }
         }
     }
@@ -527,6 +557,11 @@ public class cybernetic extends script.base_script
     }
     public static void applyRunBoostMod(obj_id player, String templateName) throws InterruptedException
     {
+        if (isRetiredPostNgePlayerCyberneticCommandActor(player))
+        {
+            retirePostNgePlayerCyberneticCommandState(player);
+            return;
+        }
         String moveBuff = dataTableGetString(CYBORG_TABLE, templateName, "moveRateBuff");
         if (moveBuff == null || moveBuff.equals(""))
         {
@@ -536,6 +571,11 @@ public class cybernetic extends script.base_script
     }
     public static void removeRunBoostMod(obj_id player, String templateName) throws InterruptedException
     {
+        if (isRetiredPostNgePlayerCyberneticCommandActor(player))
+        {
+            retirePostNgePlayerCyberneticCommandState(player);
+            return;
+        }
         String moveBuff = dataTableGetString(CYBORG_TABLE, templateName, "moveRateBuff");
         if (moveBuff == null || moveBuff.equals(""))
         {
@@ -580,6 +620,10 @@ public class cybernetic extends script.base_script
     }
     public static float getThrowRangeMod(obj_id player, float maxRange) throws InterruptedException
     {
+        if (isRetiredPostNgePlayerCyberneticCommandActor(player))
+        {
+            return maxRange;
+        }
         float rangeMod = getSkillStatMod(player, "cybernetic_throw_range");
         if (rangeMod != 0.0f)
         {
@@ -589,6 +633,10 @@ public class cybernetic extends script.base_script
     }
     public static float getRangedRangeMod(obj_id player, float maxRange) throws InterruptedException
     {
+        if (isRetiredPostNgePlayerCyberneticCommandActor(player))
+        {
+            return maxRange;
+        }
         float rangeMod = getSkillStatMod(player, "cybernetic_ranged_range");
         if (rangeMod != 0.0f)
         {
@@ -598,6 +646,10 @@ public class cybernetic extends script.base_script
     }
     public static float getCyberneticHealingMod(obj_id player, float maxHealMod) throws InterruptedException
     {
+        if (isRetiredPostNgePlayerCyberneticCommandActor(player))
+        {
+            return maxHealMod;
+        }
         float healMod = getSkillStatMod(player, "cybernetic_healing_mod");
         if (healMod != 0.0f)
         {
@@ -608,6 +660,10 @@ public class cybernetic extends script.base_script
     }
     public static float getCyberneticRangedAccuracyMod(obj_id player, float baseAccuracy) throws InterruptedException
     {
+        if (isRetiredPostNgePlayerCyberneticCommandActor(player))
+        {
+            return baseAccuracy;
+        }
         float accMod = getSkillStatMod(player, "cybernetic_ranged_acc");
         if (accMod != 0.0f)
         {
@@ -618,6 +674,10 @@ public class cybernetic extends script.base_script
     }
     public static float getCyberneticMeleeAccuracyMod(obj_id player, float baseAccuracy) throws InterruptedException
     {
+        if (isRetiredPostNgePlayerCyberneticCommandActor(player))
+        {
+            return baseAccuracy;
+        }
         float accMod = getSkillStatMod(player, "cybernetic_melee_acc");
         if (accMod != 0.0f)
         {
@@ -628,6 +688,10 @@ public class cybernetic extends script.base_script
     }
     public static float getCyberneticMeleeDefenseMod(obj_id player, float baseDefense) throws InterruptedException
     {
+        if (isRetiredPostNgePlayerCyberneticCommandActor(player))
+        {
+            return baseDefense;
+        }
         float defMod = getSkillStatMod(player, "cybernetic_melee_def");
         if (defMod != 0.0f)
         {
@@ -638,10 +702,19 @@ public class cybernetic extends script.base_script
     }
     public static boolean hasCommandoLegs(obj_id player) throws InterruptedException
     {
+        if (isRetiredPostNgePlayerCyberneticCommandActor(player))
+        {
+            return false;
+        }
         return (getSkillStatMod(player, "cybernetic_heavy_weapon_legs") != 0);
     }
     public static void grantCyberneticSkillMods(obj_id player, obj_id cyberneticItem) throws InterruptedException
     {
+        if (isRetiredPostNgePlayerCyberneticCommandActor(player))
+        {
+            retirePostNgePlayerCyberneticCommandState(player);
+            return;
+        }
         String templateName = getTemplateName(cyberneticItem);
         dictionary item = dataTableGetRow(CYBORG_TABLE, templateName);
         if (item == null)
@@ -695,6 +768,11 @@ public class cybernetic extends script.base_script
     }
     public static void revokeCyberneticSkillMods(obj_id player, obj_id cyberneticItem) throws InterruptedException
     {
+        if (isRetiredPostNgePlayerCyberneticCommandActor(player))
+        {
+            retirePostNgePlayerCyberneticCommandState(player);
+            return;
+        }
         String templateName = getTemplateName(cyberneticItem);
         dictionary item = dataTableGetRow(CYBORG_TABLE, templateName);
         if (item == null)
@@ -745,6 +823,11 @@ public class cybernetic extends script.base_script
     public static void validateSkillMods(obj_id player) throws InterruptedException
     {
         retirePostNgePlayerCyberneticCommandState(player);
+        if (isRetiredPostNgePlayerCyberneticCommandActor(player))
+        {
+            movement.refresh(player);
+            return;
+        }
         int skillMod = getSkillStatMod(player, "cybernetic_throw_range");
         if (skillMod != 0)
         {
