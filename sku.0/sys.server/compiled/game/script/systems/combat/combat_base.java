@@ -250,6 +250,11 @@ public class combat_base extends script.base_script
         {
             return false;
         }
+        if (stealth.isRetiredPostP14PlayerInvisibilityAction(self, actionName))
+        {
+            stealth.retirePostP14PlayerInvisibilityState(self);
+            return false;
+        }
         if (isRetiredPostNgeBeastMasterPlayerAction(self, actionName))
         {
             return false;

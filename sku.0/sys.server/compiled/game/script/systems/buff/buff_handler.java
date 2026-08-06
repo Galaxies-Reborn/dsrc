@@ -2866,8 +2866,10 @@ public class buff_handler extends script.base_script
     {
         if (isPlayer(self) &&
             (script.systems.skills.stealth.player_stealth.isRetiredPostNgeSpyBuffName(effectName) ||
+                stealth.isRetiredPostP14PlayerInvisibilityName(buffName) ||
                 buff.isRetiredPostNgeForceSensitiveStanceBuff(buffName)))
         {
+            stealth.retirePostP14PlayerInvisibilityState(self);
             buff.removeBuff(self, buffName);
             return;
         }

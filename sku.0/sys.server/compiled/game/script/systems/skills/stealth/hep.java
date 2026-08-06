@@ -33,6 +33,11 @@ public class hep extends script.base_script
         {
             return SCRIPT_OVERRIDE;
         }
+        if (stealth.isRetiredPostP14PlayerInvisibilityAction(player, "urbanStealth"))
+        {
+            stealth.retirePostP14PlayerInvisibilityState(player);
+            return SCRIPT_CONTINUE;
+        }
         if (!utils.testItemClassRequirements(player, self, true, ""))
         {
             return SCRIPT_CONTINUE;
@@ -52,6 +57,11 @@ public class hep extends script.base_script
     {
         if (item == menu_info_types.ITEM_USE)
         {
+            if (stealth.isRetiredPostP14PlayerInvisibilityAction(player, "urbanStealth"))
+            {
+                stealth.retirePostP14PlayerInvisibilityState(player);
+                return SCRIPT_CONTINUE;
+            }
             if (!utils.isNestedWithin(self, player))
             {
                 return SCRIPT_OVERRIDE;

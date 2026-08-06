@@ -22,6 +22,7 @@ public class player_stealth extends script.systems.combat.combat_base
         {
             return;
         }
+        stealth.retirePostP14PlayerInvisibilityState(self);
         boolean changed = false;
         for (int pass = 0; pass < 8; ++pass)
         {
@@ -166,7 +167,9 @@ public class player_stealth extends script.systems.combat.combat_base
         {
             return SCRIPT_CONTINUE;
         }
-        if (isPlayer(self) && isRetiredPostNgeSpyBuffName(invisBuff))
+        if (isPlayer(self) &&
+            (isRetiredPostNgeSpyBuffName(invisBuff) ||
+                stealth.isRetiredPostP14PlayerInvisibilityName(invisBuff)))
         {
             retirePostNgeSpyPlayerState(self);
             return SCRIPT_CONTINUE;

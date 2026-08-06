@@ -15,6 +15,15 @@ public class stealth extends script.base_script
     public static final int MIN_BLENDIN_CROWD_SIZE = 10;
     public static final String CAMO_KIT_ID = "camoKit";
     public static final String ACTIVE_HEP = "active_hep";
+    private static final String[] RETIRED_POST_P14_PLAYER_INVISIBILITY_NAMES =
+    {
+        "urbanStealth",
+        "wildernessStealth",
+        "forceCloak",
+        "invis_urbanStealth",
+        "invis_wildernessStealth",
+        "invis_forceCloak"
+    };
     public static final int MIN_MOVEMENT_PRIORITY = 3;
     public static final int MIN_POSTURE_CHANGE_PRIORITY = 4;
     public static final String INVIS_BREAK_RADIUS_FAR = "invis_break_far";
@@ -142,6 +151,68 @@ public class stealth extends script.base_script
     {
         "dathomir_fs_village_unpassable"
     };
+    public static boolean isRetiredPostP14PlayerInvisibilityName(String name) throws InterruptedException
+    {
+        if (name == null)
+        {
+            return false;
+        }
+        for (String retiredName : RETIRED_POST_P14_PLAYER_INVISIBILITY_NAMES)
+        {
+            if (name.equalsIgnoreCase(retiredName))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isRetiredPostP14PlayerInvisibilityAction(obj_id actor, String actionName) throws InterruptedException
+    {
+        return isPlayer(actor) && isRetiredPostP14PlayerInvisibilityName(actionName);
+    }
+    public static void retirePostP14PlayerInvisibilityState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        boolean retiredStateFound = false;
+        String[] retiredBuffs =
+        {
+            "invis_urbanStealth",
+            "invis_wildernessStealth",
+            "invis_forceCloak"
+        };
+        for (String retiredBuff : retiredBuffs)
+        {
+            if (buff.hasBuff(player, retiredBuff))
+            {
+                buff.removeBuff(player, retiredBuff);
+                retiredStateFound = true;
+            }
+        }
+        if (hasObjVar(player, ACTIVE_HEP))
+        {
+            obj_id hep = getObjIdObjVar(player, ACTIVE_HEP);
+            if (isIdValid(hep) && exists(hep))
+            {
+                utils.clearNoDropFromItem(hep);
+            }
+            removeObjVar(player, ACTIVE_HEP);
+            retiredStateFound = true;
+        }
+        if (!retiredStateFound)
+        {
+            return;
+        }
+        utils.removeScriptVar(player, CAMO_KIT_ID);
+        utils.removeScriptVar(player, "supressVisible");
+        utils.removeScriptVar(player, INVIS_UPKEEP_MSG_DISPATCHED);
+        if (!hasInvisibleBuff(player))
+        {
+            _makeVisible(player, null, null);
+        }
+    }
     public static void setBioProbeData(obj_id trap, obj_id target, String targetName) throws InterruptedException
     {
     }
@@ -2563,6 +2634,11 @@ public class stealth extends script.base_script
     }
     public static boolean canPerformForceCloak(obj_id player) throws InterruptedException
     {
+        if (isRetiredPostP14PlayerInvisibilityAction(player, "forceCloak"))
+        {
+            retirePostP14PlayerInvisibilityState(player);
+            return false;
+        }
         if (combat.isInCombat(player) && (int)getSkillStatisticModifier(player, "expertise_force_cloak_combat_escape") <= 0)
         {
             return false;
@@ -2594,6 +2670,11 @@ public class stealth extends script.base_script
     }
     public static void forceCloak(obj_id player) throws InterruptedException
     {
+        if (isRetiredPostP14PlayerInvisibilityAction(player, "forceCloak"))
+        {
+            retirePostP14PlayerInvisibilityState(player);
+            return;
+        }
         if (buff.hasBuff(player, "fs_force_run"))
         {
             buff.removeBuff(player, "fs_force_run");
@@ -2897,6 +2978,11 @@ public class stealth extends script.base_script
     }
     public static boolean canPerformUrbanStealth(obj_id player, obj_id possibleHep) throws InterruptedException
     {
+        if (isRetiredPostP14PlayerInvisibilityAction(player, "urbanStealth"))
+        {
+            retirePostP14PlayerInvisibilityState(player);
+            return false;
+        }
         if (buff.hasBuff(player, "forceRun") || buff.hasBuff(player, "forceRun_1") || buff.hasBuff(player, "forceRun_2"))
         {
             sendSystemMessage(player, new string_id("spam", "cant_fc_run"));
@@ -2952,6 +3038,11 @@ public class stealth extends script.base_script
     }
     public static void urbanStealth(obj_id player) throws InterruptedException
     {
+        if (isRetiredPostP14PlayerInvisibilityAction(player, "urbanStealth"))
+        {
+            retirePostP14PlayerInvisibilityState(player);
+            return;
+        }
         obj_id hep = utils.getObjIdScriptVar(player, CAMO_KIT_ID);
         if (!isIdValid(hep))
         {
@@ -2971,6 +3062,11 @@ public class stealth extends script.base_script
     }
     public static boolean canPerformWildernessStealth(obj_id player) throws InterruptedException
     {
+        if (isRetiredPostP14PlayerInvisibilityAction(player, "wildernessStealth"))
+        {
+            retirePostP14PlayerInvisibilityState(player);
+            return false;
+        }
         if (buff.hasBuff(player, "forceRun") || buff.hasBuff(player, "forceRun_1") || buff.hasBuff(player, "forceRun_2"))
         {
             sendSystemMessage(player, new string_id("spam", "cant_fc_run"));
@@ -3015,6 +3111,11 @@ public class stealth extends script.base_script
     }
     public static void wildernessStealth(obj_id player) throws InterruptedException
     {
+        if (isRetiredPostP14PlayerInvisibilityAction(player, "wildernessStealth"))
+        {
+            retirePostP14PlayerInvisibilityState(player);
+            return;
+        }
         obj_id kit = utils.getObjIdScriptVar(player, CAMO_KIT_ID);
         int penalty = 0;
         if (!hasInvisibleBuff(player))
@@ -3134,6 +3235,11 @@ public class stealth extends script.base_script
     }
     public static boolean checkUrbanStealthUpkeep(obj_id player) throws InterruptedException
     {
+        if (isRetiredPostP14PlayerInvisibilityAction(player, "urbanStealth"))
+        {
+            retirePostP14PlayerInvisibilityState(player);
+            return false;
+        }
         if (!isInUrban(player))
         {
             sendSystemMessage(player, new string_id("spam", "cant_urban_stealth_environment"));
@@ -3155,6 +3261,11 @@ public class stealth extends script.base_script
     }
     public static boolean checkWildernessStealthUpkeep(obj_id player) throws InterruptedException
     {
+        if (isRetiredPostP14PlayerInvisibilityAction(player, "wildernessStealth"))
+        {
+            retirePostP14PlayerInvisibilityState(player);
+            return false;
+        }
         if (!isInWilderness(player))
         {
             sendSystemMessage(player, new string_id("spam", "cant_wilderness_stealth_environment"));
@@ -3165,6 +3276,11 @@ public class stealth extends script.base_script
     }
     public static boolean checkForceCloakUpkeep(obj_id player) throws InterruptedException
     {
+        if (isRetiredPostP14PlayerInvisibilityAction(player, "forceCloak"))
+        {
+            retirePostP14PlayerInvisibilityState(player);
+            return false;
+        }
         float forceCost = dataTableGetFloat(jedi.JEDI_ACTIONS_FILE, "forceCloak", "extraForceCost");
         obj_id[] players = getPlayerCreaturesInRange(player, stealth.INVIS_BREAK_MAX_FAR_DISTANCE);
         obj_id[] npcs = getNPCsInRange(player, stealth.INVIS_BREAK_MAX_FAR_DISTANCE);

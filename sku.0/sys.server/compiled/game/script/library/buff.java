@@ -339,7 +339,8 @@ public class buff extends script.base_script
             return false;
         }
         if (isPlayer(target) &&
-            (isRetiredPostNgeForceSensitiveStanceBuff(bdata.buffName) ||
+            (stealth.isRetiredPostP14PlayerInvisibilityName(bdata.buffName) ||
+                isRetiredPostNgeForceSensitiveStanceBuff(bdata.buffName) ||
                 isRetiredPostNgeGcwBannerBuff(bdata.buffName) ||
                 isRetiredPostNgeGcwConsumableBuff(bdata.buffName) ||
                 isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName)))

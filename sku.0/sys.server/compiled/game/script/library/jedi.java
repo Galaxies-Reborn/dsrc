@@ -540,6 +540,11 @@ public class jedi extends script.base_script
     public static boolean performJediBuffCommand(obj_id player, obj_id target, dictionary actionData) throws InterruptedException
     {
         String actionName = actionData.getString("actionName");
+        if (stealth.isRetiredPostP14PlayerInvisibilityAction(player, actionName))
+        {
+            stealth.retirePostP14PlayerInvisibilityState(player);
+            return false;
+        }
         String buffName = actionData.getString("buffName");
         LOG("jedi", "performJediBuffCommand::buff name (" + buffName + ")");
         if (!buffName.startsWith("avoidIncap"))
@@ -619,6 +624,11 @@ public class jedi extends script.base_script
             return false;
         }
         actionName = combat.getBestAction(self, actionName);
+        if (stealth.isRetiredPostP14PlayerInvisibilityAction(self, actionName))
+        {
+            stealth.retirePostP14PlayerInvisibilityState(self);
+            return false;
+        }
         dictionary actionData = dataTableGetRow(JEDI_ACTIONS_FILE, actionName);
         if (actionData == null)
         {
