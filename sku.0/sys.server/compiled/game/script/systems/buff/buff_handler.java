@@ -45,7 +45,8 @@ public class buff_handler extends script.base_script
     public boolean isRetiredNgeBuffSkillModifier(String modifierName) throws InterruptedException
     {
         return isRetiredNgeExpertiseModifier(modifierName) ||
-            isRetiredNgePrimaryStatisticModifier(modifierName);
+            isRetiredNgePrimaryStatisticModifier(modifierName) ||
+            static_item.isRetiredNgeStaticItemSkillModifier(modifierName);
     }
     public void retireNgeExpertiseModifier(obj_id self, String effectName) throws InterruptedException
     {
@@ -165,7 +166,7 @@ public class buff_handler extends script.base_script
     {
         long stack = buff.getBuffStackCount(self, buffName) > 1 ? buff.getBuffStackCount(self, buffName) : 1;
         value *= (int)stack;
-        if (isRetiredNgeBuffSkillModifier(subtype))
+        if (isPlayer(self) && isRetiredNgeBuffSkillModifier(subtype))
         {
             retireNgeExpertiseModifier(self, effectName);
         }
@@ -250,7 +251,7 @@ public class buff_handler extends script.base_script
     }
     public int skillPercentAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
-        if (isRetiredNgeBuffSkillModifier(subtype))
+        if (isPlayer(self) && isRetiredNgeBuffSkillModifier(subtype))
         {
             retireNgeExpertiseModifier(self, effectName);
         }
@@ -546,7 +547,7 @@ public class buff_handler extends script.base_script
     }
     public int forcePowerAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
-        if (isRetiredNgeBuffSkillModifier(subtype))
+        if (isPlayer(self) && isRetiredNgeBuffSkillModifier(subtype))
         {
             retireNgeExpertiseModifier(self, effectName);
         }

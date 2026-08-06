@@ -240,6 +240,7 @@ public class buff extends script.base_script
         retirePostNgeGcwBannerBuffState(player);
         retirePostNgeGcwConsumableBuffState(player);
         retirePostNgeBountyHunterShieldState(player);
+        static_item.removeRetiredNgePlayerSkillStatistics(player);
         utils.removeScriptVarTree(player, "performance.buildabuff");
         utils.removeScriptVarTree(player, "buff.xpBonus");
         utils.removeScriptVarTree(player, "buff.xpBonusGeneral");

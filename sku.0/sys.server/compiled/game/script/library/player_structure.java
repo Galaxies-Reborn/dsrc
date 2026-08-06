@@ -6187,7 +6187,8 @@ public class player_structure extends script.base_script
         }
         if (hasObjVar(structure, SPECIAL_SIGN_DECREMENT_MOD))
         {
-            if (!applySkillStatisticModifier(player, skillmod, 1))
+            if (!static_item.isRetiredNgeStaticItemSkillModifier(skillmod) &&
+                !applySkillStatisticModifier(player, skillmod, 1))
             {
                 blog("player_structure.removeSpecialSign - Applying skillmod failed!!!!!!!!!!!!!!!!!");
                 CustomerServiceLog("playerStructure", "Player: " + player + " attempted to remove special sign from structure: " + structure + ". During the destroy process the skillmod: " + skillmod + " failed to be reimbursed so the process was aborted.");

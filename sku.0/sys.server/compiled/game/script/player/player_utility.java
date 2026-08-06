@@ -425,6 +425,11 @@ public class player_utility extends script.base_script
                 CustomerServiceLog("vendor", "A TCG Special Vendor was destroyed but the skill mod that needed to be reimbursed to the owner was invalid. Owner: " + self + " Vendor: " + vendor + " Template Name: " + vendorTemplate + " Location of the vendor when destroyed: " + destroyLocation);
                 return SCRIPT_OVERRIDE;
             }
+            if (static_item.isRetiredNgeStaticItemSkillModifier(skillMod))
+            {
+                CustomerServiceLog("vendor", "A retired NGE skill mod was not reimbursed from a destroyed TCG Special Vendor. Owner: " + self + " Vendor: " + vendor + " Template Name: " + vendorTemplate + " Skill mod: " + skillMod);
+                return SCRIPT_OVERRIDE;
+            }
             if (skillModCurrentAmount > 0)
             {
                 CustomerServiceLog("vendor", "A TCG Special Vendor: " + vendor + " Template Name: " + vendorTemplate + " had skill mod: " + skillMod + " but the Owner: " + self + " COULD NOT BE REIMBURSED because that skillmod value was less than 0. Location of the vendor when destroyed: " + destroyLocation);

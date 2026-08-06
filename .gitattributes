@@ -43,6 +43,7 @@ sku.0/sys.server/compiled/game/script/npc/vendor/vendor.java -text whitespace=cr
 sku.0/sys.server/compiled/game/script/theme_park/meatlump/mtp_vendor.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/theme_park/dungeon/nova_orion_station/nova_orion_vendor.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/library/player_structure.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/player/player_building.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/library/resource.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/systems/crafting/armor/crafting_new_cybernetics_final.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/terminal/vendor.java -text whitespace=cr-at-eol

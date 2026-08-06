@@ -244,6 +244,9 @@ public class collection extends script.base_script
             int skillModMax = dict.getInt("skill_mod_max");
             String[] skillMods = split(skillMod, ',');
             for (String skillMod1 : skillMods) {
+                if (static_item.isRetiredNgeStaticItemSkillModifier(skillMod1)) {
+                    continue;
+                }
                 int currentSkillModAmount = getSkillStatMod(player, skillMod1);
                 if (currentSkillModAmount < skillModMax || skillModMax == -1) {
                     prose.setStringId(pp, SID_REWARD_SKILL_MOD);

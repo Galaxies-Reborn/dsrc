@@ -67,6 +67,35 @@ public class static_item extends script.base_script
         "exotic_heat_penetration",
         "exotic_electricity_penetration"
     };
+    public static final String[] RETIRED_NGE_BUFF_COMBAT_MODIFIERS =
+    {
+        "combat_add_damage_dealt",
+        "combat_add_damage_taken",
+        "combat_all_attack_avoidance",
+        "combat_all_attack_miss",
+        "combat_all_attack_miss_reduction",
+        "combat_all_attack_miss_vulnerability",
+        "combat_block_reduction",
+        "combat_critical_hit",
+        "combat_divide_damage_dealt",
+        "combat_divide_damage_taken",
+        "combat_dodge_reduction",
+        "combat_glancing",
+        "combat_glancing_blow_reduction",
+        "combat_melee_attack_avoidance",
+        "combat_melee_attack_miss",
+        "combat_melee_attack_miss_reduction",
+        "combat_melee_attack_vulnerability",
+        "combat_multiply_damage_dealt",
+        "combat_multiply_damage_taken",
+        "combat_parry_reduction",
+        "combat_ranged_attack_avoidance",
+        "combat_ranged_attack_miss",
+        "combat_ranged_attack_miss_reduction",
+        "combat_ranged_attack_vulnerability",
+        "combat_subtract_damage_dealt",
+        "combat_subtract_damage_taken"
+    };
     public static final java.text.NumberFormat noDecimalFormat = new java.text.DecimalFormat("###");
     public static final String SET_BONUS_TABLE = "datatables/item/item_sets.iff";
     public static obj_id createNewItemFunction(String itemName, obj_id container) throws InterruptedException
@@ -241,7 +270,38 @@ public class static_item extends script.base_script
                 return true;
             }
         }
+        for (String retiredModifier : RETIRED_NGE_BUFF_COMBAT_MODIFIERS)
+        {
+            if (modifier.equals(retiredModifier))
+            {
+                return true;
+            }
+        }
         return false;
+    }
+    public static void removeRetiredNgePlayerSkillStatistics(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        String[] modifiers = getSkillStatModListingForPlayer(player);
+        if (modifiers == null || modifiers.length == 0)
+        {
+            return;
+        }
+        for (String modifier : modifiers)
+        {
+            if (!isRetiredNgeStaticItemSkillModifier(modifier))
+            {
+                continue;
+            }
+            int currentValue = getSkillStatMod(player, modifier);
+            if (currentValue != 0)
+            {
+                applySkillStatisticModifier(player, modifier, -currentValue);
+            }
+        }
     }
     public static void removeRetiredNgeStaticItemSkillModifiers(obj_id item) throws InterruptedException
     {
@@ -1329,7 +1389,10 @@ public class static_item extends script.base_script
             for (String aStringArray : stringArray) {
                 modsArray = split(aStringArray, '=');
                 for (int x = 0; x < modsArray.length; x += 2) {
-                    dict.put(modsArray[0], utils.stringToInt(modsArray[1]));
+                    if (!isRetiredNgeStaticItemSkillModifier(modsArray[0]))
+                    {
+                        dict.put(modsArray[0], utils.stringToInt(modsArray[1]));
+                    }
                 }
             }
         }
