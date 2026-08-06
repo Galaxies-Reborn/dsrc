@@ -4108,6 +4108,11 @@ public class player_utility extends script.base_script
     }
     public int notifyPlayerOfGcwCityEventAnnouncement(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(self);
+            return SCRIPT_CONTINUE;
+        }
         LOG("gcw_announcement", "notifyPlayerOfGcwCityEventAnnouncement init");
         if (params == null)
         {
@@ -4225,6 +4230,11 @@ public class player_utility extends script.base_script
     }
     public int handleGcwCityHelpUi(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(self);
+            return SCRIPT_CONTINUE;
+        }
         if (!isValidId(self) || !exists(self))
         {
             return SCRIPT_CONTINUE;
@@ -4362,6 +4372,11 @@ public class player_utility extends script.base_script
     }
     public int playIconicGCWWrapUpMessage(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(self);
+            return SCRIPT_CONTINUE;
+        }
         if (params == null)
         {
             return SCRIPT_CONTINUE;

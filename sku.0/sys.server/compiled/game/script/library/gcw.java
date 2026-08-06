@@ -296,6 +296,55 @@ public class gcw extends script.base_script
         return true;
     }
     public static final String GCW_TUTORIAL_FLAG = "gcw_tutorial_flag.has_received_tutorial";
+    public static void cleanupRetiredCityInvasionPlayerState(obj_id player) throws InterruptedException
+    {
+        if (!isPostNgeCityInvasionRetired() || !isValidId(player) || !exists(player))
+        {
+            return;
+        }
+        if (utils.hasScriptVar(player, "gcw.score.pid"))
+        {
+            int pid = utils.getIntScriptVar(player, "gcw.score.pid");
+            utils.removeScriptVar(player, "gcw.score.pid");
+            forceCloseSUIPage(pid);
+        }
+        if (hasObjVar(player, GCW_TUTORIAL_FLAG))
+        {
+            removeObjVar(player, GCW_TUTORIAL_FLAG);
+        }
+        String[] retiredWaypointNames =
+        {
+            "Defense Coordinator",
+            "Invasion Staging Area Camp",
+            "Defending General",
+            "Staging Area Camp"
+        };
+        obj_id[] waypoints = getWaypointsInDatapad(player);
+        if (waypoints == null || waypoints.length <= 0)
+        {
+            return;
+        }
+        for (obj_id waypoint : waypoints)
+        {
+            if (!isValidId(waypoint) || !exists(waypoint))
+            {
+                continue;
+            }
+            String waypointName = getWaypointName(waypoint);
+            if (waypointName == null || waypointName.length() <= 0)
+            {
+                continue;
+            }
+            for (String retiredWaypointName : retiredWaypointNames)
+            {
+                if (waypointName.equals(retiredWaypointName))
+                {
+                    destroyWaypointInDatapad(waypoint, player);
+                    break;
+                }
+            }
+        }
+    }
     public static final String COLOR_REBELS = "\\" + colors_hex.COLOR_REBELS;
     public static final String COLOR_IMPERIALS = "\\" + colors_hex.COLOR_IMPERIALS;
     public static void assignScanInterests(obj_id npc) throws InterruptedException
@@ -3072,6 +3121,11 @@ public class gcw extends script.base_script
     }
     public static boolean gcwTutorialCheck(obj_id player) throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            cleanupRetiredCityInvasionPlayerState(player);
+            return false;
+        }
         if (!isValidId(player) || !exists(player))
         {
             return false;
@@ -3086,6 +3140,11 @@ public class gcw extends script.base_script
     }
     public static boolean gcwCityHelpText(obj_id player) throws InterruptedException
     {
+        if (isPostNgeCityInvasionRetired())
+        {
+            cleanupRetiredCityInvasionPlayerState(player);
+            return false;
+        }
         if (!isValidId(player) || !exists(player))
         {
             return false;

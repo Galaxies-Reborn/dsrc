@@ -49,6 +49,7 @@ public class player_faction extends script.base_script
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        gcw.cleanupRetiredCityInvasionPlayerState(self);
         cleanupRetiredFixedStaticBaseState(self);
         cleanupRetiredPvpRegionBonusState(self);
         factions.cleanupRetiredNeutralMercenaryState(self);
@@ -56,6 +57,7 @@ public class player_faction extends script.base_script
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        gcw.cleanupRetiredCityInvasionPlayerState(self);
         cleanupRetiredFixedStaticBaseState(self);
         cleanupRetiredPvpRegionBonusState(self);
         factions.cleanupRetiredNeutralMercenaryState(self);
@@ -63,6 +65,7 @@ public class player_faction extends script.base_script
     }
     public int OnLogin(obj_id self) throws InterruptedException
     {
+        gcw.cleanupRetiredCityInvasionPlayerState(self);
         cleanupRetiredFixedStaticBaseState(self);
         cleanupRetiredPvpRegionBonusState(self);
         factions.cleanupRetiredNeutralMercenaryState(self);
@@ -600,21 +603,41 @@ public class player_faction extends script.base_script
     }
     public int cmdGcwScore(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(self);
+            return SCRIPT_OVERRIDE;
+        }
         showGcwScoreboard(self);
         return SCRIPT_CONTINUE;
     }
     public int cmdGcwSkirmishCityHelp(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(self);
+            return SCRIPT_OVERRIDE;
+        }
         gcw.gcwCityHelpText(self);
         return SCRIPT_CONTINUE;
     }
     public int displayGcwScoreSui(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(self);
+            return SCRIPT_CONTINUE;
+        }
         showGcwScoreboard(self);
         return SCRIPT_CONTINUE;
     }
     public void showGcwScoreboard(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(self);
+            return;
+        }
         if (!isIdValid(self) || !exists(self))
         {
             return;
