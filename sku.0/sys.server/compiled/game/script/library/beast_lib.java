@@ -332,6 +332,11 @@ public class beast_lib extends script.base_script
         return isPostNgeBeastMasterPlayerRuntimeRetired() &&
             isIdValid(player) && isPlayer(player);
     }
+    public static boolean isRetiredPostNgePlayerOwnedBeast(obj_id beast) throws InterruptedException
+    {
+        return isIdValid(beast) &&
+            isRetiredPostNgeBeastMasterPlayer(getMaster(beast));
+    }
     public static boolean isRetiredPostNgeBeastMasterPlayerAction(obj_id player, String actionName) throws InterruptedException
     {
         return isRetiredPostNgeBeastMasterPlayer(player) &&
@@ -725,7 +730,7 @@ public class beast_lib extends script.base_script
     }
     public static void setBeastLevel(obj_id beast, int level) throws InterruptedException
     {
-        if (!isIdValid(beast) || level < 1 || level > 90)
+        if (!isIdValid(beast) || isRetiredPostNgePlayerOwnedBeast(beast) || level < 1 || level > 90)
         {
             return;
         }
@@ -1924,7 +1929,7 @@ public class beast_lib extends script.base_script
     }
     public static void incrementBeastExperience(obj_id beast) throws InterruptedException
     {
-        if (!isValidBeast(beast))
+        if (!isValidBeast(beast) || isRetiredPostNgePlayerOwnedBeast(beast))
         {
             return;
         }
@@ -1967,7 +1972,7 @@ public class beast_lib extends script.base_script
     }
     public static void incrementBeastLevel(obj_id beast) throws InterruptedException
     {
-        if (!isValidBeast(beast))
+        if (!isValidBeast(beast) || isRetiredPostNgePlayerOwnedBeast(beast))
         {
             return;
         }
@@ -1994,7 +1999,7 @@ public class beast_lib extends script.base_script
     }
     public static boolean canBeastLevelUp(obj_id beast) throws InterruptedException
     {
-        if (!isValidBeast(beast))
+        if (!isValidBeast(beast) || isRetiredPostNgePlayerOwnedBeast(beast))
         {
             return false;
         }
@@ -2015,7 +2020,7 @@ public class beast_lib extends script.base_script
     }
     public static void grantBeastExperience(obj_id beast) throws InterruptedException
     {
-        if (!isValidBeast(beast) || isDead(beast))
+        if (!isValidBeast(beast) || isRetiredPostNgePlayerOwnedBeast(beast) || isDead(beast))
         {
             return;
         }
@@ -4642,6 +4647,10 @@ public class beast_lib extends script.base_script
     }
     public static boolean canBeastGetLevelBasedXP(obj_id beast, obj_id npc) throws InterruptedException
     {
+        if (isRetiredPostNgePlayerOwnedBeast(beast))
+        {
+            return false;
+        }
         int beastLevel = getBeastLevel(beast);
         int mobLevel = getLevel(npc);
         int levelDiff = mobLevel - beastLevel;
