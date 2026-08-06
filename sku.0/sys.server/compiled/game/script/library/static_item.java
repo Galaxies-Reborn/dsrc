@@ -29,6 +29,15 @@ public class static_item extends script.base_script
     public static final int IT_WEAPON = 1;
     public static final int IT_ARMOR = 2;
     public static final int IT_ITEM = 3;
+    public static final String[] LEGACY_NGE_DYNAMIC_PRIMARY_MODIFIERS =
+    {
+        "precision_modified",
+        "strength_modified",
+        "stamina_modified",
+        "constitution_modified",
+        "agility_modified",
+        "luck_modified"
+    };
     public static final java.text.NumberFormat noDecimalFormat = new java.text.DecimalFormat("###");
     public static final String SET_BONUS_TABLE = "datatables/item/item_sets.iff";
     public static obj_id createNewItemFunction(String itemName, obj_id container) throws InterruptedException
@@ -1607,6 +1616,7 @@ public class static_item extends script.base_script
     }
     public static void generateItemStatBonuses(obj_id item, int level, dictionary dctItemInfo) throws InterruptedException
     {
+        removeLegacyNgeDynamicPrimaryModifiers(item);
         float[] numStatChances = 
         {
             101.0f,
@@ -1616,26 +1626,6 @@ public class static_item extends script.base_script
             101.0f,
             101.0f,
             101.0f
-        };
-        int[] statBonuses = 
-        {
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-        };
-        String[] statBonusNames = 
-        {
-            "precision_modified",
-            "strength_modified",
-            "stamina_modified",
-            "constitution_modified",
-            "agility_modified",
-            "luck_modified",
-            "camouflage"
         };
         for (int i = 0; i < numStatChances.length; i++)
         {
@@ -1656,32 +1646,30 @@ public class static_item extends script.base_script
                 break;
             }
         }
+        int camouflageBonus = 0;
         if (numberOfStats > 0)
         {
             for (int i = 0; i < numberOfStats; i++)
             {
-                int statBonus = generateStatMod(level);
-                for (int j = 0; j < 12; j++)
+                if (camouflageBonus == 0 && rand(1, 100) <= 5)
                 {
-                    int isCamo = rand(1, 100);
-                    int thisStat = rand(0, 5);
-                    if (isCamo <= 5)
-                    {
-                        thisStat = 6;
-                    }
-                    if (statBonuses[thisStat] == 0)
-                    {
-                        statBonuses[thisStat] = statBonus;
-                        break;
-                    }
+                    camouflageBonus = generateStatMod(level);
                 }
             }
         }
-        for (int i = 0; i < statBonuses.length; i++)
+        if (camouflageBonus > 0)
         {
-            if (statBonuses[i] > 0)
+            setObjVar(item, "skillmod.bonus.camouflage", camouflageBonus);
+        }
+    }
+    public static void removeLegacyNgeDynamicPrimaryModifiers(obj_id item) throws InterruptedException
+    {
+        for (String modifier : LEGACY_NGE_DYNAMIC_PRIMARY_MODIFIERS)
+        {
+            String objVar = "skillmod.bonus." + modifier;
+            if (hasObjVar(item, objVar))
             {
-                setObjVar(item, "skillmod.bonus." + statBonusNames[i], statBonuses[i]);
+                removeObjVar(item, objVar);
             }
         }
     }
@@ -1725,18 +1713,13 @@ public class static_item extends script.base_script
     }
     public static String getArmorNameSuffix(obj_id item) throws InterruptedException
     {
+        removeLegacyNgeDynamicPrimaryModifiers(item);
         String strSuffix = "@dynamic_items:armor_none";
         int numStats = 0;
         int highestStatNum = 0;
         int highestStatValue = 0;
         String[] statBonusNames = 
         {
-            "precision_modified",
-            "strength_modified",
-            "stamina_modified",
-            "constitution_modified",
-            "agility_modified",
-            "luck_modified",
             "camouflage"
         };
         if (hasObjVar(item, "skillmod.bonus"))

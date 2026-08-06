@@ -15,8 +15,14 @@ public class dynamic_armor extends script.base_script
     public static final string_id SID_ITEM_LEVEL_TOO_LOW = new string_id("base_player", "level_too_low");
     public static final string_id SID_ITEM_NOT_ENOUGH_SKILL = new string_id("base_player", "not_correct_skill");
     public static final string_id SID_ITEM_MUST_NOT_BE_EQUIP = new string_id("base_player", "not_while_equipped");
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        static_item.removeLegacyNgeDynamicPrimaryModifiers(self);
+        return SCRIPT_CONTINUE;
+    }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        static_item.removeLegacyNgeDynamicPrimaryModifiers(self);
         if (hasScript(self, "item.armor.new_armor"))
         {
             int intLevel = getIntObjVar(self, "dynamic_item.intLevelRequired");
@@ -39,6 +45,7 @@ public class dynamic_armor extends script.base_script
     }
     public int OnAboutToBeTransferred(obj_id self, obj_id destContainer, obj_id transferer) throws InterruptedException
     {
+        static_item.removeLegacyNgeDynamicPrimaryModifiers(self);
         if (combat.isInCombat(transferer))
         {
             sendSystemMessage(transferer, new string_id("base_player", "not_while_in_combat"));
