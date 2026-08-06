@@ -151,6 +151,43 @@ public class buff extends script.base_script
             }
         }
     }
+    private static final String[] RETIRED_POST_NGE_GCW_CONSUMABLE_BUFFS =
+    {
+        "tcg_series3_hh_15_torpedo_warhead",
+        "tcg_series7_rocket_launcher",
+        "gcw_mini_turret",
+        "gcw_rocket_turret"
+    };
+    public static boolean isRetiredPostNgeGcwConsumableBuff(String buffName)
+    {
+        if (buffName == null)
+        {
+            return false;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_GCW_CONSUMABLE_BUFFS)
+        {
+            if (buffName.equals(retiredBuff))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void retirePostNgeGcwConsumableBuffState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_GCW_CONSUMABLE_BUFFS)
+        {
+            if (hasBuff(player, retiredBuff))
+            {
+                removeBuff(player, retiredBuff);
+            }
+        }
+        utils.removeScriptVarTree(player, "buff.gcwBonusGeneral");
+    }
     public static boolean isRetiredPostNgeBountyHunterShieldBuff(String buffName)
     {
         return buffName != null &&
@@ -201,6 +238,7 @@ public class buff extends script.base_script
         retirePostNgeMeditationBuffs(player);
         retirePostNgeForceSensitiveStanceState(player);
         retirePostNgeGcwBannerBuffState(player);
+        retirePostNgeGcwConsumableBuffState(player);
         retirePostNgeBountyHunterShieldState(player);
         utils.removeScriptVarTree(player, "performance.buildabuff");
         utils.removeScriptVarTree(player, "buff.xpBonus");
@@ -303,6 +341,7 @@ public class buff extends script.base_script
         if (isPlayer(target) &&
             (isRetiredPostNgeForceSensitiveStanceBuff(bdata.buffName) ||
                 isRetiredPostNgeGcwBannerBuff(bdata.buffName) ||
+                isRetiredPostNgeGcwConsumableBuff(bdata.buffName) ||
                 isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName)))
         {
             return false;

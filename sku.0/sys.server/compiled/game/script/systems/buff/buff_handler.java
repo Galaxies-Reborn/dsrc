@@ -4324,6 +4324,11 @@ public class buff_handler extends script.base_script
     }
     public int gcwBonusGeneralAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (buff.isPostNgeBuffProgressionRetired())
+        {
+            utils.removeScriptVarTree(self, "buff.gcwBonusGeneral");
+            return SCRIPT_CONTINUE;
+        }
         CustomerServiceLog("buff", "gcwBonusGeneral Buff used by player: " + self + " Name: " + getName(self) + " Effect: " + effectName + " subtype:" + subtype + " duration: " + duration + " value: " + value + " buffName: " + buffName + " caster: " + caster);
         utils.setScriptVar(self, "buff.gcwBonusGeneral.value", value / 100);
         return SCRIPT_CONTINUE;
@@ -4721,6 +4726,14 @@ public class buff_handler extends script.base_script
     }
     public int gcwMiniTurretAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (buff.isPostNgeBuffProgressionRetired())
+        {
+            if (buff.hasBuff(self, buffName))
+            {
+                buff.removeBuff(self, buffName);
+            }
+            return SCRIPT_CONTINUE;
+        }
         obj_id turret = null;
         location loc = getLocation(self);
         if (factions.getFactionFlag(self) == factions.FACTION_FLAG_IMPERIAL)
