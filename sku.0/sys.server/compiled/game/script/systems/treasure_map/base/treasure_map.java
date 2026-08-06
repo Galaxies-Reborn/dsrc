@@ -557,8 +557,8 @@ public class treasure_map extends script.base_script
         boolean successPlayerLvl = setPlayerGroupLevel(map, player);
         if (!successPlayerLvl)
         {
-            CustomerServiceLog("treasureMap", "a treasure map failed to retrieve the player combat level. [ getTreasureParams() ]");
-            sendSystemMessage(player, "The treasure map failed to retrieve your combat level.", null);
+            CustomerServiceLog("treasureMap", "a treasure map failed to retrieve the player's PRE-CU combat-skill difficulty. [ getTreasureParams() ]");
+            sendSystemMessage(player, "The treasure map failed to calculate this encounter's difficulty.", null);
             return false;
         }
         int intMaxLevel = getIntObjVar(map, "max");
@@ -873,20 +873,20 @@ public class treasure_map extends script.base_script
         }
         if (playerLevel < 5)
         {
-            CustomerServiceLog("treasureMap", "a treasure map failed to get a useabel player level for " + player + ".  The player level is less than 5. [ getMobLevel() ]");
-            sendSystemMessage(player, "The treasure map failed to attain your player level accurately.", null);
+            CustomerServiceLog("treasureMap", "a treasure map failed to get a usable PRE-CU combat-skill difficulty for " + player + ".  The difficulty is less than 5. [ getMobLevel() ]");
+            sendSystemMessage(player, "The treasure map failed to calculate this encounter's difficulty.", null);
             return -1;
         }
         if (intMaxLevel < 10 || intMinLevel > 90)
         {
-            CustomerServiceLog("treasureMap", "a treasure map failed to get a mob level for " + player + " because the map maximum level was out of range [ getMobLevel() ]");
-            sendSystemMessage(player, "The treasure map failed to attain your player level accurately.", null);
+            CustomerServiceLog("treasureMap", "a treasure map failed to get an enemy difficulty for " + player + " because the map maximum difficulty was out of range [ getMobLevel() ]");
+            sendSystemMessage(player, "The treasure map failed to determine the encounter difficulty.", null);
             return -1;
         }
         if (intMinLevel < 1 || intMinLevel > 81)
         {
-            CustomerServiceLog("treasureMap", "a treasure map failed to get a mob level for " + player + " because the map minimum level was out of range [ getMobLevel() ]");
-            sendSystemMessage(player, "The treasure map failed to attain your player level accurately.", null);
+            CustomerServiceLog("treasureMap", "a treasure map failed to get an enemy difficulty for " + player + " because the map minimum difficulty was out of range [ getMobLevel() ]");
+            sendSystemMessage(player, "The treasure map failed to determine the encounter difficulty.", null);
             return -1;
         }
         if (playerLevel > intMaxLevel)
