@@ -42,10 +42,16 @@ public class buff_handler extends script.base_script
                 modifierName.equals("stamina_modified") ||
                 modifierName.equals("strength_modified"));
     }
+    public boolean isRetiredNgeDotImmunityModifier(String modifierName) throws InterruptedException
+    {
+        return modifierName != null &&
+            (modifierName.equals("damage_immune") || modifierName.startsWith("dot_resist_"));
+    }
     public boolean isRetiredNgeBuffSkillModifier(String modifierName) throws InterruptedException
     {
         return isRetiredNgeExpertiseModifier(modifierName) ||
             isRetiredNgePrimaryStatisticModifier(modifierName) ||
+            isRetiredNgeDotImmunityModifier(modifierName) ||
             static_item.isRetiredNgeStaticItemSkillModifier(modifierName);
     }
     public void retireNgeExpertiseModifier(obj_id self, String effectName) throws InterruptedException
@@ -1317,6 +1323,11 @@ public class buff_handler extends script.base_script
     {
         String prefixBuilder = "";
         int wholeValue = (int)value;
+        if (isPlayer(self) && subtype.equals("dot_immunity") && wholeValue == IMMUNITY_TO_ALL_DOTS)
+        {
+            utils.removeScriptVarTree(self, "immunity.dot.all");
+            return SCRIPT_OVERRIDE;
+        }
         switch (subtype) {
             case "dot_immunity":
                 if (wholeValue == IMMUNITY_TO_POISON) {
@@ -3629,6 +3640,12 @@ public class buff_handler extends script.base_script
     }
     public int damageImmuneAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            removeAttribOrSkillModModifier(self, "damageImmuneDotResistAll");
+            removeAttribOrSkillModModifier(self, "damageImmuneDamageImmune");
+            return SCRIPT_OVERRIDE;
+        }
         buff.performBuffDotImmunity(self, "all");
         addSkillModModifier(self, "damageImmuneDotResistAll", "dot_resist_all", 100, duration, false, true);
         addSkillModModifier(self, "damageImmuneDamageImmune", "damage_immune", 1, duration, false, true);

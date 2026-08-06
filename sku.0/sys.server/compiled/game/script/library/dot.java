@@ -1797,6 +1797,10 @@ public class dot extends script.base_script
     }
     public static boolean checkForDotImmunity(obj_id target, String type) throws InterruptedException
     {
+        if (isPlayer(target))
+        {
+            return false;
+        }
         int resistVar = getEnhancedSkillStatisticModifierUncapped(target, "dot_resist_" + type);
         int universal = getEnhancedSkillStatisticModifierUncapped(target, "dot_resist_all");
         int elemental = getElementalGroupResist(target, type);
