@@ -1504,8 +1504,8 @@ public class stealth extends script.base_script
         {
             int roll = rand(0, types.size() - 1);
             int flag = (Integer) types.get(roll);
-            int markLevel = getLevel(mark);
-            int thiefLevel = getLevel(thief);
+            int markLevel = xp.getPrecuCombatLevel(mark);
+            int thiefLevel = xp.getPrecuCombatLevel(thief);
             int stealRoll = rand(1, 100);
             if (STEAL_FAIL_CHANCE < stealRoll)
             {
@@ -3483,8 +3483,9 @@ public class stealth extends script.base_script
             {
                 holoWeapon = createObject(getTemplateName(spyWeapon), hologram, "");
             }
-            setObjVar(hologram, "intCombatDifficulty", getLevel(spy));
-            setLevel(hologram, getLevel(spy));
+            int hologramLevel = xp.getPrecuCombatLevel(spy);
+            setObjVar(hologram, "intCombatDifficulty", hologramLevel);
+            setLevel(hologram, hologramLevel);
             setObjVar(hologram, "difficultyClass", 0);
             if (isIdValid(holoWeapon))
             {
