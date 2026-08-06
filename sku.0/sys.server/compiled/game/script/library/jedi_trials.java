@@ -175,8 +175,7 @@ public class jedi_trials extends script.base_script
     }
     public static boolean isEligibleForJediKnightTrials(obj_id player) throws InterruptedException
     {
-        String frsConfig = getConfigSetting("GameServer", "enableFRS");
-        if (frsConfig == null || frsConfig.length() < 1)
+        if (!force_rank.isForceRankingEnabled())
         {
             return false;
         }

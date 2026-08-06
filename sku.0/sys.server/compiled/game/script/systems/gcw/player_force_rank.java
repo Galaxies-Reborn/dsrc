@@ -37,11 +37,21 @@ public class player_force_rank extends script.base_script
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
-        detachScript(self, "systems.gcw.player_force_rank");
-        return SCRIPT_OVERRIDE;
+        if (!force_rank.isForceRankingEnabled())
+        {
+            detachScript(self, force_rank.SCRIPT_FRS_PLAYER);
+            return SCRIPT_OVERRIDE;
+        }
+        force_rank.getEnclaveObjId(self, force_rank.getCouncilAffiliation(self), "enclaveIdResponse");
+        return SCRIPT_CONTINUE;
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        if (!force_rank.isForceRankingEnabled())
+        {
+            detachScript(self, force_rank.SCRIPT_FRS_PLAYER);
+            return SCRIPT_OVERRIDE;
+        }
         force_rank.getEnclaveObjId(self, force_rank.getCouncilAffiliation(self), "enclaveIdResponse");
         return SCRIPT_CONTINUE;
     }
@@ -52,6 +62,11 @@ public class player_force_rank extends script.base_script
     }
     public int OnLogin(obj_id self) throws InterruptedException
     {
+        if (!force_rank.isForceRankingEnabled())
+        {
+            detachScript(self, force_rank.SCRIPT_FRS_PLAYER);
+            return SCRIPT_OVERRIDE;
+        }
         force_rank.requestExperienceDebt(self);
         return SCRIPT_CONTINUE;
     }
@@ -1639,6 +1654,10 @@ public class player_force_rank extends script.base_script
     }
     public int msgValidateFRSPlayerData(obj_id self, dictionary params) throws InterruptedException
     {
+        if (!force_rank.isForceRankingEnabled())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (params == null)
         {
             LOG("force_rank", "enclave_controller.msgValidateFRSPlayerData(player) -- params is null");
@@ -1656,12 +1675,6 @@ public class player_force_rank extends script.base_script
             setObjVar(self, force_rank.VAR_RANK, player_rank);
         }
         force_rank.resyncForceRankSkills(self);
-        String frsConfig = getConfigSetting("GameServer", "enableFRS");
-        if ((frsConfig == null || frsConfig.length() < 1) && force_rank.getForceRank(self) == 0)
-        {
-            force_rank.removeFromForceRankSystem(self, false);
-            return SCRIPT_CONTINUE;
-        }
         int council = force_rank.getCouncilAffiliation(self);
         if (council == force_rank.LIGHT_COUNCIL)
         {

@@ -35,8 +35,7 @@ public class knight_trials extends script.base_script
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
-        String frsConfig = getConfigSetting("GameServer", "enableFRS");
-        if (frsConfig == null || frsConfig.length() < 1)
+        if (!force_rank.isForceRankingEnabled())
         {
             messageTo(self, "jediTrialsTurnedOff", null, 10, false);
             return SCRIPT_CONTINUE;

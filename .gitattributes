@@ -38,3 +38,10 @@ sku.0/sys.server/compiled/game/script/terminal/terminal_gcw_publish_gift.java -t
 sku.0/sys.server/compiled/game/script/terminal/terminal_guild.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/player/player_guild.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/systems/city/city_hall.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/datatables/pvp/force_rank_xp.tab -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/library/force_rank.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/library/jedi_trials.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/npc/faction_recruiter/player_recruiter.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/enclave_controller.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/player_force_rank.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/theme_park/jedi_trials/knight_trials.java -text whitespace=cr-at-eol

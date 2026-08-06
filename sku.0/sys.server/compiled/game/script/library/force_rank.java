@@ -29,11 +29,11 @@ public class force_rank extends script.base_script
     public static final int MAX_PETITIONERS = 11;
     public static final int MISSED_VOTE_PENALTY = 100;
     public static final int REQUEST_DEMOTION_DURATION = 604800;
-    public static final int REQUEST_DEMOTION_COST = 2500;
+    public static final int REQUEST_DEMOTION_COST = 2000;
     public static final int MAINTENANCE_PULSE = 1200;
     public static final int BASE_XP_MAINTENANCE = 100;
     public static final int XP_MAINTENANCE_INTERVAL = 86400;
-    public static final int VOTE_CHALLENGE_COST = 2000;
+    public static final int VOTE_CHALLENGE_COST = 1000;
     public static final int VOTE_CHALLENGE_DURATION = 604800;
     public static final int MAX_CHAL_LIST_SIZE = 20;
     public static final int DEBUFF_DURATION = 120;
@@ -102,8 +102,17 @@ public class force_rank extends script.base_script
     public static final String VAR_NOTIFY_ENCLAVE_OF_DEATH = "force_rank.notifyEnclaveOfDeath";
     public static final String VAR_MY_ENCLAVE_ID = "force_rank.myEnclaveId";
     public static final float MIN_KILL_CONTRIB_FOR_ACTION_DEATH = 0.51f;
+    public static boolean isForceRankingEnabled() throws InterruptedException
+    {
+        String config = getConfigSetting("GameServer", "enableFRS");
+        return config != null && (config.equals("1") || config.equalsIgnoreCase("true"));
+    }
     public static boolean addToForceRankSystem(obj_id player, int council) throws InterruptedException
     {
+        if (!isForceRankingEnabled())
+        {
+            return false;
+        }
         if (!isIdValid(player))
         {
             LOG("force_rank", "force_rank.addToForceRankSystem -- player is invalid.");

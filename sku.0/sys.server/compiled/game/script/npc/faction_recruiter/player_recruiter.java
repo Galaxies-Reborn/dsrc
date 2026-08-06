@@ -88,7 +88,7 @@ public class player_recruiter extends script.base_script
             LOG("LOG_CHANNEL", "player_recruiter::msgResignFromFaction -- " + self + "'s faction has changed since resignation.");
             return SCRIPT_CONTINUE;
         }
-        if (hasScript(self, "force_rank_light_novice") || hasScript(self, "force_rank_dark_novice"))
+        if (hasSkill(self, "force_rank_light_novice") || hasSkill(self, "force_rank_dark_novice"))
         {
             sendSystemMessage(self, new string_id("faction_recruiter", "jedi_cant_go_covert"));
             return SCRIPT_CONTINUE;

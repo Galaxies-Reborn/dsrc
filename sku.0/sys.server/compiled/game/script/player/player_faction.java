@@ -252,7 +252,7 @@ public class player_faction extends script.base_script
                 return SCRIPT_CONTINUE;
             }
         }
-        if (hasScript(self, "force_rank_light_novice") || hasScript(self, "force_rank_dark_novice"))
+        if (hasSkill(self, "force_rank_light_novice") || hasSkill(self, "force_rank_dark_novice"))
         {
             removeObjVar(self, "intChangingFactionStatus");
             return SCRIPT_CONTINUE;
@@ -269,7 +269,7 @@ public class player_faction extends script.base_script
     }
     public int msgGoOnLeave(obj_id self, dictionary params) throws InterruptedException
     {
-        if (hasScript(self, "force_rank_light_novice") || hasScript(self, "force_rank_dark_novice"))
+        if (hasSkill(self, "force_rank_light_novice") || hasSkill(self, "force_rank_dark_novice"))
         {
             return SCRIPT_CONTINUE;
         }
@@ -278,7 +278,7 @@ public class player_faction extends script.base_script
     }
     public int msgGoOvert(obj_id self, dictionary params) throws InterruptedException
     {
-        if (hasScript(self, "force_rank_light_novice") || hasScript(self, "force_rank_dark_novice"))
+        if (hasSkill(self, "force_rank_light_novice") || hasSkill(self, "force_rank_dark_novice"))
         {
             return SCRIPT_CONTINUE;
         }

@@ -13,15 +13,9 @@ public class enclave_controller extends script.base_script
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
-        String frsConfig = getConfigSetting("GameServer", "enableFRS");
-        if (frsConfig == null || frsConfig.length() < 1)
+        if (!force_rank.isForceRankingEnabled())
         {
-            removeObjVar(self, "force_rank.roster");
-            removeObjVar(self, "force_rank.data");
-            removeObjVar(self, "force_rank.voting");
-            force_rank.resetEnclaveData(self);
-            force_rank.resetClusterData(self);
-            force_rank.createEnclaveTerminals(self);
+            force_rank.makeAllCellsPublic(self);
             return SCRIPT_CONTINUE;
         }
         LOG("force_rank", "enclave_controller.OnInitialize -- " + self);
@@ -220,6 +214,11 @@ public class enclave_controller extends script.base_script
     }
     public int msgEnclavePulse(obj_id self, dictionary params) throws InterruptedException
     {
+        if (!force_rank.isForceRankingEnabled())
+        {
+            force_rank.makeAllCellsPublic(self);
+            return SCRIPT_CONTINUE;
+        }
         LOG("force_rank", "enclave_controller.msgEnclavePulse -- " + self + "  " + getGameTime());
         messageTo(self, "msgEnclavePulse", null, force_rank.MAINTENANCE_PULSE, false);
         force_rank.performEnclaveMaintenance(self);
