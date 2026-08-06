@@ -1,9 +1,7 @@
 package script.item.publish_gift;
 
 import script.library.factions;
-import script.library.gcw;
 import script.menu_info;
-import script.menu_info_types;
 import script.obj_id;
 import script.string_id;
 
@@ -17,25 +15,15 @@ public class recruitment_letter extends script.base_script
     public static final int LETTER_POINT_VALUE = 10000;
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
-        if (!isAlligned(player))
-        {
-            sendSystemMessage(player, SID_NOT_ALLIGNED);
-            return SCRIPT_CONTINUE;
-        }
-        if (isOwner(self, player))
-        {
-            int menuOption = mi.addRootMenu(menu_info_types.SERVER_ITEM_OPTIONS, USE_LETTER);
-        }
+        // This later publish gift awarded the retired NGE GCW-point currency.
+        // Preserve the authored item, but do not offer a destructive action
+        // that cannot provide a Publish 14 faction-standing/rank reward.
         return SCRIPT_CONTINUE;
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
-        if (item == menu_info_types.SERVER_ITEM_OPTIONS && isOwner(self, player) && isAlligned(player))
-        {
-            gcw.grantUnmodifiedGcwPoints(player, LETTER_POINT_VALUE);
-            destroyObject(self);
-            CustomerServiceLog("GCW_points_publish_gift", "%TU has acquired " + LETTER_POINT_VALUE + " points.", player);
-        }
+        // Fail closed for a radial selection queued before PRE-CU retirement.
+        // The gift remains intact and no obsolete point-success log is emitted.
         return SCRIPT_CONTINUE;
     }
     public boolean isOwner(obj_id self, obj_id player) throws InterruptedException

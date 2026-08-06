@@ -73,3 +73,4 @@ sku.0/sys.server/compiled/game/script/conversation/faction_recruiter_imperial.ja
 sku.0/sys.server/compiled/game/script/conversation/faction_recruiter_rebel.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/systems/gcw/flip_terminal_spawner.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/object/tangible/gcw/flip_terminal_spawner.tpf -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/item/publish_gift/recruitment_letter.java -text whitespace=cr-at-eol
