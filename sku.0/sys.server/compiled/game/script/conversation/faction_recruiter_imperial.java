@@ -109,9 +109,7 @@ public class faction_recruiter_imperial extends script.base_script
     }
     public void faction_recruiter_imperial_action_showFactionGcwRewardUi(obj_id player, obj_id npc) throws InterruptedException
     {
-        dictionary d = new dictionary();
-        d.put("player", player);
-        messageTo(npc, "showInventorySUI", d, 0, false);
+        faction_recruiter_imperial_action_showGcwRewardsList(player, npc);
     }
     public void faction_recruiter_imperial_action_enablePVPTimer(obj_id player, obj_id npc) throws InterruptedException
     {
