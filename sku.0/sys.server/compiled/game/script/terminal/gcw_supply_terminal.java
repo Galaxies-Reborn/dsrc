@@ -23,6 +23,10 @@ public class gcw_supply_terminal extends script.base_script
     };
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (!isIdValid(self) || !exists(self))
         {
             return SCRIPT_CONTINUE;
@@ -32,6 +36,11 @@ public class gcw_supply_terminal extends script.base_script
     }
     public void initiateSlicing(obj_id player) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return;
+        }
         if (!isIdValid(player) || !exists(player))
         {
             return;
@@ -42,6 +51,11 @@ public class gcw_supply_terminal extends script.base_script
     }
     public void makeSliceSequence(obj_id player) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return;
+        }
         if (!isIdValid(player) || !exists(player))
         {
             return;
@@ -64,6 +78,11 @@ public class gcw_supply_terminal extends script.base_script
             return SCRIPT_CONTINUE;
         }
         obj_id player = params.getObjId("player");
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return SCRIPT_CONTINUE;
+        }
         if (!hasQuest(player))
         {
             return SCRIPT_CONTINUE;
@@ -73,6 +92,11 @@ public class gcw_supply_terminal extends script.base_script
     }
     public void correctChoice(obj_id self, obj_id player) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return;
+        }
         if (!isIdValid(player) || !exists(player) || !isIdValid(self) || !exists(self))
         {
             return;
@@ -148,6 +172,11 @@ public class gcw_supply_terminal extends script.base_script
     }
     public void applyFatigue(obj_id player) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return;
+        }
         if (!isIdValid(player) || !exists(player))
         {
             return;
@@ -162,6 +191,11 @@ public class gcw_supply_terminal extends script.base_script
             return SCRIPT_CONTINUE;
         }
         obj_id player = sui.getPlayerId(params);
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return SCRIPT_CONTINUE;
+        }
         int btn = sui.getIntButtonPressed(params);
         int idx = sui.getListboxSelectedRow(params);
         if (btn == sui.BP_CANCEL)
@@ -215,6 +249,20 @@ public class gcw_supply_terminal extends script.base_script
         }
         int pid = params.getInt("id");
         obj_id player = params.getObjId("player");
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            if (pid > 0)
+            {
+                forceCloseSUIPage(pid);
+            }
+            if (isIdValid(player) && exists(player) && hasObjVar(player, sui.COUNTDOWNTIMER_SUI_VAR) && getIntObjVar(player, sui.COUNTDOWNTIMER_SUI_VAR) == pid)
+            {
+                removeObjVar(player, sui.COUNTDOWNTIMER_SUI_VAR);
+                detachScript(player, sui.COUNTDOWNTIMER_PLAYER_SCRIPT);
+            }
+            return SCRIPT_CONTINUE;
+        }
         if (!isIdValid(player) || !exists(player) || factions.isOnLeave(player))
         {
             return SCRIPT_CONTINUE;
@@ -279,6 +327,11 @@ public class gcw_supply_terminal extends script.base_script
     }
     public String getText(obj_id self, obj_id player) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return "Bzzzzt Not working!";
+        }
         if (!isIdValid(player) || !exists(player) || !isIdValid(self) || !exists(self))
         {
             return "Bzzzzt Not working!";
@@ -303,6 +356,10 @@ public class gcw_supply_terminal extends script.base_script
     }
     public int decreaseSliced(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         int sliced = 0;
         if (hasObjVar(self, "gcw.contraband"))
         {
@@ -322,6 +379,11 @@ public class gcw_supply_terminal extends script.base_script
     }
     public boolean hasQuest(obj_id player) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return false;
+        }
         if (groundquests.isQuestActive(player, gcw.GCW_SMUGGLER_SLICING))
         {
             return true;
@@ -330,6 +392,11 @@ public class gcw_supply_terminal extends script.base_script
     }
     public void stageMenu(obj_id self, obj_id player, String prompt, String title, String[] options, String myHandler, boolean cancel, String PIDVar, String scriptVar) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return;
+        }
         closeOldWindow(player, scriptVar);
         int pid = sui.listbox(self, player, prompt, sui.OK_CANCEL, title, options, myHandler, false, false);
         sui.showSUIPage(pid);

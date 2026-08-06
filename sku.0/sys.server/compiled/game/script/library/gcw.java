@@ -337,6 +337,61 @@ public class gcw extends script.base_script
         utils.removeScriptVar(player, GCW_REPAIR_RESOURCE_COUNT);
         utils.removeScriptVar(player, GCW_REPAIR_QUEST);
         utils.removeScriptVar(player, "gcw.fatigueTime");
+        utils.removeScriptVar(player, "gcw.tier");
+        utils.removeScriptVar(player, "gcw.maxTier");
+        utils.removeScriptVar(player, "gcw.sliceSequence");
+        utils.removeScriptVar(player, "gcw.slicing_idx");
+        utils.removeScriptVar(player, "gcw.terminalScanTier");
+        utils.removeScriptVar(player, "gcw.gotCbandTime");
+        utils.removeScriptVar(player, "scriptVar.scriptVar");
+        utils.removeScriptVar(player, "conversation.imperial_general.branchId");
+        utils.removeScriptVar(player, "conversation.rebel_general.branchId");
+        if (utils.hasScriptVar(player, "PIDvar"))
+        {
+            int pid = utils.getIntScriptVar(player, "PIDvar");
+            utils.removeScriptVar(player, "PIDvar");
+            if (pid > 0)
+            {
+                forceCloseSUIPage(pid);
+            }
+        }
+        String[] retiredCityQuests =
+        {
+            GCW_ENTERTAINER_PATROL_QUEST,
+            GCW_REPAIR_PATROL_QUEST,
+            GCW_REPAIR_TURRET_QUEST,
+            GCW_REPAIR_BARRICADE_QUEST,
+            GCW_SPY_PATROL_DESTROY_QUEST,
+            GCW_SPY_PATROL_SCOUT_QUEST,
+            GCW_REPAIR_VEHICLE_PATROL_QUEST,
+            GCW_MEDIC_HEAL_QUEST,
+            GCW_DEFEND_BARRICADE_REBEL,
+            GCW_DEFEND_BARRICADE_IMPERIAL,
+            GCW_DEFEND_TURRET_REBEL,
+            GCW_DEFEND_TURRET_IMPERIAL,
+            GCW_DEFEND_TOWER_REBEL,
+            GCW_DEFEND_TOWER_IMPERIAL,
+            GCW_DESTROY_BARRICADE,
+            GCW_DESTROY_TURRET,
+            GCW_ENTERTAIN_RALLY,
+            GCW_ENTERTAIN_FATIGUE,
+            GCW_SMUGGLER_SLICING,
+            GCW_ELIMINATE_REBELS,
+            GCW_ELIMINATE_IMPERIALS,
+            "gcw_construct_barricade",
+            "gcw_construct_patrol",
+            "gcw_construct_tower",
+            "gcw_construct_turret",
+            "gcw_construct_vehicle",
+            "gcw_construct_vehicle_boss"
+        };
+        for (String retiredCityQuest : retiredCityQuests)
+        {
+            if (groundquests.isQuestActive(player, retiredCityQuest))
+            {
+                groundquests.clearQuest(player, retiredCityQuest);
+            }
+        }
         String[] retiredCountdownPids =
         {
             ENTERTAIN_GCW_TROOPS_PID,

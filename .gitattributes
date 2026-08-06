@@ -8,6 +8,7 @@ sku.0/sys.server/compiled/game/script/library/battlefield.java -text
 sku.0/sys.server/compiled/game/script/item/trap/trap_base.java -text
 sku.0/sys.server/compiled/game/script/library/transition.java -text
 sku.0/sys.server/compiled/game/script/library/trial.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/terminal/gcw_supply_terminal.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/systems/missions/dynamic/mission_escort_npc.java -text
 sku.0/sys.server/compiled/game/script/library/metrics.java -text
 sku.0/sys.server/compiled/game/script/npc/vendor/vendor.java -text whitespace=cr-at-eol

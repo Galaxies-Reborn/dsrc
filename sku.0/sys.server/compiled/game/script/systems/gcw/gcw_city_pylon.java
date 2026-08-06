@@ -19,11 +19,20 @@ public class gcw_city_pylon extends script.base_script
     public static final string_id SID_TOO_FATIGUED = new string_id("gcw", "too_fatigued_to_construct");
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         messageTo(self, "handleSetup", null, 1.0f, false);
         return SCRIPT_CONTINUE;
     }
     public int OnHearSpeech(obj_id self, obj_id objSpeaker, String strText) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(objSpeaker);
+            return SCRIPT_CONTINUE;
+        }
         if (!isGod(objSpeaker))
         {
             return SCRIPT_CONTINUE;
@@ -77,6 +86,10 @@ public class gcw_city_pylon extends script.base_script
     }
     public int handleSetup(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (!utils.hasScriptVar(self, "faction"))
         {
             return SCRIPT_CONTINUE;
@@ -96,11 +109,19 @@ public class gcw_city_pylon extends script.base_script
     }
     public int handleUpdateName(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         updatePylonName(self);
         return SCRIPT_CONTINUE;
     }
     public int playQuestIcon(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         int questsCompleted = getIntObjVar(self, "gcw.constructionQuestsCompleted");
         if (questsCompleted < getMaximumQuests(self))
         {
@@ -114,6 +135,11 @@ public class gcw_city_pylon extends script.base_script
     }
     public int OnGetAttributes(obj_id self, obj_id player, String[] names, String[] attribs) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return SCRIPT_CONTINUE;
+        }
         int idx = utils.getValidAttributeIndex(names);
         if (idx == -1)
         {
@@ -177,6 +203,11 @@ public class gcw_city_pylon extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return SCRIPT_CONTINUE;
+        }
         if (!isIdValid(player) || !exists(player))
         {
             return SCRIPT_CONTINUE;
@@ -199,6 +230,11 @@ public class gcw_city_pylon extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return SCRIPT_CONTINUE;
+        }
         if (!isIdValid(player) || !exists(player))
         {
             return SCRIPT_CONTINUE;
@@ -248,6 +284,11 @@ public class gcw_city_pylon extends script.base_script
     }
     public void startConstructionAttempt(obj_id self, obj_id player) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return;
+        }
         int gameTime = getGameTime();
         stealth.testInvisCombatAction(player, self);
         int flags = 0;
@@ -271,6 +312,20 @@ public class gcw_city_pylon extends script.base_script
     {
         int pid = params.getInt("id");
         obj_id player = params.getObjId("player");
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            if (pid > 0)
+            {
+                forceCloseSUIPage(pid);
+            }
+            if (isIdValid(player) && exists(player) && hasObjVar(player, sui.COUNTDOWNTIMER_SUI_VAR) && getIntObjVar(player, sui.COUNTDOWNTIMER_SUI_VAR) == pid)
+            {
+                removeObjVar(player, sui.COUNTDOWNTIMER_SUI_VAR);
+                detachScript(player, sui.COUNTDOWNTIMER_PLAYER_SCRIPT);
+            }
+            return SCRIPT_CONTINUE;
+        }
         if (!isIdValid(player) || !exists(player) || factions.isOnLeave(player))
         {
             return SCRIPT_CONTINUE;

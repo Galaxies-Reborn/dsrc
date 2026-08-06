@@ -1037,6 +1037,11 @@ public class rebel_general extends script.base_script
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            clearCondition(self, CONDITION_CONVERSABLE);
+            return SCRIPT_CONTINUE;
+        }
         if ((!isTangible(self)) || (isPlayer(self)))
         {
             detachScript(self, "conversation.rebel_general");
@@ -1046,6 +1051,11 @@ public class rebel_general extends script.base_script
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            clearCondition(self, CONDITION_CONVERSABLE);
+            return SCRIPT_CONTINUE;
+        }
         setCondition(self, CONDITION_CONVERSABLE);
         dictionary params = new dictionary();
         location loc = getLocation(self);
@@ -1058,6 +1068,12 @@ public class rebel_general extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info menuInfo) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            clearCondition(self, CONDITION_CONVERSABLE);
+            return SCRIPT_CONTINUE;
+        }
         int menu = menuInfo.addRootMenu(menu_info_types.CONVERSE_START, null);
         menu_info_data menuInfoData = menuInfo.getMenuItemById(menu);
         menuInfoData.setServerNotify(false);
@@ -1092,6 +1108,12 @@ public class rebel_general extends script.base_script
     }
     public int OnStartNpcConversation(obj_id self, obj_id player) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            clearCondition(self, CONDITION_CONVERSABLE);
+            return SCRIPT_OVERRIDE;
+        }
         obj_id npc = self;
         if (ai_lib.isInCombat(npc) || ai_lib.isInCombat(player))
         {
@@ -1437,6 +1459,12 @@ public class rebel_general extends script.base_script
     }
     public int OnNpcConversationResponse(obj_id self, String conversationId, obj_id player, string_id response) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            clearCondition(self, CONDITION_CONVERSABLE);
+            return SCRIPT_CONTINUE;
+        }
         if (!conversationId.equals("rebel_general"))
         {
             return SCRIPT_CONTINUE;
