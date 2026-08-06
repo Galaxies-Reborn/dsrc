@@ -177,6 +177,62 @@ public class static_item extends script.base_script
             break;
         }
     }
+    public static boolean isRetiredNgeStaticItemSkillModifier(String modifier) throws InterruptedException
+    {
+        if (modifier == null || modifier.equals(""))
+        {
+            return false;
+        }
+        if (modifier.startsWith("expertise_"))
+        {
+            return true;
+        }
+        for (String legacyPrimaryModifier : LEGACY_NGE_DYNAMIC_PRIMARY_MODIFIERS)
+        {
+            if (modifier.equals(legacyPrimaryModifier))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void removeRetiredNgeStaticItemSkillModifiers(obj_id item) throws InterruptedException
+    {
+        dictionary bonuses = getSkillModBonuses(item);
+        if (bonuses == null)
+        {
+            return;
+        }
+        java.util.Enumeration keys = bonuses.keys();
+        while (keys.hasMoreElements())
+        {
+            String modifier = (String)keys.nextElement();
+            if (isRetiredNgeStaticItemSkillModifier(modifier))
+            {
+                setSkillModBonus(item, modifier, 0);
+            }
+        }
+    }
+    public static void applyPrecuStaticItemSkillModifiers(obj_id item, String skillMods) throws InterruptedException
+    {
+        removeRetiredNgeStaticItemSkillModifiers(item);
+        dictionary bonuses = parseSkillModifiers(null, skillMods);
+        if (bonuses == null)
+        {
+            return;
+        }
+        java.util.Enumeration keys = bonuses.keys();
+        while (keys.hasMoreElements())
+        {
+            String modifier = (String)keys.nextElement();
+            if (isRetiredNgeStaticItemSkillModifier(modifier))
+            {
+                setSkillModBonus(item, modifier, 0);
+                continue;
+            }
+            setSkillModBonus(item, modifier, bonuses.getInt(modifier));
+        }
+    }
     public static boolean initializeArmor(obj_id object, String itemName) throws InterruptedException
     {
         int row = dataTableSearchColumnForString(itemName, 0, ARMOR_STAT_BALANCE_TABLE);
@@ -239,19 +295,7 @@ public class static_item extends script.base_script
                 }
             }
         }
-        dictionary dict = parseSkillModifiers(null, skillMods);
-        if (dict != null)
-        {
-            java.util.Enumeration keys = dict.keys();
-            String skillModName;
-
-            while (keys.hasMoreElements())
-            {
-                skillModName = (String)keys.nextElement();
-                int skillModValue = dict.getInt(skillModName);
-                setSkillModBonus(object, skillModName, skillModValue);
-            }
-        }
+        applyPrecuStaticItemSkillModifiers(object, skillMods);
         if (objVarList != null && !objVarList.equals(""))
         {
             utils.setObjVarsList(object, objVarList);
@@ -320,19 +364,7 @@ public class static_item extends script.base_script
         {
             utils.setObjVarsList(object, objVarList);
         }
-        dictionary dict = parseSkillModifiers(null, skillMods);
-        if (dict != null)
-        {
-            java.util.Enumeration keys = dict.keys();
-            String skillModName;
-
-            while (keys.hasMoreElements())
-            {
-                skillModName = (String)keys.nextElement();
-                int skillModValue = dict.getInt(skillModName);
-                setSkillModBonus(object, skillModName, skillModValue);
-            }
-        }
+        applyPrecuStaticItemSkillModifiers(object, skillMods);
         weapons.setWeaponData(object);
         return true;
     }
@@ -370,18 +402,7 @@ public class static_item extends script.base_script
                 }
             }
         }
-        dictionary dict = parseSkillModifiers(null, skillMods);
-        if (dict != null)
-        {
-            java.util.Enumeration keys = dict.keys();
-            String skillModName;
-            while (keys.hasMoreElements())
-            {
-                skillModName = (String)keys.nextElement();
-                int skillModValue = dict.getInt(skillModName);
-                setSkillModBonus(object, skillModName, skillModValue);
-            }
-        }
+        applyPrecuStaticItemSkillModifiers(object, skillMods);
         if (objVarList != null && !objVarList.equals(""))
         {
             utils.setObjVarsList(object, objVarList);
