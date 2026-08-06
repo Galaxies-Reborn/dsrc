@@ -1571,31 +1571,6 @@ public class combat_base extends script.base_script
             actionData.increaseStrikethrough -= 100;
         }
         utils.removeScriptVar(attackerData.id, PROGRESSIVE_DAMAGE_COUNTER);
-        if (!precuAuthoritativeAttack &&
-            combat.isCommandoBonus(
-                attackerData.id, weaponData, actionData.commandType))
-        {
-            float devastationBonus = combat.getDevastationChance(attackerData.id);
-            if (rand(0.0f, 99.0f) < devastationBonus)
-            {
-                weaponData.minDamage = weaponData.maxDamage;
-                weaponData.maxDamage *= 1.5f;
-                showFlyTextPrivate(attackerData.id, attackerData.id, new string_id("combat_effects", "devastation"), 1.5f, colors.VIOLETRED);
-            }
-            if (actionData.buffNameTarget.length() == 0 || actionData.buffNameTarget.equals(""))
-            {
-                int passiveDotBonus = 10;
-                passiveDotBonus += getEnhancedSkillStatisticModifierUncapped(attackerData.id, "commando_passive_dot");
-                if (rand(0, 99) < passiveDotBonus)
-                {
-                    String commandoDotName = heavyweapons.getHeavyWeaponDotName(attackerData.id, weaponData, true);
-                    if (commandoDotName != null && !commandoDotName.equals(""))
-                    {
-                        actionData.buffNameTarget = commandoDotName;
-                    }
-                }
-            }
-        }
         boolean isPlayerAttacker = isPlayer(attackerData.id);
         int intWeaponAttackType = getWeaponAttackType(weaponData.id);
         boolean isRanged = (intWeaponAttackType == ATTACK_TYPE_RANGED);

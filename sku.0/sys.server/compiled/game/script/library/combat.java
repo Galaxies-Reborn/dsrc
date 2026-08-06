@@ -779,10 +779,6 @@ public class combat extends script.base_script
         }
         return ACTION_SUCCESS;
     }
-    public static boolean isCommandoBonus(obj_id self, weapon_data weaponData, int commandType) throws InterruptedException
-    {
-        return isPlayer(self) && utils.isProfession(self, utils.COMMANDO) && isHeavyWeapon(weaponData) && (commandType == LEFT_CLICK_DEFAULT);
-    }
     public static int[] getActionCost(obj_id self, weapon_data weaponData, dictionary actionData) throws InterruptedException
     {
         if (actionData.getInt("precuHamCostModel") > 0)
@@ -794,13 +790,6 @@ public class combat extends script.base_script
         float actionCost;
         float mindCost;
         actionCost = actionData.getFloat("actionCost");
-        if (isCommandoBonus(self, weaponData, actionData.getInt("commandType")))
-        {
-            cost[0] = (int)(0);
-            cost[1] = (int)(0);
-            cost[2] = (int)(0);
-            return cost;
-        }
         String specialLine = actionData.getString("specialLine");
         String actionName = actionData.getString("actionName");
         int freeshotChance = getEnhancedSkillStatisticModifierUncapped(self, "expertise_freeshot_" + specialLine);
@@ -953,13 +942,6 @@ public class combat extends script.base_script
         float actionCost;
         float mindCost;
         actionCost = actionData.actionCost;
-        if (isCommandoBonus(self, weaponData, actionData.commandType))
-        {
-            cost[0] = (int)(0);
-            cost[1] = (int)(0);
-            cost[2] = (int)(0);
-            return cost;
-        }
         if (beast_lib.isBeast(self))
         {
             cost[0] = 0;
@@ -4655,13 +4637,6 @@ public class combat extends script.base_script
             eggLoc.z = utils.stringToFloat(stringLocationParams[6]);
         }
         return eggLoc;
-    }
-    public static float getDevastationChance(obj_id attacker) throws InterruptedException
-    {
-        float devastationBonus = 2.0f;
-        devastationBonus += getEnhancedSkillStatisticModifierUncapped(attacker, "commando_devastation");
-        devastationBonus += getEnhancedSkillStatisticModifierUncapped(attacker, "expertise_devastation_bonus") / 10.0f;
-        return devastationBonus;
     }
     public static float getElementalPenetration(obj_id attacker, String damageString) throws InterruptedException
     {

@@ -345,6 +345,10 @@ public class heavyweapons extends script.base_script
     }
     public static String getHeavyWeaponDotName(obj_id player, int elementalDamageType, boolean singleTarget) throws InterruptedException
     {
+        if (isPlayer(player))
+        {
+            return null;
+        }
         int playerLevel = getLevel(player);
         if (elementalDamageType <= 0)
         {
