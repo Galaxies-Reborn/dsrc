@@ -11,12 +11,20 @@ public class gcw_barricade extends script.base_script
     public static final boolean LOGGING_ON = false;
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         setObjVar(self, gcw.GCW_TOOL_TEMPLATE_OBJVAR, "object/tangible/gcw/crafting_quest/gcw_barricade_tool.iff");
         setObjVar(self, "questCallBack", 1);
         return SCRIPT_CONTINUE;
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         messageTo(self, "handleGCWBarricade", null, 2, false);
         dictionary params = new dictionary();
         location loc = getLocation(self);
@@ -29,6 +37,10 @@ public class gcw_barricade extends script.base_script
     }
     public int OnGetAttributes(obj_id self, obj_id player, String[] names, String[] attribs) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (!exists(self))
         {
             return SCRIPT_CONTINUE;
@@ -53,6 +65,11 @@ public class gcw_barricade extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return SCRIPT_CONTINUE;
+        }
         if (!utils.hasScriptVar(self, "faction"))
         {
             blog("no faction on turret obj");
@@ -89,6 +106,11 @@ public class gcw_barricade extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return SCRIPT_CONTINUE;
+        }
         blog("OnObjectMenuSelect");
         if (!isIdValid(player) || !exists(player) || isIncapacitated(player) || isDead(player) || factions.isOnLeave(player))
         {
@@ -168,11 +190,19 @@ public class gcw_barricade extends script.base_script
     }
     public int playQuestIcon(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         gcw.playQuestIconHandler(self, params);
         return SCRIPT_CONTINUE;
     }
     public int handleGCWBarricade(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         obj_id[] objects = getObjectsInRange(self, 5.0f);
         int faction = -1;
         if (utils.hasScriptVar(self, "faction"))
@@ -192,6 +222,14 @@ public class gcw_barricade extends script.base_script
     }
     public int handleQuestCallBack(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            if (params != null && params.containsKey("player"))
+            {
+                gcw.cleanupRetiredCityInvasionPlayerState(params.getObjId("player"));
+            }
+            return SCRIPT_CONTINUE;
+        }
         if (params == null)
         {
             return SCRIPT_CONTINUE;
@@ -232,6 +270,11 @@ public class gcw_barricade extends script.base_script
     }
     public void handleDestroyBarricade(obj_id self, obj_id killer) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(killer);
+            return;
+        }
         playClientEffectLoc(self, "clienteffect/combat_explosion_lair_large.cef", getLocation(self), 0);
         setInvulnerable(self, true);
         messageTo(self, "destroyGCWBarricade", null, 1.0f, false);

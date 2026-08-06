@@ -12,6 +12,10 @@ public class gcw_turret extends script.base_script
     public static final string_id SID_MNU_DEFEND = new string_id("sui", "mnu_defend");
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         setObjVar(self, gcw.GCW_TOOL_TEMPLATE_OBJVAR, "object/tangible/gcw/crafting_quest/gcw_turret_tool.iff");
         setObjVar(self, "questCallBack", 1);
         dictionary params = new dictionary();
@@ -25,6 +29,10 @@ public class gcw_turret extends script.base_script
     }
     public int OnGetAttributes(obj_id self, obj_id player, String[] names, String[] attribs) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (!exists(self))
         {
             return SCRIPT_CONTINUE;
@@ -62,6 +70,11 @@ public class gcw_turret extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return SCRIPT_CONTINUE;
+        }
         if (!utils.hasScriptVar(self, "faction"))
         {
             LOG("gcw_patrol_point", "no faction on turret obj");
@@ -100,6 +113,11 @@ public class gcw_turret extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return SCRIPT_CONTINUE;
+        }
         LOG("gcw_patrol_point", "OnObjectMenuSelect");
         if (!isIdValid(player) || !exists(player) || isIncapacitated(player) || isDead(player) || factions.isOnLeave(player))
         {
@@ -187,6 +205,10 @@ public class gcw_turret extends script.base_script
     }
     public int OnDestroy(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         int faction = utils.getIntScriptVar(self, "faction");
         if (faction < 0)
         {
@@ -204,12 +226,24 @@ public class gcw_turret extends script.base_script
     }
     public int playQuestIcon(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         params.put("offset", 2.0f);
         gcw.playQuestIconHandler(self, params);
         return SCRIPT_CONTINUE;
     }
     public int handleQuestCallBack(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            if (params != null && params.containsKey("player"))
+            {
+                gcw.cleanupRetiredCityInvasionPlayerState(params.getObjId("player"));
+            }
+            return SCRIPT_CONTINUE;
+        }
         if (params == null)
         {
             return SCRIPT_CONTINUE;

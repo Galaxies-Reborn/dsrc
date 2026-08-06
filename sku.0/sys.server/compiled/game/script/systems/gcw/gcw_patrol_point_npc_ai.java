@@ -2,6 +2,7 @@ package script.systems.gcw;
 
 import script.library.create;
 import script.library.factions;
+import script.library.gcw;
 import script.location;
 import script.obj_id;
 
@@ -12,6 +13,10 @@ public class gcw_patrol_point_npc_ai extends script.systems.gcw.gcw_city_kit
     }
     public void setupConstructionQuests(obj_id self, obj_id pylon) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return;
+        }
         setName(pylon, "Turret Construction Site");
         attachScript(pylon, "systems.gcw.gcw_city_pylon_turret");
     }
@@ -20,6 +25,10 @@ public class gcw_patrol_point_npc_ai extends script.systems.gcw.gcw_city_kit
     }
     public obj_id createFactionKit(int faction, location loc) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return null;
+        }
         if (loc == null)
         {
             return null;

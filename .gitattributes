@@ -9,6 +9,28 @@ sku.0/sys.server/compiled/game/script/item/trap/trap_base.java -text
 sku.0/sys.server/compiled/game/script/library/transition.java -text
 sku.0/sys.server/compiled/game/script/library/trial.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/terminal/gcw_supply_terminal.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/gcw_barricade.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/gcw_damaged_vehicle.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/gcw_npc_hurt.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/gcw_turret.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/gcw_patrol.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/gcw_vehicle_patrol.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/gcw_smuggler_device.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/gcw_tower.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/gcw_defensive_general_boss.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/gcw_entertainer_faction_quest.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/gcw_vehicle_boss_patrol.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/gcw_city_kit.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/gcw_city_kit_barricade.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/gcw_city_kit_damaged_vehicle.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/gcw_city_kit_entertainer.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/gcw_city_kit_medic.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/gcw_city_kit_patrol.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/gcw_city_kit_tower.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/gcw_city_kit_turret.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/gcw_city_kit_vehicle.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/gcw_city_kit_vehicle_boss.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/gcw/gcw_patrol_point_npc_ai.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/systems/missions/dynamic/mission_escort_npc.java -text
 sku.0/sys.server/compiled/game/script/library/metrics.java -text
 sku.0/sys.server/compiled/game/script/npc/vendor/vendor.java -text whitespace=cr-at-eol

@@ -13,11 +13,19 @@ public class gcw_npc_hurt extends script.base_script
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         messageTo(self, "handleSetup", null, 1.0f, false);
         return SCRIPT_CONTINUE;
     }
     public int handleSetup(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         gcw.playQuestIconParticle(self);
         utils.setObjVar(self, gcw.GCW_OBJECT_REPAIR_COUNT, 0);
         setPosture(self, POSTURE_KNOCKED_DOWN);
@@ -27,6 +35,10 @@ public class gcw_npc_hurt extends script.base_script
     }
     public int removeBarkingScripts(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (hasScript(self, "ai.soldier"))
         {
             detachScript(self, "ai.soldier");
@@ -39,6 +51,10 @@ public class gcw_npc_hurt extends script.base_script
     }
     public int playQuestIcon(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (!isIdValid(self) || !exists(self))
         {
             return SCRIPT_CONTINUE;
@@ -52,6 +68,11 @@ public class gcw_npc_hurt extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return SCRIPT_CONTINUE;
+        }
         LOG("gcw_npc_hurt", "OnObjectMenuRequest");
         if (!utils.hasScriptVar(self, "faction"))
         {
@@ -88,6 +109,11 @@ public class gcw_npc_hurt extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return SCRIPT_CONTINUE;
+        }
         LOG("gcw_npc_hurt", "OnObjectMenuSelect");
         if (!isIdValid(player) || !exists(player) || isIncapacitated(player) || isDead(player) || factions.isOnLeave(player))
         {
@@ -143,6 +169,10 @@ public class gcw_npc_hurt extends script.base_script
     }
     public int repairComplete(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (!isIdValid(self))
         {
             return SCRIPT_CONTINUE;

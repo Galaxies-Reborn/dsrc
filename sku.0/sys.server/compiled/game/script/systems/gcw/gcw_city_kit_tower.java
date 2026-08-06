@@ -1,6 +1,7 @@
 package script.systems.gcw;
 
 import script.library.factions;
+import script.library.gcw;
 import script.library.utils;
 import script.location;
 import script.obj_id;
@@ -19,6 +20,10 @@ public class gcw_city_kit_tower extends script.systems.gcw.gcw_city_kit
     }
     public void setupConstructionQuests(obj_id self, obj_id pylon) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return;
+        }
         setName(pylon, "Tower Construction Site");
         utils.setScriptVar(pylon, "gcw.name", "Tower Construction Site");
         attachScript(pylon, "systems.gcw.gcw_city_pylon_tower");
@@ -28,6 +33,10 @@ public class gcw_city_kit_tower extends script.systems.gcw.gcw_city_kit
     }
     public obj_id createFactionKit(int faction, location loc) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return null;
+        }
         if (loc == null)
         {
             return null;

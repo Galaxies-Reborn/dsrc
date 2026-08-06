@@ -42,6 +42,10 @@ public class gcw_city_kit_damaged_vehicle extends script.systems.gcw.gcw_city_ki
     }
     public obj_id createFactionKit(int faction, location loc) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return null;
+        }
         dictionary params = new dictionary();
         params.put("faction", faction);
         params.put("location", loc);
@@ -51,6 +55,10 @@ public class gcw_city_kit_damaged_vehicle extends script.systems.gcw.gcw_city_ki
     }
     public int createDamagedVehicle(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (params == null)
         {
             return SCRIPT_CONTINUE;
@@ -101,6 +109,10 @@ public class gcw_city_kit_damaged_vehicle extends script.systems.gcw.gcw_city_ki
     }
     public int createRepairedVehicle(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         int faction = getIntObjVar(self, "factionFlag");
         location loc = getLocation(self);
         obj_id vehicle = null;

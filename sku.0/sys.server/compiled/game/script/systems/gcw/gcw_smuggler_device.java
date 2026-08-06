@@ -11,14 +11,27 @@ public class gcw_smuggler_device extends script.base_script
     public static final String PARENT = "parent";
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         return SCRIPT_CONTINUE;
     }
     public int OnGetAttributes(obj_id self, obj_id player, String[] names, String[] attribs) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         return SCRIPT_CONTINUE;
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return SCRIPT_CONTINUE;
+        }
         if (!hasObjVar(self, PARENT))
         {
             LOG("gcw_smuggler_functionality", "no parent var on obj");
@@ -58,6 +71,11 @@ public class gcw_smuggler_device extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return SCRIPT_CONTINUE;
+        }
         LOG("gcw_smuggler_functionality", "OnObjectMenuSelect");
         if (!hasObjVar(self, PARENT))
         {
@@ -128,6 +146,11 @@ public class gcw_smuggler_device extends script.base_script
     }
     public void handleDestroyTower(obj_id self, obj_id killer) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(killer);
+            return;
+        }
         playClientEffectLoc(self, "clienteffect/combat_explosion_lair_large.cef", getLocation(self), 0);
         setInvulnerable(self, true);
         messageTo(self, "destroyGCWTower", null, 1.0f, false);

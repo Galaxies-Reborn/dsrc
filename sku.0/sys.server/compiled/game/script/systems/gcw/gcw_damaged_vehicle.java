@@ -13,12 +13,20 @@ public class gcw_damaged_vehicle extends script.base_script
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         messageTo(self, "handleSetup", null, 1.0f, false);
         setObjVar(self, gcw.GCW_TOOL_TEMPLATE_OBJVAR, "object/tangible/gcw/crafting_quest/gcw_vehicle_tool.iff");
         return SCRIPT_CONTINUE;
     }
     public void updateName(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return;
+        }
         String name = utils.getStringScriptVar(self, "gcw.name");
         int questsCompleted = getIntObjVar(self, gcw.GCW_OBJECT_REPAIR_COUNT);
         String suffix = "";
@@ -38,6 +46,10 @@ public class gcw_damaged_vehicle extends script.base_script
     }
     public int OnGetAttributes(obj_id self, obj_id player, String[] names, String[] attribs) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (!exists(self))
         {
             return SCRIPT_CONTINUE;
@@ -62,6 +74,10 @@ public class gcw_damaged_vehicle extends script.base_script
     }
     public int handleSetup(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         gcw.playQuestIconParticle(self);
         utils.setObjVar(self, gcw.GCW_OBJECT_REPAIR_COUNT, 0);
         setPosture(self, POSTURE_KNOCKED_DOWN);
@@ -71,6 +87,10 @@ public class gcw_damaged_vehicle extends script.base_script
     }
     public int playQuestIcon(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         int repairs = getIntObjVar(self, gcw.GCW_OBJECT_REPAIR_COUNT);
         if (repairs < 4)
         {
@@ -80,6 +100,11 @@ public class gcw_damaged_vehicle extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return SCRIPT_CONTINUE;
+        }
         LOG("gcw_damaged_vehicle", "OnObjectMenuRequest");
         if (!isIdValid(player) || !exists(player) || isIncapacitated(player) || isDead(player) || factions.isOnLeave(player))
         {
@@ -125,6 +150,11 @@ public class gcw_damaged_vehicle extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return SCRIPT_CONTINUE;
+        }
         LOG("gcw_damaged_vehicle", "OnObjectMenuSelect");
         if (!isIdValid(player) || !exists(player) || isIncapacitated(player) || isDead(player) || factions.isOnLeave(player))
         {
@@ -184,6 +214,10 @@ public class gcw_damaged_vehicle extends script.base_script
     }
     public int repairComplete(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         int repairs = getIntObjVar(self, gcw.GCW_OBJECT_REPAIR_COUNT);
         updateName(self);
         if (repairs > 3)

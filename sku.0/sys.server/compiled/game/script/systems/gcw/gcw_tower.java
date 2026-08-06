@@ -10,6 +10,10 @@ public class gcw_tower extends script.base_script
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         setObjVar(self, "questCallBack", 1);
         dictionary params = new dictionary();
         location loc = getLocation(self);
@@ -25,10 +29,19 @@ public class gcw_tower extends script.base_script
     }
     public int OnGetAttributes(obj_id self, obj_id player, String[] names, String[] attribs) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         return SCRIPT_CONTINUE;
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return SCRIPT_CONTINUE;
+        }
         if (!utils.hasScriptVar(self, "faction"))
         {
             LOG("gcw_patrol_point", "no faction on turret obj");
@@ -51,6 +64,11 @@ public class gcw_tower extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return SCRIPT_CONTINUE;
+        }
         LOG("gcw_patrol_point", "OnObjectMenuSelect");
         if (!isIdValid(player) || !exists(player) || isIncapacitated(player) || isDead(player) || factions.isOnLeave(player))
         {
@@ -103,6 +121,10 @@ public class gcw_tower extends script.base_script
     }
     public int playQuestIcon(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         params.put("offset", 12.0f);
         gcw.playQuestIconHandler(self, params);
         return SCRIPT_CONTINUE;
@@ -119,6 +141,11 @@ public class gcw_tower extends script.base_script
     }
     public void handleDestroyTower(obj_id self, obj_id killer) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(killer);
+            return;
+        }
         playClientEffectLoc(self, "clienteffect/combat_explosion_lair_large.cef", getLocation(self), 0);
         setInvulnerable(self, true);
         messageTo(self, "destroyGCWTower", null, 1.0f, false);
@@ -127,6 +154,11 @@ public class gcw_tower extends script.base_script
     }
     public int OnObjectDamaged(obj_id self, obj_id attacker, obj_id weapon, int damage) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(attacker);
+            return SCRIPT_CONTINUE;
+        }
         if (!isIdValid(attacker) || !exists(attacker) || !isIdValid(weapon) || !exists(weapon) || damage < 1)
         {
             return SCRIPT_CONTINUE;
@@ -142,6 +174,10 @@ public class gcw_tower extends script.base_script
     }
     public int handleGCWTower(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         obj_id[] objects = getObjectsInRange(self, 25.0f);
         int faction = -1;
         if (utils.hasScriptVar(self, "faction"))
@@ -161,6 +197,14 @@ public class gcw_tower extends script.base_script
     }
     public int handleQuestCallBack(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            if (params != null && params.containsKey("player"))
+            {
+                gcw.cleanupRetiredCityInvasionPlayerState(params.getObjId("player"));
+            }
+            return SCRIPT_CONTINUE;
+        }
         if (params == null)
         {
             return SCRIPT_CONTINUE;

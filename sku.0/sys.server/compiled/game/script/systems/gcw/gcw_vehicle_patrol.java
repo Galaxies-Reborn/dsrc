@@ -34,17 +34,29 @@ public class gcw_vehicle_patrol extends script.base_script
     };
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         setObjVar(self, gcw.GCW_TOOL_TEMPLATE_OBJVAR, "object/tangible/gcw/crafting_quest/gcw_vehicle_tool.iff");
         return SCRIPT_CONTINUE;
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         messageTo(self, "handleGCWPatrol", null, 120, false);
         return SCRIPT_CONTINUE;
     }
     
     public int OnGetAttributes(obj_id self, obj_id player, String[] names, String[] attribs) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (!exists(self))
         {
             return SCRIPT_CONTINUE;
@@ -71,6 +83,11 @@ public class gcw_vehicle_patrol extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return SCRIPT_CONTINUE;
+        }
         if (!utils.hasScriptVar(self, "faction"))
         {
             LOG("gcw_patrol_point", "no faction on turret obj");
@@ -109,6 +126,11 @@ public class gcw_vehicle_patrol extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(player);
+            return SCRIPT_CONTINUE;
+        }
         LOG("gcw_patrol_point", "OnObjectMenuSelect");
         if (!isIdValid(player) || !exists(player) || isIncapacitated(player) || isDead(player) || factions.isOnLeave(player))
         {
@@ -185,6 +207,10 @@ public class gcw_vehicle_patrol extends script.base_script
     }
     public int handleGCWPatrol(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         int faction = -1;
         if (utils.hasScriptVar(self, "faction"))
         {
@@ -277,6 +303,10 @@ public class gcw_vehicle_patrol extends script.base_script
     }
     public obj_id createSchedulerNPC(obj_id kit, String npcName) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return null;
+        }
         if (!isIdValid(kit) || !exists(kit))
         {
             return null;
@@ -328,6 +358,11 @@ public class gcw_vehicle_patrol extends script.base_script
     }
     public void handleDestroyPatrol(obj_id self, obj_id killer) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(killer);
+            return;
+        }
         location death = getLocation(self);
         playClientEffectObj(killer, "clienteffect/combat_explosion_lair_large.cef", self, "");
         playClientEffectLoc(killer, "clienteffect/combat_explosion_lair_large.cef", death, 0);

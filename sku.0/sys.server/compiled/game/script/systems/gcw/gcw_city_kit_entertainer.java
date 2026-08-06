@@ -30,6 +30,10 @@ public class gcw_city_kit_entertainer extends script.systems.gcw.gcw_city_kit
     }
     public obj_id createFactionKit(int faction, location loc) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return null;
+        }
         dictionary params = new dictionary();
         params.put("faction", faction);
         params.put("location", loc);
@@ -40,6 +44,10 @@ public class gcw_city_kit_entertainer extends script.systems.gcw.gcw_city_kit
     }
     public int createDemoralizedNpc(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (params == null)
         {
             return SCRIPT_CONTINUE;
@@ -93,6 +101,10 @@ public class gcw_city_kit_entertainer extends script.systems.gcw.gcw_city_kit
     }
     public int createFightingNpc(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         int faction = utils.getIntObjVar(self, "factionFlag");
         obj_id npc = null;
         obj_id convinced_trooper = params.getObjId("convincedTrooper");

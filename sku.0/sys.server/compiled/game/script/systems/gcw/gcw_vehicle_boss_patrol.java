@@ -14,6 +14,10 @@ public class gcw_vehicle_boss_patrol extends script.base_script
     public static final String bossRebels = "gcw_city_hailfire_droid";
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         messageTo(self, "handleGCWPatrol", null, 2, false);
         return SCRIPT_CONTINUE;
     }
@@ -33,6 +37,10 @@ public class gcw_vehicle_boss_patrol extends script.base_script
     }
     public int handleGCWPatrol(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         int faction = -1;
         if (utils.hasScriptVar(self, "faction"))
         {
@@ -103,6 +111,10 @@ public class gcw_vehicle_boss_patrol extends script.base_script
     }
     public obj_id createSchedulerNPC(obj_id kit, String npcName) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return null;
+        }
         if (!isIdValid(kit) || !exists(kit))
         {
             return null;
@@ -154,6 +166,11 @@ public class gcw_vehicle_boss_patrol extends script.base_script
     }
     public void handleDestroyPatrol(obj_id self, obj_id killer) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(killer);
+            return;
+        }
         location death = getLocation(self);
         playClientEffectObj(killer, "clienteffect/combat_explosion_lair_large.cef", self, "");
         playClientEffectLoc(killer, "clienteffect/combat_explosion_lair_large.cef", death, 0);

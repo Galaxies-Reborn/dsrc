@@ -298,7 +298,7 @@ public class gcw extends script.base_script
     public static final String GCW_TUTORIAL_FLAG = "gcw_tutorial_flag.has_received_tutorial";
     public static void cleanupRetiredCityInvasionPlayerState(obj_id player) throws InterruptedException
     {
-        if (!isPostNgeCityInvasionRetired() || !isValidId(player) || !exists(player))
+        if (!isPostNgeCityInvasionRetired() || !isValidId(player) || !exists(player) || !isPlayer(player))
         {
             return;
         }

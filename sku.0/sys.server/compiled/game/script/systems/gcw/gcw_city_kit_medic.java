@@ -3,6 +3,7 @@ package script.systems.gcw;
 import script.dictionary;
 import script.library.create;
 import script.library.factions;
+import script.library.gcw;
 import script.library.trial;
 import script.library.utils;
 import script.location;
@@ -45,6 +46,10 @@ public class gcw_city_kit_medic extends script.systems.gcw.gcw_city_kit
     }
     public obj_id createFactionKit(int faction, location loc) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return null;
+        }
         dictionary params = new dictionary();
         params.put("faction", faction);
         params.put("location", loc);
@@ -54,6 +59,10 @@ public class gcw_city_kit_medic extends script.systems.gcw.gcw_city_kit
     }
     public int createWoundedNPC(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (params == null)
         {
             return SCRIPT_CONTINUE;
@@ -99,6 +108,10 @@ public class gcw_city_kit_medic extends script.systems.gcw.gcw_city_kit
     }
     public int createHealedNPC(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         int faction = getIntObjVar(self, "factionFlag");
         location loc = getLocation(self);
         obj_id npc = null;

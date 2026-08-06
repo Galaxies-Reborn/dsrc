@@ -39,6 +39,10 @@ public class gcw_city_kit_turret extends script.systems.gcw.gcw_city_kit
     };
     public void setupConstructionQuests(obj_id self, obj_id pylon) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return;
+        }
         setName(pylon, "Turret Construction Site");
         utils.setScriptVar(pylon, "gcw.name", "Turret Construction Site");
         attachScript(pylon, "systems.gcw.gcw_city_pylon_turret");
@@ -48,6 +52,10 @@ public class gcw_city_kit_turret extends script.systems.gcw.gcw_city_kit
     }
     public obj_id createFactionKit(int faction, location loc) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return null;
+        }
         if (loc == null)
         {
             return null;

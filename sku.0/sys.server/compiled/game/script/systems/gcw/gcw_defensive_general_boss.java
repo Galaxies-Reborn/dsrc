@@ -18,6 +18,10 @@ public class gcw_defensive_general_boss extends script.base_script
     public static final int MAX_GENERAL_BUFF_STACK = 100;
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         blog("OnAttach init");
         setAttrib(self, HEALTH, MAX_HIT_POINTS);
         setMaxAttrib(self, HEALTH, MAX_HIT_POINTS);
@@ -30,6 +34,11 @@ public class gcw_defensive_general_boss extends script.base_script
     }
     public int OnHateTargetAdded(obj_id self, obj_id target) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(target);
+            return SCRIPT_CONTINUE;
+        }
         Vector allPlayersHatedList = new Vector();
         allPlayersHatedList.setSize(0);
         if (utils.hasScriptVar(self, "allPlayersEverHated"))
@@ -43,6 +52,11 @@ public class gcw_defensive_general_boss extends script.base_script
     }
     public int OnAboutToBeIncapacitated(obj_id self, obj_id killer) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(killer);
+            return SCRIPT_CONTINUE;
+        }
         obj_id[] attackerList = utils.getObjIdBatchScriptVar(self, "creditForKills.attackerList.attackers");
         Vector allPlayersHatedList = utils.getResizeableObjIdArrayScriptVar(self, "allPlayersEverHated");
         if ((allPlayersHatedList == null || allPlayersHatedList.size() <= 0) && (attackerList == null || attackerList.length <= 0))
@@ -151,6 +165,10 @@ public class gcw_defensive_general_boss extends script.base_script
     }
     public int checkConstructionPhase(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         blog("checkConstructionPhase init");
         if (hasObjVar(self, "offense") && getIntObjVar(self, "offense") == 1)
         {
@@ -201,6 +219,10 @@ public class gcw_defensive_general_boss extends script.base_script
     }
     public int calculateGeneralHealthAndAbilities(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (!isValidId(self) || !exists(self) || ai_lib.isDead(self))
         {
             return SCRIPT_CONTINUE;

@@ -2,6 +2,7 @@ package script.systems.gcw;
 
 import script.dictionary;
 import script.library.factions;
+import script.library.gcw;
 import script.library.utils;
 import script.obj_id;
 
@@ -12,6 +13,11 @@ public class gcw_entertainer_faction_quest extends script.base_script
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            cleanup(self);
+            return SCRIPT_CONTINUE;
+        }
         if (!isValidId(self) || !exists(self))
         {
             return SCRIPT_CONTINUE;
@@ -21,6 +27,11 @@ public class gcw_entertainer_faction_quest extends script.base_script
     }
     public int readyToTalk(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            cleanup(self);
+            return SCRIPT_CONTINUE;
+        }
         if (!isValidId(self) || !exists(self))
         {
             return SCRIPT_CONTINUE;
@@ -68,6 +79,11 @@ public class gcw_entertainer_faction_quest extends script.base_script
     }
     public int convinced(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            cleanup(self);
+            return SCRIPT_CONTINUE;
+        }
         obj_id parent = utils.getObjIdScriptVar(self, "spawnedBy");
         params.put("convincedTrooper", self);
         messageTo(parent, "createFightingNpc", params, 1.0f, false);

@@ -31,6 +31,11 @@ public class gcw_city_kit extends script.base_script
     }
     public int OnHearSpeech(obj_id self, obj_id objSpeaker, String strText) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(objSpeaker);
+            return SCRIPT_CONTINUE;
+        }
         if (!isGod(objSpeaker))
         {
             return SCRIPT_CONTINUE;
@@ -84,6 +89,10 @@ public class gcw_city_kit extends script.base_script
     }
     public int getConstructionQuestsCompleted(obj_id pylon) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return 0;
+        }
         int completed = 0;
         if (!isIdValid(pylon) || !exists(pylon))
         {
@@ -97,6 +106,10 @@ public class gcw_city_kit extends script.base_script
     }
     public boolean hasConstructionQuests() throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return false;
+        }
         return true;
     }
     public void setupConstructionQuests(obj_id self, obj_id pylon) throws InterruptedException
@@ -104,6 +117,10 @@ public class gcw_city_kit extends script.base_script
     }
     public int beginConstruction(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (!isIdValid(self) || !exists(self))
         {
             return SCRIPT_CONTINUE;
@@ -166,6 +183,10 @@ public class gcw_city_kit extends script.base_script
     }
     public int beginInvasion(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (!isIdValid(self) || !exists(self))
         {
             return SCRIPT_CONTINUE;
