@@ -5,6 +5,7 @@
 sku.0/sys.server/compiled/game/script/ai/pet.java -text
 sku.0/sys.server/compiled/game/script/library/innate.java -text
 sku.0/sys.server/compiled/game/script/library/battlefield.java -text
+sku.0/sys.server/compiled/game/script/library/respec.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/item/trap/trap_base.java -text
 sku.0/sys.server/compiled/game/script/library/transition.java -text
 sku.0/sys.server/compiled/game/script/library/trial.java -text whitespace=cr-at-eol
