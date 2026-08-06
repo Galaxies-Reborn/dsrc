@@ -232,6 +232,46 @@ public class buff extends script.base_script
             }
         }
     }
+    private static final String[] RETIRED_POST_P14_PLAYER_AVOID_INCAP_HEAL_BUFFS =
+    {
+        "gcw_base_critical_heal_a",
+        "gcw_base_critical_heal_b",
+        "gcw_base_critical_heal_c",
+        "gcw_base_critical_heal_d",
+        "gcw_base_critical_heal_e",
+        "pvp_last_man_ability",
+        "pvp_last_man_rebel_ability",
+        "tusken_endurance"
+    };
+    public static boolean isRetiredPostP14PlayerAvoidIncapHealBuff(String buffName)
+    {
+        if (buffName == null)
+        {
+            return false;
+        }
+        for (String retiredBuff : RETIRED_POST_P14_PLAYER_AVOID_INCAP_HEAL_BUFFS)
+        {
+            if (buffName.equals(retiredBuff))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void retirePostP14PlayerAvoidIncapHealState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        for (String retiredBuff : RETIRED_POST_P14_PLAYER_AVOID_INCAP_HEAL_BUFFS)
+        {
+            if (hasBuff(player, retiredBuff))
+            {
+                removeBuff(player, retiredBuff);
+            }
+        }
+    }
     public static boolean isRetiredPostNgeBountyHunterShieldBuff(String buffName)
     {
         return buffName != null &&
@@ -284,6 +324,7 @@ public class buff extends script.base_script
         retirePostNgeGcwBannerBuffState(player);
         retirePostNgeGcwConsumableBuffState(player);
         retirePostP14PlayerControlImmunityState(player);
+        retirePostP14PlayerAvoidIncapHealState(player);
         retirePostNgeBountyHunterShieldState(player);
         static_item.removeRetiredNgePlayerSkillStatistics(player);
         utils.removeScriptVarTree(player, "performance.buildabuff");
@@ -390,6 +431,7 @@ public class buff extends script.base_script
                 isRetiredPostNgeGcwBannerBuff(bdata.buffName) ||
                 isRetiredPostNgeGcwConsumableBuff(bdata.buffName) ||
                 isRetiredPostP14PlayerControlImmunityBuff(bdata.buffName) ||
+                isRetiredPostP14PlayerAvoidIncapHealBuff(bdata.buffName) ||
                 isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName)))
         {
             return false;

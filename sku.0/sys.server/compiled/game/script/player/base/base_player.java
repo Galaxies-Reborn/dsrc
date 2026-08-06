@@ -12862,6 +12862,11 @@ public class base_player extends script.base_script
     }
     public boolean performCriticalHeal(obj_id self) throws InterruptedException
     {
+        if (buff.isPostNgeBuffProgressionRetired())
+        {
+            buff.retirePostP14PlayerAvoidIncapHealState(self);
+            return false;
+        }
         int[] buffs = buff.getAllBuffs(self);
         if (buffs == null || buffs.length == 0)
         {
