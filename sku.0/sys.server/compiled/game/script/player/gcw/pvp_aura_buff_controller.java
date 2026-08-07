@@ -13,6 +13,11 @@ public class pvp_aura_buff_controller extends script.base_script
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            factions.retirePostNgePvpRewardState(self);
+            return SCRIPT_CONTINUE;
+        }
         if (factions.isRebel(self))
         {
             setObjVar(self, "pvp_aura_buff.faction", 0);
@@ -27,7 +32,7 @@ public class pvp_aura_buff_controller extends script.base_script
             messageTo(self, "buffAlly", null, 3.0f, false);
             return SCRIPT_CONTINUE;
         }
-        else 
+        else
         {
             messageTo(self, "removeScript", null, 2.0f, false);
             buff.removeBuff(self, "pvp_aura_buff_self");
@@ -36,12 +41,17 @@ public class pvp_aura_buff_controller extends script.base_script
     }
     public int buffAlly(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            factions.retirePostNgePvpRewardState(self);
+            return SCRIPT_CONTINUE;
+        }
         obj_id[] players = null;
         if (isMob(self) && !isPlayer(self))
         {
             players = getCreaturesInRange(self, 20.0f);
         }
-        else 
+        else
         {
             players = trial.getValidPlayersInRadius(self, 20.0f);
         }
@@ -53,7 +63,7 @@ public class pvp_aura_buff_controller extends script.base_script
         {
             applyBuff = false;
         }
-        else 
+        else
         {
             faction = getIntObjVar(self, "pvp_aura_buff.faction");
         }
@@ -61,7 +71,7 @@ public class pvp_aura_buff_controller extends script.base_script
         {
             applyBuff = false;
         }
-        else 
+        else
         {
             for (obj_id player : players) {
                 if (!isPlayer(player) && !isMob(player) || isDead(player)) {
@@ -114,6 +124,11 @@ public class pvp_aura_buff_controller extends script.base_script
     }
     public int removeFactionObjVar(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            factions.retirePostNgePvpRewardState(self);
+            return SCRIPT_CONTINUE;
+        }
         removeObjVar(self, "pvp_aura_buff.faction");
         return SCRIPT_CONTINUE;
     }

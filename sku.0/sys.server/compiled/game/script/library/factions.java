@@ -2093,6 +2093,36 @@ public class factions extends script.base_script
         }
         return false;
     }
+    private static final String[] RETIRED_POST_NGE_PVP_REWARD_BUFFS =
+    {
+        "pvp_aura_buff_self",
+        "pvp_aura_buff_target",
+        "pvp_aura_buff_rebel_self",
+        "pvp_aura_buff_rebel_target",
+        "pvp_retaliation_ability",
+        "pvp_retaliation_rebel_ability",
+        "pvp_adrenaline_ability",
+        "pvp_adrenaline_rebel_ability",
+        "pvp_unstoppable_ability",
+        "pvp_unstoppable_rebel_ability",
+        "pvp_last_man_ability",
+        "pvp_last_man_rebel_ability"
+    };
+    public static boolean isRetiredPostNgePvpRewardBuff(String buffName)
+    {
+        if (buffName == null)
+        {
+            return false;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_PVP_REWARD_BUFFS)
+        {
+            if (buffName.equals(retiredBuff))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
     public static void removeAllPvpSkills(obj_id player) throws InterruptedException
     {
         skill.revokeSkill(player, "pvp_imperial_retaliation_ability");
@@ -2115,22 +2145,7 @@ public class factions extends script.base_script
             return;
         }
         removeAllPvpSkills(player);
-        String[] postNgePvpRewardBuffs =
-        {
-            "pvp_aura_buff_self",
-            "pvp_aura_buff_target",
-            "pvp_aura_buff_rebel_self",
-            "pvp_aura_buff_rebel_target",
-            "pvp_retaliation_ability",
-            "pvp_retaliation_rebel_ability",
-            "pvp_adrenaline_ability",
-            "pvp_adrenaline_rebel_ability",
-            "pvp_unstoppable_ability",
-            "pvp_unstoppable_rebel_ability",
-            "pvp_last_man_ability",
-            "pvp_last_man_rebel_ability"
-        };
-        for (String buffName : postNgePvpRewardBuffs)
+        for (String buffName : RETIRED_POST_NGE_PVP_REWARD_BUFFS)
         {
             if (buff.hasBuff(player, buffName))
             {

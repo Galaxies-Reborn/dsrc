@@ -203,6 +203,44 @@ public class combat_base extends script.base_script
         // Retain en_* for NPC/content compatibility, not player authority.
         return isPlayer(self) && actionName != null && actionName.startsWith("en_");
     }
+    private static final String[] RETIRED_POST_NGE_PVP_REWARD_PLAYER_ACTIONS =
+    {
+        "command_pvp_adrenaline_ability",
+        "command_pvp_adrenaline_rebel_ability",
+        "command_pvp_last_man_ability",
+        "command_pvp_last_man_rebel_ability",
+        "command_pvp_retaliation_ability",
+        "command_pvp_retaliation_rebel_ability",
+        "command_pvp_unstoppable_ability",
+        "command_pvp_unstoppable_rebel_ability",
+        "pvp_adrenaline_ability",
+        "pvp_adrenaline_rebel_ability",
+        "pvp_airstrike_ability",
+        "pvp_airstrike_rebel_ability",
+        "pvp_aura_buff_rebel_self",
+        "pvp_aura_buff_self",
+        "pvp_last_man_ability",
+        "pvp_last_man_rebel_ability",
+        "pvp_retaliation_ability",
+        "pvp_retaliation_rebel_ability",
+        "pvp_unstoppable_ability",
+        "pvp_unstoppable_rebel_ability"
+    };
+    public static boolean isRetiredPostNgePvpRewardPlayerAction(obj_id self, String actionName) throws InterruptedException
+    {
+        if (!isPlayer(self) || actionName == null)
+        {
+            return false;
+        }
+        for (String retiredAction : RETIRED_POST_NGE_PVP_REWARD_PLAYER_ACTIONS)
+        {
+            if (actionName.equals(retiredAction))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
     public static boolean isRetiredPostNgeMigrationPlayerAction(obj_id self, String actionName) throws InterruptedException
     {
         // The NGE veteran migration command applies primary-stat bonuses and
@@ -315,6 +353,11 @@ public class combat_base extends script.base_script
         }
         if (isRetiredPostNgeMigrationPlayerAction(self, actionName))
         {
+            return false;
+        }
+        if (isRetiredPostNgePvpRewardPlayerAction(self, actionName))
+        {
+            factions.retirePostNgePvpRewardState(self);
             return false;
         }
         if (isRetiredPostNgeSpyPlayerAction(self, actionName))
