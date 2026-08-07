@@ -896,6 +896,10 @@ public class combat extends script.base_script
             }
             actionCost = actionCost * (1 - (expertiseActionCostMod / 100));
         }
+        if (isPlayer(self))
+        {
+            buff.retirePostNgePlayerActionBurnState(self);
+        }
         if (utils.hasScriptVar(self, "buff.action_burn.value") && actionCost > 0)
         {
             int rightNow = getGameTime();
@@ -1057,6 +1061,10 @@ public class combat extends script.base_script
                 expertiseActionCostMod += getEnhancedSkillStatisticModifierUncapped(self, "expertise_action_single_" + actionName);
             }
             actionCost = actionCost * (1 - (expertiseActionCostMod / 100));
+        }
+        if (isPlayer(self))
+        {
+            buff.retirePostNgePlayerActionBurnState(self);
         }
         if (utils.hasScriptVar(self, "buff.action_burn.value") && actionCost > 0)
         {

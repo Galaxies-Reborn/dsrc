@@ -2296,11 +2296,21 @@ public class buff_handler extends script.base_script
     }
     public int actionBurnAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.retirePostNgePlayerActionBurnState(self);
+            return SCRIPT_CONTINUE;
+        }
         utils.setScriptVar(self, "buff.action_burn.value", value);
         return SCRIPT_CONTINUE;
     }
     public int actionBurnRemoveBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.clearPostNgePlayerActionBurnScriptVars(self);
+            return SCRIPT_CONTINUE;
+        }
         utils.removeScriptVar(self, "buff.action_burn.value");
         return SCRIPT_CONTINUE;
     }
