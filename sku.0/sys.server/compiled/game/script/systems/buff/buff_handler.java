@@ -49,10 +49,7 @@ public class buff_handler extends script.base_script
     }
     public boolean isRetiredNgeBuffSkillModifier(String modifierName) throws InterruptedException
     {
-        return isRetiredNgeExpertiseModifier(modifierName) ||
-            isRetiredNgePrimaryStatisticModifier(modifierName) ||
-            isRetiredNgeDotImmunityModifier(modifierName) ||
-            static_item.isRetiredNgeStaticItemSkillModifier(modifierName);
+        return static_item.isRetiredNgeBuffSkillModifier(modifierName);
     }
     public void retireNgeExpertiseModifier(obj_id self, String effectName) throws InterruptedException
     {

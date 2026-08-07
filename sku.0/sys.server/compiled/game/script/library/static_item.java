@@ -279,6 +279,12 @@ public class static_item extends script.base_script
         }
         return false;
     }
+    public static boolean isRetiredNgeBuffSkillModifier(String modifier) throws InterruptedException
+    {
+        return isRetiredNgeStaticItemSkillModifier(modifier) ||
+            (modifier != null &&
+                (modifier.equals("damage_immune") || modifier.startsWith("dot_resist_")));
+    }
     public static void removeRetiredNgePlayerSkillStatistics(obj_id player) throws InterruptedException
     {
         if (!isIdValid(player) || !exists(player) || !isPlayer(player))

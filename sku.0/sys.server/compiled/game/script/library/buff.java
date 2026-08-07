@@ -305,6 +305,41 @@ public class buff extends script.base_script
             detachScript(player, "player.skill.bh_shields");
         }
     }
+    public static boolean isRetiredPostNgePlayerModifierBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        if (!isPlayer(target) || data == null)
+        {
+            return false;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if (static_item.isRetiredNgeBuffSkillModifier(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void retirePostNgePlayerModifierBuffState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs == null || activeBuffs.length == 0)
+        {
+            return;
+        }
+        for (int activeBuff : activeBuffs)
+        {
+            buff_data data = combat_engine.getBuffData(activeBuff);
+            if (isRetiredPostNgePlayerModifierBuff(player, data))
+            {
+                removeBuff(player, activeBuff);
+            }
+        }
+    }
     public static void retirePostNgeBuffProgression(obj_id player) throws InterruptedException
     {
         if (!isPostNgeBuffProgressionRetired() || !isIdValid(player) || !exists(player))
@@ -319,6 +354,7 @@ public class buff extends script.base_script
         {
             removeBuff(player, "general_inspiration");
         }
+        retirePostNgePlayerModifierBuffState(player);
         retirePostNgeMeditationBuffs(player);
         retirePostNgeForceSensitiveStanceState(player);
         retirePostNgeGcwBannerBuffState(player);
@@ -434,6 +470,7 @@ public class buff extends script.base_script
                 isRetiredPostP14PlayerAvoidIncapHealBuff(bdata.buffName) ||
                 factions.isRetiredPostNgePvpRewardBuff(bdata.buffName) ||
                 proc.isRetiredPostNgePlayerProcBuff(target, bdata) ||
+                isRetiredPostNgePlayerModifierBuff(target, bdata) ||
                 isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName)))
         {
             return false;
