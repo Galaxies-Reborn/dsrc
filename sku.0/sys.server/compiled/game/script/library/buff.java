@@ -1302,6 +1302,57 @@ public class buff extends script.base_script
         }
         clearPostNgePlayerElementalVulnerabilityState(player);
     }
+    private static final String RETIRED_POST_NGE_PLAYER_FORCE_THROW_EFFECT = "forceThrow";
+    private static final String RETIRED_POST_NGE_PLAYER_FORCE_THROW_CONTROL_BUFF_PREFIX = "fs_force_throw_";
+    public static boolean isRetiredPostNgePlayerForceThrowEffect(String effectName)
+    {
+        return effectName != null && effectName.equals(RETIRED_POST_NGE_PLAYER_FORCE_THROW_EFFECT);
+    }
+    public static boolean isRetiredPostNgePlayerForceThrowBuffName(String buffName)
+    {
+        return buffName != null &&
+            (buffName.equals(RETIRED_POST_NGE_PLAYER_FORCE_THROW_EFFECT) ||
+                buffName.startsWith(RETIRED_POST_NGE_PLAYER_FORCE_THROW_CONTROL_BUFF_PREFIX));
+    }
+    public static boolean isRetiredPostNgePlayerForceThrowBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        if (!isPlayer(target) || data == null)
+        {
+            return false;
+        }
+        if (isRetiredPostNgePlayerForceThrowBuffName(data.buffName))
+        {
+            return true;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if (isRetiredPostNgePlayerForceThrowEffect(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void retirePostNgePlayerForceThrowState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs == null || activeBuffs.length == 0)
+        {
+            return;
+        }
+        for (int activeBuff : activeBuffs)
+        {
+            buff_data data = combat_engine.getBuffData(activeBuff);
+            if (isRetiredPostNgePlayerForceThrowBuff(player, data))
+            {
+                removeBuff(player, activeBuff);
+            }
+        }
+    }
     private static final String RETIRED_POST_NGE_PLAYER_MEDIC_DOOM_BUFF = "me_doom";
     private static final String RETIRED_POST_NGE_PLAYER_MEDIC_DOOM_MODIFIER = "me_doom_chance";
     public static boolean isRetiredPostNgePlayerMedicDoomBuff(obj_id target, buff_data data) throws InterruptedException
@@ -1400,6 +1451,7 @@ public class buff extends script.base_script
         retirePostNgePlayerAggroChannelState(player);
         retirePostNgePlayerCommandoSnareArmorState(player);
         retirePostNgePlayerElementalVulnerabilityState(player);
+        retirePostNgePlayerForceThrowState(player);
         retirePostNgePlayerMedicDoomState(player);
         retirePostNgePlayerModifierBuffState(player);
         retirePostNgeMeditationBuffs(player);
@@ -1535,6 +1587,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerAggroChannelBuff(target, bdata) ||
                 isRetiredPostNgePlayerCommandoSnareArmorBuff(target, bdata) ||
                 isRetiredPostNgePlayerElementalVulnerabilityBuff(target, bdata) ||
+                isRetiredPostNgePlayerForceThrowBuff(target, bdata) ||
                 isRetiredPostNgePlayerMedicDoomBuff(target, bdata) ||
                 isRetiredPostNgePlayerModifierBuff(target, bdata) ||
                 isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName)))

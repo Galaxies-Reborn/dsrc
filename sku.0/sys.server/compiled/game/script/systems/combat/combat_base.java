@@ -156,9 +156,13 @@ public class combat_base extends script.base_script
     {
         // Publish 14.1 Jedi and Village progression use their authored
         // force*, saber*, heal*, mindBlast*, and jediMindTrick commands.
-        // The fs_* family belongs only to the retained NGE class/expertise
-        // rows, so keep it available to NPC/content scripts but not players.
-        return isPlayer(self) && actionName != null && actionName.startsWith("fs_");
+        // The fs_* family and the unnumbered forceThrow action belong only to
+        // the retained NGE class/expertise rows. Publish 14.1 instead grants
+        // the distinct forceThrow1 and forceThrow2 commands, so preserve those
+        // classic actions and NPC/content compatibility while denying the NGE
+        // action to players.
+        return isPlayer(self) && actionName != null &&
+            (actionName.startsWith("fs_") || actionName.equals("forceThrow"));
     }
     public static boolean isRetiredPostNgeSmugglerPlayerAction(obj_id self, String actionName) throws InterruptedException
     {

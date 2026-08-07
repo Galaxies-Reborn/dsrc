@@ -337,6 +337,11 @@ public class buff_handler extends script.base_script
     }
     public int movementAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) && buff.isRetiredPostNgePlayerForceThrowBuffName(buffName))
+        {
+            buff.retirePostNgePlayerForceThrowState(self);
+            return SCRIPT_OVERRIDE;
+        }
         effectName = effectName.substring(0, (effectName.lastIndexOf("_")));
         if (value == 0)
         {
@@ -3668,6 +3673,11 @@ public class buff_handler extends script.base_script
     }
     public int forceThrowAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) && buff.isRetiredPostNgePlayerForceThrowEffect(effectName))
+        {
+            buff.retirePostNgePlayerForceThrowState(self);
+            return SCRIPT_OVERRIDE;
+        }
         int buffCrc = getStringCrc(subtype.toLowerCase());
         obj_id owner = utils.getObjIdScriptVar(self, "buffOwner." + buffCrc);
         if (!buff.isInStance(owner))
