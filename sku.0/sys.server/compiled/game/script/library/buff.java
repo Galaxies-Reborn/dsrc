@@ -1144,6 +1144,61 @@ public class buff extends script.base_script
         }
         clearPostNgePlayerSmugglerTrickModifiers(player);
     }
+    private static final String[] RETIRED_POST_NGE_PLAYER_AGGRO_CHANNEL_EFFECTS =
+    {
+        "aggro_channel_self",
+        "aggro_channel_target"
+    };
+    public static boolean isRetiredPostNgePlayerAggroChannelEffect(String effectName)
+    {
+        if (effectName == null)
+        {
+            return false;
+        }
+        for (String retiredEffect : RETIRED_POST_NGE_PLAYER_AGGRO_CHANNEL_EFFECTS)
+        {
+            if (effectName.equals(retiredEffect))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isRetiredPostNgePlayerAggroChannelBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        if (!isPlayer(target) || data == null)
+        {
+            return false;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if (isRetiredPostNgePlayerAggroChannelEffect(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void retirePostNgePlayerAggroChannelState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs != null && activeBuffs.length > 0)
+        {
+            for (int activeBuff : activeBuffs)
+            {
+                buff_data data = combat_engine.getBuffData(activeBuff);
+                if (isRetiredPostNgePlayerAggroChannelBuff(player, data))
+                {
+                    removeBuff(player, activeBuff);
+                }
+            }
+        }
+        utils.removeScriptVar(player, AGGRO_TRANSFER_TO);
+    }
     public static boolean isRetiredPostNgePlayerModifierBuff(obj_id target, buff_data data) throws InterruptedException
     {
         if (!isPlayer(target) || data == null)
@@ -1208,6 +1263,7 @@ public class buff extends script.base_script
         retirePostNgePlayerSaberInterceptState(player);
         retirePostNgePlayerPistolWhipControlState(player);
         retirePostNgePlayerSmugglerTrickState(player);
+        retirePostNgePlayerAggroChannelState(player);
         retirePostNgePlayerModifierBuffState(player);
         retirePostNgeMeditationBuffs(player);
         retirePostNgeForceSensitiveStanceState(player);
@@ -1339,6 +1395,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerSaberInterceptBuff(target, bdata) ||
                 isRetiredPostNgePlayerPistolWhipControlBuff(target, bdata) ||
                 isRetiredPostNgePlayerSmugglerTrickBuff(target, bdata) ||
+                isRetiredPostNgePlayerAggroChannelBuff(target, bdata) ||
                 isRetiredPostNgePlayerModifierBuff(target, bdata) ||
                 isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName)))
         {

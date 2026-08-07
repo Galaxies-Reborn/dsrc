@@ -2145,7 +2145,13 @@ public class combat extends script.base_script
                     {
                         totalHateDamage -= totalHateDamage * utils.getFloatScriptVar(attacker, "ai.combat.aggroReduction");
                     }
-                    if (buff.hasBuff(attacker, BUFF_HATE_XFER))
+                    if (isPlayer(attacker) &&
+                        (buff.hasBuff(attacker, BUFF_HATE_XFER) ||
+                            utils.hasScriptVar(attacker, buff.AGGRO_TRANSFER_TO)))
+                    {
+                        buff.retirePostNgePlayerAggroChannelState(attacker);
+                    }
+                    else if (buff.hasBuff(attacker, BUFF_HATE_XFER))
                     {
                         int hateTransferBonus = getEnhancedSkillStatisticModifier(attacker, "expertise_aggro_channel");
                         float hateTransfered = totalHateDamage * (hateTransferBonus / 100.0f);

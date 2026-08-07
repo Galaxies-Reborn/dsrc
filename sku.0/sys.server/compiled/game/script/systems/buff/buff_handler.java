@@ -3674,6 +3674,11 @@ public class buff_handler extends script.base_script
     }
     public int aggroChannelAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) && buff.isRetiredPostNgePlayerAggroChannelEffect(effectName))
+        {
+            buff.retirePostNgePlayerAggroChannelState(self);
+            return SCRIPT_OVERRIDE;
+        }
         if (!exists(caster) || !isIdValid(caster))
         {
             buff.removeBuff(self, buffName);
