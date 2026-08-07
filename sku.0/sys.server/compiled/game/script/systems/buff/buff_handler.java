@@ -580,6 +580,10 @@ public class buff_handler extends script.base_script
     }
     public int saberInterceptAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) && buff.isRetiredPostNgePlayerSaberInterceptEffect(effectName))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         utils.setScriptVar(self, combat.DAMAGE_REDIRECT, caster);
         return SCRIPT_CONTINUE;
     }
