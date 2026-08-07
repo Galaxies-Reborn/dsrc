@@ -1253,6 +1253,11 @@ public class buff_handler extends script.base_script
     }
     public int commandoFlashBangAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.retirePostNgePlayerCommandoSpecializedState(self);
+            return SCRIPT_OVERRIDE;
+        }
         effectName = effectName.substring(0, (effectName.lastIndexOf("_")));
         obj_id owner = utils.getObjIdScriptVar(self, "buffOwner." + getStringCrc(effectName.toLowerCase()));
         if (!isIdValid(owner))
@@ -1273,11 +1278,21 @@ public class buff_handler extends script.base_script
     }
     public int commandoFlashBangRemoveBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.clearPostNgePlayerCommandoSpecializedModifiers(self);
+            return SCRIPT_OVERRIDE;
+        }
         removeAttribOrSkillModModifier(self, "commandoFlashBang");
         return SCRIPT_CONTINUE;
     }
     public int commandoMuscleSpasmAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.retirePostNgePlayerCommandoSpecializedState(self);
+            return SCRIPT_OVERRIDE;
+        }
         effectName = effectName.substring(0, (effectName.lastIndexOf("_")));
         obj_id owner = utils.getObjIdScriptVar(self, "buffOwner." + getStringCrc(effectName.toLowerCase()));
         if (!isIdValid(owner))
@@ -1298,11 +1313,21 @@ public class buff_handler extends script.base_script
     }
     public int commandoMuscleSpasmRemoveBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.clearPostNgePlayerCommandoSpecializedModifiers(self);
+            return SCRIPT_OVERRIDE;
+        }
         removeAttribOrSkillModModifier(self, "commandoMuscleSpasm");
         return SCRIPT_CONTINUE;
     }
     public int commandoRiddleArmorAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.retirePostNgePlayerCommandoSpecializedState(self);
+            return SCRIPT_OVERRIDE;
+        }
         String tempEffectName = effectName.substring(0, (effectName.lastIndexOf("_")));
         obj_id owner = utils.getObjIdScriptVar(self, "buffOwner." + getStringCrc(tempEffectName.toLowerCase()));
         if (!isIdValid(owner))
@@ -1316,6 +1341,11 @@ public class buff_handler extends script.base_script
     }
     public int commandoRiddleArmorRemoveBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.clearPostNgePlayerCommandoSpecializedModifiers(self);
+            return SCRIPT_OVERRIDE;
+        }
         removeAttribOrSkillModModifier(self, effectName);
         messageTo(self, "recalcArmor", null, 1.0f, false);
         return SCRIPT_CONTINUE;
@@ -1342,6 +1372,11 @@ public class buff_handler extends script.base_script
     }
     public int onTargetAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) && buff.isRetiredPostNgePlayerCommandoSpecializedEffect(effectName))
+        {
+            buff.retirePostNgePlayerCommandoSpecializedState(self);
+            return SCRIPT_OVERRIDE;
+        }
         if (subtype.equals("expertise_on_target"))
         {
             int posSecuredImproved = (int)getSkillStatisticModifier(self, "expertise_action_line_co_imp_pos_sec");
@@ -1395,6 +1430,12 @@ public class buff_handler extends script.base_script
     }
     public int onTargetRemoveBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) && buff.isRetiredPostNgePlayerCommandoSpecializedEffect(effectName))
+        {
+            buff.clearPostNgePlayerCommandoSpecializedBuffs(self);
+            buff.clearPostNgePlayerCommandoSpecializedModifiers(self);
+            return SCRIPT_OVERRIDE;
+        }
         if (hasSkillModModifier(self, effectName))
         {
             removeAttribOrSkillModModifier(self, effectName);

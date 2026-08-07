@@ -1252,6 +1252,161 @@ public class buff extends script.base_script
         }
         clearPostNgePlayerCommandoSnareArmorModifier(player);
     }
+    private static final String[] RETIRED_POST_NGE_PLAYER_COMMANDO_SPECIALIZED_EFFECTS =
+    {
+        "expertise_flash_bang",
+        "expertise_muscle_spasm",
+        "expertise_riddle_armor",
+        "expertise_on_target"
+    };
+    private static final String[] RETIRED_POST_NGE_PLAYER_COMMANDO_SPECIALIZED_BUFFS =
+    {
+        "co_flash_bang",
+        "co_muscle_spasm",
+        "co_riddle_armor",
+        "co_armor_cracker",
+        "grenadier_kinetic",
+        "co_position_secured",
+        "co_pos_sec_action_1",
+        "co_pos_sec_action_2",
+        "co_pos_sec_action_3",
+        "co_pos_sec_proc_1",
+        "co_pos_sec_proc_2",
+        "co_pos_sec_critical_1",
+        "co_pos_sec_critical_2",
+        "co_pos_sec_critical_3",
+        "co_pos_sec_critical_4",
+        "co_base_of_operations"
+    };
+    private static final String[] RETIRED_POST_NGE_PLAYER_COMMANDO_SPECIALIZED_MODIFIERS =
+    {
+        "commandoFlashBang",
+        "commandoMuscleSpasm",
+        "precision_modified",
+        "strength_modified",
+        "glancing_blow_vulnerable",
+        "expertise_riddle_armor",
+        "expertise_innate_protection_all",
+        "expertise_critical_hit_reduction",
+        "expertise_critical_niche_all",
+        "expertise_co_burst_fire_proc",
+        "expertise_devastation_bonus",
+        "expertise_action_all",
+        "expertise_co_flash_bang",
+        "expertise_co_muscle_spasm",
+        "expertise_action_line_co_imp_pos_sec",
+        "expertise_co_pos_secured_line_armor",
+        "expertise_co_pos_secured_line_boo_critical",
+        "expertise_co_pos_secured_line_burst_fire_devastation_bonus",
+        "expertise_co_pos_secured_line_burst_fire_proc",
+        "expertise_co_pos_secured_line_critical",
+        "expertise_co_pos_secured_line_protection"
+    };
+    public static boolean isRetiredPostNgePlayerCommandoSpecializedEffect(String effectName)
+    {
+        if (effectName == null)
+        {
+            return false;
+        }
+        for (String retiredEffect : RETIRED_POST_NGE_PLAYER_COMMANDO_SPECIALIZED_EFFECTS)
+        {
+            if (effectName.equals(retiredEffect) || effectName.startsWith(retiredEffect + "_"))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isRetiredPostNgePlayerCommandoSpecializedBuffName(String buffName)
+    {
+        if (buffName == null)
+        {
+            return false;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_PLAYER_COMMANDO_SPECIALIZED_BUFFS)
+        {
+            if (buffName.equals(retiredBuff))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isRetiredPostNgePlayerCommandoSpecializedBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        if (!isPlayer(target) || data == null)
+        {
+            return false;
+        }
+        if (isRetiredPostNgePlayerCommandoSpecializedBuffName(data.buffName))
+        {
+            return true;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if (isRetiredPostNgePlayerCommandoSpecializedEffect(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void clearPostNgePlayerCommandoSpecializedModifiers(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        for (String retiredModifier : RETIRED_POST_NGE_PLAYER_COMMANDO_SPECIALIZED_MODIFIERS)
+        {
+            if (hasSkillModModifier(player, retiredModifier))
+            {
+                removeAttribOrSkillModModifier(player, retiredModifier);
+            }
+            for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+            {
+                String indexedModifier = retiredModifier + "_" + effect;
+                if (hasSkillModModifier(player, indexedModifier))
+                {
+                    removeAttribOrSkillModModifier(player, indexedModifier);
+                }
+            }
+            int currentValue = getSkillStatMod(player, retiredModifier);
+            if (currentValue != 0)
+            {
+                applySkillStatisticModifier(player, retiredModifier, -currentValue);
+            }
+        }
+        messageTo(player, "recalcArmor", null, 0.25f, false);
+        combat.cacheCombatData(player);
+    }
+    public static void clearPostNgePlayerCommandoSpecializedBuffs(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_PLAYER_COMMANDO_SPECIALIZED_BUFFS)
+        {
+            if (!retiredBuff.equals("co_position_secured") && hasBuff(player, retiredBuff))
+            {
+                removeBuff(player, retiredBuff);
+            }
+        }
+    }
+    public static void retirePostNgePlayerCommandoSpecializedState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        if (hasBuff(player, "co_position_secured"))
+        {
+            removeBuff(player, "co_position_secured");
+        }
+        clearPostNgePlayerCommandoSpecializedBuffs(player);
+        clearPostNgePlayerCommandoSpecializedModifiers(player);
+    }
     private static final String RETIRED_POST_NGE_PLAYER_ELEMENTAL_VULNERABILITY_EFFECT_PREFIX = "dt_vulnerability_";
     private static final String RETIRED_POST_NGE_PLAYER_ELEMENTAL_VULNERABILITY_STATE = "elemental_vulnerability";
     public static boolean isRetiredPostNgePlayerElementalVulnerabilityEffect(String effectName)
@@ -1541,6 +1696,7 @@ public class buff extends script.base_script
         retirePostNgePlayerSmugglerTrickState(player);
         retirePostNgePlayerAggroChannelState(player);
         retirePostNgePlayerCommandoSnareArmorState(player);
+        retirePostNgePlayerCommandoSpecializedState(player);
         retirePostNgePlayerElementalVulnerabilityState(player);
         retirePostNgePlayerForceThrowState(player);
         retirePostNgePlayerMedicDoomState(player);
@@ -1678,6 +1834,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerSmugglerTrickBuff(target, bdata) ||
                 isRetiredPostNgePlayerAggroChannelBuff(target, bdata) ||
                 isRetiredPostNgePlayerCommandoSnareArmorBuff(target, bdata) ||
+                isRetiredPostNgePlayerCommandoSpecializedBuff(target, bdata) ||
                 isRetiredPostNgePlayerElementalVulnerabilityBuff(target, bdata) ||
                 isRetiredPostNgePlayerForceThrowBuff(target, bdata) ||
                 isRetiredPostNgePlayerMedicDoomBuff(target, bdata) ||
