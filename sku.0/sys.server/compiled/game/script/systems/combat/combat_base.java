@@ -4541,7 +4541,11 @@ public class combat_base extends script.base_script
         String actionName = actionData.actionName;
         if (!precuAuthoritativeAttack)
         {
-        if (utils.hasScriptVar(defender, "elemental_vulnerability.type_heat"))
+        if (isPlayer(defender) && utils.hasScriptVarTree(defender, "elemental_vulnerability"))
+        {
+            buff.retirePostNgePlayerElementalVulnerabilityState(defender);
+        }
+        if (!isPlayer(defender) && utils.hasScriptVar(defender, "elemental_vulnerability.type_heat"))
         {
             float value = utils.getFloatScriptVar(defender, "elemental_vulnerability.type_heat.value");
             boolean exclusive = utils.getBooleanScriptVar(defender, "elemental_vulnerability.type_heat.exclusive");
@@ -4559,7 +4563,7 @@ public class combat_base extends script.base_script
                 weaponData.elementalValue *= 0.0f;
             }
         }
-        if (utils.hasScriptVar(defender, "elemental_vulnerability.type_electrical"))
+        if (!isPlayer(defender) && utils.hasScriptVar(defender, "elemental_vulnerability.type_electrical"))
         {
             float value = utils.getFloatScriptVar(defender, "elemental_vulnerability.type_electrical.value");
             boolean exclusive = utils.getBooleanScriptVar(defender, "elemental_vulnerability.type_electrical.exclusive");
@@ -4577,7 +4581,7 @@ public class combat_base extends script.base_script
                 weaponData.elementalValue *= 0.0f;
             }
         }
-        if (utils.hasScriptVar(defender, "elemental_vulnerability.type_cold"))
+        if (!isPlayer(defender) && utils.hasScriptVar(defender, "elemental_vulnerability.type_cold"))
         {
             float value = utils.getFloatScriptVar(defender, "elemental_vulnerability.type_cold.value");
             boolean exclusive = utils.getBooleanScriptVar(defender, "elemental_vulnerability.type_cold.exclusive");
@@ -4595,7 +4599,7 @@ public class combat_base extends script.base_script
                 weaponData.elementalValue *= 0.0f;
             }
         }
-        if (utils.hasScriptVar(defender, "elemental_vulnerability.type_acid"))
+        if (!isPlayer(defender) && utils.hasScriptVar(defender, "elemental_vulnerability.type_acid"))
         {
             float value = utils.getFloatScriptVar(defender, "elemental_vulnerability.type_acid.value");
             boolean exclusive = utils.getBooleanScriptVar(defender, "elemental_vulnerability.type_acid.exclusive");

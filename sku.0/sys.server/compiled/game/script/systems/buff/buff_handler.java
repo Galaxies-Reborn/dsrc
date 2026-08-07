@@ -2547,6 +2547,11 @@ public class buff_handler extends script.base_script
     }
     public int vulnerabilityAddBuffHandler(obj_id self, String effectName, String subType, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.retirePostNgePlayerElementalVulnerabilityState(self);
+            return SCRIPT_OVERRIDE;
+        }
         String type = "heat";
         boolean exclusive = false;
         if (subType.contains("exclusive"))
@@ -2576,6 +2581,11 @@ public class buff_handler extends script.base_script
     }
     public int vulnerabilityRemoveBuffHandler(obj_id self, String effectName, String subType, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.clearPostNgePlayerElementalVulnerabilityState(self);
+            return SCRIPT_OVERRIDE;
+        }
         String type = "heat";
         if (subType.endsWith("acid"))
         {
