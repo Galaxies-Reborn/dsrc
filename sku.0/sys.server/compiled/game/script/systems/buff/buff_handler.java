@@ -3775,6 +3775,11 @@ public class buff_handler extends script.base_script
     }
     public int expertiseDamageDecreaseAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.retirePostNgePlayerDamageReductionState(self);
+            return SCRIPT_OVERRIDE;
+        }
         int damageDecrease = (int)getSkillStatisticModifier(self, "expertise_damage_decrease_percentage");
         if (damageDecrease > 0)
         {
@@ -3784,6 +3789,11 @@ public class buff_handler extends script.base_script
     }
     public int expertiseDamageDecreaseRemoveBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.clearPostNgePlayerDamageReductionState(self);
+            return SCRIPT_OVERRIDE;
+        }
         if (effectName.lastIndexOf("_") > 0)
         {
             effectName = effectName.substring(0, (effectName.lastIndexOf("_")));

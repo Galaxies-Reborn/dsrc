@@ -4461,6 +4461,14 @@ public class combat_base extends script.base_script
     public int expertiseDamageModify(obj_id attacker, obj_id defender, hit_result hitData, combat_data actionData) throws InterruptedException
     {
         buff.clearPostNgePlayerCriticalOverrideScriptVars(attacker);
+        if (isPlayer(attacker))
+        {
+            buff.clearPostNgePlayerDamageReductionState(attacker);
+        }
+        if (isPlayer(defender) && defender != attacker)
+        {
+            buff.clearPostNgePlayerDamageReductionState(defender);
+        }
         int newDamage = hitData.damage;
         int damageDecrease = getSkillStatisticModifier(attacker, "expertise_damage_decrease_chance");
         if (damageDecrease > 0)

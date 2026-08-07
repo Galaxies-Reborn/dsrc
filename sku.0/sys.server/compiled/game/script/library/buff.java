@@ -1384,6 +1384,97 @@ public class buff extends script.base_script
         }
         clearPostNgePlayerMedicDoomState(player);
     }
+    private static final String[] RETIRED_POST_NGE_PLAYER_DAMAGE_REDUCTION_MODIFIERS =
+    {
+        "expertise_damage_decrease_chance",
+        "expertise_sm_rank_damage_bonus",
+        "expertise_damage_reduce_anticipate_aggression",
+        "damage_decrease_percentage",
+        "area_damage_decrease_percentage",
+        "area_damage_resist_full_percentage",
+        "expertise_damage_decrease_percentage"
+    };
+    public static boolean isRetiredPostNgePlayerDamageReductionModifier(String modifierName)
+    {
+        if (modifierName == null)
+        {
+            return false;
+        }
+        for (String retiredModifier : RETIRED_POST_NGE_PLAYER_DAMAGE_REDUCTION_MODIFIERS)
+        {
+            if (modifierName.equals(retiredModifier))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isRetiredPostNgePlayerDamageReductionBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        if (!isPlayer(target) || data == null)
+        {
+            return false;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if (isRetiredPostNgePlayerDamageReductionModifier(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void clearPostNgePlayerDamageReductionState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        for (String retiredModifier : RETIRED_POST_NGE_PLAYER_DAMAGE_REDUCTION_MODIFIERS)
+        {
+            if (hasSkillModModifier(player, retiredModifier))
+            {
+                removeAttribOrSkillModModifier(player, retiredModifier);
+            }
+            for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+            {
+                String indexedModifier = retiredModifier + "_" + effect;
+                if (hasSkillModModifier(player, indexedModifier))
+                {
+                    removeAttribOrSkillModModifier(player, indexedModifier);
+                }
+            }
+            int currentValue = getSkillStatMod(player, retiredModifier);
+            if (currentValue != 0)
+            {
+                applySkillStatisticModifier(player, retiredModifier, -currentValue);
+            }
+        }
+        if (hasSkillModModifier(player, "junkDealerDamageDecrease"))
+        {
+            removeAttribOrSkillModModifier(player, "junkDealerDamageDecrease");
+        }
+    }
+    public static void retirePostNgePlayerDamageReductionState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs != null && activeBuffs.length > 0)
+        {
+            for (int activeBuff : activeBuffs)
+            {
+                buff_data data = combat_engine.getBuffData(activeBuff);
+                if (isRetiredPostNgePlayerDamageReductionBuff(player, data))
+                {
+                    removeBuff(player, activeBuff);
+                }
+            }
+        }
+        clearPostNgePlayerDamageReductionState(player);
+    }
     public static boolean isRetiredPostNgePlayerModifierBuff(obj_id target, buff_data data) throws InterruptedException
     {
         if (!isPlayer(target) || data == null)
@@ -1453,6 +1544,7 @@ public class buff extends script.base_script
         retirePostNgePlayerElementalVulnerabilityState(player);
         retirePostNgePlayerForceThrowState(player);
         retirePostNgePlayerMedicDoomState(player);
+        retirePostNgePlayerDamageReductionState(player);
         retirePostNgePlayerModifierBuffState(player);
         retirePostNgeMeditationBuffs(player);
         retirePostNgeForceSensitiveStanceState(player);
@@ -1589,6 +1681,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerElementalVulnerabilityBuff(target, bdata) ||
                 isRetiredPostNgePlayerForceThrowBuff(target, bdata) ||
                 isRetiredPostNgePlayerMedicDoomBuff(target, bdata) ||
+                isRetiredPostNgePlayerDamageReductionBuff(target, bdata) ||
                 isRetiredPostNgePlayerModifierBuff(target, bdata) ||
                 isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName)))
         {
