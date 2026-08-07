@@ -693,6 +693,81 @@ public class buff extends script.base_script
         }
         clearPostNgePlayerCriticalOverrideScriptVars(player);
     }
+    private static final String[] RETIRED_POST_NGE_PLAYER_LUCK_HIT_OVERRIDE_EFFECTS =
+    {
+        "sm_impossible_odds",
+        "sm_skullduggery"
+    };
+    public static boolean isRetiredPostNgePlayerLuckHitOverrideEffect(String effectName)
+    {
+        if (effectName == null)
+        {
+            return false;
+        }
+        for (String retiredEffect : RETIRED_POST_NGE_PLAYER_LUCK_HIT_OVERRIDE_EFFECTS)
+        {
+            if (effectName.equals(retiredEffect))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isRetiredPostNgePlayerLuckHitOverrideBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        if (!isPlayer(target) || data == null)
+        {
+            return false;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if (isRetiredPostNgePlayerLuckHitOverrideEffect(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void clearPostNgePlayerLuckHitOverrideModifiers(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        String[] retiredModifiers =
+        {
+            "hitByLuck",
+            "increaseHitByLuck",
+            "missByLuck"
+        };
+        for (String retiredModifier : retiredModifiers)
+        {
+            if (hasSkillModModifier(player, retiredModifier))
+            {
+                removeAttribOrSkillModModifier(player, retiredModifier);
+            }
+        }
+    }
+    public static void retirePostNgePlayerLuckHitOverrideState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs != null && activeBuffs.length > 0)
+        {
+            for (int activeBuff : activeBuffs)
+            {
+                buff_data data = combat_engine.getBuffData(activeBuff);
+                if (isRetiredPostNgePlayerLuckHitOverrideBuff(player, data))
+                {
+                    removeBuff(player, activeBuff);
+                }
+            }
+        }
+        clearPostNgePlayerLuckHitOverrideModifiers(player);
+    }
     public static boolean isRetiredPostNgePlayerModifierBuff(obj_id target, buff_data data) throws InterruptedException
     {
         if (!isPlayer(target) || data == null)
@@ -749,6 +824,7 @@ public class buff extends script.base_script
         retirePostNgePlayerDamageDealtOverrideState(player);
         retirePostNgePlayerWeaponSpeedOverrideState(player);
         retirePostNgePlayerCriticalOverrideState(player);
+        retirePostNgePlayerLuckHitOverrideState(player);
         retirePostNgePlayerModifierBuffState(player);
         retirePostNgeMeditationBuffs(player);
         retirePostNgeForceSensitiveStanceState(player);
@@ -872,6 +948,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerDamageDealtOverrideBuff(target, bdata) ||
                 isRetiredPostNgePlayerWeaponSpeedOverrideBuff(target, bdata) ||
                 isRetiredPostNgePlayerCriticalOverrideBuff(target, bdata) ||
+                isRetiredPostNgePlayerLuckHitOverrideBuff(target, bdata) ||
                 isRetiredPostNgePlayerModifierBuff(target, bdata) ||
                 isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName)))
         {

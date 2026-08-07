@@ -922,6 +922,11 @@ public class buff_handler extends script.base_script
     }
     public int missByLuckAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.retirePostNgePlayerLuckHitOverrideState(self);
+            return SCRIPT_CONTINUE;
+        }
         int luckPercentage = getSkillStatisticModifier(caster, "expertise_miss_by_luck");
         float missIncrease = luckPercentage + 4.0f;
         int luckMod = getEnhancedSkillStatisticModifierUncapped(caster, "luck");
@@ -932,11 +937,21 @@ public class buff_handler extends script.base_script
     }
     public int missByLuckRemoveBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.clearPostNgePlayerLuckHitOverrideModifiers(self);
+            return SCRIPT_CONTINUE;
+        }
         removeAttribOrSkillModModifier(self, "missByLuck");
         return SCRIPT_CONTINUE;
     }
     public int hitByLuckAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.retirePostNgePlayerLuckHitOverrideState(self);
+            return SCRIPT_CONTINUE;
+        }
         int luckPercentage = getSkillStatisticModifier(caster, "expertise_hit_by_luck");
         float hitIncrease = luckPercentage + 4.0f;
         int luckMod = getEnhancedSkillStatisticModifierUncapped(caster, "luck");
@@ -950,6 +965,11 @@ public class buff_handler extends script.base_script
     }
     public int hitByLuckRemoveBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.clearPostNgePlayerLuckHitOverrideModifiers(self);
+            return SCRIPT_CONTINUE;
+        }
         removeAttribOrSkillModModifier(self, "hitByLuck");
         removeAttribOrSkillModModifier(self, "increaseHitByLuck");
         return SCRIPT_CONTINUE;
