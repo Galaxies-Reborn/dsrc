@@ -1294,11 +1294,21 @@ public class buff_handler extends script.base_script
     }
     public int radarInvisAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            setVisibleOnMapAndRadar(self, true);
+            return SCRIPT_OVERRIDE;
+        }
         setVisibleOnMapAndRadar(self, false);
         return SCRIPT_CONTINUE;
     }
     public int radarInvisRemoveBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            setVisibleOnMapAndRadar(self, true);
+            return SCRIPT_CONTINUE;
+        }
         setVisibleOnMapAndRadar(self, true);
         return SCRIPT_CONTINUE;
     }

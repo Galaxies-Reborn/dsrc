@@ -904,6 +904,51 @@ public class buff extends script.base_script
         }
         clearPostNgePlayerChannelHealState(player);
     }
+    private static final String RETIRED_POST_NGE_PLAYER_RADAR_INVISIBILITY_EFFECT = "radar_invis";
+    public static boolean isRetiredPostNgePlayerRadarInvisibilityEffect(String effectName)
+    {
+        return effectName != null && effectName.equals(RETIRED_POST_NGE_PLAYER_RADAR_INVISIBILITY_EFFECT);
+    }
+    public static boolean isRetiredPostNgePlayerRadarInvisibilityBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        if (!isPlayer(target) || data == null)
+        {
+            return false;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if (isRetiredPostNgePlayerRadarInvisibilityEffect(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void retirePostNgePlayerRadarInvisibilityState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        boolean removedOwnedRadarInvisibility = false;
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs != null && activeBuffs.length > 0)
+        {
+            for (int activeBuff : activeBuffs)
+            {
+                buff_data data = combat_engine.getBuffData(activeBuff);
+                if (isRetiredPostNgePlayerRadarInvisibilityBuff(player, data))
+                {
+                    removeBuff(player, activeBuff);
+                    removedOwnedRadarInvisibility = true;
+                }
+            }
+        }
+        if (removedOwnedRadarInvisibility)
+        {
+            setVisibleOnMapAndRadar(player, true);
+        }
+    }
     public static boolean isRetiredPostNgePlayerModifierBuff(obj_id target, buff_data data) throws InterruptedException
     {
         if (!isPlayer(target) || data == null)
@@ -963,6 +1008,7 @@ public class buff extends script.base_script
         retirePostNgePlayerLuckHitOverrideState(player);
         retirePostNgePlayerForsakeFearChannelState(player);
         retirePostNgePlayerChannelHealState(player);
+        retirePostNgePlayerRadarInvisibilityState(player);
         retirePostNgePlayerModifierBuffState(player);
         retirePostNgeMeditationBuffs(player);
         retirePostNgeForceSensitiveStanceState(player);
@@ -1089,6 +1135,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerLuckHitOverrideBuff(target, bdata) ||
                 isRetiredPostNgePlayerForsakeFearChannelBuff(target, bdata) ||
                 isRetiredPostNgePlayerChannelHealBuff(target, bdata) ||
+                isRetiredPostNgePlayerRadarInvisibilityBuff(target, bdata) ||
                 isRetiredPostNgePlayerModifierBuff(target, bdata) ||
                 isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName)))
         {
