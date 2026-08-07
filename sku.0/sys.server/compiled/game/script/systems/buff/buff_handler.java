@@ -2529,6 +2529,11 @@ public class buff_handler extends script.base_script
     }
     public int damageDealtModAddBuffHandler(obj_id self, String effectName, String subType, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.restorePostNgePlayerDamageDealtOverride(self);
+            return SCRIPT_CONTINUE;
+        }
         utils.setScriptVar(self, "damageDealtMod.value", value);
         utils.setScriptVar(self, "damageDealtMod.scale", getScale(self));
         float enragedScale = (float)(getScale(self) * 1.3);
@@ -2537,6 +2542,11 @@ public class buff_handler extends script.base_script
     }
     public int damageDealtModRemoveBuffHandler(obj_id self, String effectName, String subType, float druation, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.restorePostNgePlayerDamageDealtOverride(self);
+            return SCRIPT_CONTINUE;
+        }
         float scale = utils.getFloatScriptVar(self, "damageDealtMod.scale");
         if (scale > 0)
         {

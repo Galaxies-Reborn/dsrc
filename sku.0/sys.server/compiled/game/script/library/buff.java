@@ -372,6 +372,62 @@ public class buff extends script.base_script
             }
         }
     }
+    private static final String RETIRED_POST_NGE_PLAYER_DAMAGE_DEALT_OVERRIDE_EFFECT = "damage_dealt_mod";
+    public static boolean isRetiredPostNgePlayerDamageDealtOverrideEffect(String effectName)
+    {
+        return effectName != null && effectName.equals(RETIRED_POST_NGE_PLAYER_DAMAGE_DEALT_OVERRIDE_EFFECT);
+    }
+    public static boolean isRetiredPostNgePlayerDamageDealtOverrideBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        if (!isPlayer(target) || data == null)
+        {
+            return false;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if (isRetiredPostNgePlayerDamageDealtOverrideEffect(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void restorePostNgePlayerDamageDealtOverride(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player) ||
+            (!utils.hasScriptVar(player, "damageDealtMod.value") &&
+                !utils.hasScriptVar(player, "damageDealtMod.scale")))
+        {
+            return;
+        }
+        boolean hasRecordedScale = utils.hasScriptVar(player, "damageDealtMod.scale");
+        float recordedScale = utils.getFloatScriptVar(player, "damageDealtMod.scale");
+        utils.removeScriptVarTree(player, "damageDealtMod");
+        if (hasRecordedScale && recordedScale > 0.0f)
+        {
+            setScale(player, recordedScale);
+        }
+    }
+    public static void retirePostNgePlayerDamageDealtOverrideState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs != null && activeBuffs.length > 0)
+        {
+            for (int activeBuff : activeBuffs)
+            {
+                buff_data data = combat_engine.getBuffData(activeBuff);
+                if (isRetiredPostNgePlayerDamageDealtOverrideBuff(player, data))
+                {
+                    removeBuff(player, activeBuff);
+                }
+            }
+        }
+        restorePostNgePlayerDamageDealtOverride(player);
+    }
     private static final String RETIRED_POST_NGE_PLAYER_WEAPON_SPEED_OVERRIDE_EFFECT = "weapon_speed_mod";
     public static boolean isRetiredPostNgePlayerWeaponSpeedOverrideEffect(String effectName)
     {
@@ -559,6 +615,7 @@ public class buff extends script.base_script
             removeBuff(player, "general_inspiration");
         }
         retirePostNgePlayerCommandGrantBuffState(player);
+        retirePostNgePlayerDamageDealtOverrideState(player);
         retirePostNgePlayerWeaponSpeedOverrideState(player);
         retirePostNgePlayerCriticalOverrideState(player);
         retirePostNgePlayerModifierBuffState(player);
@@ -678,6 +735,7 @@ public class buff extends script.base_script
                 factions.isRetiredPostNgePvpRewardBuff(bdata.buffName) ||
                 proc.isRetiredPostNgePlayerProcBuff(target, bdata) ||
                 isRetiredPostNgePlayerCommandGrantBuff(target, bdata) ||
+                isRetiredPostNgePlayerDamageDealtOverrideBuff(target, bdata) ||
                 isRetiredPostNgePlayerWeaponSpeedOverrideBuff(target, bdata) ||
                 isRetiredPostNgePlayerCriticalOverrideBuff(target, bdata) ||
                 isRetiredPostNgePlayerModifierBuff(target, bdata) ||

@@ -4227,6 +4227,10 @@ public class combat_base extends script.base_script
                 maxDamage += strengthBonus;
             }
         }
+        if (isPlayer(attacker))
+        {
+            buff.restorePostNgePlayerDamageDealtOverride(attacker);
+        }
         float enragedMod = utils.getFloatScriptVar(attacker, "damageDealtMod.value");
         if (enragedMod > 0)
         {
