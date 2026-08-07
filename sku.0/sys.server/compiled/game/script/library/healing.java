@@ -464,6 +464,11 @@ public class healing extends script.base_script
     }
     public static boolean useChannelHealItem(obj_id user, obj_id item, int attrib) throws InterruptedException
     {
+        if (isIdValid(user) && exists(user) && isPlayer(user))
+        {
+            buff.retirePostNgePlayerChannelHealState(user);
+            return useHealDamageItem(user, item, attrib);
+        }
         if (!isIdValid(user))
         {
             return false;

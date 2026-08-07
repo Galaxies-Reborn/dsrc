@@ -11,7 +11,6 @@ public class stimpack_crafted extends script.base_script
     public stimpack_crafted()
     {
     }
-    public static final string_id SID_STIMPACK_TOO_SOON = new string_id("healing", "channel_heal_stimpack_too_soon");
     public int OnAttach(obj_id self) throws InterruptedException
     {
         static_item.removeLegacyNgeItemCombatLevelRequirement(self);
@@ -69,14 +68,17 @@ public class stimpack_crafted extends script.base_script
         {
             return SCRIPT_CONTINUE;
         }
-        if (buff.hasBuff(player, "recent_heal"))
-        {
-            sendSystemMessage(player, SID_STIMPACK_TOO_SOON);
-            return SCRIPT_CONTINUE;
-        }
         if (item == menu_info_types.ITEM_USE)
         {
-            boolean worked = healing.useChannelHealItem(player, self);
+            if (hasObjVar(self, "healing.pool"))
+            {
+                int attrib = getIntObjVar(self, "healing.pool");
+                boolean worked = healing.useHealDamageItem(player, self, attrib);
+            }
+            else
+            {
+                boolean worked = healing.useHealDamageItem(player, self);
+            }
         }
         return SCRIPT_CONTINUE;
     }

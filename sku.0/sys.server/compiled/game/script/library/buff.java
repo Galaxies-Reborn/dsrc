@@ -838,6 +838,72 @@ public class buff extends script.base_script
         }
         clearPostNgePlayerForsakeFearChannelState(player);
     }
+    private static final String RETIRED_POST_NGE_PLAYER_CHANNEL_HEAL_EFFECT = "channel_heal_health";
+    public static boolean isRetiredPostNgePlayerChannelHealEffect(String effectName)
+    {
+        return effectName != null && effectName.equals(RETIRED_POST_NGE_PLAYER_CHANNEL_HEAL_EFFECT);
+    }
+    public static boolean isRetiredPostNgePlayerChannelHealBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        if (!isPlayer(target) || data == null)
+        {
+            return false;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if (isRetiredPostNgePlayerChannelHealEffect(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void clearPostNgePlayerChannelHealState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int channelHealSuiPid = -1;
+        if (utils.hasScriptVar(player, "channelHeal.suiPid"))
+        {
+            channelHealSuiPid = utils.getIntScriptVar(player, "channelHeal.suiPid");
+        }
+        boolean ownsCountdown = channelHealSuiPid > -1 &&
+            hasObjVar(player, sui.COUNTDOWNTIMER_SUI_VAR) &&
+            getIntObjVar(player, sui.COUNTDOWNTIMER_SUI_VAR) == channelHealSuiPid;
+        utils.removeScriptVarTree(player, "channelHeal");
+        if (ownsCountdown)
+        {
+            forceCloseSUIPage(channelHealSuiPid);
+            removeObjVar(player, sui.COUNTDOWNTIMER_SUI_VAR);
+            utils.removeScriptVarTree(player, sui.COUNTDOWNTIMER_VAR);
+            if (hasScript(player, sui.COUNTDOWNTIMER_PLAYER_SCRIPT))
+            {
+                detachScript(player, sui.COUNTDOWNTIMER_PLAYER_SCRIPT);
+            }
+        }
+    }
+    public static void retirePostNgePlayerChannelHealState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs != null && activeBuffs.length > 0)
+        {
+            for (int activeBuff : activeBuffs)
+            {
+                buff_data data = combat_engine.getBuffData(activeBuff);
+                if (isRetiredPostNgePlayerChannelHealBuff(player, data))
+                {
+                    removeBuff(player, activeBuff);
+                }
+            }
+        }
+        clearPostNgePlayerChannelHealState(player);
+    }
     public static boolean isRetiredPostNgePlayerModifierBuff(obj_id target, buff_data data) throws InterruptedException
     {
         if (!isPlayer(target) || data == null)
@@ -896,6 +962,7 @@ public class buff extends script.base_script
         retirePostNgePlayerCriticalOverrideState(player);
         retirePostNgePlayerLuckHitOverrideState(player);
         retirePostNgePlayerForsakeFearChannelState(player);
+        retirePostNgePlayerChannelHealState(player);
         retirePostNgePlayerModifierBuffState(player);
         retirePostNgeMeditationBuffs(player);
         retirePostNgeForceSensitiveStanceState(player);
@@ -1021,6 +1088,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerCriticalOverrideBuff(target, bdata) ||
                 isRetiredPostNgePlayerLuckHitOverrideBuff(target, bdata) ||
                 isRetiredPostNgePlayerForsakeFearChannelBuff(target, bdata) ||
+                isRetiredPostNgePlayerChannelHealBuff(target, bdata) ||
                 isRetiredPostNgePlayerModifierBuff(target, bdata) ||
                 isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName)))
         {

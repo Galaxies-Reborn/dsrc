@@ -61,6 +61,11 @@ public class buff_handler extends script.base_script
     
     public int OnCreatureDamaged(obj_id self, obj_id attacker, obj_id weapon, int[] damage) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.retirePostNgePlayerChannelHealState(self);
+            return SCRIPT_CONTINUE;
+        }
         if (buff.hasBuff(self, "channel_healing"))
         {
             buff.removeBuff(self, "channel_healing");
@@ -3100,6 +3105,11 @@ public class buff_handler extends script.base_script
     }
     public void channelHealAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.retirePostNgePlayerChannelHealState(self);
+            return;
+        }
         int myAttribute = getAttributeType(subtype);
         boolean worked = healing.useChannelHealItem(self, self, myAttribute);
         int pid = sui.smartCountdownTimerSUI(self, self, "channel_heal", null, 0, 12, "", 0, 0);
@@ -3107,6 +3117,11 @@ public class buff_handler extends script.base_script
     }
     public void channelHealRemoveBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.clearPostNgePlayerChannelHealState(self);
+            return;
+        }
         int pid = utils.getIntScriptVar(self, "channelHeal.suiPid");
         forceCloseSUIPage(pid);
         utils.removeScriptVarTree(self, "channelHeal");

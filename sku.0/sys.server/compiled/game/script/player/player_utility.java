@@ -2534,6 +2534,11 @@ public class player_utility extends script.base_script
     }
     public int channelHeal(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isPlayer(self) && buff.isPostNgeBuffProgressionRetired())
+        {
+            buff.retirePostNgePlayerChannelHealState(self);
+            return SCRIPT_CONTINUE;
+        }
         if (params == null || params.isEmpty())
         {
             return SCRIPT_CONTINUE;
