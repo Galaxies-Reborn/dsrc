@@ -209,8 +209,12 @@ public class combat_base extends script.base_script
         // Publish 14.1 entertainment progression uses social_entertainer,
         // social_dancer, social_musician, and social_imagedesigner with their
         // classic performance, flourish, wound-healing, and image commands.
-        // Retain en_* for NPC/content compatibility, not player authority.
-        return isPlayer(self) && actionName != null && actionName.startsWith("en_");
+        // The retained Build-a-Buff reactive heals are also Entertainer-owned
+        // even though their inherited names omit the en_ prefix. Retain both
+        // namespaces for NPC/content compatibility, not player authority.
+        return isPlayer(self) && actionName != null &&
+            (actionName.startsWith("en_") ||
+                actionName.startsWith("expertise_buildabuff_"));
     }
     private static final String[] RETIRED_POST_NGE_PVP_REWARD_PLAYER_ACTIONS =
     {
