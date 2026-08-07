@@ -355,6 +355,11 @@ public class combat_base extends script.base_script
         {
             return false;
         }
+        if (proc.isRetiredPostNgePlayerProcAction(self, actionName))
+        {
+            proc.retirePostNgePlayerProcState(self);
+            return false;
+        }
         if (isRetiredPostNgePvpRewardPlayerAction(self, actionName))
         {
             factions.retirePostNgePvpRewardState(self);

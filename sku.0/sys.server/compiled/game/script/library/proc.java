@@ -1,6 +1,7 @@
 package script.library;
 
 import script.*;
+import script.combat_engine.buff_data;
 import script.combat_engine.combat_data;
 import script.combat_engine.weapon_data;
 
@@ -23,11 +24,46 @@ public class proc extends script.base_script
         return isPostNgePlayerProcRuntimeRetired() &&
             isIdValid(actor) && isPlayer(actor);
     }
+    private static boolean isPostNgePlayerProcEffectParameter(String effectParameter)
+    {
+        return "proc_buff".equals(effectParameter) ||
+            "reac_buff".equals(effectParameter);
+    }
+    public static boolean isRetiredPostNgePlayerProcBuff(obj_id player, buff_data data) throws InterruptedException
+    {
+        return isRetiredPostNgePlayerProcActor(player) && data != null &&
+            (isPostNgePlayerProcEffectParameter(data.effect1Param) ||
+                isPostNgePlayerProcEffectParameter(data.effect2Param) ||
+                isPostNgePlayerProcEffectParameter(data.effect3Param) ||
+                isPostNgePlayerProcEffectParameter(data.effect4Param) ||
+                isPostNgePlayerProcEffectParameter(data.effect5Param));
+    }
+    public static boolean isRetiredPostNgePlayerProcAction(obj_id actor, String actionName) throws InterruptedException
+    {
+        if (!isRetiredPostNgePlayerProcActor(actor) ||
+            actionName == null || actionName.equals(""))
+        {
+            return false;
+        }
+        return dataTableGetRow(PROC_TABLE, actionName) != null;
+    }
     public static void retirePostNgePlayerProcState(obj_id player) throws InterruptedException
     {
         if (!isRetiredPostNgePlayerProcActor(player))
         {
             return;
+        }
+        int[] activeBuffs = buff.getAllBuffs(player);
+        if (activeBuffs != null)
+        {
+            for (int activeBuff : activeBuffs)
+            {
+                buff_data data = combat_engine.getBuffData(activeBuff);
+                if (isRetiredPostNgePlayerProcBuff(player, data))
+                {
+                    buff.removeBuff(player, activeBuff);
+                }
+            }
         }
         String[] retiredScriptVars =
         {
@@ -218,7 +254,7 @@ public class proc extends script.base_script
                 }
             }
         }
-        else 
+        else
         {
             if (hasObjVar(weapon, "procEffect"))
             {
@@ -280,7 +316,7 @@ public class proc extends script.base_script
         }
         Vector currentReacList = new Vector();
         currentReacList.setSize(0);
-        final String strWear[] = 
+        final String strWear[] =
         {
             "chest2",
             "chest1",

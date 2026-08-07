@@ -8585,6 +8585,11 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int expertise_fs_flurry_charge_proc(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (proc.isRetiredPostNgePlayerProcAction(self, "expertise_fs_flurry_charge_proc"))
+        {
+            proc.retirePostNgePlayerProcState(self);
+            return SCRIPT_OVERRIDE;
+        }
         if (buff.isInStance(self))
         {
             buff.applyBuff(self, "jedi_reflect_flurry");

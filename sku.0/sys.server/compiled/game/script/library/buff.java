@@ -433,6 +433,7 @@ public class buff extends script.base_script
                 isRetiredPostP14PlayerControlImmunityBuff(bdata.buffName) ||
                 isRetiredPostP14PlayerAvoidIncapHealBuff(bdata.buffName) ||
                 factions.isRetiredPostNgePvpRewardBuff(bdata.buffName) ||
+                proc.isRetiredPostNgePlayerProcBuff(target, bdata) ||
                 isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName)))
         {
             return false;
