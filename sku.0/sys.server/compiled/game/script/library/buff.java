@@ -372,6 +372,75 @@ public class buff extends script.base_script
             }
         }
     }
+    private static final String RETIRED_POST_NGE_PLAYER_WEAPON_SPEED_OVERRIDE_EFFECT = "weapon_speed_mod";
+    public static boolean isRetiredPostNgePlayerWeaponSpeedOverrideEffect(String effectName)
+    {
+        return effectName != null && effectName.equals(RETIRED_POST_NGE_PLAYER_WEAPON_SPEED_OVERRIDE_EFFECT);
+    }
+    public static boolean isRetiredPostNgePlayerWeaponSpeedOverrideBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        if (!isPlayer(target) || data == null)
+        {
+            return false;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if (isRetiredPostNgePlayerWeaponSpeedOverrideEffect(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void restorePostNgePlayerWeaponSpeedOverride(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player) ||
+            !utils.hasScriptVar(player, "recordedAttackSpeed"))
+        {
+            return;
+        }
+        String weaponRecord = utils.getStringScriptVar(player, "recordedAttackSpeed");
+        utils.removeScriptVar(player, "recordedAttackSpeed");
+        if (weaponRecord == null || weaponRecord.length() == 0)
+        {
+            return;
+        }
+        String[] parse = split(weaponRecord, '-');
+        if (parse.length != 2)
+        {
+            return;
+        }
+        obj_id weapon = utils.stringToObjId(parse[0]);
+        float weaponSpeed = utils.stringToFloat(parse[1]);
+        if (!isIdValid(weapon) || !exists(weapon) ||
+            !utils.isNestedWithin(weapon, player) || weaponSpeed <= 0.0f)
+        {
+            return;
+        }
+        setWeaponAttackSpeed(weapon, weaponSpeed);
+        weapons.setWeaponData(weapon);
+        utils.removeScriptVar(weapon, "isCreatureWeapon");
+    }
+    public static void retirePostNgePlayerWeaponSpeedOverrideState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs != null && activeBuffs.length > 0)
+        {
+            for (int activeBuff : activeBuffs)
+            {
+                buff_data data = combat_engine.getBuffData(activeBuff);
+                if (isRetiredPostNgePlayerWeaponSpeedOverrideBuff(player, data))
+                {
+                    removeBuff(player, activeBuff);
+                }
+            }
+        }
+        restorePostNgePlayerWeaponSpeedOverride(player);
+    }
     private static final String[] RETIRED_POST_NGE_PLAYER_CRITICAL_OVERRIDE_EFFECTS =
     {
         "expertise_next_hit_crit",
@@ -490,6 +559,7 @@ public class buff extends script.base_script
             removeBuff(player, "general_inspiration");
         }
         retirePostNgePlayerCommandGrantBuffState(player);
+        retirePostNgePlayerWeaponSpeedOverrideState(player);
         retirePostNgePlayerCriticalOverrideState(player);
         retirePostNgePlayerModifierBuffState(player);
         retirePostNgeMeditationBuffs(player);
@@ -608,6 +678,7 @@ public class buff extends script.base_script
                 factions.isRetiredPostNgePvpRewardBuff(bdata.buffName) ||
                 proc.isRetiredPostNgePlayerProcBuff(target, bdata) ||
                 isRetiredPostNgePlayerCommandGrantBuff(target, bdata) ||
+                isRetiredPostNgePlayerWeaponSpeedOverrideBuff(target, bdata) ||
                 isRetiredPostNgePlayerCriticalOverrideBuff(target, bdata) ||
                 isRetiredPostNgePlayerModifierBuff(target, bdata) ||
                 isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName)))

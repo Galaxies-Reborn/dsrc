@@ -2547,6 +2547,11 @@ public class buff_handler extends script.base_script
     }
     public int weaponSpeedModAddBuffHandler(obj_id self, String effectName, String subType, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.restorePostNgePlayerWeaponSpeedOverride(self);
+            return SCRIPT_CONTINUE;
+        }
         obj_id weapon = getCurrentWeapon(self);
         float currentAttackSpeed = getWeaponAttackSpeed(weapon);
         utils.setScriptVar(self, "recordedAttackSpeed", "" + weapon + "-" + currentAttackSpeed);
@@ -2565,6 +2570,11 @@ public class buff_handler extends script.base_script
     }
     public int weaponSpeedModRemoveBuffHandler(obj_id self, String effectName, String subType, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.restorePostNgePlayerWeaponSpeedOverride(self);
+            return SCRIPT_CONTINUE;
+        }
         if (!utils.hasScriptVar(self, "recordedAttackSpeed"))
         {
             return SCRIPT_CONTINUE;
