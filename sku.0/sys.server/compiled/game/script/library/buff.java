@@ -372,6 +372,46 @@ public class buff extends script.base_script
             }
         }
     }
+    private static final String RETIRED_POST_NGE_PLAYER_ACTION_DRAIN_EFFECT = "immediate_action_drain";
+    public static boolean isRetiredPostNgePlayerActionDrainEffect(String effectName)
+    {
+        return effectName != null && effectName.equals(RETIRED_POST_NGE_PLAYER_ACTION_DRAIN_EFFECT);
+    }
+    public static boolean isRetiredPostNgePlayerActionDrainBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        if (!isPlayer(target) || data == null)
+        {
+            return false;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if (isRetiredPostNgePlayerActionDrainEffect(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void retirePostNgePlayerActionDrainState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs == null)
+        {
+            return;
+        }
+        for (int activeBuff : activeBuffs)
+        {
+            buff_data data = combat_engine.getBuffData(activeBuff);
+            if (isRetiredPostNgePlayerActionDrainBuff(player, data))
+            {
+                removeBuff(player, activeBuff);
+            }
+        }
+    }
     private static final String RETIRED_POST_NGE_PLAYER_ACTION_BURN_EFFECT = "action_burn";
     public static boolean isRetiredPostNgePlayerActionBurnEffect(String effectName)
     {
@@ -703,6 +743,7 @@ public class buff extends script.base_script
             removeBuff(player, "general_inspiration");
         }
         retirePostNgePlayerCommandGrantBuffState(player);
+        retirePostNgePlayerActionDrainState(player);
         retirePostNgePlayerActionBurnState(player);
         retirePostNgePlayerActionRegenState(player);
         retirePostNgePlayerDamageDealtOverrideState(player);
@@ -825,6 +866,7 @@ public class buff extends script.base_script
                 factions.isRetiredPostNgePvpRewardBuff(bdata.buffName) ||
                 proc.isRetiredPostNgePlayerProcBuff(target, bdata) ||
                 isRetiredPostNgePlayerCommandGrantBuff(target, bdata) ||
+                isRetiredPostNgePlayerActionDrainBuff(target, bdata) ||
                 isRetiredPostNgePlayerActionBurnBuff(target, bdata) ||
                 isRetiredPostNgePlayerActionRegenBuff(target, bdata) ||
                 isRetiredPostNgePlayerDamageDealtOverrideBuff(target, bdata) ||

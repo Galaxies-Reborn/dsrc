@@ -2279,6 +2279,11 @@ public class buff_handler extends script.base_script
     }
     public int actionDrainAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.retirePostNgePlayerActionDrainState(self);
+            return SCRIPT_CONTINUE;
+        }
         if (value > getAction(self))
         {
             value = getAction(self);
