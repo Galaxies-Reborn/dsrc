@@ -196,8 +196,13 @@ public class combat_base extends script.base_script
         // Publish 14.1 healing progression uses science_medic, science_doctor,
         // and science_combatmedic with classic commands such as healDamage,
         // healWound, quickHeal, applyPoison, applyDisease, and revivePlayer.
-        // Retain me_* for NPC/content compatibility, not player authority.
-        return isPlayer(self) && actionName != null && actionName.startsWith("me_");
+        // The two expertise_* DOT procs are also Medic-owned even though their
+        // inherited names omit the me_ prefix. Retain every action for
+        // NPC/content compatibility, but never grant it player authority.
+        return isPlayer(self) && actionName != null &&
+            (actionName.startsWith("me_") ||
+                actionName.equals("expertise_dueterium_rounds_proc") ||
+                actionName.equals("expertise_poison_knuckle_proc"));
     }
     public static boolean isRetiredPostNgeEntertainerPlayerAction(obj_id self, String actionName) throws InterruptedException
     {
