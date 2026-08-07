@@ -2550,6 +2550,14 @@ public class buff_handler extends script.base_script
         {
             return SCRIPT_CONTINUE;
         }
+        if (isPlayer(self) && buff.isRetiredPostNgePlayerBuffCommandGrant(subType))
+        {
+            while (hasCommand(self, subType))
+            {
+                revokeCommand(self, subType);
+            }
+            return SCRIPT_CONTINUE;
+        }
         if (!hasCommand(self, subType))
         {
             grantCommand(self, subType);
@@ -2560,6 +2568,14 @@ public class buff_handler extends script.base_script
     {
         if (subType == null || subType.equals(""))
         {
+            return SCRIPT_CONTINUE;
+        }
+        if (isPlayer(self) && buff.isRetiredPostNgePlayerBuffCommandGrant(subType))
+        {
+            while (hasCommand(self, subType))
+            {
+                revokeCommand(self, subType);
+            }
             return SCRIPT_CONTINUE;
         }
         if (hasCommand(self, subType))

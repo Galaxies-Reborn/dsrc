@@ -305,6 +305,73 @@ public class buff extends script.base_script
             detachScript(player, "player.skill.bh_shields");
         }
     }
+    private static final String[] RETIRED_POST_NGE_PLAYER_BUFF_COMMAND_GRANTS =
+    {
+        "bh_flawless_strike",
+        "co_enrage_1",
+        "fs_set_heroic_taunt_1",
+        "sm_how_are_you",
+        "trandoshan_ability_1",
+        "of_deadeye_debuff",
+        "trader_heal",
+        "en_action_regen"
+    };
+    public static boolean isRetiredPostNgePlayerBuffCommandGrant(String commandName)
+    {
+        if (commandName == null)
+        {
+            return false;
+        }
+        for (String retiredCommand : RETIRED_POST_NGE_PLAYER_BUFF_COMMAND_GRANTS)
+        {
+            if (commandName.equals(retiredCommand))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isRetiredPostNgePlayerCommandGrantBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        if (!isPlayer(target) || data == null)
+        {
+            return false;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if (isRetiredPostNgePlayerBuffCommandGrant(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void retirePostNgePlayerCommandGrantBuffState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs != null && activeBuffs.length > 0)
+        {
+            for (int activeBuff : activeBuffs)
+            {
+                buff_data data = combat_engine.getBuffData(activeBuff);
+                if (isRetiredPostNgePlayerCommandGrantBuff(player, data))
+                {
+                    removeBuff(player, activeBuff);
+                }
+            }
+        }
+        for (String retiredCommand : RETIRED_POST_NGE_PLAYER_BUFF_COMMAND_GRANTS)
+        {
+            while (hasCommand(player, retiredCommand))
+            {
+                revokeCommand(player, retiredCommand);
+            }
+        }
+    }
     public static boolean isRetiredPostNgePlayerModifierBuff(obj_id target, buff_data data) throws InterruptedException
     {
         if (!isPlayer(target) || data == null)
@@ -354,6 +421,7 @@ public class buff extends script.base_script
         {
             removeBuff(player, "general_inspiration");
         }
+        retirePostNgePlayerCommandGrantBuffState(player);
         retirePostNgePlayerModifierBuffState(player);
         retirePostNgeMeditationBuffs(player);
         retirePostNgeForceSensitiveStanceState(player);
@@ -470,6 +538,7 @@ public class buff extends script.base_script
                 isRetiredPostP14PlayerAvoidIncapHealBuff(bdata.buffName) ||
                 factions.isRetiredPostNgePvpRewardBuff(bdata.buffName) ||
                 proc.isRetiredPostNgePlayerProcBuff(target, bdata) ||
+                isRetiredPostNgePlayerCommandGrantBuff(target, bdata) ||
                 isRetiredPostNgePlayerModifierBuff(target, bdata) ||
                 isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName)))
         {
