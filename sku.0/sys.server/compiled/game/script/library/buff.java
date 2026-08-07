@@ -110,6 +110,95 @@ public class buff extends script.base_script
         combat.removeCombatBuffEffect(player, "fs_buff_def_1_1");
         combat.removeCombatBuffEffect(player, "fs_buff_ca_1");
     }
+    private static final String[] RETIRED_POST_NGE_PLAYER_FORCE_SENSITIVE_EXPERTISE_IMMUNITY_BUFFS =
+    {
+        "fs_sh_0",
+        "fs_sh_1",
+        "fs_sh_2",
+        "fs_sh_3",
+        "fs_dot_immunity_recourse"
+    };
+    private static final String[] RETIRED_POST_NGE_PLAYER_FORCE_SENSITIVE_EXPERTISE_IMMUNITY_EFFECTS =
+    {
+        "expertise_dot_immunity",
+        "expertise_movement_immunity"
+    };
+    public static boolean isRetiredPostNgePlayerForceSensitiveExpertiseImmunityBuffName(String buffName)
+    {
+        if (buffName == null)
+        {
+            return false;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_PLAYER_FORCE_SENSITIVE_EXPERTISE_IMMUNITY_BUFFS)
+        {
+            if (buffName.equals(retiredBuff))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isRetiredPostNgePlayerForceSensitiveExpertiseImmunityEffect(String effectName)
+    {
+        if (effectName == null)
+        {
+            return false;
+        }
+        for (String retiredEffect : RETIRED_POST_NGE_PLAYER_FORCE_SENSITIVE_EXPERTISE_IMMUNITY_EFFECTS)
+        {
+            if (effectName.equals(retiredEffect))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isRetiredPostNgePlayerForceSensitiveExpertiseImmunityBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        if (!isPlayer(target) || data == null)
+        {
+            return false;
+        }
+        if (isRetiredPostNgePlayerForceSensitiveExpertiseImmunityBuffName(data.buffName))
+        {
+            return true;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if (isRetiredPostNgePlayerForceSensitiveExpertiseImmunityEffect(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void clearPostNgePlayerForceSensitiveExpertiseImmunityResidue(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        utils.removeScriptVarTree(player, "immunity.dot.all");
+        utils.removeScriptVarTree(player, "immunity.movement.snare");
+        utils.removeScriptVarTree(player, "immunity.movement.root");
+        stopClientEffectObjByLabel(player, "expertise_dot");
+        stopClientEffectObjByLabel(player, "expertise_movement");
+    }
+    public static void retirePostNgePlayerForceSensitiveExpertiseImmunityState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_PLAYER_FORCE_SENSITIVE_EXPERTISE_IMMUNITY_BUFFS)
+        {
+            if (hasBuff(player, retiredBuff))
+            {
+                removeBuff(player, retiredBuff);
+            }
+        }
+        clearPostNgePlayerForceSensitiveExpertiseImmunityResidue(player);
+    }
     private static final String[] RETIRED_POST_NGE_GCW_BANNER_BUFFS =
     {
         "banner_buff_commando",
@@ -1703,6 +1792,7 @@ public class buff extends script.base_script
         retirePostNgePlayerDamageReductionState(player);
         retirePostNgePlayerModifierBuffState(player);
         retirePostNgeMeditationBuffs(player);
+        retirePostNgePlayerForceSensitiveExpertiseImmunityState(player);
         retirePostNgeForceSensitiveStanceState(player);
         retirePostNgeGcwBannerBuffState(player);
         retirePostNgeGcwConsumableBuffState(player);
@@ -1835,6 +1925,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerAggroChannelBuff(target, bdata) ||
                 isRetiredPostNgePlayerCommandoSnareArmorBuff(target, bdata) ||
                 isRetiredPostNgePlayerCommandoSpecializedBuff(target, bdata) ||
+                isRetiredPostNgePlayerForceSensitiveExpertiseImmunityBuff(target, bdata) ||
                 isRetiredPostNgePlayerElementalVulnerabilityBuff(target, bdata) ||
                 isRetiredPostNgePlayerForceThrowBuff(target, bdata) ||
                 isRetiredPostNgePlayerMedicDoomBuff(target, bdata) ||

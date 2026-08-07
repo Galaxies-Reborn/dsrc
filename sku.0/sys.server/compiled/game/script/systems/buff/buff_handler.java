@@ -1788,6 +1788,13 @@ public class buff_handler extends script.base_script
     }
     public int expertiseImmunityAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) &&
+            (buff.isRetiredPostNgePlayerForceSensitiveExpertiseImmunityEffect(effectName) ||
+                buff.isRetiredPostNgePlayerForceSensitiveExpertiseImmunityBuffName(buffName)))
+        {
+            buff.retirePostNgePlayerForceSensitiveExpertiseImmunityState(self);
+            return SCRIPT_OVERRIDE;
+        }
         if (!buff.isInStance(self))
         {
             buff.removeBuff(self, "fs_sh_0");
@@ -1807,6 +1814,13 @@ public class buff_handler extends script.base_script
     }
     public int expertiseImmunityRemoveBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) &&
+            (buff.isRetiredPostNgePlayerForceSensitiveExpertiseImmunityEffect(effectName) ||
+                buff.isRetiredPostNgePlayerForceSensitiveExpertiseImmunityBuffName(buffName)))
+        {
+            buff.clearPostNgePlayerForceSensitiveExpertiseImmunityResidue(self);
+            return SCRIPT_OVERRIDE;
+        }
         return immunityRemoveBuffHandler(self, effectName, subtype, duration, value, "", null);
     }
     public int expertiseChannelActionHealAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
