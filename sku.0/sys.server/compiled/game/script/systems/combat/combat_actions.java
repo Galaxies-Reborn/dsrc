@@ -4160,6 +4160,16 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public void doDoom(obj_id attacker, obj_id defender) throws InterruptedException
     {
+        if (isPlayer(attacker))
+        {
+            buff.retirePostNgePlayerMedicDoomState(attacker);
+            return;
+        }
+        if (isPlayer(defender))
+        {
+            buff.retirePostNgePlayerMedicDoomState(defender);
+            return;
+        }
         int bonusChance = getEnhancedSkillStatisticModifierUncapped(attacker, "me_doom_chance");
         if (bonusChance > 0)
         {

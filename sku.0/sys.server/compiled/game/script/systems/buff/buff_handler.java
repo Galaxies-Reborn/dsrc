@@ -2167,6 +2167,11 @@ public class buff_handler extends script.base_script
     }
     public int meDoomAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.retirePostNgePlayerMedicDoomState(self);
+            return SCRIPT_CONTINUE;
+        }
         showFlyText(self, new string_id("set_bonus", "doom_fly"), 2, colors.BLACK);
         obj_id doomOwner = utils.getObjIdScriptVar(self, "me_doom.doom_owner");
         int doomStage = utils.getIntScriptVar(self, "me_doom.doom_stage");
@@ -2194,6 +2199,11 @@ public class buff_handler extends script.base_script
     }
     public int meDoomRemoveBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.clearPostNgePlayerMedicDoomState(self);
+            return SCRIPT_CONTINUE;
+        }
         obj_id doomOwner = utils.getObjIdScriptVar(self, "me_doom.doom_owner");
         int doomStage = utils.getIntScriptVar(self, "me_doom.doom_stage");
         if (!isIdValid(doomOwner))

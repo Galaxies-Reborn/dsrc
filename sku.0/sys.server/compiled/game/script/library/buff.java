@@ -1252,6 +1252,37 @@ public class buff extends script.base_script
         }
         clearPostNgePlayerCommandoSnareArmorModifier(player);
     }
+    private static final String RETIRED_POST_NGE_PLAYER_MEDIC_DOOM_BUFF = "me_doom";
+    private static final String RETIRED_POST_NGE_PLAYER_MEDIC_DOOM_MODIFIER = "me_doom_chance";
+    public static boolean isRetiredPostNgePlayerMedicDoomBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        return isPlayer(target) && data != null &&
+            RETIRED_POST_NGE_PLAYER_MEDIC_DOOM_BUFF.equals(data.buffName);
+    }
+    public static void clearPostNgePlayerMedicDoomState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        utils.removeScriptVarTree(player, RETIRED_POST_NGE_PLAYER_MEDIC_DOOM_BUFF);
+        if (hasSkillModModifier(player, RETIRED_POST_NGE_PLAYER_MEDIC_DOOM_MODIFIER))
+        {
+            removeAttribOrSkillModModifier(player, RETIRED_POST_NGE_PLAYER_MEDIC_DOOM_MODIFIER);
+        }
+    }
+    public static void retirePostNgePlayerMedicDoomState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        if (hasBuff(player, RETIRED_POST_NGE_PLAYER_MEDIC_DOOM_BUFF))
+        {
+            removeBuff(player, RETIRED_POST_NGE_PLAYER_MEDIC_DOOM_BUFF);
+        }
+        clearPostNgePlayerMedicDoomState(player);
+    }
     public static boolean isRetiredPostNgePlayerModifierBuff(obj_id target, buff_data data) throws InterruptedException
     {
         if (!isPlayer(target) || data == null)
@@ -1318,6 +1349,7 @@ public class buff extends script.base_script
         retirePostNgePlayerSmugglerTrickState(player);
         retirePostNgePlayerAggroChannelState(player);
         retirePostNgePlayerCommandoSnareArmorState(player);
+        retirePostNgePlayerMedicDoomState(player);
         retirePostNgePlayerModifierBuffState(player);
         retirePostNgeMeditationBuffs(player);
         retirePostNgeForceSensitiveStanceState(player);
@@ -1451,6 +1483,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerSmugglerTrickBuff(target, bdata) ||
                 isRetiredPostNgePlayerAggroChannelBuff(target, bdata) ||
                 isRetiredPostNgePlayerCommandoSnareArmorBuff(target, bdata) ||
+                isRetiredPostNgePlayerMedicDoomBuff(target, bdata) ||
                 isRetiredPostNgePlayerModifierBuff(target, bdata) ||
                 isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName)))
         {
