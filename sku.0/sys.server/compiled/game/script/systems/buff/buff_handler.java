@@ -1727,6 +1727,11 @@ public class buff_handler extends script.base_script
     }
     public int expertiseChannelActionHealAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.retirePostNgePlayerForsakeFearChannelState(self);
+            return SCRIPT_CONTINUE;
+        }
         utils.setScriptVar(self, "buff_handler.lastForsakeFearPulse", getGameTime());
         utils.setScriptVar(self, "buff_handler.totalForsakeFearPulses", 0);
         utils.removeScriptVar(self, "buff_handler.channelForsakeFearCancelled");
@@ -1735,6 +1740,11 @@ public class buff_handler extends script.base_script
     }
     public int expertiseChannelActionHealRemoveBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.clearPostNgePlayerForsakeFearChannelState(self);
+            return SCRIPT_CONTINUE;
+        }
         int cancelled = utils.getIntScriptVar(self, "buff_handler.channelForsakeFearCancelled");
         int successful = utils.getIntScriptVar(self, "buff_handler.channelForsakeFearSuccessful");
         if (cancelled == 0 && successful == 1)
@@ -2203,6 +2213,11 @@ public class buff_handler extends script.base_script
     }
     public int channelForsakeFear(obj_id player, String buffName, boolean finishChannel) throws InterruptedException
     {
+        if (isPlayer(player))
+        {
+            buff.clearPostNgePlayerForsakeFearChannelState(player);
+            return SCRIPT_CONTINUE;
+        }
         int lastForsakeFearPulse = utils.getIntScriptVar(player, "buff_handler.lastForsakeFearPulse");
         int currentForsakeFearPulses = utils.getIntScriptVar(player, "buff_handler.totalForsakeFearPulses");
         int gameTime = getGameTime();
@@ -2247,6 +2262,11 @@ public class buff_handler extends script.base_script
     public int checkChannelForsakeFear(obj_id self, dictionary params) throws InterruptedException
     {
         obj_id player = params.getObjId("player");
+        if (isIdValid(player) && exists(player) && isPlayer(player))
+        {
+            buff.clearPostNgePlayerForsakeFearChannelState(player);
+            return SCRIPT_CONTINUE;
+        }
         String buffName = params.getString("buffName");
         if (utils.hasScriptVar(player, "buff_handler.channelForsakeFearCancelled") || utils.hasScriptVar(player, "buff_handler.channelForsakeFearSuccessful") || !hasObjVar(player, sui.COUNTDOWNTIMER_SUI_VAR))
         {
@@ -2261,6 +2281,11 @@ public class buff_handler extends script.base_script
         obj_id player = params.getObjId("player");
         if (!isIdValid(player))
         {
+            return SCRIPT_CONTINUE;
+        }
+        if (exists(player) && isPlayer(player))
+        {
+            buff.clearPostNgePlayerForsakeFearChannelState(player);
             return SCRIPT_CONTINUE;
         }
         int bp = sui.getIntButtonPressed(params);

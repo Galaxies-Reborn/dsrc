@@ -768,6 +768,76 @@ public class buff extends script.base_script
         }
         clearPostNgePlayerLuckHitOverrideModifiers(player);
     }
+    private static final String RETIRED_POST_NGE_PLAYER_FORSAKE_FEAR_CHANNEL_EFFECT = "expertise_channel_action_heal";
+    public static boolean isRetiredPostNgePlayerForsakeFearChannelEffect(String effectName)
+    {
+        return effectName != null && effectName.equals(RETIRED_POST_NGE_PLAYER_FORSAKE_FEAR_CHANNEL_EFFECT);
+    }
+    public static boolean isRetiredPostNgePlayerForsakeFearChannelBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        if (!isPlayer(target) || data == null)
+        {
+            return false;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if (isRetiredPostNgePlayerForsakeFearChannelEffect(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void clearPostNgePlayerForsakeFearChannelState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int forsakeFearSuiPid = -1;
+        if (utils.hasScriptVar(player, "buff_handler.ForsakeFearSUIPID"))
+        {
+            forsakeFearSuiPid = utils.getIntScriptVar(player, "buff_handler.ForsakeFearSUIPID");
+        }
+        boolean ownsCountdown = forsakeFearSuiPid > -1 &&
+            hasObjVar(player, sui.COUNTDOWNTIMER_SUI_VAR) &&
+            getIntObjVar(player, sui.COUNTDOWNTIMER_SUI_VAR) == forsakeFearSuiPid;
+        utils.removeScriptVar(player, "buff_handler.ForsakeFearSUIPID");
+        utils.removeScriptVar(player, "buff_handler.lastForsakeFearPulse");
+        utils.removeScriptVar(player, "buff_handler.totalForsakeFearPulses");
+        utils.removeScriptVar(player, "buff_handler.channelForsakeFearCancelled");
+        utils.removeScriptVar(player, "buff_handler.channelForsakeFearSuccessful");
+        if (ownsCountdown)
+        {
+            forceCloseSUIPage(forsakeFearSuiPid);
+            removeObjVar(player, sui.COUNTDOWNTIMER_SUI_VAR);
+            utils.removeScriptVarTree(player, sui.COUNTDOWNTIMER_VAR);
+            if (hasScript(player, sui.COUNTDOWNTIMER_PLAYER_SCRIPT))
+            {
+                detachScript(player, sui.COUNTDOWNTIMER_PLAYER_SCRIPT);
+            }
+        }
+    }
+    public static void retirePostNgePlayerForsakeFearChannelState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs != null && activeBuffs.length > 0)
+        {
+            for (int activeBuff : activeBuffs)
+            {
+                buff_data data = combat_engine.getBuffData(activeBuff);
+                if (isRetiredPostNgePlayerForsakeFearChannelBuff(player, data))
+                {
+                    removeBuff(player, activeBuff);
+                }
+            }
+        }
+        clearPostNgePlayerForsakeFearChannelState(player);
+    }
     public static boolean isRetiredPostNgePlayerModifierBuff(obj_id target, buff_data data) throws InterruptedException
     {
         if (!isPlayer(target) || data == null)
@@ -825,6 +895,7 @@ public class buff extends script.base_script
         retirePostNgePlayerWeaponSpeedOverrideState(player);
         retirePostNgePlayerCriticalOverrideState(player);
         retirePostNgePlayerLuckHitOverrideState(player);
+        retirePostNgePlayerForsakeFearChannelState(player);
         retirePostNgePlayerModifierBuffState(player);
         retirePostNgeMeditationBuffs(player);
         retirePostNgeForceSensitiveStanceState(player);
@@ -949,6 +1020,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerWeaponSpeedOverrideBuff(target, bdata) ||
                 isRetiredPostNgePlayerCriticalOverrideBuff(target, bdata) ||
                 isRetiredPostNgePlayerLuckHitOverrideBuff(target, bdata) ||
+                isRetiredPostNgePlayerForsakeFearChannelBuff(target, bdata) ||
                 isRetiredPostNgePlayerModifierBuff(target, bdata) ||
                 isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName)))
         {
