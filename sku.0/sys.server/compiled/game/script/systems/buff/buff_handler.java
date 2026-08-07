@@ -985,6 +985,10 @@ public class buff_handler extends script.base_script
     }
     public int pistolWhipAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) && buff.isRetiredPostNgePlayerPistolWhipControlEffect(effectName))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         int pistolWhipStun = getSkillStatisticModifier(caster, "expertise_stun_line_sm_pistol_whip");
         if (pistolWhipStun > 0 && rand(0, 99) < pistolWhipStun)
         {

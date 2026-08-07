@@ -1029,6 +1029,46 @@ public class buff extends script.base_script
             }
         }
     }
+    private static final String RETIRED_POST_NGE_PLAYER_PISTOL_WHIP_CONTROL_EFFECT = "sm_pistol_whip";
+    public static boolean isRetiredPostNgePlayerPistolWhipControlEffect(String effectName)
+    {
+        return effectName != null && effectName.equals(RETIRED_POST_NGE_PLAYER_PISTOL_WHIP_CONTROL_EFFECT);
+    }
+    public static boolean isRetiredPostNgePlayerPistolWhipControlBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        if (!isPlayer(target) || data == null)
+        {
+            return false;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if (isRetiredPostNgePlayerPistolWhipControlEffect(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void retirePostNgePlayerPistolWhipControlState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs == null || activeBuffs.length == 0)
+        {
+            return;
+        }
+        for (int activeBuff : activeBuffs)
+        {
+            buff_data data = combat_engine.getBuffData(activeBuff);
+            if (isRetiredPostNgePlayerPistolWhipControlBuff(player, data))
+            {
+                removeBuff(player, activeBuff);
+            }
+        }
+    }
     public static boolean isRetiredPostNgePlayerModifierBuff(obj_id target, buff_data data) throws InterruptedException
     {
         if (!isPlayer(target) || data == null)
@@ -1091,6 +1131,7 @@ public class buff extends script.base_script
         retirePostNgePlayerRadarInvisibilityState(player);
         retirePostNgePlayerCooldownExecutionState(player);
         retirePostNgePlayerSaberInterceptState(player);
+        retirePostNgePlayerPistolWhipControlState(player);
         retirePostNgePlayerModifierBuffState(player);
         retirePostNgeMeditationBuffs(player);
         retirePostNgeForceSensitiveStanceState(player);
@@ -1220,6 +1261,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerRadarInvisibilityBuff(target, bdata) ||
                 isRetiredPostNgePlayerCooldownExecutionBuff(target, bdata) ||
                 isRetiredPostNgePlayerSaberInterceptBuff(target, bdata) ||
+                isRetiredPostNgePlayerPistolWhipControlBuff(target, bdata) ||
                 isRetiredPostNgePlayerModifierBuff(target, bdata) ||
                 isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName)))
         {
