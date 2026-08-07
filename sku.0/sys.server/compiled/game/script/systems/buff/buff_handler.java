@@ -1027,36 +1027,71 @@ public class buff_handler extends script.base_script
     }
     public int nextHitCritAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.clearPostNgePlayerCriticalOverrideScriptVars(self);
+            return SCRIPT_CONTINUE;
+        }
         utils.setScriptVar(self, "nextCritHit", 1);
         return SCRIPT_CONTINUE;
     }
     public int nextHitCritRemoveBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.clearPostNgePlayerCriticalOverrideScriptVars(self);
+            return SCRIPT_CONTINUE;
+        }
         utils.removeScriptVarTree(self, "nextCritHit");
         return SCRIPT_CONTINUE;
     }
     public int critDoubleDamageAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.clearPostNgePlayerCriticalOverrideScriptVars(self);
+            return SCRIPT_CONTINUE;
+        }
         utils.setScriptVar(self, "critDoubleDamage", 1);
         return SCRIPT_CONTINUE;
     }
     public int critDoubleDamageRemoveBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.clearPostNgePlayerCriticalOverrideScriptVars(self);
+            return SCRIPT_CONTINUE;
+        }
         utils.removeScriptVarTree(self, "critDoubleDamage");
         return SCRIPT_CONTINUE;
     }
     public int critRootAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.clearPostNgePlayerCriticalOverrideScriptVars(self);
+            return SCRIPT_CONTINUE;
+        }
         utils.setScriptVar(self, "critRoot", 1);
         return SCRIPT_CONTINUE;
     }
     public int critRootRemoveBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.clearPostNgePlayerCriticalOverrideScriptVars(self);
+            return SCRIPT_CONTINUE;
+        }
         utils.removeScriptVarTree(self, "critRoot");
         return SCRIPT_CONTINUE;
     }
     public int critOnceAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.clearPostNgePlayerCriticalOverrideScriptVars(self);
+            return SCRIPT_CONTINUE;
+        }
         Vector effectNames = new Vector();
         effectName = effectName.substring(0, (effectName.lastIndexOf("_")));
         if (utils.hasScriptVar(self, "critRemoveBuffNames"))
@@ -1069,6 +1104,11 @@ public class buff_handler extends script.base_script
     }
     public int critOnceRemoveBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.clearPostNgePlayerCriticalOverrideScriptVars(self);
+            return SCRIPT_CONTINUE;
+        }
         Vector effectNames = new Vector();
         effectName = effectName.substring(0, (effectName.lastIndexOf("_")));
         if (utils.hasScriptVar(self, "critRemoveBuffNames"))

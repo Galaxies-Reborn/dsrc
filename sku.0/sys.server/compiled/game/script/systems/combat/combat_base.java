@@ -1628,6 +1628,7 @@ public class combat_base extends script.base_script
         String strAttack = actionData.actionName;
         boolean precuAuthoritativeAttack =
             isPrecuAuthoritativeAttack(attackerData.id, actionData);
+        buff.clearPostNgePlayerCriticalOverrideScriptVars(attackerData.id);
         attackerResults.id = attackerData.id;
         attackerResults.weapon = weaponData.id;
         attackerResults.endPosture = (!isTangibleAttacking && (combat.isMeleeWeapon(weaponData.id) || combat.isLightsaberWeapon(weaponData.id))) ? POSTURE_UPRIGHT : getPosture(attackerData.id);
@@ -4438,6 +4439,7 @@ public class combat_base extends script.base_script
     }
     public int expertiseDamageModify(obj_id attacker, obj_id defender, hit_result hitData, combat_data actionData) throws InterruptedException
     {
+        buff.clearPostNgePlayerCriticalOverrideScriptVars(attacker);
         int newDamage = hitData.damage;
         int damageDecrease = getSkillStatisticModifier(attacker, "expertise_damage_decrease_chance");
         if (damageDecrease > 0)
