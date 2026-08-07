@@ -2306,6 +2306,11 @@ public class buff_handler extends script.base_script
     }
     public int actionRegenAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.retirePostNgePlayerActionRegenState(self);
+            return SCRIPT_CONTINUE;
+        }
         int actionMax = getMaxAction(self);
         dictionary data = new dictionary();
         data.put("actionMax", actionMax);
@@ -2326,6 +2331,11 @@ public class buff_handler extends script.base_script
             return SCRIPT_CONTINUE;
         }
         String buffName = params.getString("buffName");
+        if (isPlayer(self))
+        {
+            buff.retirePostNgePlayerActionRegenState(self);
+            return SCRIPT_CONTINUE;
+        }
         if (!buff.hasBuff(self, buffName))
         {
             return SCRIPT_CONTINUE;

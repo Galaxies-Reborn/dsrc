@@ -372,6 +372,46 @@ public class buff extends script.base_script
             }
         }
     }
+    private static final String RETIRED_POST_NGE_PLAYER_ACTION_REGEN_EFFECT = "action_regen";
+    public static boolean isRetiredPostNgePlayerActionRegenEffect(String effectName)
+    {
+        return effectName != null && effectName.equals(RETIRED_POST_NGE_PLAYER_ACTION_REGEN_EFFECT);
+    }
+    public static boolean isRetiredPostNgePlayerActionRegenBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        if (!isPlayer(target) || data == null)
+        {
+            return false;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if (isRetiredPostNgePlayerActionRegenEffect(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void retirePostNgePlayerActionRegenState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs == null || activeBuffs.length == 0)
+        {
+            return;
+        }
+        for (int activeBuff : activeBuffs)
+        {
+            buff_data data = combat_engine.getBuffData(activeBuff);
+            if (isRetiredPostNgePlayerActionRegenBuff(player, data))
+            {
+                removeBuff(player, activeBuff);
+            }
+        }
+    }
     private static final String RETIRED_POST_NGE_PLAYER_DAMAGE_DEALT_OVERRIDE_EFFECT = "damage_dealt_mod";
     public static boolean isRetiredPostNgePlayerDamageDealtOverrideEffect(String effectName)
     {
@@ -615,6 +655,7 @@ public class buff extends script.base_script
             removeBuff(player, "general_inspiration");
         }
         retirePostNgePlayerCommandGrantBuffState(player);
+        retirePostNgePlayerActionRegenState(player);
         retirePostNgePlayerDamageDealtOverrideState(player);
         retirePostNgePlayerWeaponSpeedOverrideState(player);
         retirePostNgePlayerCriticalOverrideState(player);
@@ -735,6 +776,7 @@ public class buff extends script.base_script
                 factions.isRetiredPostNgePvpRewardBuff(bdata.buffName) ||
                 proc.isRetiredPostNgePlayerProcBuff(target, bdata) ||
                 isRetiredPostNgePlayerCommandGrantBuff(target, bdata) ||
+                isRetiredPostNgePlayerActionRegenBuff(target, bdata) ||
                 isRetiredPostNgePlayerDamageDealtOverrideBuff(target, bdata) ||
                 isRetiredPostNgePlayerWeaponSpeedOverrideBuff(target, bdata) ||
                 isRetiredPostNgePlayerCriticalOverrideBuff(target, bdata) ||
