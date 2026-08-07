@@ -1069,6 +1069,81 @@ public class buff extends script.base_script
             }
         }
     }
+    private static final String[] RETIRED_POST_NGE_PLAYER_SMUGGLER_TRICK_EFFECTS =
+    {
+        "expertise_sly_lie",
+        "expertise_fast_talk"
+    };
+    public static boolean isRetiredPostNgePlayerSmugglerTrickEffect(String effectName)
+    {
+        if (effectName == null)
+        {
+            return false;
+        }
+        for (String retiredEffect : RETIRED_POST_NGE_PLAYER_SMUGGLER_TRICK_EFFECTS)
+        {
+            if (effectName.equals(retiredEffect))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isRetiredPostNgePlayerSmugglerTrickBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        if (!isPlayer(target) || data == null)
+        {
+            return false;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if (isRetiredPostNgePlayerSmugglerTrickEffect(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void clearPostNgePlayerSmugglerTrickModifiers(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        String[] retiredModifiers =
+        {
+            "slyLieDodge",
+            "innocentCargoStrikethrough",
+            "fastTalkAgility"
+        };
+        for (String retiredModifier : retiredModifiers)
+        {
+            if (hasSkillModModifier(player, retiredModifier))
+            {
+                removeAttribOrSkillModModifier(player, retiredModifier);
+            }
+        }
+    }
+    public static void retirePostNgePlayerSmugglerTrickState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs != null && activeBuffs.length > 0)
+        {
+            for (int activeBuff : activeBuffs)
+            {
+                buff_data data = combat_engine.getBuffData(activeBuff);
+                if (isRetiredPostNgePlayerSmugglerTrickBuff(player, data))
+                {
+                    removeBuff(player, activeBuff);
+                }
+            }
+        }
+        clearPostNgePlayerSmugglerTrickModifiers(player);
+    }
     public static boolean isRetiredPostNgePlayerModifierBuff(obj_id target, buff_data data) throws InterruptedException
     {
         if (!isPlayer(target) || data == null)
@@ -1132,6 +1207,7 @@ public class buff extends script.base_script
         retirePostNgePlayerCooldownExecutionState(player);
         retirePostNgePlayerSaberInterceptState(player);
         retirePostNgePlayerPistolWhipControlState(player);
+        retirePostNgePlayerSmugglerTrickState(player);
         retirePostNgePlayerModifierBuffState(player);
         retirePostNgeMeditationBuffs(player);
         retirePostNgeForceSensitiveStanceState(player);
@@ -1262,6 +1338,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerCooldownExecutionBuff(target, bdata) ||
                 isRetiredPostNgePlayerSaberInterceptBuff(target, bdata) ||
                 isRetiredPostNgePlayerPistolWhipControlBuff(target, bdata) ||
+                isRetiredPostNgePlayerSmugglerTrickBuff(target, bdata) ||
                 isRetiredPostNgePlayerModifierBuff(target, bdata) ||
                 isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName)))
         {

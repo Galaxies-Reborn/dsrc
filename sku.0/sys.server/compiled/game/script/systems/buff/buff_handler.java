@@ -1007,6 +1007,11 @@ public class buff_handler extends script.base_script
     }
     public int slyLieAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) && buff.isRetiredPostNgePlayerSmugglerTrickEffect(effectName))
+        {
+            buff.clearPostNgePlayerSmugglerTrickModifiers(self);
+            return SCRIPT_OVERRIDE;
+        }
         int dodgeBonus = (int)getSkillStatisticModifier(self, "expertise_half_truth");
         if (dodgeBonus > 0)
         {
@@ -1031,6 +1036,11 @@ public class buff_handler extends script.base_script
     }
     public int fastTalkAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) && buff.isRetiredPostNgePlayerSmugglerTrickEffect(effectName))
+        {
+            buff.clearPostNgePlayerSmugglerTrickModifiers(self);
+            return SCRIPT_OVERRIDE;
+        }
         int agilityBonus = (int)getSkillStatisticModifier(self, "expertise_fake_id");
         if (agilityBonus > 0)
         {
