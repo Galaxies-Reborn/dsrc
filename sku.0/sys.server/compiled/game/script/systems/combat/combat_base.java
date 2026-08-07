@@ -181,11 +181,15 @@ public class combat_base extends script.base_script
     {
         // Publish 14.1 Commando progression uses combat_commando and classic
         // heavy-weapon commands such as flameSingle*, flameCone*, acid*, and
-        // launcher*. The server-only banner_buff_commando proc belongs to the
-        // same retained NGE class-buff family. Keep both available to NPC and
-        // content scripts, but never grant them player combat authority.
+        // launcher*. The co_ class actions, kill-meter reactions, expertise
+        // procs, and server-only banner_buff_commando proc all belong to the
+        // retained NGE Commando class/expertise family. Keep them available to
+        // NPC and content scripts, but never grant them player combat authority.
         return isPlayer(self) && actionName != null &&
-            (actionName.startsWith("co_") || actionName.equals("banner_buff_commando"));
+            (actionName.startsWith("co_") ||
+                actionName.startsWith("kill_meter_co_") ||
+                actionName.startsWith("expertise_co_") ||
+                actionName.equals("banner_buff_commando"));
     }
     public static boolean isRetiredPostNgeMedicPlayerAction(obj_id self, String actionName) throws InterruptedException
     {

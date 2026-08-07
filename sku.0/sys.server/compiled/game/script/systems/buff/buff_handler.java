@@ -1212,6 +1212,11 @@ public class buff_handler extends script.base_script
         {
             return SCRIPT_OVERRIDE;
         }
+        if (isPlayer(self) && buff.isRetiredPostNgePlayerCommandoSnareArmorEffect(effectName))
+        {
+            buff.retirePostNgePlayerCommandoSnareArmorState(self);
+            return SCRIPT_OVERRIDE;
+        }
         String[] modifiers = movement.getAllModifiers(self);
         boolean snared = false;
         if (modifiers != null)

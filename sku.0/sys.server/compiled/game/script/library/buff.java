@@ -1199,6 +1199,59 @@ public class buff extends script.base_script
         }
         utils.removeScriptVar(player, AGGRO_TRANSFER_TO);
     }
+    private static final String RETIRED_POST_NGE_PLAYER_COMMANDO_SNARE_ARMOR_EFFECT = "commando_snare_bonus";
+    private static final String RETIRED_POST_NGE_PLAYER_COMMANDO_SNARE_ARMOR_MODIFIER = "commandoInnateArmorBonus";
+    public static boolean isRetiredPostNgePlayerCommandoSnareArmorEffect(String effectName)
+    {
+        return effectName != null && effectName.equals(RETIRED_POST_NGE_PLAYER_COMMANDO_SNARE_ARMOR_EFFECT);
+    }
+    public static boolean isRetiredPostNgePlayerCommandoSnareArmorBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        if (!isPlayer(target) || data == null)
+        {
+            return false;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if (isRetiredPostNgePlayerCommandoSnareArmorEffect(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void clearPostNgePlayerCommandoSnareArmorModifier(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        if (hasSkillModModifier(player, RETIRED_POST_NGE_PLAYER_COMMANDO_SNARE_ARMOR_MODIFIER))
+        {
+            removeAttribOrSkillModModifier(player, RETIRED_POST_NGE_PLAYER_COMMANDO_SNARE_ARMOR_MODIFIER);
+            messageTo(player, "recalcArmor", null, 0.25f, false);
+        }
+    }
+    public static void retirePostNgePlayerCommandoSnareArmorState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs != null && activeBuffs.length > 0)
+        {
+            for (int activeBuff : activeBuffs)
+            {
+                buff_data data = combat_engine.getBuffData(activeBuff);
+                if (isRetiredPostNgePlayerCommandoSnareArmorBuff(player, data))
+                {
+                    removeBuff(player, activeBuff);
+                }
+            }
+        }
+        clearPostNgePlayerCommandoSnareArmorModifier(player);
+    }
     public static boolean isRetiredPostNgePlayerModifierBuff(obj_id target, buff_data data) throws InterruptedException
     {
         if (!isPlayer(target) || data == null)
@@ -1264,6 +1317,7 @@ public class buff extends script.base_script
         retirePostNgePlayerPistolWhipControlState(player);
         retirePostNgePlayerSmugglerTrickState(player);
         retirePostNgePlayerAggroChannelState(player);
+        retirePostNgePlayerCommandoSnareArmorState(player);
         retirePostNgePlayerModifierBuffState(player);
         retirePostNgeMeditationBuffs(player);
         retirePostNgeForceSensitiveStanceState(player);
@@ -1396,6 +1450,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerPistolWhipControlBuff(target, bdata) ||
                 isRetiredPostNgePlayerSmugglerTrickBuff(target, bdata) ||
                 isRetiredPostNgePlayerAggroChannelBuff(target, bdata) ||
+                isRetiredPostNgePlayerCommandoSnareArmorBuff(target, bdata) ||
                 isRetiredPostNgePlayerModifierBuff(target, bdata) ||
                 isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName)))
         {
