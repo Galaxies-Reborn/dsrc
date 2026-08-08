@@ -464,6 +464,11 @@ public class buff_handler extends script.base_script
     }
     public int scriptVarAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) && buff.isRetiredPostNgePlayerProfessionInspirationBuffName(buffName))
+        {
+            buff.clearPostNgePlayerProfessionInspirationScriptVars(self);
+            return SCRIPT_OVERRIDE;
+        }
         effectName = effectName.substring(0, (effectName.lastIndexOf("_")));
         utils.setScriptVar(self, "buff." + effectName + ".value", value);
         return SCRIPT_CONTINUE;
@@ -553,6 +558,11 @@ public class buff_handler extends script.base_script
     }
     public int craftBonusAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) && buff.isRetiredPostNgePlayerProfessionInspirationBuffName(buffName))
+        {
+            buff.clearPostNgePlayerProfessionInspirationScriptVars(self);
+            return SCRIPT_OVERRIDE;
+        }
         float mod = 0.02f;
         if (subtype.equals("artisan"))
         {

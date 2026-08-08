@@ -2031,6 +2031,84 @@ public class buff extends script.base_script
             }
         }
     }
+    private static final String[] RETIRED_POST_NGE_PLAYER_PROFESSION_INSPIRATION_BUFFS =
+    {
+        "general_inspiration",
+        "artisan_inspiration",
+        "entertainer_inspiration",
+        "scout_inspiration",
+        "chef_inspiration",
+        "tailor_inspiration",
+        "bioengineer_inspiration",
+        "merchant_inspiration",
+        "imagedesigner_inspiration",
+        "musician_inspiration",
+        "ranger_inspiration",
+        "architect_inspiration",
+        "droidengineer_inspiration",
+        "weaponsmith_inspiration",
+        "shipwright_inspiration",
+        "armorsmith_inspiration",
+        "dancer_inspiration"
+    };
+    public static boolean isRetiredPostNgePlayerProfessionInspirationBuffName(String buffName)
+    {
+        if (buffName == null)
+        {
+            return false;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_PLAYER_PROFESSION_INSPIRATION_BUFFS)
+        {
+            if (buffName.equals(retiredBuff))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isRetiredPostNgePlayerProfessionInspirationBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        return isPlayer(target) && data != null &&
+            isRetiredPostNgePlayerProfessionInspirationBuffName(data.buffName);
+    }
+    public static void clearPostNgePlayerProfessionInspirationScriptVars(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        utils.removeScriptVarTree(player, "buff.xpBonus");
+        utils.removeScriptVarTree(player, "buff.xpBonusGeneral");
+        utils.removeScriptVarTree(player, "buff.craftBonus");
+        utils.removeScriptVarTree(player, "buff.faction");
+        utils.removeScriptVarTree(player, "buff.instrument");
+        utils.removeScriptVarTree(player, "buff.prop");
+        utils.removeScriptVarTree(player, "buff.holoemote");
+        for (String retiredBuff : RETIRED_POST_NGE_PLAYER_PROFESSION_INSPIRATION_BUFFS)
+        {
+            utils.removeScriptVarTree(player, "buff." + retiredBuff);
+        }
+    }
+    public static void retirePostNgePlayerProfessionInspirationState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs != null)
+        {
+            for (int activeBuff : activeBuffs)
+            {
+                buff_data data = combat_engine.getBuffData(activeBuff);
+                if (isRetiredPostNgePlayerProfessionInspirationBuff(player, data))
+                {
+                    removeBuff(player, activeBuff);
+                }
+            }
+        }
+        clearPostNgePlayerProfessionInspirationScriptVars(player);
+    }
     private static final String[] RETIRED_POST_NGE_PLAYER_GROUP_BUFFS =
     {
         "sl_group_run",
@@ -2366,10 +2444,6 @@ public class buff extends script.base_script
         {
             removeBuff(player, "buildabuff_inspiration");
         }
-        if (hasBuff(player, "general_inspiration"))
-        {
-            removeBuff(player, "general_inspiration");
-        }
         retirePostNgePlayerCommandGrantBuffState(player);
         retirePostNgePlayerActionDrainState(player);
         retirePostNgePlayerActionBurnState(player);
@@ -2395,6 +2469,7 @@ public class buff extends script.base_script
         retirePostNgePlayerMedicDoomState(player);
         retirePostNgePlayerDotStackMutationState(player);
         retirePostNgePlayerProfessionMovementBuffState(player);
+        retirePostNgePlayerProfessionInspirationState(player);
         retirePostNgePlayerGroupBuffState(player);
         retirePostNgePlayerFlatAttributeState(player);
         retirePostNgePlayerAttributePercentState(player);
@@ -2411,9 +2486,6 @@ public class buff extends script.base_script
         retirePostNgeBountyHunterShieldState(player);
         static_item.removeRetiredNgePlayerSkillStatistics(player);
         utils.removeScriptVarTree(player, "performance.buildabuff");
-        utils.removeScriptVarTree(player, "buff.xpBonus");
-        utils.removeScriptVarTree(player, "buff.xpBonusGeneral");
-        utils.removeScriptVarTree(player, "buff.general_inspiration");
         if (hasScript(player, "systems.buff_builder.buff_builder_response"))
         {
             detachScript(player, "systems.buff_builder.buff_builder_response");
@@ -2548,6 +2620,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerMedicDoomBuff(target, bdata) ||
                 isRetiredPostNgePlayerDotStackMutationBuff(target, bdata) ||
                 isRetiredPostNgePlayerProfessionMovementBuff(target, bdata) ||
+                isRetiredPostNgePlayerProfessionInspirationBuff(target, bdata) ||
                 isRetiredPostNgePlayerGroupBuff(target, bdata) ||
                 isRetiredPostNgePlayerFlatAttributeBuff(target, bdata) ||
                 isRetiredPostNgePlayerAttributePercentBuff(target, bdata) ||
