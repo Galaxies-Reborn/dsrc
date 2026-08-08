@@ -1101,6 +1101,11 @@ public class buff_handler extends script.base_script
     }
     public int pvpAuraBuffSelfAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            factions.retirePostNgePvpRewardState(self);
+            return SCRIPT_CONTINUE;
+        }
         attachScript(self, "player.gcw.pvp_aura_buff_controller");
         return SCRIPT_CONTINUE;
     }
