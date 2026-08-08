@@ -1519,6 +1519,11 @@ public class buff_handler extends script.base_script
     }
     public int immunityAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) && buff.isRetiredPostNgePlayerProfessionImmunityBuffName(buffName))
+        {
+            buff.retirePostNgePlayerProfessionImmunityState(self);
+            return SCRIPT_OVERRIDE;
+        }
         String prefixBuilder = "";
         int wholeValue = (int)value;
         if (isPlayer(self) && subtype.equals("dot_immunity") && wholeValue == IMMUNITY_TO_ALL_DOTS)

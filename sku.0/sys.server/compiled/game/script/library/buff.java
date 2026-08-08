@@ -2076,6 +2076,56 @@ public class buff extends script.base_script
             }
         }
     }
+    private static final String[] RETIRED_POST_NGE_PLAYER_PROFESSION_IMMUNITY_BUFFS =
+    {
+        "bm_pet_cure",
+        "me_serotonin_boost_1",
+        "me_serotonin_purge_1",
+        "me_stasis_1",
+        "me_stasis_self_1",
+        "of_stimulator_1",
+        "sp_covert_mastery"
+    };
+    public static boolean isRetiredPostNgePlayerProfessionImmunityBuffName(String buffName)
+    {
+        if (buffName == null)
+        {
+            return false;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_PLAYER_PROFESSION_IMMUNITY_BUFFS)
+        {
+            if (buffName.equals(retiredBuff))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isRetiredPostNgePlayerProfessionImmunityBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        return isPlayer(target) && data != null &&
+            isRetiredPostNgePlayerProfessionImmunityBuffName(data.buffName);
+    }
+    public static void retirePostNgePlayerProfessionImmunityState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs == null || activeBuffs.length == 0)
+        {
+            return;
+        }
+        for (int activeBuff : activeBuffs)
+        {
+            buff_data data = combat_engine.getBuffData(activeBuff);
+            if (isRetiredPostNgePlayerProfessionImmunityBuff(player, data))
+            {
+                removeBuff(player, activeBuff);
+            }
+        }
+    }
     private static final String[] RETIRED_POST_NGE_PLAYER_PROFESSION_INSPIRATION_BUFFS =
     {
         "general_inspiration",
@@ -2726,6 +2776,7 @@ public class buff extends script.base_script
         retirePostNgePlayerMedicDoomState(player);
         retirePostNgePlayerDotStackMutationState(player);
         retirePostNgePlayerProfessionMovementBuffState(player);
+        retirePostNgePlayerProfessionImmunityState(player);
         retirePostNgePlayerProfessionInspirationState(player);
         retirePostNgePlayerProfessionProxyState(player);
         retirePostNgePlayerCommandoSuppressionState(player);
@@ -2880,6 +2931,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerMedicDoomBuff(target, bdata) ||
                 isRetiredPostNgePlayerDotStackMutationBuff(target, bdata) ||
                 isRetiredPostNgePlayerProfessionMovementBuff(target, bdata) ||
+                isRetiredPostNgePlayerProfessionImmunityBuff(target, bdata) ||
                 isRetiredPostNgePlayerProfessionInspirationBuff(target, bdata) ||
                 isRetiredPostNgePlayerProfessionProxyBuff(target, bdata) ||
                 isRetiredPostNgePlayerCommandoSuppressionBuff(target, bdata) ||
