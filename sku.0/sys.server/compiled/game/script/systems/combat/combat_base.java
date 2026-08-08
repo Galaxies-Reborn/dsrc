@@ -159,13 +159,18 @@ public class combat_base extends script.base_script
     {
         // Paint Target is an Officer combat series even though its inherited
         // command name does not use the otherwise consistent of_ prefix.
-        // Entrench is the earlier prefixless iconic Officer action. The
-        // groupWaypoint handler remains PRE-CU Squad Leader-authoritative.
+        // Entrench and Act of War are earlier prefixless iconic Officer
+        // actions. The numbered Act of War rows are retained NGE data only;
+        // groupWaypoint remains PRE-CU Squad Leader-authoritative.
         return isPlayer(self) && actionName != null &&
             (actionName.startsWith("of_") || actionName.equals("paintTarget") ||
                 actionName.startsWith("paintTarget_") ||
                 actionName.equals("applyVortexSnare") ||
-                actionName.equals("entrench"));
+                actionName.equals("entrench") ||
+                actionName.equals("actOfWar") ||
+                actionName.equals("actOfWar_1") ||
+                actionName.equals("actOfWar_2") ||
+                actionName.equals("actOfWar_3"));
     }
     public static boolean isRetiredPostNgeForceSensitivePlayerAction(obj_id self, String actionName) throws InterruptedException
     {
@@ -221,13 +226,18 @@ public class combat_base extends script.base_script
         // Publish 14.1 Commando progression uses combat_commando and classic
         // heavy-weapon commands such as flameSingle*, flameCone*, acid*, and
         // launcher*. The co_ class actions, kill-meter reactions, expertise
-        // procs, and server-only banner_buff_commando proc all belong to the
-        // retained NGE Commando class/expertise family. Keep them available to
-        // NPC and content scripts, but never grant them player combat authority.
+        // procs, prefixless Barrage series, and server-only
+        // banner_buff_commando proc all belong to the retained NGE Commando
+        // class/expertise family. Keep them available to NPC and content
+        // scripts, but never grant them player combat authority.
         return isPlayer(self) && actionName != null &&
             (actionName.startsWith("co_") ||
                 actionName.equals("demolition") ||
                 actionName.equals("stunGrenade") ||
+                actionName.equals("barrage") ||
+                actionName.equals("barrage_1") ||
+                actionName.equals("barrage_2") ||
+                actionName.equals("barrage_3") ||
                 actionName.startsWith("kill_meter_co_") ||
                 actionName.startsWith("expertise_co_") ||
                 actionName.equals("banner_buff_commando"));
