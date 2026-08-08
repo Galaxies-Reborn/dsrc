@@ -3824,7 +3824,8 @@ public class combat_base extends script.base_script
         obj_id defender = defenderData.id;
         int loaded_dice = getEnhancedSkillStatisticModifierUncapped(defenderData.id, "hit_table_add_defender_position");
         int impossible_odds = getEnhancedSkillStatisticModifierUncapped(defenderData.id, "hit_table_defender_add_hit");
-        int hit_always = getEnhancedSkillStatisticModifierUncapped(attacker, "hit_always");
+        int hit_always = isPlayer(attacker) ? 0 :
+            getEnhancedSkillStatisticModifierUncapped(attacker, "hit_always");
         if (hit_always > 0)
         {
             return HIT_RESULT_HIT;
@@ -3891,7 +3892,8 @@ public class combat_base extends script.base_script
     {
         obj_id attacker = attackerData.id;
         obj_id defender = defenderData.id;
-        int crit_always = getEnhancedSkillStatisticModifierUncapped(attacker, "crit_always");
+        int crit_always = isPlayer(attacker) ? 0 :
+            getEnhancedSkillStatisticModifierUncapped(attacker, "crit_always");
         if (crit_always > 0)
         {
             return HIT_RESULT_CRITICAL;
