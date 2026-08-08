@@ -626,6 +626,11 @@ public class buff_handler extends script.base_script
     }
     public void procBuffAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (proc.isRetiredPostNgePlayerProcActor(self))
+        {
+            proc.retirePostNgePlayerProcState(self);
+            return;
+        }
         effectName = effectName.substring(0, (effectName.lastIndexOf("_")));
         if (!utils.hasScriptVar(self, "procBuffEffects"))
         {
@@ -667,6 +672,11 @@ public class buff_handler extends script.base_script
     }
     public void reactiveBuffAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (proc.isRetiredPostNgePlayerProcActor(self))
+        {
+            proc.retirePostNgePlayerProcState(self);
+            return;
+        }
         effectName = effectName.substring(0, (effectName.lastIndexOf("_")));
         if (!utils.hasScriptVar(self, "reacBuffEffects"))
         {
