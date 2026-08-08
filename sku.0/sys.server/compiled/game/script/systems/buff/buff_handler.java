@@ -3415,6 +3415,24 @@ public class buff_handler extends script.base_script
     }
     public void bmBeastFamilyAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (buff.isRetiredPostNgePlayerBeastFamilyBuffName(buffName))
+        {
+            if (isPlayer(self))
+            {
+                beast_lib.retirePostNgeBeastMasterPlayerState(self);
+                return;
+            }
+            if (beast_lib.isRetiredPostNgePlayerOwnedBeast(self))
+            {
+                obj_id master = getMaster(self);
+                beast_lib.retirePostNgeBeastMasterPlayerState(master);
+                if (exists(self) && buff.hasBuff(self, buffName))
+                {
+                    buff.removeBuff(self, buffName);
+                }
+                return;
+            }
+        }
         if (!isPlayer(self))
         {
             obj_id master = getMaster(self);

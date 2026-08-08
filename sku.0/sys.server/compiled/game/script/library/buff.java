@@ -2012,6 +2012,56 @@ public class buff extends script.base_script
             }
         }
     }
+    private static final String[] RETIRED_POST_NGE_PLAYER_BEAST_FAMILY_BUFFS =
+    {
+        "bm_truffle_pig",
+        "bm_helper_monkey_domestic",
+        "bm_helper_monkey_engineering",
+        "bm_helper_monkey_structure",
+        "bm_helper_monkey_munitions",
+        "bm_helper_monkey_jedi",
+        "bm_helper_monkey_shipwright"
+    };
+    public static boolean isRetiredPostNgePlayerBeastFamilyBuffName(String buffName)
+    {
+        if (buffName == null)
+        {
+            return false;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_PLAYER_BEAST_FAMILY_BUFFS)
+        {
+            if (buffName.equals(retiredBuff))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isRetiredPostNgePlayerBeastFamilyBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        return isPlayer(target) && data != null &&
+            isRetiredPostNgePlayerBeastFamilyBuffName(data.buffName);
+    }
+    public static void retirePostNgePlayerBeastFamilyBuffState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs == null || activeBuffs.length == 0)
+        {
+            return;
+        }
+        for (int activeBuff : activeBuffs)
+        {
+            buff_data data = combat_engine.getBuffData(activeBuff);
+            if (isRetiredPostNgePlayerBeastFamilyBuff(player, data))
+            {
+                removeBuff(player, activeBuff);
+            }
+        }
+    }
     private static final String[] RETIRED_POST_NGE_PLAYER_PROFESSION_MOVEMENT_BUFF_PREFIXES =
     {
         "bh_",
@@ -2775,6 +2825,7 @@ public class buff extends script.base_script
         retirePostNgePlayerForceThrowState(player);
         retirePostNgePlayerMedicDoomState(player);
         retirePostNgePlayerDotStackMutationState(player);
+        retirePostNgePlayerBeastFamilyBuffState(player);
         retirePostNgePlayerProfessionMovementBuffState(player);
         retirePostNgePlayerProfessionImmunityState(player);
         retirePostNgePlayerProfessionInspirationState(player);
@@ -2930,6 +2981,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerForceThrowBuff(target, bdata) ||
                 isRetiredPostNgePlayerMedicDoomBuff(target, bdata) ||
                 isRetiredPostNgePlayerDotStackMutationBuff(target, bdata) ||
+                isRetiredPostNgePlayerBeastFamilyBuff(target, bdata) ||
                 isRetiredPostNgePlayerProfessionMovementBuff(target, bdata) ||
                 isRetiredPostNgePlayerProfessionImmunityBuff(target, bdata) ||
                 isRetiredPostNgePlayerProfessionInspirationBuff(target, bdata) ||

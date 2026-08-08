@@ -1058,6 +1058,11 @@ public class player_beastmaster extends script.base_script
     }
     public int bm_pig_forage(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (beast_lib.isRetiredPostNgeBeastMasterPlayer(self))
+        {
+            beast_lib.retirePostNgeBeastMasterPlayerState(self);
+            return SCRIPT_OVERRIDE;
+        }
         obj_id player = self;
         if (!buff.hasBuff(player, "bm_truffle_pig"))
         {
@@ -1071,6 +1076,11 @@ public class player_beastmaster extends script.base_script
     }
     public int bm_helper_monkey_domestic(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (beast_lib.isRetiredPostNgeBeastMasterPlayer(self))
+        {
+            beast_lib.retirePostNgeBeastMasterPlayerState(self);
+            return SCRIPT_OVERRIDE;
+        }
         obj_id player = self;
         if (!buff.hasBuff(player, "bm_helper_monkey_domestic"))
         {
@@ -1084,6 +1094,11 @@ public class player_beastmaster extends script.base_script
     }
     public int bm_helper_monkey_engineering(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (beast_lib.isRetiredPostNgeBeastMasterPlayer(self))
+        {
+            beast_lib.retirePostNgeBeastMasterPlayerState(self);
+            return SCRIPT_OVERRIDE;
+        }
         obj_id player = self;
         if (!buff.hasBuff(player, "bm_helper_monkey_engineering"))
         {
@@ -1097,6 +1112,11 @@ public class player_beastmaster extends script.base_script
     }
     public int bm_helper_monkey_structure(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (beast_lib.isRetiredPostNgeBeastMasterPlayer(self))
+        {
+            beast_lib.retirePostNgeBeastMasterPlayerState(self);
+            return SCRIPT_OVERRIDE;
+        }
         obj_id player = self;
         if (!buff.hasBuff(player, "bm_helper_monkey_structure"))
         {
@@ -1110,6 +1130,11 @@ public class player_beastmaster extends script.base_script
     }
     public int bm_helper_monkey_munitions(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (beast_lib.isRetiredPostNgeBeastMasterPlayer(self))
+        {
+            beast_lib.retirePostNgeBeastMasterPlayerState(self);
+            return SCRIPT_OVERRIDE;
+        }
         obj_id player = self;
         if (!buff.hasBuff(player, "bm_helper_monkey_munitions"))
         {
@@ -1123,6 +1148,11 @@ public class player_beastmaster extends script.base_script
     }
     public int bm_helper_monkey_jedi(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (beast_lib.isRetiredPostNgeBeastMasterPlayer(self))
+        {
+            beast_lib.retirePostNgeBeastMasterPlayerState(self);
+            return SCRIPT_OVERRIDE;
+        }
         obj_id player = self;
         if (!buff.hasBuff(player, "bm_helper_monkey_jedi"))
         {
@@ -1136,6 +1166,11 @@ public class player_beastmaster extends script.base_script
     }
     public int bm_helper_monkey_shipwright(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (beast_lib.isRetiredPostNgeBeastMasterPlayer(self))
+        {
+            beast_lib.retirePostNgeBeastMasterPlayerState(self);
+            return SCRIPT_OVERRIDE;
+        }
         obj_id player = self;
         if (!buff.hasBuff(player, "bm_helper_monkey_shipwright"))
         {
