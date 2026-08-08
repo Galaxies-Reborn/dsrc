@@ -1245,6 +1245,26 @@ public class buff extends script.base_script
         }
         clearPostNgePlayerChannelHealState(player);
     }
+    private static final String RETIRED_POST_NGE_PLAYER_QUEUED_BATTLEFIELD_COMMUNICATION_BUFF = "battlefield_communication_run";
+    public static boolean isRetiredPostNgePlayerQueuedBattlefieldCommunicationBuffName(String buffName)
+    {
+        return buffName != null && buffName.equals(RETIRED_POST_NGE_PLAYER_QUEUED_BATTLEFIELD_COMMUNICATION_BUFF);
+    }
+    public static boolean isRetiredPostNgePlayerQueuedBattlefieldCommunicationBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        return isPlayer(target) && data != null && isRetiredPostNgePlayerQueuedBattlefieldCommunicationBuffName(data.buffName);
+    }
+    public static void retirePostNgePlayerQueuedBattlefieldCommunicationState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        if (hasBuff(player, RETIRED_POST_NGE_PLAYER_QUEUED_BATTLEFIELD_COMMUNICATION_BUFF))
+        {
+            removeBuff(player, RETIRED_POST_NGE_PLAYER_QUEUED_BATTLEFIELD_COMMUNICATION_BUFF);
+        }
+    }
     private static final String RETIRED_POST_NGE_PLAYER_RADAR_INVISIBILITY_EFFECT = "radar_invis";
     public static boolean isRetiredPostNgePlayerRadarInvisibilityEffect(String effectName)
     {
@@ -2812,6 +2832,7 @@ public class buff extends script.base_script
         retirePostNgePlayerLuckHitOverrideState(player);
         retirePostNgePlayerForsakeFearChannelState(player);
         retirePostNgePlayerChannelHealState(player);
+        retirePostNgePlayerQueuedBattlefieldCommunicationState(player);
         retirePostNgePlayerRadarInvisibilityState(player);
         retirePostNgePlayerCooldownExecutionState(player);
         retirePostNgePlayerSaberInterceptState(player);
@@ -2966,6 +2987,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerLuckHitOverrideBuff(target, bdata) ||
                 isRetiredPostNgePlayerForsakeFearChannelBuff(target, bdata) ||
                 isRetiredPostNgePlayerChannelHealBuff(target, bdata) ||
+                isRetiredPostNgePlayerQueuedBattlefieldCommunicationBuff(target, bdata) ||
                 isRetiredPostNgePlayerRadarInvisibilityBuff(target, bdata) ||
                 isRetiredPostNgePlayerCooldownExecutionBuff(target, bdata) ||
                 isRetiredPostNgePlayerSaberInterceptBuff(target, bdata) ||

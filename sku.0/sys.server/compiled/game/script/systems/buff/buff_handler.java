@@ -4866,6 +4866,11 @@ public class buff_handler extends script.base_script
     }
     public int battlefieldCommuncationsGlowAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) && buff.isRetiredPostNgePlayerQueuedBattlefieldCommunicationBuffName(buffName))
+        {
+            buff.retirePostNgePlayerQueuedBattlefieldCommunicationState(self);
+            return SCRIPT_OVERRIDE;
+        }
         buff.removeBuff(self, "battlefield_radar_invisibility");
         if (stealth.hasInvisibleBuff(self))
         {
