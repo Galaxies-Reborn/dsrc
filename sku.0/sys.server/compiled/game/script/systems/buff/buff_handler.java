@@ -1641,6 +1641,10 @@ public class buff_handler extends script.base_script
     }
     public int dotReductionAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (subtype.equals("dot_reduction_acid") || subtype.equals("dot_reduction_all") || subtype.equals("dot_reduction_elemental"))
         {
             buff.reduceBuffDotStackCount(self, buff.DOT_ACID, (int)value);
@@ -1694,6 +1698,10 @@ public class buff_handler extends script.base_script
     }
     public int dotDivisorAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (subtype.equals("dot_divisor_acid") || subtype.equals("dot_divisor_all") || subtype.equals("dot_divisor_elemental"))
         {
             buff.divideBuffDotStackCount(self, buff.DOT_ACID, (int)value);

@@ -1924,6 +1924,49 @@ public class buff extends script.base_script
         }
         clearPostNgePlayerMedicDoomState(player);
     }
+    private static final String RETIRED_POST_NGE_PLAYER_DOT_REDUCTION_EFFECT_PREFIX = "dot_reduction_";
+    private static final String RETIRED_POST_NGE_PLAYER_DOT_DIVISOR_EFFECT_PREFIX = "dot_divisor_";
+    public static boolean isRetiredPostNgePlayerDotStackMutationEffect(String effectName)
+    {
+        return effectName != null &&
+            (effectName.startsWith(RETIRED_POST_NGE_PLAYER_DOT_REDUCTION_EFFECT_PREFIX) ||
+                effectName.startsWith(RETIRED_POST_NGE_PLAYER_DOT_DIVISOR_EFFECT_PREFIX));
+    }
+    public static boolean isRetiredPostNgePlayerDotStackMutationBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        if (!isPlayer(target) || data == null)
+        {
+            return false;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if (isRetiredPostNgePlayerDotStackMutationEffect(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void retirePostNgePlayerDotStackMutationState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs == null || activeBuffs.length == 0)
+        {
+            return;
+        }
+        for (int activeBuff : activeBuffs)
+        {
+            buff_data data = combat_engine.getBuffData(activeBuff);
+            if (isRetiredPostNgePlayerDotStackMutationBuff(player, data))
+            {
+                removeBuff(player, activeBuff);
+            }
+        }
+    }
     private static final String[] RETIRED_POST_NGE_PLAYER_DAMAGE_REDUCTION_MODIFIERS =
     {
         "expertise_damage_decrease_chance",
@@ -2087,6 +2130,7 @@ public class buff extends script.base_script
         retirePostNgePlayerElementalVulnerabilityState(player);
         retirePostNgePlayerForceThrowState(player);
         retirePostNgePlayerMedicDoomState(player);
+        retirePostNgePlayerDotStackMutationState(player);
         retirePostNgePlayerDamageReductionState(player);
         retirePostNgePlayerModifierBuffState(player);
         retirePostNgeMeditationBuffs(player);
@@ -2235,6 +2279,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerElementalVulnerabilityBuff(target, bdata) ||
                 isRetiredPostNgePlayerForceThrowBuff(target, bdata) ||
                 isRetiredPostNgePlayerMedicDoomBuff(target, bdata) ||
+                isRetiredPostNgePlayerDotStackMutationBuff(target, bdata) ||
                 isRetiredPostNgePlayerDamageReductionBuff(target, bdata) ||
                 isRetiredPostNgePlayerModifierBuff(target, bdata) ||
                 isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName)))
