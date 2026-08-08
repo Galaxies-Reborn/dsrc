@@ -4388,6 +4388,11 @@ public class combat extends script.base_script
         {
             return getActionCost(attacker, weaponData, actionData);
         }
+        if (isPlayer(attacker))
+        {
+            static_item.removeRetiredNgePlayerSkillStatistics(attacker);
+            return getActionCost(attacker, weaponData, actionData);
+        }
         int freeMiss = getEnhancedSkillStatisticModifierUncapped(attacker, "freeshot_case_miss");
         int freeDodge = getEnhancedSkillStatisticModifierUncapped(attacker, "freeshot_case_dodge");
         int freeParry = getEnhancedSkillStatisticModifierUncapped(attacker, "freeshot_case_parry");

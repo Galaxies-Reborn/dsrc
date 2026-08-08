@@ -97,6 +97,11 @@ public class static_item extends script.base_script
         "combat_subtract_damage_taken",
         "crit_always",
         "flurry_cooldown_modifier",
+        "freeshot_case_crit",
+        "freeshot_case_dodge",
+        "freeshot_case_miss",
+        "freeshot_case_parry",
+        "freeshot_case_strikethrough",
         "hit_always",
         "of_inspired_action_chance"
     };
