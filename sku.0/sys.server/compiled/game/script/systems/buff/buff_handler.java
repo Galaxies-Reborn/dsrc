@@ -3775,6 +3775,11 @@ public class buff_handler extends script.base_script
     }
     public int fs_choke_handlerAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.retirePostNgeForceSensitiveChokeFlurryState(self);
+            return SCRIPT_OVERRIDE;
+        }
         int buffCrc = getStringCrc(subtype.toLowerCase());
         obj_id owner = utils.getObjIdScriptVar(self, "buffOwner." + buffCrc);
         int imp_choke = getEnhancedSkillStatisticModifierUncapped(owner, "expertise_fs_imp_choke");
@@ -3819,6 +3824,11 @@ public class buff_handler extends script.base_script
     }
     public int fs_flurry_procAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.retirePostNgeForceSensitiveChokeFlurryState(self);
+            return SCRIPT_OVERRIDE;
+        }
         buff.applyBuff(self, self, "attack_override_fs_dm_1|fs_flurry_1");
         buff.applyBuff(self, self, "attack_override_fs_dm_2|fs_flurry_2");
         buff.applyBuff(self, self, "attack_override_fs_dm_3|fs_flurry_3");

@@ -114,6 +114,49 @@ public class buff extends script.base_script
         }
         return false;
     }
+    private static final String[] RETIRED_POST_NGE_FORCE_SENSITIVE_CHOKE_FLURRY_BUFFS =
+    {
+        "fs_choke_handler",
+        "fs_imp_choke_1",
+        "fs_imp_choke_2",
+        "jedi_reflect_flurry_proc_remove",
+        "attack_override_fs_dm_1|fs_flurry_1",
+        "attack_override_fs_dm_2|fs_flurry_2",
+        "attack_override_fs_dm_3|fs_flurry_3",
+        "attack_override_fs_dm_4|fs_flurry_4",
+        "attack_override_fs_dm_5|fs_flurry_5",
+        "attack_override_fs_dm_6|fs_flurry_6",
+        "attack_override_fs_dm_7|fs_flurry_7"
+    };
+    public static boolean isRetiredPostNgeForceSensitiveChokeFlurryBuff(String buffName)
+    {
+        if (buffName == null)
+        {
+            return false;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_FORCE_SENSITIVE_CHOKE_FLURRY_BUFFS)
+        {
+            if (buffName.equals(retiredBuff))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void retirePostNgeForceSensitiveChokeFlurryState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_FORCE_SENSITIVE_CHOKE_FLURRY_BUFFS)
+        {
+            if (hasBuff(player, retiredBuff))
+            {
+                removeBuff(player, retiredBuff);
+            }
+        }
+    }
     public static void retirePostNgeForceSensitiveStanceState(obj_id player) throws InterruptedException
     {
         if (!isIdValid(player) || !exists(player) || !isPlayer(player))
@@ -149,6 +192,7 @@ public class buff extends script.base_script
         utils.removeScriptVarTree(player, "stance.expertise_focus");
         combat.removeCombatBuffEffect(player, "fs_buff_def_1_1");
         combat.removeCombatBuffEffect(player, "fs_buff_ca_1");
+        retirePostNgeForceSensitiveChokeFlurryState(player);
     }
     private static final String[] RETIRED_POST_NGE_PLAYER_FORCE_SENSITIVE_EXPERTISE_IMMUNITY_BUFFS =
     {
@@ -2801,6 +2845,7 @@ public class buff extends script.base_script
         if (isPlayer(target) &&
             (stealth.isRetiredPostP14PlayerInvisibilityName(bdata.buffName) ||
                 isRetiredPostNgeForceSensitiveStanceBuff(bdata.buffName) ||
+                isRetiredPostNgeForceSensitiveChokeFlurryBuff(bdata.buffName) ||
                 isRetiredPostNgeGcwBannerBuff(bdata.buffName) ||
                 isRetiredPostNgeGcwConsumableBuff(bdata.buffName) ||
                 isRetiredPostP14PlayerControlImmunityBuff(bdata.buffName) ||
