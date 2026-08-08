@@ -3720,6 +3720,11 @@ public class combat extends script.base_script
     }
     public static float getAttackerGlancingReduction(obj_id attacker) throws InterruptedException
     {
+        if (isPlayer(attacker))
+        {
+            static_item.removeRetiredNgePlayerSkillStatistics(attacker);
+            return 0.0f;
+        }
         float glancingReduce = 0.0f;
         if (beast_lib.isBeastMaster(attacker) || beast_lib.isBeast(attacker))
         {
@@ -4129,6 +4134,11 @@ public class combat extends script.base_script
     }
     public static float getDefenderCriticalChance(obj_id defender) throws InterruptedException
     {
+        if (isPlayer(defender))
+        {
+            static_item.removeRetiredNgePlayerSkillStatistics(defender);
+            return 0.0f;
+        }
         float critChance = 0.0f;
         critChance -= getEnhancedSkillStatisticModifierUncapped(defender, "critical_hit_vulnerable");
         critChance += (getEnhancedSkillStatisticModifierUncapped(defender, "combat_critical_hit_reduction") / 3.0f);
@@ -4160,6 +4170,11 @@ public class combat extends script.base_script
     }
     public static float getDefenderStrikethroughReduction(obj_id player) throws InterruptedException
     {
+        if (isPlayer(player))
+        {
+            static_item.removeRetiredNgePlayerSkillStatistics(player);
+            return 0.0f;
+        }
         float strikethroughChance = 0.0f;
         strikethroughChance -= getEnhancedSkillStatisticModifierUncapped(player, "strikethrough_vulnerable");
         return strikethroughChance;
