@@ -120,6 +120,10 @@ public class buff_handler extends script.base_script
     }
     public int attribPercentAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) && buff.isRetiredPostNgePlayerAttributePercentBuffName(buffName))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         int attribute = ATTRIB_ERROR;
         switch (subtype) {
             case "health":

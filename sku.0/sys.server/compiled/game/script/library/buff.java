@@ -1967,6 +1967,68 @@ public class buff extends script.base_script
             }
         }
     }
+    private static final String[] RETIRED_POST_NGE_PLAYER_ATTRIBUTE_PERCENT_BUFFS =
+    {
+        "nutrientInjection",
+        "nutrientInjection_1",
+        "nutrientInjection_2",
+        "endorphineInjection",
+        "endorphineInjection_1",
+        "serotoninInjection",
+        "serotoninInjection_1",
+        "hemorrhage",
+        "hemorrhage_1",
+        "traumatize",
+        "traumatize_1",
+        "forceSap",
+        "forceSap_1",
+        "holocron_8",
+        "sl_group_regen",
+        "sl_group_retreat",
+        "combatRegenDebuff",
+        "treasure_bonus_combat_critical_hit",
+        "treasure_bonus_heal_health_action"
+    };
+    public static boolean isRetiredPostNgePlayerAttributePercentBuffName(String buffName)
+    {
+        if (buffName == null)
+        {
+            return false;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_PLAYER_ATTRIBUTE_PERCENT_BUFFS)
+        {
+            if (buffName.equals(retiredBuff))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isRetiredPostNgePlayerAttributePercentBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        return isPlayer(target) && data != null &&
+            isRetiredPostNgePlayerAttributePercentBuffName(data.buffName);
+    }
+    public static void retirePostNgePlayerAttributePercentState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs == null || activeBuffs.length == 0)
+        {
+            return;
+        }
+        for (int activeBuff : activeBuffs)
+        {
+            buff_data data = combat_engine.getBuffData(activeBuff);
+            if (isRetiredPostNgePlayerAttributePercentBuff(player, data))
+            {
+                removeBuff(player, activeBuff);
+            }
+        }
+    }
     private static final String[] RETIRED_POST_NGE_PLAYER_DAMAGE_REDUCTION_MODIFIERS =
     {
         "expertise_damage_decrease_chance",
@@ -2131,6 +2193,7 @@ public class buff extends script.base_script
         retirePostNgePlayerForceThrowState(player);
         retirePostNgePlayerMedicDoomState(player);
         retirePostNgePlayerDotStackMutationState(player);
+        retirePostNgePlayerAttributePercentState(player);
         retirePostNgePlayerDamageReductionState(player);
         retirePostNgePlayerModifierBuffState(player);
         retirePostNgeMeditationBuffs(player);
@@ -2280,6 +2343,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerForceThrowBuff(target, bdata) ||
                 isRetiredPostNgePlayerMedicDoomBuff(target, bdata) ||
                 isRetiredPostNgePlayerDotStackMutationBuff(target, bdata) ||
+                isRetiredPostNgePlayerAttributePercentBuff(target, bdata) ||
                 isRetiredPostNgePlayerDamageReductionBuff(target, bdata) ||
                 isRetiredPostNgePlayerModifierBuff(target, bdata) ||
                 isRetiredPostNgeBountyHunterShieldBuff(bdata.buffName)))
