@@ -3873,6 +3873,13 @@ public class buff_handler extends script.base_script
     }
     public int onAttackRemoveAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) &&
+            (buff.isRetiredPostNgePlayerOnAttackRemoveEffect(effectName) ||
+                buff.isRetiredPostNgePlayerOnAttackRemoveBuffName(buffName)))
+        {
+            buff.clearPostNgePlayerOnAttackRemoveState(self);
+            return SCRIPT_OVERRIDE;
+        }
         Vector removeBuffs = new Vector();
         removeBuffs.setSize(0);
         if (utils.hasScriptVar(self, buff.ON_ATTACK_REMOVE))
@@ -3892,6 +3899,13 @@ public class buff_handler extends script.base_script
     }
     public int onAttackRemoveRemoveBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) &&
+            (buff.isRetiredPostNgePlayerOnAttackRemoveEffect(effectName) ||
+                buff.isRetiredPostNgePlayerOnAttackRemoveBuffName(buffName)))
+        {
+            buff.clearPostNgePlayerOnAttackRemoveState(self);
+            return SCRIPT_OVERRIDE;
+        }
         Vector removeBuffs = new Vector();
         removeBuffs.setSize(0);
         if (utils.hasScriptVar(self, buff.ON_ATTACK_REMOVE))

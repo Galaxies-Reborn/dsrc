@@ -1653,6 +1653,7 @@ public class combat_base extends script.base_script
         boolean precuAuthoritativeAttack =
             isPrecuAuthoritativeAttack(attackerData.id, actionData);
         buff.clearPostNgePlayerCriticalOverrideScriptVars(attackerData.id);
+        buff.clearPostNgePlayerOnAttackRemoveState(attackerData.id);
         attackerResults.id = attackerData.id;
         attackerResults.weapon = weaponData.id;
         attackerResults.endPosture = (!isTangibleAttacking && (combat.isMeleeWeapon(weaponData.id) || combat.isLightsaberWeapon(weaponData.id))) ? POSTURE_UPRIGHT : getPosture(attackerData.id);

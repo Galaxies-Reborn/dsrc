@@ -932,6 +932,63 @@ public class buff extends script.base_script
         }
         clearPostNgePlayerCriticalOverrideScriptVars(player);
     }
+    private static final String RETIRED_POST_NGE_PLAYER_ON_ATTACK_REMOVE_EFFECT = "on_attack_remove";
+    private static final String RETIRED_POST_NGE_PLAYER_ON_ATTACK_REMOVE_BUFF = "sp_shifty_setup";
+    public static boolean isRetiredPostNgePlayerOnAttackRemoveEffect(String effectName)
+    {
+        return effectName != null && effectName.equals(RETIRED_POST_NGE_PLAYER_ON_ATTACK_REMOVE_EFFECT);
+    }
+    public static boolean isRetiredPostNgePlayerOnAttackRemoveBuffName(String buffName)
+    {
+        return buffName != null && buffName.equals(RETIRED_POST_NGE_PLAYER_ON_ATTACK_REMOVE_BUFF);
+    }
+    public static boolean isRetiredPostNgePlayerOnAttackRemoveBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        if (!isPlayer(target) || data == null)
+        {
+            return false;
+        }
+        if (isRetiredPostNgePlayerOnAttackRemoveBuffName(data.buffName))
+        {
+            return true;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if (isRetiredPostNgePlayerOnAttackRemoveEffect(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void clearPostNgePlayerOnAttackRemoveState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        utils.removeScriptVarTree(player, ON_ATTACK_REMOVE);
+    }
+    public static void retirePostNgePlayerOnAttackRemoveState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs != null && activeBuffs.length > 0)
+        {
+            for (int activeBuff : activeBuffs)
+            {
+                buff_data data = combat_engine.getBuffData(activeBuff);
+                if (isRetiredPostNgePlayerOnAttackRemoveBuff(player, data))
+                {
+                    removeBuff(player, activeBuff);
+                }
+            }
+        }
+        clearPostNgePlayerOnAttackRemoveState(player);
+    }
     private static final String[] RETIRED_POST_NGE_PLAYER_LUCK_HIT_OVERRIDE_EFFECTS =
     {
         "sm_impossible_odds",
@@ -1925,6 +1982,7 @@ public class buff extends script.base_script
         retirePostNgePlayerDamageDealtOverrideState(player);
         retirePostNgePlayerWeaponSpeedOverrideState(player);
         retirePostNgePlayerCriticalOverrideState(player);
+        retirePostNgePlayerOnAttackRemoveState(player);
         retirePostNgePlayerLuckHitOverrideState(player);
         retirePostNgePlayerForsakeFearChannelState(player);
         retirePostNgePlayerChannelHealState(player);
@@ -2069,6 +2127,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerDamageDealtOverrideBuff(target, bdata) ||
                 isRetiredPostNgePlayerWeaponSpeedOverrideBuff(target, bdata) ||
                 isRetiredPostNgePlayerCriticalOverrideBuff(target, bdata) ||
+                isRetiredPostNgePlayerOnAttackRemoveBuff(target, bdata) ||
                 isRetiredPostNgePlayerLuckHitOverrideBuff(target, bdata) ||
                 isRetiredPostNgePlayerForsakeFearChannelBuff(target, bdata) ||
                 isRetiredPostNgePlayerChannelHealBuff(target, bdata) ||
