@@ -150,7 +150,12 @@ public class combat_base extends script.base_script
     }
     public static boolean isRetiredPostNgeOfficerPlayerAction(obj_id self, String actionName) throws InterruptedException
     {
-        return isPlayer(self) && actionName != null && actionName.startsWith("of_");
+        // Paint Target is an Officer combat series even though its inherited
+        // command name does not use the otherwise consistent of_ prefix.
+        return isPlayer(self) && actionName != null &&
+            (actionName.startsWith("of_") || actionName.equals("paintTarget") ||
+                actionName.startsWith("paintTarget_") ||
+                actionName.equals("applyVortexSnare"));
     }
     public static boolean isRetiredPostNgeForceSensitivePlayerAction(obj_id self, String actionName) throws InterruptedException
     {
@@ -186,7 +191,10 @@ public class combat_base extends script.base_script
             (actionName.startsWith("bh_") ||
                 actionName.equals("set_bonus_bh_utility_a_1") ||
                 actionName.equals("set_bonus_bh_utility_a_2") ||
-                actionName.equals("set_bonus_bh_utility_a_3"));
+                actionName.equals("set_bonus_bh_utility_a_3") ||
+                actionName.equals("dire_root_recourse") ||
+                actionName.equals("dire_snare_recourse") ||
+                actionName.equals("bountycheck"));
     }
     public static boolean isRetiredPostNgeCommandoPlayerAction(obj_id self, String actionName) throws InterruptedException
     {

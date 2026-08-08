@@ -2109,6 +2109,88 @@ public class buff extends script.base_script
         }
         clearPostNgePlayerProfessionInspirationScriptVars(player);
     }
+    private static final String[] RETIRED_POST_NGE_PLAYER_PROFESSION_PROXY_BUFFS =
+    {
+        "exclusive_proxy_bh_del_cc_1",
+        "exclusive_proxy_bh_del_cc_2",
+        "exclusive_proxy_bh_del_cc_3",
+        "exclusive_proxy_bh_del_dm_cc_dot_1",
+        "exclusive_proxy_bh_del_dm_cc_dot_2",
+        "exclusive_proxy_bh_del_dm_cc_dot_3",
+        "exclusive_proxy_of_last_words",
+        "exclusive_proxy_bh_dire_root_1",
+        "exclusive_proxy_of_vortex_root_1",
+        "exclusive_proxy_of_vortex_root_2",
+        "exclusive_proxy_of_vortex_root_3",
+        "exclusive_proxy_of_vortex_root_4",
+        "exclusive_proxy_of_vortex_root_5",
+        "of_pt_proxy_1",
+        "of_pt_proxy_2",
+        "of_pt_proxy_3",
+        "of_pt_proxy_4",
+        "of_pt_proxy_5",
+        "of_pt_proxy_6",
+        "of_pt_proxy_7",
+        "of_pt_proxy_8",
+        "bh_del_cc_1",
+        "bh_del_cc_2",
+        "bh_del_cc_3",
+        "bh_del_dm_cc_dot_1",
+        "bh_del_dm_cc_dot_2",
+        "bh_del_dm_cc_dot_3",
+        "of_last_words",
+        "of_last_words_recourse",
+        "bh_dire_root_1",
+        "bh_dire_snare_1",
+        "dire_root_recourse",
+        "dire_snare_recourse",
+        "of_vortex_root",
+        "of_vortex_snare",
+        "of_vortex_bleed_1",
+        "of_vortex_bleed_2",
+        "of_vortex_bleed_3",
+        "of_vortex_bleed_4",
+        "of_vortex_bleed_5"
+    };
+    public static boolean isRetiredPostNgePlayerProfessionProxyBuffName(String buffName)
+    {
+        if (buffName == null)
+        {
+            return false;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_PLAYER_PROFESSION_PROXY_BUFFS)
+        {
+            if (buffName.equals(retiredBuff))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isRetiredPostNgePlayerProfessionProxyBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        return isPlayer(target) && data != null &&
+            isRetiredPostNgePlayerProfessionProxyBuffName(data.buffName);
+    }
+    public static void retirePostNgePlayerProfessionProxyState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs != null)
+        {
+            for (int activeBuff : activeBuffs)
+            {
+                buff_data data = combat_engine.getBuffData(activeBuff);
+                if (isRetiredPostNgePlayerProfessionProxyBuff(player, data))
+                {
+                    removeBuff(player, activeBuff);
+                }
+            }
+        }
+    }
     private static final String[] RETIRED_POST_NGE_PLAYER_GROUP_BUFFS =
     {
         "sl_group_run",
@@ -2470,6 +2552,7 @@ public class buff extends script.base_script
         retirePostNgePlayerDotStackMutationState(player);
         retirePostNgePlayerProfessionMovementBuffState(player);
         retirePostNgePlayerProfessionInspirationState(player);
+        retirePostNgePlayerProfessionProxyState(player);
         retirePostNgePlayerGroupBuffState(player);
         retirePostNgePlayerFlatAttributeState(player);
         retirePostNgePlayerAttributePercentState(player);
@@ -2621,6 +2704,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerDotStackMutationBuff(target, bdata) ||
                 isRetiredPostNgePlayerProfessionMovementBuff(target, bdata) ||
                 isRetiredPostNgePlayerProfessionInspirationBuff(target, bdata) ||
+                isRetiredPostNgePlayerProfessionProxyBuff(target, bdata) ||
                 isRetiredPostNgePlayerGroupBuff(target, bdata) ||
                 isRetiredPostNgePlayerFlatAttributeBuff(target, bdata) ||
                 isRetiredPostNgePlayerAttributePercentBuff(target, bdata) ||

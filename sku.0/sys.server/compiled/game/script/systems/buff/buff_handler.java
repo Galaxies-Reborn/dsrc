@@ -378,6 +378,11 @@ public class buff_handler extends script.base_script
     }
     public int exclusiveProxyAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) && buff.isRetiredPostNgePlayerProfessionProxyBuffName(buffName))
+        {
+            buff.retirePostNgePlayerProfessionProxyState(self);
+            return SCRIPT_OVERRIDE;
+        }
         int[] buffs = buff.getAllBuffs(self);
         if (subtype != null && !subtype.equals(""))
         {

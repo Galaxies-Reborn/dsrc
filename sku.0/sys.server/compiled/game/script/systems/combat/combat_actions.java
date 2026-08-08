@@ -10488,6 +10488,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int applyVortexSnare(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isRetiredPostNgeOfficerPlayerAction(self, "applyVortexSnare"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!buff.hasBuff(self, "of_vortex_snare"))
         {
             buff.applyBuff(self, self, "of_vortex_snare");
@@ -13319,6 +13323,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int dire_root_recourse(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isRetiredPostNgeBountyHunterPlayerAction(self, "dire_root_recourse"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!buff.hasBuff(self, "dire_root_recourse"))
         {
             buff.applyBuff(self, self, "dire_root_recourse");
@@ -13327,6 +13335,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int dire_snare_recourse(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isRetiredPostNgeBountyHunterPlayerAction(self, "dire_snare_recourse"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!buff.hasBuff(self, "dire_snare_recourse"))
         {
             buff.applyBuff(self, self, "dire_snare_recourse");
@@ -13335,6 +13347,10 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public int bountycheck(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (isRetiredPostNgeBountyHunterPlayerAction(self, "bountycheck"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         obj_id originalTarget = target;
         if (bounty_hunter.canCheckForBounty(self, target))
         {
