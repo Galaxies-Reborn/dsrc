@@ -2191,6 +2191,135 @@ public class buff extends script.base_script
             }
         }
     }
+    private static final String[] RETIRED_POST_NGE_PLAYER_COMMANDO_SUPPRESSION_BUFFS =
+    {
+        "co_supressing_handler",
+        "co_supressing_fire_0",
+        "co_supressing_fire_1",
+        "co_supressing_fire_2",
+        "co_supressing_fire_3",
+        "co_supressing_fire_4"
+    };
+    private static final String[] RETIRED_POST_NGE_PLAYER_COMMANDO_SUPPRESSION_EFFECTS =
+    {
+        "supression_handler",
+        "supress_movement"
+    };
+    private static final String[] RETIRED_POST_NGE_PLAYER_COMMANDO_SUPPRESSION_MODIFIERS =
+    {
+        "glancing_blow_vulnerable",
+        "expertise_supression_speed",
+        "expertise_supression_glance"
+    };
+    public static boolean isRetiredPostNgePlayerCommandoSuppressionBuffName(String buffName)
+    {
+        if (buffName == null)
+        {
+            return false;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_PLAYER_COMMANDO_SUPPRESSION_BUFFS)
+        {
+            if (buffName.equals(retiredBuff))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isRetiredPostNgePlayerCommandoSuppressionEffect(String effectName)
+    {
+        if (effectName == null)
+        {
+            return false;
+        }
+        for (String retiredEffect : RETIRED_POST_NGE_PLAYER_COMMANDO_SUPPRESSION_EFFECTS)
+        {
+            if (effectName.equals(retiredEffect) || effectName.startsWith(retiredEffect + "_"))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isRetiredPostNgePlayerCommandoSuppressionBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        if (!isPlayer(target) || data == null)
+        {
+            return false;
+        }
+        if (isRetiredPostNgePlayerCommandoSuppressionBuffName(data.buffName))
+        {
+            return true;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if (isRetiredPostNgePlayerCommandoSuppressionEffect(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void clearPostNgePlayerCommandoSuppressionModifiers(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        for (String retiredModifier : RETIRED_POST_NGE_PLAYER_COMMANDO_SUPPRESSION_MODIFIERS)
+        {
+            if (hasSkillModModifier(player, retiredModifier))
+            {
+                removeAttribOrSkillModModifier(player, retiredModifier);
+            }
+            for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+            {
+                String indexedModifier = retiredModifier + "_" + effect;
+                if (hasSkillModModifier(player, indexedModifier))
+                {
+                    removeAttribOrSkillModModifier(player, indexedModifier);
+                }
+            }
+            int currentValue = getSkillStatMod(player, retiredModifier);
+            if (currentValue != 0)
+            {
+                applySkillStatisticModifier(player, retiredModifier, -currentValue);
+            }
+        }
+        combat.cacheCombatData(player);
+    }
+    public static void retirePostNgePlayerCommandoSuppressionState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        boolean removedMovementSuppression = false;
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs != null)
+        {
+            for (int activeBuff : activeBuffs)
+            {
+                buff_data data = combat_engine.getBuffData(activeBuff);
+                if (isRetiredPostNgePlayerCommandoSuppressionBuff(player, data))
+                {
+                    for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+                    {
+                        if ("supress_movement".equals(getEffectParam(data, effect)))
+                        {
+                            removedMovementSuppression = true;
+                        }
+                    }
+                    removeBuff(player, activeBuff);
+                }
+            }
+        }
+        clearPostNgePlayerCommandoSuppressionModifiers(player);
+        if (removedMovementSuppression)
+        {
+            removeSlowDownEffect(player);
+        }
+    }
     private static final String[] RETIRED_POST_NGE_PLAYER_GROUP_BUFFS =
     {
         "sl_group_run",
@@ -2553,6 +2682,7 @@ public class buff extends script.base_script
         retirePostNgePlayerProfessionMovementBuffState(player);
         retirePostNgePlayerProfessionInspirationState(player);
         retirePostNgePlayerProfessionProxyState(player);
+        retirePostNgePlayerCommandoSuppressionState(player);
         retirePostNgePlayerGroupBuffState(player);
         retirePostNgePlayerFlatAttributeState(player);
         retirePostNgePlayerAttributePercentState(player);
@@ -2705,6 +2835,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerProfessionMovementBuff(target, bdata) ||
                 isRetiredPostNgePlayerProfessionInspirationBuff(target, bdata) ||
                 isRetiredPostNgePlayerProfessionProxyBuff(target, bdata) ||
+                isRetiredPostNgePlayerCommandoSuppressionBuff(target, bdata) ||
                 isRetiredPostNgePlayerGroupBuff(target, bdata) ||
                 isRetiredPostNgePlayerFlatAttributeBuff(target, bdata) ||
                 isRetiredPostNgePlayerAttributePercentBuff(target, bdata) ||

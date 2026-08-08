@@ -4016,6 +4016,11 @@ public class buff_handler extends script.base_script
     }
     public int supression_handlerAddBuffHandler(obj_id self, String effectName, String subytype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.retirePostNgePlayerCommandoSuppressionState(self);
+            return SCRIPT_OVERRIDE;
+        }
         float improvedSpeed = getEnhancedSkillStatisticModifierUncapped(caster, "expertise_supression_speed");
         int level = Math.round(improvedSpeed / 10.0f);
         buff.applyBuff(self, caster, "co_supressing_fire_" + level);
@@ -4027,6 +4032,11 @@ public class buff_handler extends script.base_script
     }
     public int movementSupressingEffectAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.retirePostNgePlayerCommandoSuppressionState(self);
+            return SCRIPT_OVERRIDE;
+        }
         float snareResist = 0.0f;
         if (isMob(self) && !isPlayer(self))
         {
