@@ -407,6 +407,11 @@ public class buff_handler extends script.base_script
     }
     public int excludeSelfAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) && buff.isRetiredPostNgePlayerProfessionProxyBuffName(buffName))
+        {
+            buff.retirePostNgePlayerProfessionProxyState(self);
+            return SCRIPT_OVERRIDE;
+        }
         int[] buffs = buff.getAllBuffs(self);
         for (int b : buffs) {
             String thisBuffName = buff.getBuffNameFromCrc(b);

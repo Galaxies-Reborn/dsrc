@@ -2163,6 +2163,7 @@ public class buff extends script.base_script
         "exclusive_proxy_bh_del_dm_cc_dot_2",
         "exclusive_proxy_bh_del_dm_cc_dot_3",
         "exclusive_proxy_of_last_words",
+        "exclude_self_exclusive_proxy_of_last_words",
         "exclusive_proxy_bh_dire_root_1",
         "exclusive_proxy_of_vortex_root_1",
         "exclusive_proxy_of_vortex_root_2",
