@@ -1967,6 +1967,62 @@ public class buff extends script.base_script
             }
         }
     }
+    private static final String[] RETIRED_POST_NGE_PLAYER_FLAT_ATTRIBUTE_BUFFS =
+    {
+        "crystal_buff",
+        "holocron_1",
+        "holocron_4",
+        "holocron_5",
+        "holocron_6",
+        "trivialComboRngSpeed",
+        "towConstStamina_1",
+        "towConstStamina_2",
+        "towConstWillpower_1",
+        "towConstWillpower_2",
+        "towStaminaWillpower_1",
+        "towStaminaWillpower_2",
+        "forceCrystalForce"
+    };
+    public static boolean isRetiredPostNgePlayerFlatAttributeBuffName(String buffName)
+    {
+        if (buffName == null)
+        {
+            return false;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_PLAYER_FLAT_ATTRIBUTE_BUFFS)
+        {
+            if (buffName.equals(retiredBuff))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isRetiredPostNgePlayerFlatAttributeBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        return isPlayer(target) && data != null &&
+            isRetiredPostNgePlayerFlatAttributeBuffName(data.buffName);
+    }
+    public static void retirePostNgePlayerFlatAttributeState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs == null || activeBuffs.length == 0)
+        {
+            return;
+        }
+        for (int activeBuff : activeBuffs)
+        {
+            buff_data data = combat_engine.getBuffData(activeBuff);
+            if (isRetiredPostNgePlayerFlatAttributeBuff(player, data))
+            {
+                removeBuff(player, activeBuff);
+            }
+        }
+    }
     private static final String[] RETIRED_POST_NGE_PLAYER_ATTRIBUTE_PERCENT_BUFFS =
     {
         "nutrientInjection",
@@ -2193,6 +2249,7 @@ public class buff extends script.base_script
         retirePostNgePlayerForceThrowState(player);
         retirePostNgePlayerMedicDoomState(player);
         retirePostNgePlayerDotStackMutationState(player);
+        retirePostNgePlayerFlatAttributeState(player);
         retirePostNgePlayerAttributePercentState(player);
         retirePostNgePlayerDamageReductionState(player);
         retirePostNgePlayerModifierBuffState(player);
@@ -2343,6 +2400,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerForceThrowBuff(target, bdata) ||
                 isRetiredPostNgePlayerMedicDoomBuff(target, bdata) ||
                 isRetiredPostNgePlayerDotStackMutationBuff(target, bdata) ||
+                isRetiredPostNgePlayerFlatAttributeBuff(target, bdata) ||
                 isRetiredPostNgePlayerAttributePercentBuff(target, bdata) ||
                 isRetiredPostNgePlayerDamageReductionBuff(target, bdata) ||
                 isRetiredPostNgePlayerModifierBuff(target, bdata) ||
