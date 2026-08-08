@@ -6694,6 +6694,11 @@ public class combat_base extends script.base_script
     }
     public combat_data attackOverrideByBuff(obj_id self, combat_data actionData) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            static_item.removeRetiredNgePlayerSkillStatistics(self);
+            return actionData;
+        }
         int hasAO = getEnhancedSkillStatisticModifierUncapped(self, "attack_override_by_buff");
         if (hasAO < 1)
         {

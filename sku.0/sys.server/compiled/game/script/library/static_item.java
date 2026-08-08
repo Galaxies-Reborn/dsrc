@@ -69,6 +69,7 @@ public class static_item extends script.base_script
     };
     public static final String[] RETIRED_NGE_BUFF_COMBAT_MODIFIERS =
     {
+        "attack_override_by_buff",
         "combat_add_damage_dealt",
         "combat_add_damage_taken",
         "combat_all_attack_avoidance",
