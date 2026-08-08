@@ -96,7 +96,9 @@ public class static_item extends script.base_script
         "combat_subtract_damage_dealt",
         "combat_subtract_damage_taken",
         "crit_always",
-        "hit_always"
+        "flurry_cooldown_modifier",
+        "hit_always",
+        "of_inspired_action_chance"
     };
     public static final java.text.NumberFormat noDecimalFormat = new java.text.DecimalFormat("###");
     public static final String SET_BONUS_TABLE = "datatables/item/item_sets.iff";

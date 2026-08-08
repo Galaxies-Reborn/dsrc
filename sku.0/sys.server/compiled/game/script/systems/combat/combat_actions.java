@@ -5964,6 +5964,11 @@ public class combat_actions extends script.systems.combat.combat_base
     }
     public void doInspiredAction(obj_id officer) throws InterruptedException
     {
+        if (isPlayer(officer))
+        {
+            static_item.removeRetiredNgePlayerSkillStatistics(officer);
+            return;
+        }
         int bonusChance = getEnhancedSkillStatisticModifierUncapped(officer, "of_inspired_action_chance");
         if (bonusChance > 0)
         {
