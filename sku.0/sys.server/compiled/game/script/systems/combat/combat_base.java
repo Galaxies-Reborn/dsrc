@@ -178,8 +178,15 @@ public class combat_base extends script.base_script
         // Publish 14.1 Bounty Hunter progression uses combat_bountyhunter and
         // classic commands such as eyeShot, torsoShot, bleedingShot, sprayShot,
         // droid_find, and droid_track. The bh_* family belongs to retained NGE
-        // class/expertise rows, so keep it usable by NPC/content scripts only.
-        return isPlayer(self) && actionName != null && actionName.startsWith("bh_");
+        // class/expertise rows. The three set_bonus_bh_utility_a_* actions are
+        // the retained Flawless Strike item-set proc chain and share the same
+        // post-NGE ownership. Keep all four paths usable by NPC/content scripts
+        // only.
+        return isPlayer(self) && actionName != null &&
+            (actionName.startsWith("bh_") ||
+                actionName.equals("set_bonus_bh_utility_a_1") ||
+                actionName.equals("set_bonus_bh_utility_a_2") ||
+                actionName.equals("set_bonus_bh_utility_a_3"));
     }
     public static boolean isRetiredPostNgeCommandoPlayerAction(obj_id self, String actionName) throws InterruptedException
     {

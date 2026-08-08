@@ -199,6 +199,116 @@ public class buff extends script.base_script
         }
         clearPostNgePlayerForceSensitiveExpertiseImmunityResidue(player);
     }
+    private static final String[] RETIRED_POST_NGE_PLAYER_BOUNTY_HUNTER_FLAWLESS_BUFFS =
+    {
+        "set_bonus_bh_utility_a_1",
+        "set_bonus_bh_utility_a_2",
+        "set_bonus_bh_utility_a_3",
+        "bh_flawless_strike",
+        "bh_flawless_proc_chance_1",
+        "flawless_bead_1",
+        "flawless_bead_2",
+        "flawless_bead_3"
+    };
+    private static final String[] RETIRED_POST_NGE_PLAYER_BOUNTY_HUNTER_FLAWLESS_MODIFIERS =
+    {
+        "bh_flawless_bead",
+        "flawless_bead",
+        "expertise_cooldown_line_bh_flawless_strike",
+        "set_bonus_bh_utility_a_1",
+        "set_bonus_bh_utility_a_2",
+        "set_bonus_bh_utility_a_3"
+    };
+    private static final String[] RETIRED_POST_NGE_PLAYER_BOUNTY_HUNTER_FLAWLESS_ACTIONS =
+    {
+        "bh_flawless_strike",
+        "set_bonus_bh_utility_a_1",
+        "set_bonus_bh_utility_a_2",
+        "set_bonus_bh_utility_a_3"
+    };
+    public static boolean isRetiredPostNgePlayerBountyHunterFlawlessBuffName(String buffName)
+    {
+        if (buffName == null)
+        {
+            return false;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_PLAYER_BOUNTY_HUNTER_FLAWLESS_BUFFS)
+        {
+            if (buffName.equals(retiredBuff))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isRetiredPostNgePlayerBountyHunterFlawlessEffect(String effectName)
+    {
+        return effectName != null && effectName.equals("bh_flawless_proc_chance");
+    }
+    public static boolean isRetiredPostNgePlayerBountyHunterFlawlessBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        if (!isPlayer(target) || data == null)
+        {
+            return false;
+        }
+        if (isRetiredPostNgePlayerBountyHunterFlawlessBuffName(data.buffName))
+        {
+            return true;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if (isRetiredPostNgePlayerBountyHunterFlawlessEffect(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void clearPostNgePlayerBountyHunterFlawlessResidue(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        if (hasBuff(player, "bh_flawless_proc_chance_1"))
+        {
+            removeBuff(player, "bh_flawless_proc_chance_1");
+        }
+        for (String retiredModifier : RETIRED_POST_NGE_PLAYER_BOUNTY_HUNTER_FLAWLESS_MODIFIERS)
+        {
+            if (hasSkillModModifier(player, retiredModifier))
+            {
+                removeAttribOrSkillModModifier(player, retiredModifier);
+            }
+            int currentValue = getSkillStatMod(player, retiredModifier);
+            if (currentValue != 0)
+            {
+                applySkillStatisticModifier(player, retiredModifier, -currentValue);
+            }
+        }
+        for (String retiredAction : RETIRED_POST_NGE_PLAYER_BOUNTY_HUNTER_FLAWLESS_ACTIONS)
+        {
+            while (hasCommand(player, retiredAction))
+            {
+                revokeCommand(player, retiredAction);
+            }
+        }
+    }
+    public static void retirePostNgePlayerBountyHunterFlawlessState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_PLAYER_BOUNTY_HUNTER_FLAWLESS_BUFFS)
+        {
+            if (hasBuff(player, retiredBuff))
+            {
+                removeBuff(player, retiredBuff);
+            }
+        }
+        clearPostNgePlayerBountyHunterFlawlessResidue(player);
+    }
     private static final String[] RETIRED_POST_NGE_GCW_BANNER_BUFFS =
     {
         "banner_buff_commando",
@@ -1793,6 +1903,7 @@ public class buff extends script.base_script
         retirePostNgePlayerModifierBuffState(player);
         retirePostNgeMeditationBuffs(player);
         retirePostNgePlayerForceSensitiveExpertiseImmunityState(player);
+        retirePostNgePlayerBountyHunterFlawlessState(player);
         retirePostNgeForceSensitiveStanceState(player);
         retirePostNgeGcwBannerBuffState(player);
         retirePostNgeGcwConsumableBuffState(player);
@@ -1926,6 +2037,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerCommandoSnareArmorBuff(target, bdata) ||
                 isRetiredPostNgePlayerCommandoSpecializedBuff(target, bdata) ||
                 isRetiredPostNgePlayerForceSensitiveExpertiseImmunityBuff(target, bdata) ||
+                isRetiredPostNgePlayerBountyHunterFlawlessBuff(target, bdata) ||
                 isRetiredPostNgePlayerElementalVulnerabilityBuff(target, bdata) ||
                 isRetiredPostNgePlayerForceThrowBuff(target, bdata) ||
                 isRetiredPostNgePlayerMedicDoomBuff(target, bdata) ||

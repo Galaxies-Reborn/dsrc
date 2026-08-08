@@ -3958,11 +3958,25 @@ public class buff_handler extends script.base_script
     }
     public int bhFlawlessAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) &&
+            (buff.isRetiredPostNgePlayerBountyHunterFlawlessEffect(effectName) ||
+                buff.isRetiredPostNgePlayerBountyHunterFlawlessBuffName(buffName)))
+        {
+            buff.retirePostNgePlayerBountyHunterFlawlessState(self);
+            return SCRIPT_OVERRIDE;
+        }
         buff.applyBuff(self, "bh_flawless_proc_chance_1");
         return SCRIPT_CONTINUE;
     }
     public int bhFlawlessRemoveBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) &&
+            (buff.isRetiredPostNgePlayerBountyHunterFlawlessEffect(effectName) ||
+                buff.isRetiredPostNgePlayerBountyHunterFlawlessBuffName(buffName)))
+        {
+            buff.clearPostNgePlayerBountyHunterFlawlessResidue(self);
+            return SCRIPT_OVERRIDE;
+        }
         buff.removeBuff(self, "bh_flawless_proc_chance_1");
         return SCRIPT_CONTINUE;
     }
