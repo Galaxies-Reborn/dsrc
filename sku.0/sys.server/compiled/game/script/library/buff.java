@@ -2095,6 +2095,8 @@ public class buff extends script.base_script
         "sp_",
         "sl_group_"
     };
+    private static final String RETIRED_POST_NGE_PLAYER_PROFESSION_MOVEMENT_TABLE_BUFF =
+        "en_unhealthy_fixation_debuff";
     public static boolean isRetiredPostNgePlayerProfessionMovementBuffName(String buffName)
     {
         if (buffName == null)
@@ -2116,6 +2118,10 @@ public class buff extends script.base_script
             !isRetiredPostNgePlayerProfessionMovementBuffName(data.buffName))
         {
             return false;
+        }
+        if (data.buffName.equals(RETIRED_POST_NGE_PLAYER_PROFESSION_MOVEMENT_TABLE_BUFF))
+        {
+            return true;
         }
         for (int effect = 1; effect <= MAX_EFFECTS; effect++)
         {
