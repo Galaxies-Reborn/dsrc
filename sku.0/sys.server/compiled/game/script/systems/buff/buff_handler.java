@@ -3028,6 +3028,10 @@ public class buff_handler extends script.base_script
     }
     public int groupAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) && buff.isRetiredPostNgePlayerGroupBuffName(buffName))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         effectName = effectName.substring(0, (effectName.lastIndexOf("_")));
         int[] buffList = new int[1];
         buffList[0] = getStringCrc(effectName.toLowerCase());
