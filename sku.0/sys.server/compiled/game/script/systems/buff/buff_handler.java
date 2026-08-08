@@ -2532,6 +2532,13 @@ public class buff_handler extends script.base_script
     }
     public int bodyguardDefenderAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) &&
+            (buff.isRetiredPostNgePlayerDamageRedirectEffect(effectName) ||
+                buff.isRetiredPostNgePlayerDamageRedirectBuffName(buffName)))
+        {
+            buff.retirePostNgePlayerDamageRedirectState(self);
+            return SCRIPT_OVERRIDE;
+        }
         if (subtype.equals("shield_master_pet"))
         {
             obj_id master = getMaster(self);
@@ -2539,6 +2546,11 @@ public class buff_handler extends script.base_script
             {
                 buff.removeBuff(self, "bm_shield_master_pet");
                 return SCRIPT_CONTINUE;
+            }
+            if (isPlayer(master))
+            {
+                buff.retirePostNgePlayerDamageRedirectState(master);
+                return SCRIPT_OVERRIDE;
             }
             buff.applyBuff(master, self, "bm_shield_master_player");
             return SCRIPT_CONTINUE;
@@ -2548,6 +2560,11 @@ public class buff_handler extends script.base_script
             obj_id master = getMaster(self);
             if (isIdValid(master) && exists(master))
             {
+                if (isPlayer(master))
+                {
+                    buff.retirePostNgePlayerDamageRedirectState(master);
+                    return SCRIPT_OVERRIDE;
+                }
                 utils.setScriptVar(master, combat.DAMAGE_REDIRECT, self);
                 buff.applyBuff(master, self, "bodyguard");
             }
@@ -2557,11 +2574,23 @@ public class buff_handler extends script.base_script
     }
     public int bodyguardDefenderRemoveBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) &&
+            (buff.isRetiredPostNgePlayerDamageRedirectEffect(effectName) ||
+                buff.isRetiredPostNgePlayerDamageRedirectBuffName(buffName)))
+        {
+            buff.clearPostNgePlayerDamageRedirectState(self);
+            return SCRIPT_OVERRIDE;
+        }
         if (subtype.equals("shield_master_pet"))
         {
             obj_id master = getMaster(self);
             if (isIdValid(master) && exists(master))
             {
+                if (isPlayer(master))
+                {
+                    buff.retirePostNgePlayerDamageRedirectState(master);
+                    return SCRIPT_OVERRIDE;
+                }
                 buff.removeBuff(master, "bm_shield_master_player");
             }
             return SCRIPT_CONTINUE;
@@ -2575,6 +2604,11 @@ public class buff_handler extends script.base_script
             }
             if (isIdValid(master) && exists(master))
             {
+                if (isPlayer(master))
+                {
+                    buff.retirePostNgePlayerDamageRedirectState(master);
+                    return SCRIPT_OVERRIDE;
+                }
                 buff.removeBuff(master, "bodyguard");
                 utils.removeScriptVar(master, combat.DAMAGE_REDIRECT);
             }
@@ -2708,10 +2742,24 @@ public class buff_handler extends script.base_script
     }
     public int bodyguardMasterAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) &&
+            (buff.isRetiredPostNgePlayerDamageRedirectEffect(effectName) ||
+                buff.isRetiredPostNgePlayerDamageRedirectBuffName(buffName)))
+        {
+            buff.retirePostNgePlayerDamageRedirectState(self);
+            return SCRIPT_OVERRIDE;
+        }
         return SCRIPT_CONTINUE;
     }
     public int bodyguardMasterRemoveBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) &&
+            (buff.isRetiredPostNgePlayerDamageRedirectEffect(effectName) ||
+                buff.isRetiredPostNgePlayerDamageRedirectBuffName(buffName)))
+        {
+            buff.clearPostNgePlayerDamageRedirectState(self);
+            return SCRIPT_OVERRIDE;
+        }
         return SCRIPT_CONTINUE;
     }
     public int onNextAttackAddBuffHandler(obj_id self, String effectName, String subType, float duration, float value, String buffName, obj_id caster) throws InterruptedException

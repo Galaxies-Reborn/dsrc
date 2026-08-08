@@ -3539,6 +3539,11 @@ public class combat extends script.base_script
     }
     public static obj_id directDamageToDifferentTarget(obj_id attacker, obj_id defender) throws InterruptedException
     {
+        if (isPlayer(defender))
+        {
+            buff.retirePostNgePlayerDamageRedirectState(defender);
+            return defender;
+        }
         if (buff.hasBuff(defender, "bm_shield_master_player"))
         {
             obj_id guardian = beast_lib.getBeastOnPlayer(defender);

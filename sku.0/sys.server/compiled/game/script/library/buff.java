@@ -1325,6 +1325,95 @@ public class buff extends script.base_script
             }
         }
     }
+    private static final String[] RETIRED_POST_NGE_PLAYER_DAMAGE_REDIRECT_BUFFS =
+    {
+        "bm_shield_master_pet",
+        "bm_shield_master_player",
+        "bodyguard"
+    };
+    private static final String[] RETIRED_POST_NGE_PLAYER_DAMAGE_REDIRECT_EFFECTS =
+    {
+        "protect_master",
+        "shield_master_pet",
+        "shield_master_player"
+    };
+    public static boolean isRetiredPostNgePlayerDamageRedirectBuffName(String buffName)
+    {
+        if (buffName == null)
+        {
+            return false;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_PLAYER_DAMAGE_REDIRECT_BUFFS)
+        {
+            if (buffName.equals(retiredBuff))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isRetiredPostNgePlayerDamageRedirectEffect(String effectName)
+    {
+        if (effectName == null)
+        {
+            return false;
+        }
+        for (String retiredEffect : RETIRED_POST_NGE_PLAYER_DAMAGE_REDIRECT_EFFECTS)
+        {
+            if (effectName.equals(retiredEffect))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isRetiredPostNgePlayerDamageRedirectBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        if (!isPlayer(target) || data == null)
+        {
+            return false;
+        }
+        if (isRetiredPostNgePlayerDamageRedirectBuffName(data.buffName))
+        {
+            return true;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if (isRetiredPostNgePlayerDamageRedirectEffect(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void clearPostNgePlayerDamageRedirectState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        utils.removeScriptVar(player, combat.DAMAGE_REDIRECT);
+    }
+    public static void retirePostNgePlayerDamageRedirectState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs != null && activeBuffs.length > 0)
+        {
+            for (int activeBuff : activeBuffs)
+            {
+                buff_data data = combat_engine.getBuffData(activeBuff);
+                if (isRetiredPostNgePlayerDamageRedirectBuff(player, data))
+                {
+                    removeBuff(player, activeBuff);
+                }
+            }
+        }
+        clearPostNgePlayerDamageRedirectState(player);
+    }
     private static final String RETIRED_POST_NGE_PLAYER_PISTOL_WHIP_CONTROL_EFFECT = "sm_pistol_whip";
     public static boolean isRetiredPostNgePlayerPistolWhipControlEffect(String effectName)
     {
@@ -1989,6 +2078,7 @@ public class buff extends script.base_script
         retirePostNgePlayerRadarInvisibilityState(player);
         retirePostNgePlayerCooldownExecutionState(player);
         retirePostNgePlayerSaberInterceptState(player);
+        retirePostNgePlayerDamageRedirectState(player);
         retirePostNgePlayerPistolWhipControlState(player);
         retirePostNgePlayerSmugglerTrickState(player);
         retirePostNgePlayerAggroChannelState(player);
@@ -2134,6 +2224,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerRadarInvisibilityBuff(target, bdata) ||
                 isRetiredPostNgePlayerCooldownExecutionBuff(target, bdata) ||
                 isRetiredPostNgePlayerSaberInterceptBuff(target, bdata) ||
+                isRetiredPostNgePlayerDamageRedirectBuff(target, bdata) ||
                 isRetiredPostNgePlayerPistolWhipControlBuff(target, bdata) ||
                 isRetiredPostNgePlayerSmugglerTrickBuff(target, bdata) ||
                 isRetiredPostNgePlayerAggroChannelBuff(target, bdata) ||
