@@ -1937,6 +1937,24 @@ public class buff_handler extends script.base_script
     }
     public int healEffectAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            if (buff.isRetiredPostNgePlayerProfessionInspirationBuffName(buffName))
+            {
+                buff.retirePostNgePlayerProfessionInspirationState(self);
+                return SCRIPT_OVERRIDE;
+            }
+            if (buff.isRetiredPostNgePlayerProfessionProxyBuffName(buffName))
+            {
+                buff.retirePostNgePlayerProfessionProxyState(self);
+                return SCRIPT_OVERRIDE;
+            }
+            if (script.systems.skills.stealth.player_stealth.isRetiredPostNgeSpyBuffName(buffName))
+            {
+                script.systems.skills.stealth.player_stealth.retirePostNgeSpyPlayerState(self);
+                return SCRIPT_OVERRIDE;
+            }
+        }
         if (subtype.equals("healing_action"))
         {
             healing.healDamage(self, ACTION, (int)value);
