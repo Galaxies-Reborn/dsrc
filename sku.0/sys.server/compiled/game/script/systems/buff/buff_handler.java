@@ -1187,6 +1187,11 @@ public class buff_handler extends script.base_script
     }
     public int junkDealerAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (buff.isPostNgeBuffProgressionRetired() && buff.isRetiredPostNgeJunkDealerExpertiseEffect(effectName))
+        {
+            buff.clearPostNgeJunkDealerExpertiseState(self);
+            return SCRIPT_OVERRIDE;
+        }
         obj_id player = utils.getObjIdScriptVar(self, "junkDealerBuffer");
         utils.removeScriptVar(self, "junkDealerBuffer");
         if (!isIdValid(player))
@@ -1207,6 +1212,11 @@ public class buff_handler extends script.base_script
     }
     public int junkDealerRemoveBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (buff.isPostNgeBuffProgressionRetired() && buff.isRetiredPostNgeJunkDealerExpertiseEffect(effectName))
+        {
+            buff.clearPostNgeJunkDealerExpertiseState(self);
+            return SCRIPT_OVERRIDE;
+        }
         removeAttribOrSkillModModifier(self, "junkDealerPrecision");
         removeAttribOrSkillModModifier(self, "junkDealerDamageDecrease");
         return SCRIPT_CONTINUE;

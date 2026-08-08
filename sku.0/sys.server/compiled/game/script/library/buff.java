@@ -21,6 +21,46 @@ public class buff extends script.base_script
     {
         return true;
     }
+    private static final String RETIRED_POST_NGE_JUNK_DEALER_EXPERTISE_EFFECT = "expertise_junk_dealer";
+    public static boolean isRetiredPostNgeJunkDealerExpertiseEffect(String effectName)
+    {
+        return effectName != null && effectName.equals(RETIRED_POST_NGE_JUNK_DEALER_EXPERTISE_EFFECT);
+    }
+    public static boolean isRetiredPostNgeJunkDealerExpertiseBuff(buff_data data) throws InterruptedException
+    {
+        if (data == null)
+        {
+            return false;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if (isRetiredPostNgeJunkDealerExpertiseEffect(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void clearPostNgeJunkDealerExpertiseState(obj_id dealer) throws InterruptedException
+    {
+        if (!isIdValid(dealer) || !exists(dealer))
+        {
+            return;
+        }
+        utils.removeScriptVar(dealer, "junkDealerBuffer");
+        String[] retiredModifiers =
+        {
+            "junkDealerPrecision",
+            "junkDealerDamageDecrease"
+        };
+        for (String retiredModifier : retiredModifiers)
+        {
+            if (hasSkillModModifier(dealer, retiredModifier))
+            {
+                removeAttribOrSkillModModifier(dealer, retiredModifier);
+            }
+        }
+    }
     private static final String[] RETIRED_POST_NGE_FORCE_SENSITIVE_STANCE_BUFFS =
     {
         "fs_buff_def_1_1",
@@ -2006,6 +2046,10 @@ public class buff extends script.base_script
         }
         buff_data bdata = combat_engine.getBuffData(nameCrc);
         if (bdata == null)
+        {
+            return false;
+        }
+        if (isPostNgeBuffProgressionRetired() && isRetiredPostNgeJunkDealerExpertiseBuff(bdata))
         {
             return false;
         }
