@@ -1967,6 +1967,70 @@ public class buff extends script.base_script
             }
         }
     }
+    private static final String[] RETIRED_POST_NGE_PLAYER_PROFESSION_MOVEMENT_BUFF_PREFIXES =
+    {
+        "bh_",
+        "bm_",
+        "co_",
+        "en_",
+        "fs_",
+        "me_",
+        "of_",
+        "sm_",
+        "sp_",
+        "sl_group_"
+    };
+    public static boolean isRetiredPostNgePlayerProfessionMovementBuffName(String buffName)
+    {
+        if (buffName == null)
+        {
+            return false;
+        }
+        for (String retiredPrefix : RETIRED_POST_NGE_PLAYER_PROFESSION_MOVEMENT_BUFF_PREFIXES)
+        {
+            if (buffName.startsWith(retiredPrefix))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isRetiredPostNgePlayerProfessionMovementBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        if (!isPlayer(target) || data == null ||
+            !isRetiredPostNgePlayerProfessionMovementBuffName(data.buffName))
+        {
+            return false;
+        }
+        for (int effect = 1; effect <= MAX_EFFECTS; effect++)
+        {
+            if ("movement".equals(getEffectParam(data, effect)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static void retirePostNgePlayerProfessionMovementBuffState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        int[] activeBuffs = getAllBuffs(player);
+        if (activeBuffs == null || activeBuffs.length == 0)
+        {
+            return;
+        }
+        for (int activeBuff : activeBuffs)
+        {
+            buff_data data = combat_engine.getBuffData(activeBuff);
+            if (isRetiredPostNgePlayerProfessionMovementBuff(player, data))
+            {
+                removeBuff(player, activeBuff);
+            }
+        }
+    }
     private static final String[] RETIRED_POST_NGE_PLAYER_GROUP_BUFFS =
     {
         "sl_group_run",
@@ -2330,6 +2394,7 @@ public class buff extends script.base_script
         retirePostNgePlayerForceThrowState(player);
         retirePostNgePlayerMedicDoomState(player);
         retirePostNgePlayerDotStackMutationState(player);
+        retirePostNgePlayerProfessionMovementBuffState(player);
         retirePostNgePlayerGroupBuffState(player);
         retirePostNgePlayerFlatAttributeState(player);
         retirePostNgePlayerAttributePercentState(player);
@@ -2482,6 +2547,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerForceThrowBuff(target, bdata) ||
                 isRetiredPostNgePlayerMedicDoomBuff(target, bdata) ||
                 isRetiredPostNgePlayerDotStackMutationBuff(target, bdata) ||
+                isRetiredPostNgePlayerProfessionMovementBuff(target, bdata) ||
                 isRetiredPostNgePlayerGroupBuff(target, bdata) ||
                 isRetiredPostNgePlayerFlatAttributeBuff(target, bdata) ||
                 isRetiredPostNgePlayerAttributePercentBuff(target, bdata) ||

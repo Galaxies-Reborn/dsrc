@@ -345,6 +345,10 @@ public class buff_handler extends script.base_script
     }
     public int movementAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self) && buff.isRetiredPostNgePlayerProfessionMovementBuffName(buffName))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (isPlayer(self) && buff.isRetiredPostNgePlayerForceThrowBuffName(buffName))
         {
             buff.retirePostNgePlayerForceThrowState(self);
