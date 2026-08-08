@@ -510,6 +510,7 @@ public class buff extends script.base_script
                 removeBuff(player, retiredBuff);
             }
         }
+        utils.removeScriptVar(player, "buff_handler.gcw_critical_heal");
     }
     public static boolean isRetiredPostNgeBountyHunterShieldBuff(String buffName)
     {

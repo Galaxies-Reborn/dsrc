@@ -1917,6 +1917,11 @@ public class buff_handler extends script.base_script
     }
     public int onIncapHealAddBuffHandler(obj_id self, String effectName, String subtype, float duration, float value, String buffName, obj_id caster) throws InterruptedException
     {
+        if (isPlayer(self))
+        {
+            buff.retirePostP14PlayerAvoidIncapHealState(self);
+            return SCRIPT_OVERRIDE;
+        }
         utils.setScriptVar(self, "buff_handler." + subtype, value);
         return SCRIPT_CONTINUE;
     }
