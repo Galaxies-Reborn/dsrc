@@ -142,7 +142,14 @@ public class combat_base extends script.base_script
         {
             return false;
         }
-        return actionName.equals("steal") || actionName.startsWith("sp_");
+        // The prefixless iconic Spy commands predate the later sp_* naming,
+        // but belong to the same retired class progression. Keep their data
+        // and non-player content paths while denying stale player commands.
+        return actionName.equals("steal") ||
+            actionName.equals("terminateTarget") ||
+            actionName.equals("stealth") ||
+            actionName.equals("smokeGrenade") ||
+            actionName.startsWith("sp_");
     }
     public static boolean isRetiredPostNgeBeastMasterPlayerAction(obj_id self, String actionName) throws InterruptedException
     {
@@ -152,31 +159,41 @@ public class combat_base extends script.base_script
     {
         // Paint Target is an Officer combat series even though its inherited
         // command name does not use the otherwise consistent of_ prefix.
+        // Entrench is the earlier prefixless iconic Officer action. The
+        // groupWaypoint handler remains PRE-CU Squad Leader-authoritative.
         return isPlayer(self) && actionName != null &&
             (actionName.startsWith("of_") || actionName.equals("paintTarget") ||
                 actionName.startsWith("paintTarget_") ||
-                actionName.equals("applyVortexSnare"));
+                actionName.equals("applyVortexSnare") ||
+                actionName.equals("entrench"));
     }
     public static boolean isRetiredPostNgeForceSensitivePlayerAction(obj_id self, String actionName) throws InterruptedException
     {
         // Publish 14.1 Jedi and Village progression use their authored
         // force*, saber*, heal*, mindBlast*, and jediMindTrick commands.
-        // The fs_* family and the unnumbered forceThrow action belong only to
-        // the retained NGE class/expertise rows. Publish 14.1 instead grants
-        // the distinct forceThrow1 and forceThrow2 commands, so preserve those
+        // The fs_* family and the prefixless iconic actions belong only to the
+        // retained NGE class/expertise rows. Publish 14.1 instead grants the
+        // distinct forceRun1/2/3 and forceThrow1/2 commands, so preserve those
         // classic actions and NPC/content compatibility while denying the NGE
-        // action to players.
+        // actions to players.
         return isPlayer(self) && actionName != null &&
-            (actionName.startsWith("fs_") || actionName.equals("forceThrow"));
+            (actionName.startsWith("fs_") || actionName.equals("forceThrow") ||
+                actionName.equals("forceRun") ||
+                actionName.equals("forceFocus") ||
+                actionName.equals("forceStrike") ||
+                actionName.equals("saberBlock"));
     }
     public static boolean isRetiredPostNgeSmugglerPlayerAction(obj_id self, String actionName) throws InterruptedException
     {
         // Publish 14.1 Smuggler progression uses the combat_smuggler tree and
         // its feignDeath, panicShot, lowBlow, lastDitch, and slicing commands.
-        // The sm_* family belongs to the retained NGE class/expertise rows, so
-        // preserve it for NPC/content compatibility but never grant it player
-        // combat authority.
-        return isPlayer(self) && actionName != null && actionName.startsWith("sm_");
+        // The sm_* family and three earlier prefixless iconic actions belong
+        // to the retained NGE class progression, so preserve them for
+        // NPC/content compatibility but never grant them player authority.
+        return isPlayer(self) && actionName != null &&
+            (actionName.startsWith("sm_") || actionName.equals("cheapShot") ||
+                actionName.equals("blastAway") ||
+                actionName.equals("hipShot"));
     }
     public static boolean isRetiredPostNgeBountyHunterPlayerAction(obj_id self, String actionName) throws InterruptedException
     {
@@ -189,6 +206,9 @@ public class combat_base extends script.base_script
         // only.
         return isPlayer(self) && actionName != null &&
             (actionName.startsWith("bh_") ||
+                actionName.equals("assault") ||
+                actionName.equals("crippleShot") ||
+                actionName.equals("ambush") ||
                 actionName.equals("set_bonus_bh_utility_a_1") ||
                 actionName.equals("set_bonus_bh_utility_a_2") ||
                 actionName.equals("set_bonus_bh_utility_a_3") ||
@@ -206,6 +226,8 @@ public class combat_base extends script.base_script
         // NPC and content scripts, but never grant them player combat authority.
         return isPlayer(self) && actionName != null &&
             (actionName.startsWith("co_") ||
+                actionName.equals("demolition") ||
+                actionName.equals("stunGrenade") ||
                 actionName.startsWith("kill_meter_co_") ||
                 actionName.startsWith("expertise_co_") ||
                 actionName.equals("banner_buff_commando"));
@@ -220,6 +242,8 @@ public class combat_base extends script.base_script
         // NPC/content compatibility, but never grant it player authority.
         return isPlayer(self) && actionName != null &&
             (actionName.startsWith("me_") ||
+                actionName.equals("targetAnatomy") ||
+                actionName.equals("neurotoxin") ||
                 actionName.equals("expertise_dueterium_rounds_proc") ||
                 actionName.equals("expertise_poison_knuckle_proc"));
     }
