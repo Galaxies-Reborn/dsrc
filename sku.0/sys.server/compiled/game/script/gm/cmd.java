@@ -1222,10 +1222,10 @@ public class cmd extends script.base_script
             showSetExperienceSyntax(self);
             return SCRIPT_CONTINUE;
         }
-        String[] xpTypes = xp.getXpTypes(self);
+        String[] xpTypes = xp.getPrecuProgressionExperienceTypes();
         if (xpTypes == null || xpTypes.length == 0)
         {
-            sendSystemMessageTestingOnly(self, "/setExperience: unable to retrieve canonical xp listing!");
+            sendSystemMessageTestingOnly(self, "/setExperience: unable to retrieve the canonical Publish 14.1 XP listing!");
             return SCRIPT_CONTINUE;
         }
         if ((toLower(params)).equalsIgnoreCase("list"))
@@ -1239,8 +1239,8 @@ public class cmd extends script.base_script
                     entries = utils.addElement(entries, linedata);
                 }
             }
-            String listTitle = "XP TYPES";
-            String listPrompt = "A listing of all the currently used xp types";
+            String listTitle = "PRE-CU XP TYPES";
+            String listPrompt = "Canonical Publish 14.1 skill XP pools and retained pilot prestige pools";
             sui.listbox(self, self, listPrompt, sui.OK_ONLY, listTitle, entries, "noHandler");
             return SCRIPT_CONTINUE;
         }
@@ -1251,7 +1251,7 @@ public class cmd extends script.base_script
             return SCRIPT_CONTINUE;
         }
         String xp_type = st.nextToken();
-        if (utils.getElementPositionInArray(xpTypes, xp_type) == -1)
+        if (!xp.isPrecuProgressionExperienceType(xp_type))
         {
             sendSystemMessageTestingOnly(self, "/setExperience: '" + xp_type + "' is not a valid xp type.");
             sendSystemMessageTestingOnly(self, "/setExperience: use '/setExperience list' for a valid listing");

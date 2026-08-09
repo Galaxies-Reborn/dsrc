@@ -49,8 +49,6 @@ public class qatool extends script.base_script
     public static final String SCRIPT_VAR = "qatool";
     public static final String TITLE = "QA Tools";
     public static final String PROMPT = "Choose the tool you want to use";
-    public static final String VAR_XP_TYPES_LIST = "xp_types.list";
-    public static final String VAR_XP_TYPES_NAMES = "xp_types.names";
     public static final String RESOURCE_TOOL_PROMPT = "This Tool will automatically spawn the space resources selected into the tester inventory.";
     public static final String RESOURCE_TOOL_TITLE = "Resource Reward Tool";
     public static final String RESOURCE_REWARD_TOOL_TITLE = "QA Resource Reward Tool";
@@ -98,7 +96,7 @@ public class qatool extends script.base_script
         " buff -- provides a list of in game buffs that can be applied to the tester (also /qatool buff <buffString>)",
         " qainv -- Inventory manipulation functions",
         " qafaction -- Faction manipulation functions ",
-        " qaxp - Experience tool.  Allows tester to attain expereince based on current profession.",
+        " qaxp - PRE-CU experience tool. Allows testers to grant explicit Publish 14.1 skill XP pools.",
         "* (command driven tool) qabag -- Creates the QA bag into your inventory ",
         " qange -- Retired; NGE combat-level respecs are unavailable.",
         " frog -- Allows the tester to spawn character builder terminals directly into the tester inventory.",
@@ -206,18 +204,6 @@ public class qatool extends script.base_script
         "Armor Enhancement",
         "Clothing Enhancement",
         "Random Enhancement"
-    };
-    public static final String[] XP_TOOL_MENU = 
-    {
-        "Revoke non-pilot experience",
-        "combat_general",
-        "quest_combat",
-        "quest_crafting",
-        "quest_social",
-        "quest_general",
-        "prestige_imperial",
-        "prestige_rebel",
-        "prestige_pilot"
     };
     public static final String[] RESOURCE_TOOL_MENU = 
     {
@@ -1367,7 +1353,7 @@ public class qatool extends script.base_script
         }
         else if ((toLower(command)).equals("qaxp"))
         {
-            qa.refreshMenu(self, "Select the xp type...", "Beta XP Dispenser", XP_TOOL_MENU, "handleXpOptions", "qaxp.pid", sui.OK_CANCEL_REFRESH);
+            qaxp.toolMainMenu(self);
             return SCRIPT_CONTINUE;
         }
         else if ((toLower(command)).equals("qadynamic"))
@@ -2182,7 +2168,7 @@ public class qatool extends script.base_script
                     qa.refreshMenu(self, DYNAMIC_DESCRIPTION, "Dynamic Loot Spawner", DATA_SOURCE_MENU_LIST, "handleMainOptions", "qadynamic.pid", "qadynamic.dynamicMainMenu", sui.OK_CANCEL_REFRESH);
                     break;
                     case XPTOOL_MENUOPTION:
-                    qa.refreshMenu(player, "Select the xp type...", "Beta XP Dispenser", XP_TOOL_MENU, "handleXpOptions", "qaxp.pid", sui.OK_CANCEL_REFRESH);
+                    qaxp.toolMainMenu(player);
                     break;
                     case FACTIONTOOL_MENUOPTION:
                     qa.refreshMenu(player, PROMPT, TITLE, FACTION_TOOL_MENU, "mainMenuOptions", "qafac.pid", sui.OK_CANCEL_REFRESH);
@@ -2405,29 +2391,6 @@ public class qatool extends script.base_script
             sendSystemMessageTestingOnly(self, "Frog Tools Issued.");
             qa.refreshMenu(self, PROMPT, TITLE, QATOOL_MAIN_MENU, "toolMainMenu", true, SCRIPT_VAR + ".pid");
         }
-    }
-    public void initializeXpTool(obj_id self) throws InterruptedException
-    {
-        String[] xpTypes = xp.getXpTypes(self);
-        if ((xpTypes != null) && (xpTypes.length > 0))
-        {
-            setXpTypesScriptVar(self, xpTypes);
-        }
-    }
-    public void setXpTypesScriptVar(obj_id self, String[] varData) throws InterruptedException
-    {
-        if ((varData == null) || (varData.length == 0))
-        {
-            debugSpeakMsg(self, "setXpTypesVar: passed bad string array!");
-            return;
-        }
-        utils.setBatchScriptVar(self, VAR_XP_TYPES_LIST, varData);
-        String[] xpNames = new String[varData.length];
-        for (int i = 0; i < varData.length; i++)
-        {
-            xpNames[i] = "@exp_n:" + varData[i];
-        }
-        utils.setBatchScriptVar(self, VAR_XP_TYPES_NAMES, xpNames);
     }
     public void spawnGroundMob(obj_id player, String stringIndex) throws InterruptedException
     {

@@ -1145,31 +1145,6 @@ public class qa extends script.base_script
         }
         return null;
     }
-    public static void revokeAllSkills(obj_id player) throws InterruptedException
-    {
-        String[] skillList = getSkillListingForPlayer(player);
-        int attempts = skillList.length;
-        if ((skillList != null) && (skillList.length != 0))
-        {
-            while (skillList.length > 0 && attempts > 0)
-            {
-                for (String skillName : skillList) {
-                    if (!skillName.startsWith("species_") && !skillName.startsWith("social_language_") && !skillName.startsWith("utility_") && !skillName.startsWith("common_") && !skillName.startsWith("demo_") && !skillName.startsWith("force_title_") && !skillName.startsWith("force_sensitive_") && !skillName.startsWith("combat_melee_basic") && !skillName.startsWith("pilot_") && !skillName.startsWith("combat_ranged_weapon_basic")) {
-                        skill.revokeSkillSilent(player, skillName);
-                    }
-                }
-                skillList = getSkillListingForPlayer(player);
-                --attempts;
-            }
-        }
-        int currentCombatXp = getExperiencePoints(player, "combat_general");
-        grantExperiencePoints(player, "combat_general", -currentCombatXp);
-        skill.recalcPlayerPools(player, true);
-        setSkillTemplate(player, "");
-        setWorkingSkill(player, "");
-        CustomerServiceLog("qaTool", "User: (" + player + ") " + getName(player) + " has had their entire profession removed/revoked by using a QA Tool or command.");
-        sendSystemMessageTestingOnly(player, "All Professions removed from character.");
-    }
     public static void revokePilotingSkills(obj_id player) throws InterruptedException
     {
         if (hasSkill(player, "pilot_rebel_navy_novice") || hasSkill(player, "pilot_imperial_navy_novice") || hasSkill(player, "pilot_neutral_novice"))

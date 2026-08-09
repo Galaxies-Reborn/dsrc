@@ -12,13 +12,10 @@ public class terminal_xp extends script.terminal.base.terminal_add_use
     {
     }
     public static final int XP_AMOUNT = 100000;
-    public static final String TBL = "datatables/skill/skills.iff";
-    public static final String VAR_XP_TYPES = "xp_types";
     public static final String VAR_XP_TYPES_LIST = "xp_types.list";
     public static final String VAR_XP_TYPES_NAMES = "xp_types.names";
     public static final String HANDLER_XP_SELECT = "handleXpSelect";
     public static final String HANDLER_XP_AMOUNT_SELECT = "handleXpAmountSelect";
-    public static final string_id PROSE_GRANT_XP = new string_id("base_player", "prose_grant_xp");
     public static final String VAR_DESIRED_XP_TYPE = "desired_xpType";
     public int OnAttach(obj_id self) throws InterruptedException
     {
@@ -32,15 +29,15 @@ public class terminal_xp extends script.terminal.base.terminal_add_use
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
-        if (isGod(player) || hasObjVar(player, "beta.terminal_ok"))
+        if (isAuthorizedPlayer(player))
         {
             if (item == menu_info_types.ITEM_USE)
             {
                 String[] xpTypes = utils.getStringBatchScriptVar(self, VAR_XP_TYPES_NAMES);
                 if ((xpTypes != null) && (xpTypes.length > 0))
                 {
-                    String prompt = "Select the xp type you would like more xp in...";
-                    String title = "Beta XP Dispenser";
+                    String prompt = "Select an explicit Publish 14.1 skill XP pool.";
+                    String title = "PRE-CU XP Dispenser";
                     sui.listbox(self, player, prompt, sui.OK_CANCEL, title, xpTypes, HANDLER_XP_SELECT);
                 }
             }
@@ -54,7 +51,7 @@ public class terminal_xp extends script.terminal.base.terminal_add_use
     }
     public void initializeXpTerminal(obj_id self) throws InterruptedException
     {
-        String[] xpTypes = xp.getXpTypes(self);
+        String[] xpTypes = xp.getPrecuProgressionExperienceTypes();
         if ((xpTypes != null) && (xpTypes.length > 0))
         {
             setXpTypesScriptVar(self, xpTypes);
@@ -82,6 +79,11 @@ public class terminal_xp extends script.terminal.base.terminal_add_use
         {
             return SCRIPT_CONTINUE;
         }
+        if (!isAuthorizedPlayer(player))
+        {
+            sendSystemMessageTestingOnly(player, "Only authorized users may access this terminal.");
+            return SCRIPT_CONTINUE;
+        }
         int btn = sui.getIntButtonPressed(params);
         if (btn == sui.BP_CANCEL)
         {
@@ -99,8 +101,13 @@ public class terminal_xp extends script.terminal.base.terminal_add_use
             return SCRIPT_CONTINUE;
         }
         String xpType = xpTypes[idx];
-        int xp = getExperiencePoints(player, xpType);
-        setObjVar(player, VAR_DESIRED_XP_TYPE, xpType);
+        String validationError = xp.getPrecuProgressionExperienceAccessError(player, xpType);
+        if (validationError != null)
+        {
+            sendSystemMessageTestingOnly(player, validationError);
+            return SCRIPT_CONTINUE;
+        }
+        utils.setScriptVar(player, VAR_DESIRED_XP_TYPE, xpType);
         String prompt = "Select the amount of XP you desire in the right box";
         String title = "Select your desired XP amount";
         sui.transfer(self, player, prompt, title, "Available", XP_AMOUNT, "Amount", 0, HANDLER_XP_AMOUNT_SELECT);
@@ -109,19 +116,27 @@ public class terminal_xp extends script.terminal.base.terminal_add_use
     public int handleXpAmountSelect(obj_id self, dictionary params) throws InterruptedException
     {
         obj_id player = sui.getPlayerId(params);
+        if (!isAuthorizedPlayer(player))
+        {
+            return SCRIPT_CONTINUE;
+        }
         int btn = sui.getIntButtonPressed(params);
         int amt = sui.getTransferInputTo(params);
         if (btn == sui.BP_CANCEL)
         {
+            utils.removeScriptVar(player, VAR_DESIRED_XP_TYPE);
             return SCRIPT_CONTINUE;
         }
-        String xpType = getStringObjVar(player, VAR_DESIRED_XP_TYPE);
-        if (xpType.equals(""))
+        String xpType = utils.getStringScriptVar(player, VAR_DESIRED_XP_TYPE);
+        String validationError = xp.getPrecuProgressionExperienceAccessError(player, xpType);
+        if (validationError != null)
         {
+            sendSystemMessageTestingOnly(player, validationError);
+            utils.removeScriptVar(player, VAR_DESIRED_XP_TYPE);
             return SCRIPT_CONTINUE;
         }
-        removeObjVar(player, VAR_DESIRED_XP_TYPE);
-        xp.grant(player, xpType, amt);
+        utils.removeScriptVar(player, VAR_DESIRED_XP_TYPE);
+        xp.grant(player, xpType, amt, false);
         dictionary d = new dictionary();
         d.put("xpType", xpType);
         d.put("playerId", player);
@@ -137,5 +152,9 @@ public class terminal_xp extends script.terminal.base.terminal_add_use
         prose_package pp = prose.getPackage(PROSE_HAVE_XP, "@exp_n:" + xpType, xp);
         sendSystemMessageProse(player, pp);
         return SCRIPT_CONTINUE;
+    }
+    public boolean isAuthorizedPlayer(obj_id player) throws InterruptedException
+    {
+        return isIdValid(player) && isPlayer(player) && (isGod(player) || hasObjVar(player, "beta.terminal_ok"));
     }
 }

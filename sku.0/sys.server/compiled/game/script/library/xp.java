@@ -2,6 +2,8 @@ package script.library;
 
 import script.*;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -1574,32 +1576,61 @@ public class xp extends script.base_script
         }
         return isCraftingXpType(xpType) ? xpType : null;
     }
-    public static String[] getXpTypes(obj_id self) throws InterruptedException
+    public static String[] getPrecuProgressionExperienceTypes() throws InterruptedException
     {
-        Vector xpTypes = new Vector();
-        xpTypes.setSize(0);
-        if (dataTableOpen(TBL_SKILL))
+        HashSet xpTypes = new HashSet();
+        String[] professionRoots = skill.getPrecuPublicProfessionRoots();
+        for (String professionRoot : professionRoots)
         {
-            String[] colXpType = dataTableGetStringColumnNoDefaults(TBL_SKILL, "XP_TYPE");
-            if ((colXpType == null) || (colXpType.length == 0))
+            String[] professionSkills = skill.getPrecuProfessionSkillList(professionRoot);
+            if (professionSkills == null)
             {
-                return null;
+                continue;
             }
-            for (String type : colXpType) {
-                if (type != null && !type.equals("") && !type.equals("unobtainable") && !type.equals("jedi")) {
-                    if (utils.getElementPositionInArray(xpTypes, type) == -1) {
-                        xpTypes = utils.addElement(xpTypes, type);
-                    }
+            for (String professionSkill : professionSkills)
+            {
+                String xpType = skill_template.getSkillExperienceType(professionSkill);
+                if (xpType != null && xpType.length() > 0 && !isRetiredNgeProgressionExperienceType(xpType))
+                {
+                    xpTypes.add(xpType);
                 }
             }
         }
-        String[] _xpTypes = new String[0];
-        if (xpTypes != null)
+        xpTypes.add(SPACE_PRESTIGE_IMPERIAL);
+        xpTypes.add(SPACE_PRESTIGE_REBEL);
+        xpTypes.add(SPACE_PRESTIGE_PILOT);
+        String[] result = new String[xpTypes.size()];
+        xpTypes.toArray(result);
+        Arrays.sort(result);
+        return result;
+    }
+    public static boolean isPrecuProgressionExperienceType(String xpType) throws InterruptedException
+    {
+        if (xpType == null || xpType.length() == 0)
         {
-            _xpTypes = new String[xpTypes.size()];
-            xpTypes.toArray(_xpTypes);
+            return false;
         }
-        return _xpTypes;
+        return utils.getElementPositionInArray(getPrecuProgressionExperienceTypes(), xpType) != -1;
+    }
+    public static String getPrecuProgressionExperienceAccessError(obj_id player, String xpType) throws InterruptedException
+    {
+        if (!isIdValid(player) || !isPlayer(player) || !isPrecuProgressionExperienceType(xpType))
+        {
+            return "The selected Publish 14.1 XP pool is invalid.";
+        }
+        if (xpType.equals(SPACE_PRESTIGE_IMPERIAL) && !space_flags.isImperialPilot(player))
+        {
+            return "The character does not have the Imperial pilot skill required for this prestige pool.";
+        }
+        if (xpType.equals(SPACE_PRESTIGE_REBEL) && !space_flags.isRebelPilot(player))
+        {
+            return "The character does not have the Rebel pilot skill required for this prestige pool.";
+        }
+        if (xpType.equals(SPACE_PRESTIGE_PILOT) && !space_flags.isNeutralPilot(player))
+        {
+            return "The character does not have the neutral pilot skill required for this prestige pool.";
+        }
+        return null;
     }
     public static void checkAndUpdateHuntingMissions(obj_id objPlayer, obj_id objCreature) throws InterruptedException
     {

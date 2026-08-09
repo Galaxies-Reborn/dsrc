@@ -4,9 +4,6 @@ import script.dictionary;
 import script.library.*;
 import script.obj_id;
 
-import java.util.Arrays;
-import java.util.HashSet;
-
 public class qaxp extends script.base_script
 {
     public qaxp()
@@ -40,7 +37,7 @@ public class qaxp extends script.base_script
     }
     public int handleXpOptions(obj_id self, dictionary params) throws InterruptedException
     {
-        obj_id player = sui.getPlayerId(params);
+        obj_id player = self;
         int btn = sui.getIntButtonPressed(params);
         if (btn == sui.BP_CANCEL)
         {
@@ -76,7 +73,7 @@ public class qaxp extends script.base_script
     }
     public int handleXpAmountAdd(obj_id self, dictionary params) throws InterruptedException
     {
-        obj_id player = qa.findTarget(self);
+        obj_id player = self;
         int btn = sui.getIntButtonPressed(params);
         int amt = sui.getTransferInputTo(params);
         String xpType = utils.getStringScriptVar(player, SCRIPTVAR + ".xpType");
@@ -86,9 +83,10 @@ public class qaxp extends script.base_script
             toolMainMenu(player);
             return SCRIPT_CONTINUE;
         }
-        if (xpType == null || xpType.length() == 0 || xp.isRetiredNgeProgressionExperienceType(xpType))
+        String validationError = xp.getPrecuProgressionExperienceAccessError(player, xpType);
+        if (validationError != null)
         {
-            removePlayer(player, "The selected PRE-CU XP pool is invalid.");
+            removePlayer(player, validationError);
             return SCRIPT_CONTINUE;
         }
         xp.grant(player, xpType, amt, false);
@@ -97,7 +95,7 @@ public class qaxp extends script.base_script
     }
     public int handleXpAmountRevoke(obj_id self, dictionary params) throws InterruptedException
     {
-        obj_id player = qa.findTarget(self);
+        obj_id player = self;
         int btn = sui.getIntButtonPressed(params);
         int amt = sui.getTransferInputTo(params);
         String xpType = utils.getStringScriptVar(player, SCRIPTVAR + ".xpType");
@@ -107,7 +105,7 @@ public class qaxp extends script.base_script
             toolMainMenu(player);
             return SCRIPT_CONTINUE;
         }
-        if (xpType == null || xpType.length() == 0 || xp.isRetiredNgeProgressionExperienceType(xpType))
+        if (!xp.isPrecuProgressionExperienceType(xpType))
         {
             removePlayer(player, "The selected PRE-CU XP pool is invalid.");
             return SCRIPT_CONTINUE;
@@ -116,9 +114,9 @@ public class qaxp extends script.base_script
         toolMainMenu(player);
         return SCRIPT_CONTINUE;
     }
-    public void toolMainMenu(obj_id player) throws InterruptedException
+    public static void toolMainMenu(obj_id player) throws InterruptedException
     {
-        String[] xpTypes = getPrecuXpTypes();
+        String[] xpTypes = xp.getPrecuProgressionExperienceTypes();
         String[] menu = new String[xpTypes.length + 1];
         menu[0] = "Revoke current working-skill XP";
         System.arraycopy(xpTypes, 0, menu, 1, xpTypes.length);
@@ -131,51 +129,12 @@ public class qaxp extends script.base_script
         qa.removeScriptVars(player, SCRIPTVAR);
         utils.removeScriptVarTree(player, SCRIPTVAR);
     }
-    public String[] getPrecuXpTypes() throws InterruptedException
-    {
-        HashSet xpTypes = new HashSet();
-        String[] professionRoots = skill.getPrecuPublicProfessionRoots();
-        for (String professionRoot : professionRoots)
-        {
-            String[] professionSkills = skill.getPrecuProfessionSkillList(professionRoot);
-            if (professionSkills == null)
-            {
-                continue;
-            }
-            for (String professionSkill : professionSkills)
-            {
-                String xpType = skill_template.getSkillExperienceType(professionSkill);
-                if (xpType != null && xpType.length() > 0 && !xp.isRetiredNgeProgressionExperienceType(xpType))
-                {
-                    xpTypes.add(xpType);
-                }
-            }
-        }
-        xpTypes.add(xp.SPACE_PRESTIGE_IMPERIAL);
-        xpTypes.add(xp.SPACE_PRESTIGE_REBEL);
-        xpTypes.add(xp.SPACE_PRESTIGE_PILOT);
-        String[] result = new String[xpTypes.size()];
-        xpTypes.toArray(result);
-        Arrays.sort(result);
-        return result;
-    }
     public void showPrecuXpTransfer(obj_id player, String xpType) throws InterruptedException
     {
-        if (xpType.equals(xp.SPACE_PRESTIGE_IMPERIAL) && !space_flags.isImperialPilot(player))
+        String validationError = xp.getPrecuProgressionExperienceAccessError(player, xpType);
+        if (validationError != null)
         {
-            removePlayer(player, "The test character does not have the Imperial pilot skill required for this prestige pool.");
-            toolMainMenu(player);
-            return;
-        }
-        if (xpType.equals(xp.SPACE_PRESTIGE_REBEL) && !space_flags.isRebelPilot(player))
-        {
-            removePlayer(player, "The test character does not have the Rebel pilot skill required for this prestige pool.");
-            toolMainMenu(player);
-            return;
-        }
-        if (xpType.equals(xp.SPACE_PRESTIGE_PILOT) && !space_flags.isNeutralPilot(player))
-        {
-            removePlayer(player, "The test character does not have the neutral pilot skill required for this prestige pool.");
+            removePlayer(player, validationError);
             toolMainMenu(player);
             return;
         }
