@@ -23,6 +23,7 @@ public class base_player extends script.base_script
         removeSmugglingBuffs(self);
         factions.retirePostNgePvpRewardState(self);
         combat.retirePostNgeKillMeterPlayerState(self);
+        pet_lib.retirePostNgeDroidCombatModuleState(self);
     }
     private void retirePostNgeQueuedBattlefieldPlayerState(obj_id self) throws InterruptedException
     {

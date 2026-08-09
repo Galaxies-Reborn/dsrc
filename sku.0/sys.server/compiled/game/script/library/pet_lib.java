@@ -88,6 +88,51 @@ public class pet_lib extends script.base_script
         "droid_effect_jawa_dance",
         "droid_effect_doves"
     };
+    public static final String[] RETIRED_POST_NGE_DROID_COMBAT_MODULE_PLAYER_ACTIONS =
+    {
+        "droid_flame_jet_1",
+        "droid_flame_jet_2",
+        "droid_flame_jet_3",
+        "droid_droideka_shield_1",
+        "droid_droideka_shield_2",
+        "droid_droideka_shield_3",
+        "droid_battery_dump_1",
+        "droid_battery_dump_2",
+        "droid_battery_dump_3",
+        "droid_regenerative_plating_1",
+        "droid_regenerative_plating_2",
+        "droid_regenerative_plating_3",
+        "droid_electrical_shock_1",
+        "droid_electrical_shock_2",
+        "droid_electrical_shock_3",
+        "droid_torturous_needle_1",
+        "droid_torturous_needle_2",
+        "droid_torturous_needle_3"
+    };
+    public static final String[] RETIRED_POST_NGE_DROID_COMBAT_MODULE_SERVER_ACTIONS =
+    {
+        "server_droid_flame_jet_1",
+        "server_droid_flame_jet_2",
+        "server_droid_flame_jet_3",
+        "server_droid_battery_dump_1",
+        "server_droid_battery_dump_2",
+        "server_droid_battery_dump_3",
+        "server_droid_regenerative_plating_1",
+        "server_droid_regenerative_plating_2",
+        "server_droid_regenerative_plating_3",
+        "server_droid_electrical_shock_1",
+        "server_droid_electrical_shock_2",
+        "server_droid_electrical_shock_3",
+        "server_droid_torturous_needle_1",
+        "server_droid_torturous_needle_2",
+        "server_droid_torturous_needle_3"
+    };
+    public static final String[] RETIRED_POST_NGE_DROID_COMBAT_MODULE_BUFFS =
+    {
+        "droideka_shield_1",
+        "droideka_shield_2",
+        "droideka_shield_3"
+    };
     public static final string_id SID_SYS_CANT_TAME = new string_id("pet/pet_menu", "sys_cant_tame");
     public static final string_id SID_SYS_LACK_SKILL = new string_id("pet/pet_menu", "sys_lack_skill");
     public static final string_id SID_MAX_PETS = new string_id("error_message", "too_many_pets");
@@ -5904,6 +5949,13 @@ public class pet_lib extends script.base_script
     }
     public static obj_id validateDroidCommand(obj_id player) throws InterruptedException
     {
+        // These six tiered combat-module families arrived after Publish 14.1.
+        // The classic droid command list and Detonate Droid use separate paths.
+        if (isIdValid(player) && isPlayer(player))
+        {
+            retirePostNgeDroidCombatModuleState(player);
+            return null;
+        }
         obj_id droid = callable.getCallable(player, callable.CALLABLE_TYPE_COMBAT_PET);
         if (!isIdValid(droid) || !exists(droid))
         {
@@ -5928,5 +5980,68 @@ public class pet_lib extends script.base_script
             return null;
         }
         return droid;
+    }
+    public static boolean isRetiredPostNgeDroidCombatModuleAction(obj_id actor, String actionName) throws InterruptedException
+    {
+        if (!isIdValid(actor) || actionName == null)
+        {
+            return false;
+        }
+        boolean retiredAction = false;
+        for (String playerAction : RETIRED_POST_NGE_DROID_COMBAT_MODULE_PLAYER_ACTIONS)
+        {
+            if (actionName.equals(playerAction))
+            {
+                retiredAction = true;
+                break;
+            }
+        }
+        if (!retiredAction)
+        {
+            for (String serverAction : RETIRED_POST_NGE_DROID_COMBAT_MODULE_SERVER_ACTIONS)
+            {
+                if (actionName.equals(serverAction))
+                {
+                    retiredAction = true;
+                    break;
+                }
+            }
+        }
+        if (!retiredAction)
+        {
+            return false;
+        }
+        if (isPlayer(actor))
+        {
+            return true;
+        }
+        obj_id master = getMaster(actor);
+        return isIdValid(master) && exists(master) && isPlayer(master);
+    }
+    public static void retirePostNgeDroidCombatModuleState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        for (String retiredAction : RETIRED_POST_NGE_DROID_COMBAT_MODULE_PLAYER_ACTIONS)
+        {
+            while (hasCommand(player, retiredAction))
+            {
+                revokeCommand(player, retiredAction);
+            }
+        }
+        obj_id droid = callable.getCallable(player, callable.CALLABLE_TYPE_COMBAT_PET);
+        if (!isIdValid(droid) || !exists(droid) || !isDroidPet(droid))
+        {
+            return;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_DROID_COMBAT_MODULE_BUFFS)
+        {
+            if (buff.hasBuff(droid, retiredBuff))
+            {
+                buff.removeBuff(droid, retiredBuff);
+            }
+        }
     }
 }

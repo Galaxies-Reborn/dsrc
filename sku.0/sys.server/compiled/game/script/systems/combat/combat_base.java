@@ -412,6 +412,12 @@ public class combat_base extends script.base_script
     }
     public boolean combatStandardAction(String actionName, obj_id self, obj_id target, obj_id objWeapon, String params, combat_data actionData, boolean isTangibleAttacking, boolean testPetBar, int overloadDamage) throws InterruptedException
     {
+        if (pet_lib.isRetiredPostNgeDroidCombatModuleAction(self, actionName))
+        {
+            obj_id player = isPlayer(self) ? self : getMaster(self);
+            pet_lib.retirePostNgeDroidCombatModuleState(player);
+            return false;
+        }
         if (isRetiredPostNgeSpeciesPlayerAction(self, actionName))
         {
             retirePostNgeSpeciesAbilityState(self);
