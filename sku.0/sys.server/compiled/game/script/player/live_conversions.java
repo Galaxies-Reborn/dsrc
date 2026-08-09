@@ -52,6 +52,7 @@ public class live_conversions extends script.base_script
         removeObjVar(player, "respec");
         removeObjVar(player, "respecToken");
         removeObjVar(player, "respecsBought");
+        removeObjVar(player, "respecDeviceUsed");
         removeObjVar(player, "respec_voucher");
         removeObjVar(player, "expertise_reset");
         removeObjVar(player, respec.EXPERTISE_VERSION_OBJVAR);
