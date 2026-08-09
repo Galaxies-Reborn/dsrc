@@ -1259,15 +1259,10 @@ public class guild extends script.base_script
             {
                 memberData[i][1] = "" + level;
             }
-            String profession = guildGetMemberProfession(guildId, memberIds[i]);
-            if (profession != null && profession.length() > 0)
-            {
-                memberData[i][2] = "@ui_roadmap:" + profession;
-            }
-            else 
-            {
-                memberData[i][2] = "Unavailable";
-            }
+            // Publish 14.1 characters can own several professions at once and
+            // have no singular roadmap profession. Native guild persistence
+            // normalizes this field to empty; keep stale records neutral too.
+            memberData[i][2] = "Unavailable";
             memberData[i][3] = guildGetMemberTitle(guildId, memberIds[i]);
             String[] ranks = guildGetMemberRank(guildId, memberIds[i]);
             rank = "";

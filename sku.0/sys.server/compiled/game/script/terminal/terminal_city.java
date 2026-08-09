@@ -1147,15 +1147,9 @@ public class terminal_city extends script.base_script
                     }
                     break;
                     case 4:
-                    String ownerProfession = cityGetCitizenProfession(city_id, listOfResidents[k]);
-                    if (ownerProfession != null && ownerProfession.length() > 0)
-                    {
-                        displayData[k][l] = "@ui_roadmap:" + ownerProfession;
-                    }
-                    else 
-                    {
-                        displayData[k][l] = "@city/city:unknown_profession";
-                    }
+                    // Publish 14.1 characters can own several professions at
+                    // once. Never revive a stale singular NGE roadmap value.
+                    displayData[k][l] = "@city/city:unknown_profession";
                     break;
                     case 5:
                     String onlineOfflineStatus = utils.getOnlineOfflineStatus(listOfResidents[k]);
