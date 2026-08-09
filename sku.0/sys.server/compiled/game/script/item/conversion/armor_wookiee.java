@@ -10,37 +10,60 @@ public class armor_wookiee extends script.base_script
     public armor_wookiee()
     {
     }
-    public static final String[] WOOKIEE_ASSAULT = 
+    public static final String[] WOOKIEE_ASSAULT =
     {
         "object/tangible/wearables/armor/kashyyykian_hunting/armor_kashyyykian_hunting_chestplate.iff",
         "object/tangible/wearables/armor/kashyyykian_hunting/armor_kashyyykian_hunting_bicep_l.iff",
         "object/tangible/wearables/armor/kashyyykian_hunting/armor_kashyyykian_hunting_bicep_r.iff"
     };
-    public static final String[] WOOKIEE_BATTLE = 
+    public static final String[] WOOKIEE_BATTLE =
     {
         "object/tangible/wearables/armor/kashyyykian_black_mtn/armor_kashyyykian_black_mtn_chestplate.iff",
         "object/tangible/wearables/armor/kashyyykian_black_mtn/armor_kashyyykian_black_mtn_bicep_l.iff",
         "object/tangible/wearables/armor/kashyyykian_black_mtn/armor_kashyyykian_black_mtn_bicep_r.iff"
     };
-    public static final String[] WOOKIEE_RECON = 
+    public static final String[] WOOKIEE_RECON =
     {
         "object/tangible/wearables/armor/kashyyykian_ceremonial/armor_kashyyykian_ceremonial_chestplate.iff",
         "object/tangible/wearables/armor/kashyyykian_ceremonial/armor_kashyyykian_ceremonial_bicep_l.iff",
         "object/tangible/wearables/armor/kashyyykian_ceremonial/armor_kashyyykian_ceremonial_bicep_r.iff"
     };
+    public static final boolean POST_P14_WOOKIEE_CYBERNETIC_RESIZE_RETIRED = true;
+    public static boolean isPostP14WookieeCyberneticResizeRetired()
+    {
+        return POST_P14_WOOKIEE_CYBERNETIC_RESIZE_RETIRED;
+    }
+    public static void retirePostP14WookieeCyberneticResizeScript(obj_id item) throws InterruptedException
+    {
+        if (isIdValid(item) && exists(item) && hasScript(item, "item.conversion.armor_wookiee"))
+        {
+            detachScript(item, "item.conversion.armor_wookiee");
+        }
+    }
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        retirePostP14WookieeCyberneticResizeScript(self);
+        return SCRIPT_CONTINUE;
+    }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        retirePostP14WookieeCyberneticResizeScript(self);
         return SCRIPT_CONTINUE;
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (isPostP14WookieeCyberneticResizeRetired())
+        {
+            retirePostP14WookieeCyberneticResizeScript(self);
+            return SCRIPT_CONTINUE;
+        }
         if (utils.getContainingPlayer(self) == player)
         {
             if (hasObjVar(self, "armor.wookieeDeconstruct"))
             {
                 mi.addRootMenu(menu_info_types.SERVER_MENU9, new string_id("craft_armor_ingredients_d", "wookiee_cybernetic_enable"));
             }
-            else 
+            else
             {
                 detachScript(self, "item.conversion.armor_wookiee");
             }
@@ -49,6 +72,10 @@ public class armor_wookiee extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (isPostP14WookieeCyberneticResizeRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (utils.getContainingPlayer(self) == player)
         {
             if (item == menu_info_types.SERVER_MENU9)
@@ -60,6 +87,10 @@ public class armor_wookiee extends script.base_script
     }
     public void showConfirmationWindow(obj_id player) throws InterruptedException
     {
+        if (isPostP14WookieeCyberneticResizeRetired())
+        {
+            return;
+        }
         obj_id self = getSelf();
         String prompt = "Are you sure you wish to Resize this Wookiee Chest Piece into 3 seperate pieces?  This will enable this armor to be used with Cybernetics";
         String title = "Cybernetic Enable Wookiee Chest Armor Piece";
@@ -69,6 +100,10 @@ public class armor_wookiee extends script.base_script
     }
     public void dismantleWookiee(obj_id player) throws InterruptedException
     {
+        if (isPostP14WookieeCyberneticResizeRetired())
+        {
+            return;
+        }
         obj_id oldObject = getSelf();
         String templatename = getTemplateName(oldObject);
         String[] armorPieces = new String[]
@@ -88,7 +123,7 @@ public class armor_wookiee extends script.base_script
             sendSystemMessage(player, new string_id("quest_armorsmith", "inventory_full"));
             return;
         }
-        else 
+        else
         {
             switch (templatename) {
                 case "object/tangible/wearables/armor/kashyyykian_hunting/armor_kashyyykian_hunting_chest_plate.iff":
@@ -121,7 +156,7 @@ public class armor_wookiee extends script.base_script
                         setMaxHitpoints(armorItem, hitPoints * 2);
                         setHitpoints(armorItem, hitPoints * 2);
                     }
-                    else 
+                    else
                     {
                         setMaxHitpoints(armorItem, hitPoints);
                         setHitpoints(armorItem, hitPoints);
@@ -147,6 +182,10 @@ public class armor_wookiee extends script.base_script
     }
     public void setWindowPid(obj_id player, int pid) throws InterruptedException
     {
+        if (isPostP14WookieeCyberneticResizeRetired())
+        {
+            return;
+        }
         if (pid > -1)
         {
             utils.setScriptVar(player, "wookiee_armor.pid", pid);
@@ -154,6 +193,10 @@ public class armor_wookiee extends script.base_script
     }
     public int handleWookieeConfirmationSelect(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isPostP14WookieeCyberneticResizeRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         obj_id player = sui.getPlayerId(params);
         int btn = sui.getIntButtonPressed(params);
         if (btn == sui.BP_CANCEL)

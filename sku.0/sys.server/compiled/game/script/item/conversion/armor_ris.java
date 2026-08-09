@@ -9,19 +9,42 @@ public class armor_ris extends script.base_script
     public armor_ris()
     {
     }
+    public static final boolean POST_P14_RIS_DISMANTLE_RETIRED = true;
+    public static boolean isPostP14RisDismantleRetired()
+    {
+        return POST_P14_RIS_DISMANTLE_RETIRED;
+    }
+    public static void retirePostP14RisDismantleScript(obj_id item) throws InterruptedException
+    {
+        if (isIdValid(item) && exists(item) && hasScript(item, "item.conversion.armor_ris"))
+        {
+            detachScript(item, "item.conversion.armor_ris");
+        }
+    }
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        retirePostP14RisDismantleScript(self);
+        return SCRIPT_CONTINUE;
+    }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        retirePostP14RisDismantleScript(self);
         return SCRIPT_CONTINUE;
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (isPostP14RisDismantleRetired())
+        {
+            retirePostP14RisDismantleScript(self);
+            return SCRIPT_CONTINUE;
+        }
         if (utils.getContainingPlayer(self) == player)
         {
             if (hasObjVar(self, "armor.risDeconstruct"))
             {
                 mi.addRootMenu(menu_info_types.SERVER_MENU1, new string_id("craft_armor_ingredients_d", "dismantle_ris"));
             }
-            else 
+            else
             {
                 detachScript(self, "item.conversion.armor_ris");
             }
@@ -30,6 +53,10 @@ public class armor_ris extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (isPostP14RisDismantleRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (utils.getContainingPlayer(self) == player)
         {
             if (item == menu_info_types.SERVER_MENU1)
@@ -41,6 +68,10 @@ public class armor_ris extends script.base_script
     }
     public void showConfirmationWindow(obj_id player) throws InterruptedException
     {
+        if (isPostP14RisDismantleRetired())
+        {
+            return;
+        }
         obj_id self = getSelf();
         String prompt = "Are you sure you wish to DESTROY this piece of armor and create an RIS armor segment used in the constrution of RIS armor?";
         String title = "Dismantle RIS Armor Piece";
@@ -50,6 +81,10 @@ public class armor_ris extends script.base_script
     }
     public void dismantleRis(obj_id player) throws InterruptedException
     {
+        if (isPostP14RisDismantleRetired())
+        {
+            return;
+        }
         obj_id self = getSelf();
         obj_id pInv = utils.getInventoryContainer(player);
         if (getVolumeFree(pInv) <= 1)
@@ -57,7 +92,7 @@ public class armor_ris extends script.base_script
             sendSystemMessage(player, new string_id("quest_armorsmith", "inventory_full"));
             return;
         }
-        else 
+        else
         {
             destroyObject(self);
             obj_id segment = createObject("object/tangible/component/armor/armor_segment_ris.iff", pInv, "");
@@ -80,6 +115,10 @@ public class armor_ris extends script.base_script
     }
     public void setWindowPid(obj_id player, int pid) throws InterruptedException
     {
+        if (isPostP14RisDismantleRetired())
+        {
+            return;
+        }
         if (pid > -1)
         {
             utils.setScriptVar(player, "ris_armor.pid", pid);
@@ -87,6 +126,10 @@ public class armor_ris extends script.base_script
     }
     public int handleConfirmationSelect(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isPostP14RisDismantleRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         obj_id player = sui.getPlayerId(params);
         int btn = sui.getIntButtonPressed(params);
         if (btn == sui.BP_CANCEL)

@@ -9,19 +9,42 @@ public class armor_mand extends script.base_script
     public armor_mand()
     {
     }
+    public static final boolean POST_P14_MANDALORIAN_DISMANTLE_RETIRED = true;
+    public static boolean isPostP14MandalorianDismantleRetired()
+    {
+        return POST_P14_MANDALORIAN_DISMANTLE_RETIRED;
+    }
+    public static void retirePostP14MandalorianDismantleScript(obj_id item) throws InterruptedException
+    {
+        if (isIdValid(item) && exists(item) && hasScript(item, "item.conversion.armor_mand"))
+        {
+            detachScript(item, "item.conversion.armor_mand");
+        }
+    }
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        retirePostP14MandalorianDismantleScript(self);
+        return SCRIPT_CONTINUE;
+    }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        retirePostP14MandalorianDismantleScript(self);
         return SCRIPT_CONTINUE;
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (isPostP14MandalorianDismantleRetired())
+        {
+            retirePostP14MandalorianDismantleScript(self);
+            return SCRIPT_CONTINUE;
+        }
         if (utils.getContainingPlayer(self) == player)
         {
             if (hasObjVar(self, "armor.mandDeconstruct"))
             {
                 mi.addRootMenu(menu_info_types.SERVER_MENU1, new string_id("craft_armor_ingredients_d", "dismantle_mand"));
             }
-            else 
+            else
             {
                 detachScript(self, "item.conversion.armor_mand");
             }
@@ -30,6 +53,10 @@ public class armor_mand extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (isPostP14MandalorianDismantleRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (utils.getContainingPlayer(self) == player)
         {
             if (item == menu_info_types.SERVER_MENU1)
@@ -41,6 +68,10 @@ public class armor_mand extends script.base_script
     }
     public void showConfirmationWindow(obj_id player) throws InterruptedException
     {
+        if (isPostP14MandalorianDismantleRetired())
+        {
+            return;
+        }
         obj_id self = getSelf();
         String prompt = "Are you sure you wish to DESTROY this piece of armor and create a Mandalorian armor schematic used in the constrution of Mandalorian armor?";
         String title = "Dismantle Mandalorian Armor Piece";
@@ -50,6 +81,10 @@ public class armor_mand extends script.base_script
     }
     public void dismantleMand(obj_id player) throws InterruptedException
     {
+        if (isPostP14MandalorianDismantleRetired())
+        {
+            return;
+        }
         obj_id self = getSelf();
         String templatename = getTemplateName(self);
         String schematicTemplate = "";
@@ -59,7 +94,7 @@ public class armor_mand extends script.base_script
             sendSystemMessage(player, new string_id("quest_armorsmith", "inventory_full"));
             return;
         }
-        else 
+        else
         {
             switch (templatename) {
                 case "object/tangible/wearables/armor/mandalorian/armor_mandalorian_helmet.iff":
@@ -106,7 +141,7 @@ public class armor_mand extends script.base_script
                 setCrafter(newSchematic, player);
                 sendSystemMessage(player, new string_id("quest_armorsmith", "schematic_issued"));
             }
-            else 
+            else
             {
                 CustomerServiceLog("armor_converion", "Server attempted to create Mandalorian " + newSchematic + " for %TU but failed", player);
                 return;
@@ -124,6 +159,10 @@ public class armor_mand extends script.base_script
     }
     public void setWindowPid(obj_id player, int pid) throws InterruptedException
     {
+        if (isPostP14MandalorianDismantleRetired())
+        {
+            return;
+        }
         if (pid > -1)
         {
             utils.setScriptVar(player, "mand_armor.pid", pid);
@@ -131,6 +170,10 @@ public class armor_mand extends script.base_script
     }
     public int handleConfirmationSelect(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isPostP14MandalorianDismantleRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         obj_id player = sui.getPlayerId(params);
         int btn = sui.getIntButtonPressed(params);
         if (btn == sui.BP_CANCEL)

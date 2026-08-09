@@ -9,12 +9,35 @@ public class bounty_hunter extends script.base_script
     public bounty_hunter()
     {
     }
+    public static final boolean POST_P14_BOUNTY_HUNTER_DISMANTLE_RETIRED = true;
+    public static boolean isPostP14BountyHunterDismantleRetired()
+    {
+        return POST_P14_BOUNTY_HUNTER_DISMANTLE_RETIRED;
+    }
+    public static void retirePostP14BountyHunterDismantleScript(obj_id item) throws InterruptedException
+    {
+        if (isIdValid(item) && exists(item) && hasScript(item, "item.conversion.bounty_hunter"))
+        {
+            detachScript(item, "item.conversion.bounty_hunter");
+        }
+    }
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        retirePostP14BountyHunterDismantleScript(self);
+        return SCRIPT_CONTINUE;
+    }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        retirePostP14BountyHunterDismantleScript(self);
         return SCRIPT_CONTINUE;
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (isPostP14BountyHunterDismantleRetired())
+        {
+            retirePostP14BountyHunterDismantleScript(self);
+            return SCRIPT_CONTINUE;
+        }
         if (utils.getContainingPlayer(self) == player)
         {
             mi.addRootMenu(menu_info_types.SERVER_MENU1, new string_id("craft_armor_ingredients_d", "dismantle_bounty_hunter"));
@@ -23,6 +46,10 @@ public class bounty_hunter extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (isPostP14BountyHunterDismantleRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (utils.getContainingPlayer(self) == player)
         {
             if (item == menu_info_types.SERVER_MENU1)
@@ -34,6 +61,10 @@ public class bounty_hunter extends script.base_script
     }
     public void showConfirmationWindow(obj_id player) throws InterruptedException
     {
+        if (isPostP14BountyHunterDismantleRetired())
+        {
+            return;
+        }
         obj_id self = getSelf();
         String prompt = "Are you sure you wish to DESTROY this piece of wearable armor and create a piece used for the construction of Mandalorian armor?";
         String title = "Dismantle Bounty Hunter Armor Piece";
@@ -43,6 +74,10 @@ public class bounty_hunter extends script.base_script
     }
     public void dismantleBountyHunter(obj_id player) throws InterruptedException
     {
+        if (isPostP14BountyHunterDismantleRetired())
+        {
+            return;
+        }
         obj_id self = getSelf();
         String templatename = getTemplateName(self);
         String schematicTemplate = "";
@@ -52,7 +87,7 @@ public class bounty_hunter extends script.base_script
             sendSystemMessage(player, new string_id("quest_armorsmith", "inventory_full"));
             return;
         }
-        else 
+        else
         {
             switch (templatename) {
                 case "object/tangible/wearables/armor/bounty_hunter/armor_bounty_hunter_crafted_helmet.iff":
@@ -99,7 +134,7 @@ public class bounty_hunter extends script.base_script
                 setCrafter(newSchematic, player);
                 sendSystemMessage(player, new string_id("quest_armorsmith", "bounty_hunter_converted"));
             }
-            else 
+            else
             {
                 CustomerServiceLog("armor_converion", "Server attempted to create Bounty Hunter " + newSchematic + " for %TU but failed", player);
                 return;
@@ -117,6 +152,10 @@ public class bounty_hunter extends script.base_script
     }
     public void setWindowPid(obj_id player, int pid) throws InterruptedException
     {
+        if (isPostP14BountyHunterDismantleRetired())
+        {
+            return;
+        }
         if (pid > -1)
         {
             utils.setScriptVar(player, "bounty_hunter_armor.pid", pid);
@@ -124,6 +163,10 @@ public class bounty_hunter extends script.base_script
     }
     public int handleConfirmationSelect(obj_id self, dictionary params) throws InterruptedException
     {
+        if (isPostP14BountyHunterDismantleRetired())
+        {
+            return SCRIPT_CONTINUE;
+        }
         obj_id player = sui.getPlayerId(params);
         int btn = sui.getIntButtonPressed(params);
         if (btn == sui.BP_CANCEL)
