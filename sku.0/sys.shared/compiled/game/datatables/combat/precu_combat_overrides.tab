@@ -163,3 +163,6 @@ fastBlast	1.5	1.5	1	MULTI	3.05	95	RANGED	NONE	0	NONE	0	0	0				NONE	0	0	0				NONE
 panicShot	.5	1.25	.5	RANDOM	3	50	RANGED			NEXT_ATTACK_DELAY	100	0	10	warcry_defense																										
 lowBlow	.5	1	.5	RANDOM	2.5	50	RANGED																										100							
 lastDitch	.5	1.25	.5	RANDOM	4	60	RANGED			STUN	100	0	30	stun_defense	jedi_state_defense	resistance_states																								
+unarmedDizzy1	1.5	1.5	1.5	RANDOM	2	15	INTENSITY			DIZZY	100	0	30	dizzy_defense	jedi_state_defense	resistance_states
+unarmedCombo1	1.5	1.5	1.5	MULTI	2	15	INTENSITY
+unarmedCombo2	2	2	2	MULTI	4	15	INTENSITY

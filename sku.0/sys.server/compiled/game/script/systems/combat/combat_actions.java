@@ -15490,6 +15490,68 @@ public class combat_actions extends script.systems.combat.combat_base
         }
         return SCRIPT_CONTINUE;
     }
+    public int unarmedDizzy1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!combatStandardAction("unarmedDizzy1", self, target, params, "", ""))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int unarmedCombo1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        int healthRoll = rand(0, 50);
+        float healthMultiplier = (90.0f - (float)healthRoll) / 100.0f;
+        float actionMultiplier = 0.1f;
+        float mindMultiplier = 1.0f - healthMultiplier - actionMultiplier;
+        if (!performPrecuUnarmedCombo(
+            "unarmedCombo1", self, target, healthMultiplier,
+            actionMultiplier, mindMultiplier))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int unarmedCombo2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        float healthWeight = (float)rand(10, 80);
+        float actionWeight = (float)rand(10, 80);
+        float mindWeight = (float)rand(10, 80);
+        float totalWeight = healthWeight + actionWeight + mindWeight;
+        if (!performPrecuUnarmedCombo(
+            "unarmedCombo2", self, target,
+            healthWeight / totalWeight,
+            actionWeight / totalWeight,
+            mindWeight / totalWeight))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    private boolean performPrecuUnarmedCombo(
+        String actionName, obj_id self, obj_id target,
+        float healthMultiplier, float actionMultiplier,
+        float mindMultiplier) throws InterruptedException
+    {
+        combat_data actionData = combat_engine.getCombatData(actionName);
+        if (actionData == null)
+        {
+            return false;
+        }
+
+        // Core3 generated these values on the server. Ignore client params so
+        // callers cannot choose their own HAM damage distribution.
+        actionData.precuTargetPool = PRECU_TARGET_POOL_MULTI;
+        actionData.precuHealthDamageMultiplier = healthMultiplier;
+        actionData.precuActionDamageMultiplier = actionMultiplier;
+        // MULTI treats a zero multiplier as an absent pool and applies spill.
+        // A tiny positive sentinel preserves Core3's zero-damage edge roll.
+        actionData.precuMindDamageMultiplier =
+            Math.max(0.000001f, mindMultiplier);
+        return combatStandardAction(
+            actionName, self, target, getCurrentWeapon(self), "",
+            actionData, false);
+    }
     public int intimidate1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
         if (!combatStandardAction("intimidate1", self, target, params, "", ""))
