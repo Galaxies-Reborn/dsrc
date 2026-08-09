@@ -2206,6 +2206,9 @@ public class buff extends script.base_script
     {
         "vet_exp_buff_item_buff",
         "buddy_xp_buff",
+        "event_ewok_berry",
+        "event_rebel_drink",
+        "event_imperial_cookies",
         "ice_cream_xp_bonus",
         "mtp_meatlump_wine_xp_buff"
     };
