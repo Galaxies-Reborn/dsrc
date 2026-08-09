@@ -1108,51 +1108,10 @@ public class npe extends script.base_script
     }
     public static void giveTemplatePointer(obj_id player) throws InterruptedException
     {
-        if (utils.isProfession(player, utils.BOUNTY_HUNTER))
-        {
-            groundquests.sendSignal(player, "npe_solo_profession_2_end");
-            groundquests.grantQuest(player, "npe_pointer_artisan");
-        }
-        else if (utils.isProfession(player, utils.COMMANDO))
-        {
-            groundquests.sendSignal(player, "npe_solo_profession_2_end");
-            groundquests.grantQuest(player, "npe_pointer_commando_template");
-        }
-        else if (utils.isProfession(player, utils.ENTERTAINER))
-        {
-            groundquests.sendSignal(player, "npe_solo_profession_2_end");
-            groundquests.grantQuest(player, "npe_pointer_entertainer_template");
-        }
-        else if (utils.isProfession(player, utils.FORCE_SENSITIVE))
-        {
-            groundquests.sendSignal(player, "npe_solo_profession_2_end");
-            groundquests.grantQuest(player, "npe_pointer_force_template");
-        }
-        else if (utils.isProfession(player, utils.MEDIC))
-        {
-            groundquests.sendSignal(player, "npe_solo_profession_2_end");
-            groundquests.grantQuest(player, "npe_pointer_med_template");
-        }
-        else if (utils.isProfession(player, utils.OFFICER))
-        {
-            groundquests.sendSignal(player, "npe_solo_profession_2_end");
-            groundquests.grantQuest(player, "npe_pointer_officer_template");
-        }
-        else if (utils.isProfession(player, utils.SPY))
-        {
-            groundquests.sendSignal(player, "npe_solo_profession_2_end");
-            groundquests.grantQuest(player, "npe_pointer_spy_template");
-        }
-        else if (utils.isProfession(player, utils.TRADER))
-        {
-            groundquests.sendSignal(player, "npe_solo_profession_2_end");
-            groundquests.grantQuest(player, "npe_pointer_trader_template");
-        }
-        else if (utils.isProfession(player, utils.SMUGGLER))
-        {
-            groundquests.sendSignal(player, "npe_solo_profession_2_end");
-            groundquests.grantQuest(player, "npe_pointer_smuggler_template");
-        }
+        // Retain the station story handoff without reviving its NGE class
+        // selection. Publish 14.1 professions advance through learned skill
+        // boxes and trainers, not NPE template-pointer quest chains.
+        groundquests.sendSignal(player, "npe_solo_profession_2_end");
     }
     public static void commTutorialPlayer(obj_id owner, obj_id player, float duration, string_id text, String sfx, String appearance) throws InterruptedException
     {
@@ -1177,48 +1136,9 @@ public class npe extends script.base_script
     }
     public static obj_id[] giveProfessionWeapon(obj_id player) throws InterruptedException
     {
-        obj_id pInv = utils.getInventoryContainer(player);
-        HashSet theSet = new HashSet();
-        if (utils.isProfession(player, utils.SMUGGLER))
-        {
-            theSet.add(static_item.createNewItemFunction("item_npe_smuggler_han_solo_gun", pInv));
-        }
-        else if (utils.isProfession(player, utils.BOUNTY_HUNTER))
-        {
-            theSet.add(static_item.createNewItemFunction("weapon_npe_carbine_bh_03_01", pInv));
-        }
-        else if (utils.isProfession(player, utils.OFFICER))
-        {
-            theSet.add(static_item.createNewItemFunction("item_npe_officer_sidearm", pInv));
-        }
-        else if (utils.isProfession(player, utils.COMMANDO))
-        {
-            theSet.add(static_item.createNewItemFunction("weapon_npe_commando_carbine_03_01", pInv));
-        }
-        else if (utils.isProfession(player, utils.FORCE_SENSITIVE))
-        {
-            theSet.add(static_item.createNewItemFunction("weapon_polearm_02_03", pInv));
-        }
-        else if (utils.isProfession(player, utils.MEDIC))
-        {
-            theSet.add(static_item.createNewItemFunction("weapon_npe_medic_pistol_03_01", pInv));
-        }
-        else if (utils.isProfession(player, utils.SPY))
-        {
-            theSet.add(static_item.createNewItemFunction("weapon_npe_carbine_spy_03_01", pInv));
-        }
-        else if (utils.isProfession(player, utils.ENTERTAINER))
-        {
-            theSet.add(static_item.createNewItemFunction("item_npe_dance_prop_l_entertainer_02_01", pInv));
-        }
-        else if (utils.isProfession(player, utils.TRADER))
-        {
-            theSet.add(static_item.createNewItemFunction("item_npe_gen_craft_tool_trader_03_01", pInv));
-        }
-        obj_id[] items = new obj_id[theSet.size()];
-        theSet.toArray(items);
-        showLootBox(player, items);
-        return items;
+        // Keep the inherited ABI callable for retained station content and old
+        // respec callbacks, but never inject NGE profession starter equipment.
+        return new obj_id[0];
     }
     public static void reGrantReWorkedQuests(obj_id player) throws InterruptedException
     {
