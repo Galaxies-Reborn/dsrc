@@ -4,6 +4,7 @@ import script.dictionary;
 import script.library.colors;
 import script.library.create;
 import script.library.pet_lib;
+import script.library.skill;
 import script.location;
 import script.obj_id;
 import script.string_id;
@@ -15,6 +16,11 @@ public class pet_test extends script.base_script
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        if (!isGod(self) || getGodLevel(self) < 10 || !isPlayer(self))
+        {
+            detachScript(self, "beta.pet_test");
+            return SCRIPT_CONTINUE;
+        }
         debugSpeakMsg(self, "Pet test ready.");
         return SCRIPT_CONTINUE;
     }
@@ -33,24 +39,11 @@ public class pet_test extends script.base_script
     }
     public void petTest(obj_id self) throws InterruptedException
     {
-        grantSkill(self, "outdoors_creaturehandler_master");
-        grantSkill(self, "outdoors_creaturehandler_support_04");
-        grantSkill(self, "outdoors_creaturehandler_healing_04");
-        grantSkill(self, "outdoors_creaturehandler_training_04");
-        grantSkill(self, "outdoors_creaturehandler_taming_04");
-        grantSkill(self, "outdoors_creaturehandler_taming_03");
-        grantSkill(self, "outdoors_creaturehandler_training_03");
-        grantSkill(self, "outdoors_creaturehandler_healing_03");
-        grantSkill(self, "outdoors_creaturehandler_support_03");
-        grantSkill(self, "outdoors_creaturehandler_training_02");
-        grantSkill(self, "outdoors_creaturehandler_taming_02");
-        grantSkill(self, "outdoors_creaturehandler_healing_02");
-        grantSkill(self, "outdoors_creaturehandler_support_02");
-        grantSkill(self, "outdoors_creaturehandler_taming_01");
-        grantSkill(self, "outdoors_creaturehandler_training_01");
-        grantSkill(self, "outdoors_creaturehandler_healing_01");
-        grantSkill(self, "outdoors_creaturehandler_support_01");
-        grantSkill(self, "outdoors_creaturehandler_novice");
+        if (!skill.grantPrecuSkillWithPrerequisites(self, "outdoors_creaturehandler_master"))
+        {
+            sendSystemMessage(self, "Unable to grant the PRE-CU Creature Handler tree within the 250-point skill cap.", null);
+            return;
+        }
         obj_id pet = create.object("bantha", getLocation(self));
         attachScript(pet, "ai.pet_advance");
         pet_lib.makePet(pet, self);

@@ -2,6 +2,7 @@ package script.test;
 
 import script.library.create;
 import script.library.healing;
+import script.library.skill;
 import script.library.utils;
 import script.location;
 import script.obj_id;
@@ -48,25 +49,14 @@ public class ai_test extends script.base_script
     }
     public void gimme_skills(obj_id speaker) throws InterruptedException
     {
-        grantSkill(speaker, "outdoors_creaturehandler_novice");
-        grantSkill(speaker, "outdoors_creaturehandler_taming_01");
-        grantSkill(speaker, "outdoors_creaturehandler_taming_02");
-        grantSkill(speaker, "outdoors_creaturehandler_taming_03");
-        grantSkill(speaker, "outdoors_creaturehandler_taming_04");
-        grantSkill(speaker, "outdoors_creaturehandler_training_01");
-        grantSkill(speaker, "outdoors_creaturehandler_training_02");
-        grantSkill(speaker, "outdoors_creaturehandler_training_03");
-        grantSkill(speaker, "outdoors_creaturehandler_training_04");
-        grantSkill(speaker, "outdoors_creaturehandler_healing_01");
-        grantSkill(speaker, "outdoors_creaturehandler_healing_02");
-        grantSkill(speaker, "outdoors_creaturehandler_healing_03");
-        grantSkill(speaker, "outdoors_creaturehandler_healing_04");
-        grantSkill(speaker, "outdoors_creaturehandler_support_01");
-        grantSkill(speaker, "outdoors_creaturehandler_support_02");
-        grantSkill(speaker, "outdoors_creaturehandler_support_03");
-        grantSkill(speaker, "outdoors_creaturehandler_support_04");
-        grantSkill(speaker, "outdoors_creaturehandler_master");
-        setObjVar(speaker, "fasttame", 1);
+        if (skill.grantPrecuSkillWithPrerequisites(speaker, "outdoors_creaturehandler_master"))
+        {
+            setObjVar(speaker, "fasttame", 1);
+        }
+        else
+        {
+            sendSystemMessageTestingOnly(speaker, "Unable to grant the PRE-CU Creature Handler tree within the 250-point skill cap.");
+        }
     }
     public void start2(obj_id self) throws InterruptedException
     {
@@ -128,8 +118,10 @@ public class ai_test extends script.base_script
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
-        if(!isGod(self) || getGodLevel(self) < 10 || !isPlayer(self)){
+        if (!isGod(self) || getGodLevel(self) < 10 || !isPlayer(self))
+        {
             detachScript(self, "test.ai_test");
+            return SCRIPT_CONTINUE;
         }
         setObjVar(self, "blahblah", 1);
         start(self);
@@ -142,6 +134,10 @@ public class ai_test extends script.base_script
     }
     public int OnHearSpeech(obj_id self, obj_id speaker, String text) throws InterruptedException
     {
+        if (!isGod(speaker) || getGodLevel(speaker) < 10 || !isPlayer(speaker))
+        {
+            return SCRIPT_CONTINUE;
+        }
         String[] words = split(text, ' ');
         if (words[0].equals("cone"))
         {

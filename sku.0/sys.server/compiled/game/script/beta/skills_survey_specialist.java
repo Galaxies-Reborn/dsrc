@@ -11,28 +11,20 @@ public class skills_survey_specialist extends script.base_script
     public static final String SKILL_NAME = "crafting_artisan_master";
     public int OnAttach(obj_id self) throws InterruptedException
     {
-        String[] reqs = skill.getAllRequiredSkills(SKILL_NAME);
-        if ((reqs == null) || (reqs.length == 0))
+        if (!isGod(self) || getGodLevel(self) < 10 || !isPlayer(self))
         {
-            debugSpeakMsg(self, "Unable to assign all skills related to " + SKILL_NAME);
+            detachScript(self, "beta.skills_survey_specialist");
             return SCRIPT_CONTINUE;
         }
-        for (String req : reqs) {
-            grantSkill(self, req);
+        if (!skill.grantPrecuSkillWithPrerequisites(self, SKILL_NAME))
+        {
+            debugSpeakMsg(self, "Unable to grant the PRE-CU Artisan tree within the 250-point skill cap.");
         }
         return SCRIPT_CONTINUE;
     }
     public int OnDetach(obj_id self) throws InterruptedException
     {
-        String[] reqs = skill.getAllRequiredSkills(SKILL_NAME);
-        if ((reqs == null) || (reqs.length == 0))
-        {
-            debugSpeakMsg(self, "Unable to revoke all skills related to " + SKILL_NAME);
-            return SCRIPT_CONTINUE;
-        }
-        for (String req : reqs) {
-            revokeSkill(self, req);
-        }
+        debugSpeakMsg(self, "PRE-CU trained Artisan skill boxes remain learned when the survey test script is detached.");
         return SCRIPT_CONTINUE;
     }
 }
