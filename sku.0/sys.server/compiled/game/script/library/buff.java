@@ -2254,6 +2254,16 @@ public class buff extends script.base_script
         "tcg_series2_versafunction88_datapad",
         "tcg_series9_lepese_dictionary"
     };
+    private static final String[] RETIRED_POST_NGE_PLAYER_TCG_XP_BONUS_BUFFS =
+    {
+        "tcg_series1_radtrooper_badge",
+        "tcg_series1_hans_hydrospanner",
+        "tcg_series2_mandalorian_strongbox",
+        "tcg_series2_keelkana_tooth",
+        "tcg_series3_general_grievous_gutsack",
+        "tcg_series5_klorri_clan_shield",
+        "tcg_series6_ponda_baba_arm"
+    };
     public static boolean isRetiredPostNgePlayerInstantXpGrantBuffName(String buffName)
     {
         if (buffName == null)
@@ -2268,6 +2278,26 @@ public class buff extends script.base_script
             }
         }
         return false;
+    }
+    public static boolean isRetiredPostNgePlayerTcgXpBonusBuffName(String buffName)
+    {
+        if (buffName == null)
+        {
+            return false;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_PLAYER_TCG_XP_BONUS_BUFFS)
+        {
+            if (buffName.equals(retiredBuff))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isRetiredPostNgePlayerTcgXpBonusBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        return isPlayer(target) && data != null &&
+            isRetiredPostNgePlayerTcgXpBonusBuffName(data.buffName);
     }
     public static boolean isRetiredPostNgePlayerBuildABuffOrXpGrantBuffName(String buffName)
     {
@@ -2291,6 +2321,20 @@ public class buff extends script.base_script
             removeBuff(player, RETIRED_POST_NGE_PLAYER_BUILDABUFF);
         }
         for (String retiredBuff : RETIRED_POST_NGE_PLAYER_INSTANT_XP_GRANT_BUFFS)
+        {
+            if (hasBuff(player, retiredBuff))
+            {
+                removeBuff(player, retiredBuff);
+            }
+        }
+    }
+    public static void retirePostNgePlayerTcgXpBonusBuffState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_PLAYER_TCG_XP_BONUS_BUFFS)
         {
             if (hasBuff(player, retiredBuff))
             {
@@ -2920,6 +2964,7 @@ public class buff extends script.base_script
             return;
         }
         retirePostNgePlayerBuildABuffAndXpGrantBuffState(player);
+        retirePostNgePlayerTcgXpBonusBuffState(player);
         retirePostNgePlayerCommandGrantBuffState(player);
         retirePostNgePlayerActionDrainState(player);
         retirePostNgePlayerActionBurnState(player);
@@ -3108,6 +3153,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerProfessionImmunityBuff(target, bdata) ||
                 isRetiredPostNgePlayerXpBonusBuff(target, bdata) ||
                 isRetiredPostNgePlayerBuildABuffOrXpGrantBuff(target, bdata) ||
+                isRetiredPostNgePlayerTcgXpBonusBuff(target, bdata) ||
                 isRetiredPostNgePlayerProfessionInspirationBuff(target, bdata) ||
                 isRetiredPostNgePlayerProfessionProxyBuff(target, bdata) ||
                 isRetiredPostNgePlayerCommandoSuppressionBuff(target, bdata) ||

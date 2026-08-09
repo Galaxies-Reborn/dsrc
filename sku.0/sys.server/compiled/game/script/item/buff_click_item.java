@@ -110,9 +110,10 @@ public class buff_click_item extends script.base_script
             int buffTime = getIntObjVar(player, varName);
             if (getGameTime() > buffTime || getGameTime() < buffTime && isGod(player))
             {
-                if (buff.isRetiredPostNgePlayerInstantXpGrantBuffName(buffName))
+                if (buff.isRetiredPostNgePlayerInstantXpGrantBuffName(buffName) ||
+                    buff.isRetiredPostNgePlayerTcgXpBonusBuffName(buffName))
                 {
-                    grantPrecuTcgInstantXpReplacement(self, player, itemName, clientEffect, clientAnimation);
+                    grantPrecuTcgXpReplacement(self, player, itemName, clientEffect, clientAnimation);
                     return SCRIPT_CONTINUE;
                 }
                 if (buff.canApplyBuff(player, buffName))
@@ -150,7 +151,7 @@ public class buff_click_item extends script.base_script
         }
         return SCRIPT_CONTINUE;
     }
-    public void grantPrecuTcgInstantXpReplacement(obj_id self, obj_id player, String itemName, String clientEffect, String clientAnimation) throws InterruptedException
+    public void grantPrecuTcgXpReplacement(obj_id self, obj_id player, String itemName, String clientEffect, String clientAnimation) throws InterruptedException
     {
         obj_id collectionItem = collection.grantRandomCollectionItem(player,
             "datatables/loot/loot_items/collectible/magseal_loot.iff", "collections");
