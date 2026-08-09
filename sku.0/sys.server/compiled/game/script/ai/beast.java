@@ -22,8 +22,26 @@ public class beast extends script.base_script
             LOG("beast.script", text);
         }
     }
+    public boolean retirePostNgePlayerOwnedRuntime(obj_id self) throws InterruptedException
+    {
+        if (!beast_lib.isRetiredPostNgePlayerOwnedBeast(self))
+        {
+            return false;
+        }
+        obj_id master = getMaster(self);
+        beast_lib.retirePostNgeBeastMasterPlayerState(master);
+        if (isIdValid(self) && exists(self))
+        {
+            destroyObject(self);
+        }
+        return true;
+    }
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        if (retirePostNgePlayerOwnedRuntime(self))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         setObjVar(self, "beast.pingMessageNumber", 0);
         setObjVar(self, "beast.lastAcknowledgeNumber", 0);
         messageTo(self, "handleSetupBeast", null, 1, false);
@@ -32,6 +50,10 @@ public class beast extends script.base_script
     }
     public int OnAddedToWorld(obj_id self) throws InterruptedException
     {
+        if (retirePostNgePlayerOwnedRuntime(self))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         messageTo(self, "handleSetupBeast", null, 1, false);
         return SCRIPT_CONTINUE;
     }
@@ -291,6 +313,10 @@ public class beast extends script.base_script
     }
     public int handleSetupBeast(obj_id self, dictionary params) throws InterruptedException
     {
+        if (retirePostNgePlayerOwnedRuntime(self))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         if (!isMob(self))
         {
             return SCRIPT_CONTINUE;
@@ -315,6 +341,10 @@ public class beast extends script.base_script
     }
     public int beastPing(obj_id self, dictionary params) throws InterruptedException
     {
+        if (retirePostNgePlayerOwnedRuntime(self))
+        {
+            return SCRIPT_OVERRIDE;
+        }
         int lastMessage = getIntObjVar(self, "beast.pingMessageNumber");
         int nextMessage = lastMessage + 1;
         setObjVar(self, "beast.pingMessageNumber", nextMessage);
