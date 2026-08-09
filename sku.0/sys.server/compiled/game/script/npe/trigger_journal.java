@@ -16,8 +16,23 @@ public class trigger_journal extends script.base_script
     }
     public static final float MAX_DISTANCE = 5.0f;
     public static final string_id TOO_FAR = new string_id("npe", "gamma_travel_too_far");
+    private static final String NGE_LEVEL_GUIDANCE_OBJVAR = "npe.secondLevelGranted";
+    private static final String NGE_LEVEL_GUIDANCE_SCRIPTVAR = "npe.pop_first_level";
+    private static final String NGE_LEVEL_GUIDANCE_MESSAGE = "pop_first_level";
+    private static void retireNgeLevelGuidance(obj_id player) throws InterruptedException
+    {
+        if (hasObjVar(player, NGE_LEVEL_GUIDANCE_OBJVAR))
+        {
+            removeObjVar(player, NGE_LEVEL_GUIDANCE_OBJVAR);
+        }
+        if (utils.hasScriptVar(player, NGE_LEVEL_GUIDANCE_SCRIPTVAR))
+        {
+            utils.removeScriptVar(player, NGE_LEVEL_GUIDANCE_SCRIPTVAR);
+        }
+    }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        retireNgeLevelGuidance(self);
         if (hasObjVar(self, npe.QUEST_REWORK_VAR))
         {
             int reGrantSeries = getIntObjVar(self, npe.QUEST_REWORK_VAR);
@@ -70,14 +85,9 @@ public class trigger_journal extends script.base_script
     }
     public int OnCombatLevelChanged(obj_id self, int oldCombatLevel, int newCombatLevel) throws InterruptedException
     {
-        if (newCombatLevel == 2)
-        {
-            if (!hasObjVar(self, "npe.secondLevelGranted"))
-            {
-                setObjVar(self, "npe.secondLevelGranted", true);
-                npe.sendDelayed3poPopup(self, 0, 11, "sound/vo_c3po_18c.snd", "npe", "pop_first_level", "npe.pop_first_level");
-            }
-        }
+        // Tansarii remains available as retained content, but Publish 14.1
+        // characters do not have an NGE combat-level progression axis.
+        retireNgeLevelGuidance(self);
         return SCRIPT_CONTINUE;
     }
     public int showChat(obj_id self, dictionary params) throws InterruptedException
@@ -115,6 +125,11 @@ public class trigger_journal extends script.base_script
         String strFile = params.getString("strFile");
         String strMessage = params.getString("strMessage");
         String scriptVarName = params.getString("scriptVarName");
+        if (strMessage.equals(NGE_LEVEL_GUIDANCE_MESSAGE))
+        {
+            retireNgeLevelGuidance(self);
+            return SCRIPT_CONTINUE;
+        }
         String soundFile = params.getString("soundFile");
         int duration = params.getInt("duration");
         obj_id player = params.getObjId("player");
