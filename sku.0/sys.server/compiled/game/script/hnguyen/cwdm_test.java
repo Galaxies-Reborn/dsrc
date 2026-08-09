@@ -3576,9 +3576,7 @@ public class cwdm_test extends script.base_script
         }
         else if (strText.equals("start_xp_test"))
         {
-            obj_id target = self;
-            messageTo(target, "huyTestXP", null, 5, false);
-            LOG("***HUY***", "start_xp_test to " + target);
+            sendSystemMessageTestingOnly(self, "The retired NGE combat XP diagnostic is disabled; use a canonical PRE-CU XP administration tool.");
         }
         else if (strText.equals("hmmm"))
         {
@@ -3681,8 +3679,7 @@ public class cwdm_test extends script.base_script
     }
     public int huyTestXP(obj_id self, dictionary params) throws InterruptedException
     {
-        LOG("***HUY***", "in huyTestXP messageHandler");
-        xp.grant(self, "combat_general", 10);
+        LOG("***HUY***", "Rejected stale NGE combat XP diagnostic message.");
         return SCRIPT_CONTINUE;
     }
     public int huyTestPersistedMessageTo(obj_id self, dictionary params) throws InterruptedException

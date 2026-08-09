@@ -1,5 +1,6 @@
 package script.beta;
 
+import script.library.xp;
 import script.library.utils;
 import script.obj_id;
 
@@ -21,9 +22,10 @@ public class xp_test extends script.base_script
             String cmd = st.nextToken();
             String xpType = st.nextToken();
             int amt = utils.stringToInt(st.nextToken());
-            if (amt == -1)
+            if (amt <= 0)
             {
-                debugSpeakMsg(self, "PARSE ERROR - syntax: <grantXP/revokeXP> <xpType> <amt>");
+                debugSpeakMsg(self, "PARSE ERROR - amount must be a positive integer.");
+                return SCRIPT_OVERRIDE;
             }
             obj_id target = getLookAtTarget(self);
             if ((target == null) || (target == obj_id.NULL_ID))
@@ -35,16 +37,27 @@ public class xp_test extends script.base_script
                 debugSpeakMsg(self, "test_xp: invalid target for action!");
                 return SCRIPT_OVERRIDE;
             }
+            if (!xp.isPrecuProgressionExperienceType(xpType))
+            {
+                debugSpeakMsg(self, "test_xp: invalid Publish 14.1 XP pool: " + xpType);
+                return SCRIPT_OVERRIDE;
+            }
+            String accessError = xp.getPrecuProgressionExperienceAccessError(target, xpType);
+            if (accessError != null)
+            {
+                debugSpeakMsg(self, "test_xp: " + accessError);
+                return SCRIPT_OVERRIDE;
+            }
             if (cmd.equals("grantXP"))
             {
-                if (grantExperiencePoints(target, xpType, amt) != XP_ERROR)
+                if (xp.grant(target, xpType, amt, false) != XP_ERROR)
                 {
                     debugSpeakMsg(target, "test_xp(grantXP): " + xpType + " + " + amt + " = " + getExperiencePoints(target, xpType));
                 }
             }
             else if (cmd.equals("revokeXP"))
             {
-                if (grantExperiencePoints(target, xpType, -amt) != XP_ERROR)
+                if (xp.grantUnmodifiedExperience(target, xpType, -amt, false))
                 {
                     debugSpeakMsg(target, "test_xp(revokeXP): " + xpType + " - " + amt + " = " + getExperiencePoints(target, xpType));
                 }
@@ -69,6 +82,17 @@ public class xp_test extends script.base_script
             if (!isPlayer(target))
             {
                 debugSpeakMsg(self, "test_xp: invalid target for action!");
+                return SCRIPT_OVERRIDE;
+            }
+            if (!xp.isPrecuProgressionExperienceType(xpType))
+            {
+                debugSpeakMsg(self, "test_xp: invalid Publish 14.1 XP pool: " + xpType);
+                return SCRIPT_OVERRIDE;
+            }
+            String accessError = xp.getPrecuProgressionExperienceAccessError(target, xpType);
+            if (accessError != null)
+            {
+                debugSpeakMsg(self, "test_xp: " + accessError);
                 return SCRIPT_OVERRIDE;
             }
             int xp = getExperiencePoints(target, xpType);

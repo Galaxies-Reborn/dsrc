@@ -9,6 +9,9 @@ sku.0/sys.shared/compiled/game/datatables/commodity/advanced_search_attribute.ta
 sku.0/sys.server/compiled/game/script/ai/pet.java -text
 sku.0/sys.server/compiled/game/script/beta/tc_jedi.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/beta/terminal_xp.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/beta/debugger.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/beta/xp_test.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/hnguyen/cwdm_test.java text eol=lf whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/library/innate.java -text
 sku.0/sys.server/compiled/game/script/library/battlefield.java -text
 sku.0/sys.server/compiled/game/script/library/qa.java -text whitespace=cr-at-eol

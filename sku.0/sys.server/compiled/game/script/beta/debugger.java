@@ -1364,22 +1364,12 @@ public class debugger extends script.base_script
         }
         else if (arg.equals("assignSkillTemplate"))
         {
-            String skill_name = st.nextToken();
-            skill.assignSkillTemplate(target, skill_name);
+            sendSystemMessageTestingOnly(self, "debugger::assignSkillTemplate: NGE class/template mutation is retired; grant individual PRE-CU skill boxes instead.");
             foundTrigger = true;
         }
         else if (arg.equals("clearSkills"))
         {
-            String[] skill_names = getSkillListingForPlayer(target);
-            if ((skill_names == null) || (skill_names.length == 0))
-            {
-            }
-            else 
-            {
-                for (String skill_name : skill_names) {
-                    revokeSkill(target, skill_name);
-                }
-            }
+            sendSystemMessageTestingOnly(self, "debugger::clearSkills: bulk skill mutation is retired; revoke individual PRE-CU skill boxes instead.");
             foundTrigger = true;
         }
         else if (arg.equals("getAllRequiredSkills"))
@@ -1405,13 +1395,13 @@ public class debugger extends script.base_script
         else if (arg.equals("grantSkill"))
         {
             String skill_name = st.nextToken();
-            if (grantSkill(self, skill_name))
+            if (skill.grantPrecuSkillWithPrerequisites(self, skill_name))
             {
-                sendSystemMessageTestingOnly(self, "grantSkill::skill granted: " + skill_name);
+                sendSystemMessageTestingOnly(self, "grantSkill::PRE-CU skill box and prerequisites granted: " + skill_name);
             }
-            else 
+            else
             {
-                sendSystemMessageTestingOnly(self, "grantSkill::unable to grant skill: " + skill_name);
+                sendSystemMessageTestingOnly(self, "grantSkill::invalid or unavailable PRE-CU skill box: " + skill_name);
                 return SCRIPT_OVERRIDE;
             }
             foundTrigger = true;
@@ -1419,20 +1409,25 @@ public class debugger extends script.base_script
         else if (arg.equals("revokeSkill"))
         {
             String skill_name = st.nextToken();
+            if (!skill.isPrecuPublicProfessionSkillName(skill_name))
+            {
+                sendSystemMessageTestingOnly(self, "revokeSkill::invalid PRE-CU skill box: " + skill_name);
+                return SCRIPT_OVERRIDE;
+            }
             revokeSkill(self, skill_name);
-            sendSystemMessageTestingOnly(self, "revokeSkill::skill revoked: " + skill_name);
+            sendSystemMessageTestingOnly(self, "revokeSkill::PRE-CU skill box revoked: " + skill_name);
             foundTrigger = true;
         }
         else if (arg.equals("grantSkillToPlayer"))
         {
             String skill_name = st.nextToken();
-            if (skill.grantSkillToPlayer(self, skill_name))
+            if (skill.grantPrecuSkillWithPrerequisites(self, skill_name))
             {
-                sendSystemMessageTestingOnly(self, "grantSkillToPlayer::skill granted: " + skill_name);
+                sendSystemMessageTestingOnly(self, "grantSkillToPlayer::PRE-CU skill box and prerequisites granted: " + skill_name);
             }
-            else 
+            else
             {
-                sendSystemMessageTestingOnly(self, "grantSkillToPlayer::unable to grant skill: " + skill_name);
+                sendSystemMessageTestingOnly(self, "grantSkillToPlayer::invalid or unavailable PRE-CU skill box: " + skill_name);
                 return SCRIPT_OVERRIDE;
             }
             foundTrigger = true;
@@ -1440,27 +1435,17 @@ public class debugger extends script.base_script
         else if (arg.equals("purchaseSkill"))
         {
             String skill_name = st.nextToken();
-            dictionary xpReqs = getSkillPrerequisiteExperience(skill_name);
-            java.util.Enumeration e = xpReqs.keys();
-            while (e.hasMoreElements())
+            if (!skill.grantPrecuSkillWithPrerequisites(self, skill_name))
             {
-                String xpType = (String)(e.nextElement());
-                int xpCost = xpReqs.getInt(xpType);
-                grantExperiencePoints(self, xpType, xpCost);
+                sendSystemMessageTestingOnly(self, "purchaseSkill::invalid or unavailable PRE-CU skill box: " + skill_name);
+                return SCRIPT_OVERRIDE;
             }
-            skill.purchaseSkill(self, skill_name);
+            sendSystemMessageTestingOnly(self, "purchaseSkill::PRE-CU skill box and prerequisites granted: " + skill_name);
             foundTrigger = true;
         }
         else if (arg.equals("grantAllSkills"))
         {
-            String[] skillList = dataTableGetStringColumn(skill.TBL_SKILL, "NAME");
-            if (skillList != null && skillList.length > 0)
-            {
-                dictionary d = new dictionary();
-                d.put("skills", skillList);
-                d.put("idx", 0);
-                messageTo(self, "handleGrantAllSkills", d, 3.0f, false);
-            }
+            sendSystemMessageTestingOnly(self, "debugger::grantAllSkills: bulk skill mutation is retired; grant individual PRE-CU skill boxes instead.");
             foundTrigger = true;
         }
         else if (arg.equals("grantBadge"))
@@ -1719,11 +1704,22 @@ public class debugger extends script.base_script
             if (!isPlayer(target))
             {
                 sendSystemMessageTestingOnly(self, "debugger::xp: target must be a player!");
-                foundTrigger = true;
+                return SCRIPT_OVERRIDE;
             }
             if (st.hasMoreTokens())
             {
                 String xp_type = st.nextToken();
+                if (!xp.isPrecuProgressionExperienceType(xp_type))
+                {
+                    sendSystemMessageTestingOnly(self, "debugger::xp: invalid Publish 14.1 XP pool: " + xp_type);
+                    return SCRIPT_OVERRIDE;
+                }
+                String accessError = xp.getPrecuProgressionExperienceAccessError(target, xp_type);
+                if (accessError != null)
+                {
+                    sendSystemMessageTestingOnly(self, "debugger::xp: " + accessError);
+                    return SCRIPT_OVERRIDE;
+                }
                 int xp_amt = getExperiencePoints(target, xp_type);
                 if (st.hasMoreTokens())
                 {
@@ -1735,7 +1731,7 @@ public class debugger extends script.base_script
                         if (amt == -1)
                         {
                             sendSystemMessageTestingOnly(self, "debugger::xp: invalid xp delta parameter...");
-                            foundTrigger = true;
+                            return SCRIPT_OVERRIDE;
                         }
                         if (sAmt.startsWith("-"))
                         {
@@ -1748,13 +1744,20 @@ public class debugger extends script.base_script
                         if (amt == -1)
                         {
                             sendSystemMessageTestingOnly(self, "debugger::xp: invalid xp amount...");
-                            foundTrigger = true;
+                            return SCRIPT_OVERRIDE;
                         }
                         amt = amt - xp_amt;
                     }
                     if (amt != 0)
                     {
-                        xp.grant(target, xp_type, amt);
+                        if (amt > 0)
+                        {
+                            xp.grant(target, xp_type, amt, false);
+                        }
+                        else
+                        {
+                            xp.grantUnmodifiedExperience(target, xp_type, amt, false);
+                        }
                     }
                 }
                 else 
@@ -1955,27 +1958,7 @@ public class debugger extends script.base_script
     }
     public int handleGrantAllSkills(obj_id self, dictionary params) throws InterruptedException
     {
-        sendSystemMessageTestingOnly(self, "handleGrantAllSkills entered...");
-        if (params == null || params.isEmpty())
-        {
-            return SCRIPT_CONTINUE;
-        }
-        String[] skillList = params.getStringArray("skills");
-        int idx = params.getInt("idx");
-        for (int i = idx; i < 5; i++)
-        {
-            if (i < skillList.length)
-            {
-                sendSystemMessageTestingOnly(self, "attempting to grant: " + skillList[i]);
-                grantSkill(self, skillList[i]);
-            }
-            else 
-            {
-                return SCRIPT_CONTINUE;
-            }
-        }
-        params.put("idx", idx + 5);
-        messageTo(self, "handleGrantAllSkills", params, 3.0f, false);
+        sendSystemMessageTestingOnly(self, "handleGrantAllSkills: stale bulk skill request rejected; grant individual PRE-CU skill boxes instead.");
         return SCRIPT_CONTINUE;
     }
 }
