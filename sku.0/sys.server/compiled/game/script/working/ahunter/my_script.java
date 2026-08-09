@@ -250,7 +250,7 @@ public class my_script extends script.base_script
         }
         else if (text.equals("rae"))
         {
-            resetExpertises(self);
+            reportRetiredNgeProgressionCommand(self);
         }
         else if (text.equals("rcs"))
         {
@@ -281,62 +281,39 @@ public class my_script extends script.base_script
         }
         else if (text.equals("ct"))
         {
-            debugSpeakMsg(self, "setting template to nothing");
-            setSkillTemplate(self, "");
+            reportRetiredNgeProgressionCommand(self);
         }
         else if (text.equals("sti"))
         {
-            debugSpeakMsg(self, "setting template to something invalid");
-            setSkillTemplate(self, "foo");
+            reportRetiredNgeProgressionCommand(self);
         }
         else if (text.equals("st"))
         {
-            debugSpeakMsg(self, "setting template to teras kasi smuggler");
-            setSkillTemplate(self, "smuggler_2a");
+            reportRetiredNgeProgressionCommand(self);
         }
         else if (text.equals("st2"))
         {
-            debugSpeakMsg(self, "setting template to pistoleer smuggler");
-            setSkillTemplate(self, "smuggler_2b");
+            reportRetiredNgeProgressionCommand(self);
         }
         else if (text.equals("st3"))
         {
-            debugSpeakMsg(self, "setting template to commando b");
-            setSkillTemplate(self, "commando_2b");
+            reportRetiredNgeProgressionCommand(self);
         }
         else if (text.equals("st4"))
         {
-            debugSpeakMsg(self, "setting template to commando a");
-            setSkillTemplate(self, "commando_2a");
+            reportRetiredNgeProgressionCommand(self);
         }
         else if (text.equals("sws"))
         {
-            debugSpeakMsg(self, "setting working skill to combat_marksman_pistol_01");
-            setWorkingSkill(self, "combat_marksman_pistol_01");
+            reportRetiredNgeProgressionCommand(self);
         }
         else if (text.equals("advance"))
         {
-            debugSpeakMsg(self, "advancing along template");
-            grantSkill(self, "combat_marksman_pistol_01");
-            grantSkill(self, "combat_brawler_unarmed_01");
-            grantSkill(self, "combat_marksman_pistol_02");
-            grantSkill(self, "combat_brawler_unarmed_02");
-            grantSkill(self, "combat_marksman_pistol_03");
-            grantSkill(self, "combat_brawler_unarmed_03");
-            grantSkill(self, "combat_marksman_pistol_04");
-            grantSkill(self, "combat_brawler_unarmed_04");
-            grantSkill(self, "combat_smuggler_novice");
-            grantSkill(self, "science_medic_novice");
-            grantSkill(self, "outdoors_scout_novice");
-            setWorkingSkill(self, "combat_brawler_2handmelee_01");
+            reportRetiredNgeProgressionCommand(self);
         }
         else if (text.equals("demo"))
         {
-            debugSpeakMsg(self, "setting up template demo");
-            setSkillTemplate(self, "smuggler_2a");
-            grantSkill(self, "combat_marksman_novice");
-            grantSkill(self, "combat_brawler_novice");
-            setWorkingSkill(self, "combat_marksman_pistol_01");
+            reportRetiredNgeProgressionCommand(self);
         }
         else if (text.equals("gt"))
         {
@@ -568,13 +545,7 @@ public class my_script extends script.base_script
         }
         else if (text.equals("makemejedi"))
         {
-            String[] skills = getStringArrayObjVar(self, pclib.OBJVAR_JEDI_SKILL_REQUIREMENTS);
-            if (skills != null)
-            {
-                for (String s : skills) {
-                    skill.grantSkillToPlayer(self, s);
-                }
-            }
+            reportRetiredNgeProgressionCommand(self);
         }
         else if (text.equals("isjedi"))
         {
@@ -694,6 +665,10 @@ public class my_script extends script.base_script
             }
         }
         return SCRIPT_CONTINUE;
+    }
+    public void reportRetiredNgeProgressionCommand(obj_id self) throws InterruptedException
+    {
+        sendSystemMessageTestingOnly(self, "PRE-CU progression uses trained skill boxes; NGE template, expertise, and arbitrary skill mutation are retired.");
     }
     public void listObjvars(obj_id self, obj_id object) throws InterruptedException
     {

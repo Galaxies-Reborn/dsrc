@@ -11,14 +11,12 @@ public class skilltest extends script.base_script
     {
         if (text.equalsIgnoreCase("choose"))
         {
-            playUiEffect(self, "showMediator=ws_professiontemplateselect");
+            debugSpeakMsg(self, "PRE-CU progression uses trained skill boxes; the NGE profession-template selector is retired.");
             return SCRIPT_CONTINUE;
         }
         if (text.equalsIgnoreCase("reset"))
         {
-            debugSpeakMsg(self, "resetting");
-            setSkillTemplate(self, "");
-            setWorkingSkill(self, "");
+            debugSpeakMsg(self, "PRE-CU progression uses trained skill boxes; NGE template reset is retired.");
             return SCRIPT_CONTINUE;
         }
         return SCRIPT_CONTINUE;

@@ -1557,17 +1557,7 @@ public class thicks_test extends script.base_script
     }
     public void runRespec(obj_id self, String[] parse) throws InterruptedException
     {
-        if (parse.length < 3)
-        {
-            sendSystemMessageTestingOnly(self, "Not enough parameters");
-            return;
-        }
-        String newTemplate = parse[1];
-        float pctDone = utils.stringToFloat(parse[2]);
-        skill.revokeAllProfessionSkills(self);
-        setSkillTemplate(self, newTemplate);
-        respec.setPercentageCompletion(self, newTemplate, pctDone, false);
-        skill.recalcPlayerPools(self, true);
+        sendSystemMessageTestingOnly(self, "PRE-CU progression uses trained skill boxes; NGE profession respec is retired.");
     }
     public void runGetSkillTemplate(obj_id self, String[] parse) throws InterruptedException
     {

@@ -30,35 +30,11 @@ public class dwhite_test extends script.base_script
         }
         if (text.startsWith("setWorkingSkill"))
         {
-            java.util.StringTokenizer st = new java.util.StringTokenizer(text);
-            String cmd = st.nextToken();
-            String arg = "";
-            if (st.hasMoreTokens())
-            {
-                arg = st.nextToken();
-            }
-            setWorkingSkill(self, arg);
-            sendSystemMessageTestingOnly(self, "Working Skill set to: " + arg);
+            sendSystemMessageTestingOnly(self, "PRE-CU progression uses trained skill boxes; NGE working-skill mutation is retired.");
         }
         if (text.startsWith("setSkillTemplate"))
         {
-            java.util.StringTokenizer st = new java.util.StringTokenizer(text);
-            String cmd = st.nextToken();
-            String arg = "";
-            if (st.hasMoreTokens())
-            {
-                arg = st.nextToken();
-            }
-            String templateSkills = dataTableGetString(skill_template.TEMPLATE_TABLE, arg, "template");
-            if (!arg.equals("") && (templateSkills == null || templateSkills.equals("")))
-            {
-                sendSystemMessageTestingOnly(self, "Not a Valid Skill Template");
-            }
-            else 
-            {
-                setSkillTemplate(self, arg);
-                sendSystemMessageTestingOnly(self, "Skill Template set to: " + arg);
-            }
+            sendSystemMessageTestingOnly(self, "PRE-CU progression uses trained skill boxes; NGE profession-template mutation is retired.");
         }
         if (text.startsWith("killme"))
         {

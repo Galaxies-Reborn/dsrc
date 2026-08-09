@@ -102,3 +102,5 @@ sku.0/sys.server/compiled/game/script/conversation/rebel_pvp_bf_vendor.java -tex
 sku.0/sys.server/compiled/game/script/conversation/npe_job_pointer.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/conversation/npe_officer.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/library/heavyweapons.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/test/dwhite_test.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/test/thicks_test.java -text whitespace=cr-at-eol

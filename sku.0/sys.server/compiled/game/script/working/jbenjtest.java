@@ -43,69 +43,14 @@ public class jbenjtest extends script.base_script
             }
             if (command.equals("tweakRespecValues"))
             {
-                int combatLevel = -1;
-                int entLevel = -1;
-                int traderLevel = -1;
-                if (st.hasMoreTokens())
-                {
-                    command = st.nextToken();
-                    combatLevel = utils.stringToInt(command);
-                    if (st.hasMoreTokens())
-                    {
-                        command = st.nextToken();
-                        entLevel = utils.stringToInt(command);
-                        if (st.hasMoreTokens())
-                        {
-                            command = st.nextToken();
-                            traderLevel = utils.stringToInt(command);
-                        }
-                    }
-                }
-                int[] recpecLevelsNewValue = 
-                {
-                    combatLevel,
-                    entLevel,
-                    traderLevel
-                };
-                setObjVar(player, respec.PROF_LEVEL_ARRAY, recpecLevelsNewValue);
+                reportRetiredNgeProgressionCommand(self);
                 return SCRIPT_CONTINUE;
             }
             if (command.equals("respecFix"))
             {
-                if (hasObjVar(player, respec.PROF_LEVEL_ARRAY))
-                {
-                    String skillTemplate = getSkillTemplate(player);
-                    int[] recpecLevelsValue = getIntArrayObjVar(player, respec.PROF_LEVEL_ARRAY);
-                    int currentLevel = getLevel(player);
-                    if (!skillTemplate.startsWith("entertainer") && !skillTemplate.startsWith("trader"))
-                    {
-                        int combatLevel = recpecLevelsValue[respec.PROF_LEVEL_COMBAT];
-                        if (currentLevel < combatLevel)
-                        {
-                            respec.autoLevelPlayer(player, combatLevel, true);
-                        }
-                    }
-                    else if (skillTemplate.startsWith("entertainer"))
-                    {
-                        debugSpeakMsg(self, "you should be a entertainer dude");
-                        int entLevel = recpecLevelsValue[respec.PROF_LEVEL_ENT];
-                        debugSpeakMsg(self, "entLevel " + entLevel);
-                        if (currentLevel < entLevel)
-                        {
-                            respec.autoLevelPlayer(player, entLevel, true);
-                        }
-                    }
-                    else if (skillTemplate.startsWith("trader"))
-                    {
-                        debugSpeakMsg(self, "you should be a trader dude");
-                        int traderLevel = recpecLevelsValue[respec.PROF_LEVEL_TRADER];
-                        debugSpeakMsg(self, "traderLevel " + traderLevel);
-                        if (currentLevel < traderLevel)
-                        {
-                            respec.autoLevelPlayer(player, traderLevel, true);
-                        }
-                    }
-                }
+                reportRetiredNgeProgressionCommand(self);
+                debugSpeakMsg(self, "Current legacy template diagnostic: " + getSkillTemplate(player));
+                return SCRIPT_CONTINUE;
             }
             if (command.equals("sendTestMail"))
             {
@@ -473,7 +418,7 @@ public class jbenjtest extends script.base_script
             }
             if (command.equals("validateExpertise"))
             {
-                skill.validateExpertise(self);
+                reportRetiredNgeProgressionCommand(self);
                 return SCRIPT_CONTINUE;
             }
             if (command.equals("newbArmor"))
@@ -489,9 +434,9 @@ public class jbenjtest extends script.base_script
             }
             if (command.equals("setBlankTemplate"))
             {
-                setSkillTemplate(self, "a");
+                reportRetiredNgeProgressionCommand(self);
                 String skillTemplate = getSkillTemplate(self);
-                debugSpeakMsg(self, "Skill Template is " + skillTemplate);
+                debugSpeakMsg(self, "Current legacy template diagnostic: " + skillTemplate);
                 return SCRIPT_CONTINUE;
             }
             if (command.equals("startMarket"))
@@ -692,6 +637,10 @@ public class jbenjtest extends script.base_script
             }
         }
         return SCRIPT_CONTINUE;
+    }
+    public void reportRetiredNgeProgressionCommand(obj_id self) throws InterruptedException
+    {
+        sendSystemMessageTestingOnly(self, "PRE-CU progression uses trained skill boxes; NGE respec, auto-level, expertise, and template mutation are retired.");
     }
     public int testSuiCountDown(obj_id self, dictionary params) throws InterruptedException
     {
