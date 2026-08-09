@@ -2247,6 +2247,47 @@ public class buff extends script.base_script
         }
         utils.removeScriptVarTree(player, "buff.xpBonusGeneral");
     }
+    private static final String[] RETIRED_POST_NGE_PLAYER_BUILDABUFF_AND_XP_GRANT_BUFFS =
+    {
+        "buildabuff_inspiration",
+        "tcg_series1_nuna_ball_advertisement",
+        "tcg_series2_versafunction88_datapad",
+        "tcg_series9_lepese_dictionary"
+    };
+    public static boolean isRetiredPostNgePlayerBuildABuffOrXpGrantBuffName(String buffName)
+    {
+        if (buffName == null)
+        {
+            return false;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_PLAYER_BUILDABUFF_AND_XP_GRANT_BUFFS)
+        {
+            if (buffName.equals(retiredBuff))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isRetiredPostNgePlayerBuildABuffOrXpGrantBuff(obj_id target, buff_data data) throws InterruptedException
+    {
+        return isPlayer(target) && data != null &&
+            isRetiredPostNgePlayerBuildABuffOrXpGrantBuffName(data.buffName);
+    }
+    public static void retirePostNgePlayerBuildABuffAndXpGrantBuffState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_PLAYER_BUILDABUFF_AND_XP_GRANT_BUFFS)
+        {
+            if (hasBuff(player, retiredBuff))
+            {
+                removeBuff(player, retiredBuff);
+            }
+        }
+    }
     private static final String[] RETIRED_POST_NGE_PLAYER_PROFESSION_INSPIRATION_BUFFS =
     {
         "general_inspiration",
@@ -2868,10 +2909,7 @@ public class buff extends script.base_script
         {
             return;
         }
-        if (hasBuff(player, "buildabuff_inspiration"))
-        {
-            removeBuff(player, "buildabuff_inspiration");
-        }
+        retirePostNgePlayerBuildABuffAndXpGrantBuffState(player);
         retirePostNgePlayerCommandGrantBuffState(player);
         retirePostNgePlayerActionDrainState(player);
         retirePostNgePlayerActionBurnState(player);
@@ -3059,6 +3097,7 @@ public class buff extends script.base_script
                 isRetiredPostNgePlayerProfessionMovementBuff(target, bdata) ||
                 isRetiredPostNgePlayerProfessionImmunityBuff(target, bdata) ||
                 isRetiredPostNgePlayerXpBonusBuff(target, bdata) ||
+                isRetiredPostNgePlayerBuildABuffOrXpGrantBuff(target, bdata) ||
                 isRetiredPostNgePlayerProfessionInspirationBuff(target, bdata) ||
                 isRetiredPostNgePlayerProfessionProxyBuff(target, bdata) ||
                 isRetiredPostNgePlayerCommandoSuppressionBuff(target, bdata) ||
