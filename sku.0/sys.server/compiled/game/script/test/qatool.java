@@ -63,8 +63,7 @@ public class qatool extends script.base_script
     public static final String ITEM_TOOL_PROMPT = "This tool allows the tester to find items such as reward armor and weapons.";
     public static final String NGE_TOOL_TITLE = "RETIRED NGE TOOL";
     public static final String NGE_TOOL_PROMPT = "NGE combat-level respecs are retired. Use the PRE-CU skill-box tools instead.";
-    public static final String PROFESSION_TOOL_TITLE = "QA PROFESSION ASSISTANT";
-    public static final String PROFESSION_TOOL_PROMPT = "This tool allows the tester to research accurate profession data without having to create a new character or force a profession change.";
+    public static final String PROFESSION_TOOL_PROMPT = "The NGE profession and roadmap assistant is retired. Use /qatool spec <PRE-CU skill box>.";
     public static final String NPCFINDER_TITLE = "NPC/Mob Finder";
     public static final String DAMAGE_TOOL_PROMPT = "Give The amount you want to damage the target for.  This tool will cause damage in the amount you specify.  ARMOR AND OTHER MITIGATION WILL NOT BE CONSIDERED.  Use the Mitigation Tool to test Mitigation.";
     public static final String DAMAGE_TOOL_TITLE = "DAMAGE AMOUNT";
@@ -104,7 +103,7 @@ public class qatool extends script.base_script
         " qange -- Retired; NGE combat-level respecs are unavailable.",
         " frog -- Allows the tester to spawn character builder terminals directly into the tester inventory.",
         " qaquest -- QA version of a quest tool.  Should provide tester with a list of current quests that are yet to be completed. Allows tester to complete ground and space quests.",
-        " qaprofession -- Tester can use this tool to research stats, roadmap and other data. A report can be created based off of the tool data.",
+        " qaprofession -- Retired; use /qatool spec <PRE-CU skill box>.",
         "* (command driven tool) qalootlogger <Creature Name> <number of iterations> -- Spawns the supplied creature specified number of times and loots it, default is 25",
         " spacetool -- Allows the tester to use tools specific to Space. Also known as the JTL Tool.",
         "* (command driven tool) groundmobsearch -- Allows the tester to search the creature table ",
@@ -274,7 +273,6 @@ public class qatool extends script.base_script
         "test.qaxp",
         "test.qadatapad",
         "test.qaitem",
-        "test.qaprofession",
         "test.qa_damage",
         "test.qa_helper",
         "test.qa_dynamics",
@@ -286,12 +284,6 @@ public class qatool extends script.base_script
     {
         "Warp to Waypoints",
         "Export Waypoints"
-    };
-    public static final String[] PROFESSION_TOOL_MENU = 
-    {
-        "Abilities Alphabetically",
-        "Profession Details",
-        "Export Profession Details"
     };
     public static final String[] MOB_STRING_FILE_POSSIBILITIES = 
     {
@@ -333,158 +325,12 @@ public class qatool extends script.base_script
         "DAMAGE_ENVIRONMENTAL_ACID",
         "DAMAGE_ENVIRONMENTAL_ELECTRICAL"
     };
-    public static final String[] PROFESSION_SKILL_NAMES = 
-    {
-        "_phase1_novice",
-        "_phase1_02",
-        "_phase1_03",
-        "_phase1_04",
-        "_phase1_05",
-        "_phase1_master",
-        "_phase2_novice",
-        "_phase2_02",
-        "_phase2_03",
-        "_phase2_04",
-        "_phase2_05",
-        "_phase2_master",
-        "_phase3_novice",
-        "_phase3_02",
-        "_phase3_03",
-        "_phase3_04",
-        "_phase3_05",
-        "_phase3_master",
-        "_phase4_novice",
-        "_phase4_02",
-        "_phase4_03",
-        "_phase4_04",
-        "_phase4_05",
-        "_phase4_master"
-    };
-    public static final String[] PROFESSION_PREFIX = 
-    {
-        "class_smuggler",
-        "class_bountyhunter",
-        "class_officer",
-        "class_commando",
-        "class_forcesensitive",
-        "class_medic",
-        "class_spy"
-    };
-    public static final String[] PET_OPTION_MENU = 
+    public static final String[] PET_OPTION_MENU =
     {
         "Access DNA Samples",
         "Future Pet Options"
     };
-    public static final String[][] MISC_SEARCH_MULTIARRAY = 
-    {
-        
-        {
-            "robe"
-        },
-        
-        {
-            "item_jedi_robe_"
-        }
-    };
-    public static final String[][] WEAPON_SEARCH_MULTIARRAY = 
-    {
-        
-        {
-            "pis",
-            "rif",
-            "car",
-            "una",
-            "one",
-            "two",
-            "pol"
-        },
-        
-        {
-            "weapon_pistol_",
-            "weapon_rifle_",
-            "weapon_carbine_",
-            "weapon_unarmed_",
-            "weapon_sword_1h_",
-            "weapon_sword_2h_",
-            "weapon_polearm_"
-        }
-    };
-    public static final String[][] ARMOR_SEARCH_MULTIARRAY = 
-    {
-        
-        {
-            "bone",
-            "smuggler",
-            "officer",
-            "commando",
-            "bh",
-            "medic",
-            "spy",
-            "assault_agi",
-            "assault_sta",
-            "assault_con",
-            "assault_pre",
-            "assault_lck",
-            "battle_agi",
-            "battle_sta",
-            "battle_con",
-            "battle_pre",
-            "battle_lck",
-            "recon_agi",
-            "recon_sta",
-            "recon_con",
-            "recon_pre",
-            "recon_lck",
-            "assault_borvo",
-            "mandalorian_imperial_white",
-            "mandalorian_rebel_white",
-            "mandalorian_imperial_black",
-            "mandalorian_rebel_black",
-            "mandalorian_imperial_red",
-            "mandalorian_rebel_red",
-            "mandalorian_imperial_blue",
-            "mandalorian_rebel_blue",
-            "mandalorian_imperial_green",
-            "mandalorian_rebel_green"
-        },
-        
-        {
-            "armor_bone_",
-            "armor_smuggler_roadmap_",
-            "armor_officer_roadmap_",
-            "armor_commando_roadmap_",
-            "armor_bounty_hunter_",
-            "armor_medic_roadmap_",
-            "armor_spy_roadmap_",
-            "armor_assault_agi_lvl80_",
-            "armor_assault_sta_lvl80_",
-            "armor_assault_con_lvl80_",
-            "armor_assault_pre_lvl80_",
-            "armor_assault_lck_lvl80_",
-            "armor_battle_agi_lvl80_",
-            "armor_battle_sta_lvl80_",
-            "armor_battle_con_lvl80_",
-            "armor_battle_pre_lvl80_",
-            "armor_battle_lck_lvl80_",
-            "armor_recon_agi_lvl80_",
-            "armor_recon_sta_lvl80_",
-            "armor_recon_con_lvl80_",
-            "armor_recon_pre_lvl80_",
-            "armor_recon_lck_lvl80_",
-            "armor_assault_borvo_acklay_",
-            "armor_mandalorian_imperial_white_",
-            "armor_mandalorian_rebel_white_",
-            "armor_mandalorian_imperial_black_",
-            "armor_mandalorian_rebel_black_",
-            "armor_mandalorian_imperial_red_",
-            "armor_mandalorian_rebel_red_",
-            "armor_mandalorian_imperial_blue_",
-            "armor_mandalorian_rebel_blue_",
-            "armor_mandalorian_imperial_green_",
-            "armor_mandalorian_rebel_green_"
-        }
-    };
-    public static final String[] ENTERTAINER_ITEMS = 
+    public static final String[] ENTERTAINER_ITEMS =
     {
         "object/tangible/component/instrument/dual_wave_synthesizer.iff",
         "object/tangible/instrument/bandfill.iff",
@@ -853,7 +699,6 @@ public class qatool extends script.base_script
                 attachScript(self, "test.qascript");
                 attachScript(self, "test.qadatapad");
                 attachScript(self, "test.qaitem");
-                attachScript(self, "test.qaprofession");
                 attachScript(self, "test.qa_damage");
                 attachScript(self, "test.qa_helper");
                 attachScript(self, "test.qa_dynamic");
@@ -1135,8 +980,7 @@ public class qatool extends script.base_script
         }
         else if ((toLower(command)).equals("resetexpertise") || (toLower(command)).equals("resetexpertises"))
         {
-            utils.fullExpertiseReset(self, true);
-            grantSkill(self, "expertise");
+            sendSystemMessageTestingOnly(self, "NGE expertise resets are retired. PRE-CU progression uses skill boxes and skill points.");
             return SCRIPT_CONTINUE;
         }
         else if ((toLower(command)).equals("buff") || (toLower(command)).equals("qabuff"))
@@ -1430,8 +1274,7 @@ public class qatool extends script.base_script
         }
         else if ((toLower(command)).equals("qaprofession"))
         {
-            utils.setScriptVar(self, "qaprofession.mainMenu", PROFESSION_TOOL_MENU);
-            qa.refreshMenu(self, PROFESSION_TOOL_PROMPT, PROFESSION_TOOL_TITLE, PROFESSION_TOOL_MENU, "handleMainMenuOptions", "qaprofession.pid", sui.OK_CANCEL_REFRESH);
+            sendSystemMessageTestingOnly(self, PROFESSION_TOOL_PROMPT);
             return SCRIPT_CONTINUE;
         }
         else if ((toLower(command)).equals("qaweapon"))
@@ -2361,8 +2204,7 @@ public class qatool extends script.base_script
                     qa.refreshMenu(self, DNA_PROMPT, DNA_TITLE, PET_OPTION_MENU, "handlePetOptionsTool", "qadna.pid", sui.OK_CANCEL_REFRESH);
                     break;
                     case PROFESSIONTOOL_MENUOPTION:
-                    utils.setScriptVar(self, "qaprofession.mainMenu", PROFESSION_TOOL_MENU);
-                    qa.refreshMenu(self, PROFESSION_TOOL_PROMPT, PROFESSION_TOOL_TITLE, PROFESSION_TOOL_MENU, "handleMainMenuOptions", "qaprofession.pid", sui.OK_CANCEL_REFRESH);
+                    sendSystemMessageTestingOnly(self, PROFESSION_TOOL_PROMPT);
                     break;
                     case QUESTTOOL_MENUOPTION:
                     try
@@ -3387,357 +3229,8 @@ public class qatool extends script.base_script
     }
     public boolean retiredNgeSpecTester(obj_id self, StringTokenizer st) throws InterruptedException
     {
-        if (isSpaceScene())
-        {
-            sendSystemMessageTestingOnly(self, "You have to be on the ground to use this tool.");
-        }
-        else 
-        {
-            String professionStr = "";
-            int levelInt = 1;
-            int testerLevel = 0;
-            String factionStr = "neu";
-            String armorStr = "none";
-            String weaponStr = "none";
-            obj_id testerInventoryId = utils.getInventoryContainer(self);
-            if (st.hasMoreTokens())
-            {
-                professionStr = st.nextToken();
-                if (professionStr.equals("?"))
-                {
-                    sui.msgbox(self, self, SPECMEPOPUP, sui.OK_ONLY, QATOOL_TITLE, "noHandler");
-                    return true;
-                }
-                else 
-                {
-                    int stringCount = st.countTokens();
-                    if (stringCount > 0 && stringCount <= 4)
-                    {
-                        if (!professionStr.equals(""))
-                        {
-                            try
-                            {
-                                levelInt = Integer.parseInt(st.nextToken());
-                            }
-                            catch(Exception e)
-                            {
-                                sendSystemMessageTestingOnly(self, "You failed to specify a profession level.");
-                                return false;
-                            }
-                            if (levelInt > 90)
-                            {
-                                sendSystemMessageTestingOnly(self, "90th Level is max.");
-                                return false;
-                            }
-                            String[] roadmapList = new String[0];
-                            String professionCodeString = validateProfession(self, professionStr, roadmapList);
-                            if (!professionCodeString.equals("ERROR"))
-                            {
-                                int currentCombatXp = getExperiencePoints(self, "combat_general");
-                                grantExperiencePoints(self, "combat_general", -currentCombatXp);
-                                skill.recalcPlayerPools(self, true);
-                                qa.revokeAllSkills(self);
-                                String[] professionAndNoviceSkill = split(professionCodeString, '-');
-                                setSkillTemplate(self, professionAndNoviceSkill[0]);
-                                String professionPrefix = professionAndNoviceSkill[1];
-                                for (int i = 0; i < 24; i++)
-                                {
-                                    testerLevel = getLevel(self);
-                                    if (levelInt > testerLevel)
-                                    {
-                                        skill.grantSkillToPlayer(self, professionPrefix + PROFESSION_SKILL_NAMES[i]);
-                                    }
-                                    else 
-                                    {
-                                        break;
-                                    }
-                                }
-                                if (st.hasMoreTokens())
-                                {
-                                    factionStr = st.nextToken();
-                                    if (!factionStr.equals("none"))
-                                    {
-                                        boolean factionSuccess = attainCorrectFaction(self, factionStr);
-                                        if (!factionSuccess)
-                                        {
-                                            return false;
-                                        }
-                                        boolean factionStatusSuccess = attainCorrectFactionStatus(self, factionStr);
-                                        if (!factionStatusSuccess)
-                                        {
-                                            return false;
-                                        }
-                                    }
-                                    if (st.hasMoreTokens())
-                                    {
-                                        armorStr = st.nextToken();
-                                        if (!armorStr.equals("none"))
-                                        {
-                                            boolean miscItem = false;
-                                            int miscIndex = -1;
-                                            for (int i = 0; i < MISC_SEARCH_MULTIARRAY[0].length; i++)
-                                            {
-                                                if (MISC_SEARCH_MULTIARRAY[0][i].indexOf(armorStr) == 0)
-                                                {
-                                                    miscItem = true;
-                                                    miscIndex = i;
-                                                }
-                                            }
-                                            if (!miscItem)
-                                            {
-                                                boolean allArmorSpawned = spawnItems(self, armorStr, ARMOR_SEARCH_MULTIARRAY, ARMOR_STATS_TABLE);
-                                                if (allArmorSpawned)
-                                                {
-                                                    sendSystemMessageTestingOnly(self, "Armor spawned without error.");
-                                                    qa.findOrCreateAndEquipQABag(self, testerInventoryId, true);
-                                                }
-                                            }
-                                            else 
-                                            {
-                                                boolean miscItemSpawned = spawnItems(self, armorStr, MISC_SEARCH_MULTIARRAY, MASTER_ITEM_TABLE);
-                                                if (miscItemSpawned)
-                                                {
-                                                    sendSystemMessageTestingOnly(self, "Items spawned without error.");
-                                                    qa.findOrCreateAndEquipQABag(self, testerInventoryId, true);
-                                                }
-                                                else 
-                                                {
-                                                    return false;
-                                                }
-                                            }
-                                        }
-                                    }
-                                    if (st.hasMoreTokens())
-                                    {
-                                        weaponStr = st.nextToken();
-                                        if (!weaponStr.equals("none"))
-                                        {
-                                            boolean allWeaponsSpawned = spawnItems(self, weaponStr, WEAPON_SEARCH_MULTIARRAY, WEAPON_STATS_TABLE);
-                                            if (allWeaponsSpawned)
-                                            {
-                                                sendSystemMessageTestingOnly(self, "Weapons spawned without error.");
-                                                qa.findOrCreateAndEquipQABag(self, testerInventoryId, true);
-                                                return true;
-                                            }
-                                        }
-                                    }
-                                    else 
-                                    {
-                                        return true;
-                                    }
-                                    if (armorStr.equals("none") && weaponStr.equals("none"))
-                                    {
-                                        return true;
-                                    }
-                                }
-                                else 
-                                {
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        sendSystemMessageTestingOnly(self, "***There was a problem trying to implement all tool arguments***");
+        sendSystemMessageTestingOnly(self, "NGE class, level, and roadmap mutation is retired. Use /qatool spec <PRE-CU skill box>.");
         return false;
-    }
-    public boolean spawnItems(obj_id self, String searchString, String[][] arrayOfArrays, String datatableName) throws InterruptedException
-    {
-        if (!searchString.equals(""))
-        {
-            String searchSpawnString = "";
-            for (int m = 0; m < arrayOfArrays[0].length; m++)
-            {
-                if (arrayOfArrays[0][m].indexOf(searchString) == 0)
-                {
-                    searchSpawnString = arrayOfArrays[1][m];
-                }
-            }
-            if (!searchSpawnString.equals(""))
-            {
-                Vector itemRowList = new Vector();
-                Vector itemSpawnStringList = new Vector();
-                String[] itemSpawnStrListArray = dataTableGetStringColumn(datatableName, "name");
-                if (itemSpawnStrListArray.length > 0)
-                {
-                    for (int x = 0; x < itemSpawnStrListArray.length; x++)
-                    {
-                        if (itemSpawnStrListArray[x].indexOf(searchSpawnString) == 0)
-                        {
-                            utils.addElement(itemRowList, "" + x);
-                        }
-                    }
-                    if (itemRowList.size() > -1)
-                    {
-                        String[] allItemRows = new String[itemRowList.size()];
-                        itemRowList.toArray(allItemRows);
-                        String itemString = "";
-                        for (String allItemRow : allItemRows) {
-                            itemString = dataTableGetString(datatableName, utils.stringToInt(allItemRow), "name");
-                            utils.addElement(itemSpawnStringList, itemString);
-                        }
-                        if (itemSpawnStringList.size() > -1)
-                        {
-                            String[] allStrings = new String[itemSpawnStringList.size()];
-                            itemSpawnStringList.toArray(allStrings);
-                            if (allStrings.length > 0)
-                            {
-                                for (String allString : allStrings) {
-                                    qa.spawnStaticItemInInventory(self, allString, "none");
-                                }
-                            }
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-        return false;
-    }
-    public boolean attainCorrectFactionStatus(obj_id self, String factionStr) throws InterruptedException
-    {
-        if (!factionStr.equals(""))
-        {
-            if (factionStr.indexOf("sf") == 3)
-            {
-                if (factions.isRebel(self) || factions.isImperial(self))
-                {
-                    setObjVar(self, "intChangingFactionStatus", 1);
-                    factions.goOvert(self);
-                    return true;
-                }
-            }
-            else if (factionStr.indexOf("cm") == 3)
-            {
-                if (factions.isRebel(self) || factions.isImperial(self))
-                {
-                    setObjVar(self, "intChangingFactionStatus", 1);
-                    factions.goCovert(self);
-                    return true;
-                }
-            }
-            else if (factionStr.indexOf("ol") == 3)
-            {
-                if (factions.isRebel(self) || factions.isImperial(self))
-                {
-                    setObjVar(self, "intChangingFactionStatus", 1);
-                    factions.goOnLeave(self);
-                    return true;
-                }
-            }
-            else 
-            {
-                if (factions.isNeutral(self))
-                {
-                    sendSystemMessageTestingOnly(self, "Neutral");
-                    return true;
-                }
-                sendSystemMessageTestingOnly(self, "Failure Neutral");
-            }
-        }
-        return false;
-    }
-    public boolean attainCorrectFaction(obj_id self, String factionStr) throws InterruptedException
-    {
-        if (!factionStr.equals(""))
-        {
-            String fullFactionName = "";
-            if (factionStr.indexOf("reb") == 0)
-            {
-                fullFactionName = factions.FACTION_REBEL;
-            }
-            else if (factionStr.indexOf("imp") == 0)
-            {
-                fullFactionName = factions.FACTION_IMPERIAL;
-            }
-            else if (factionStr.indexOf("neu") == 0)
-            {
-                fullFactionName = factions.FACTION_NEUTRAL;
-            }
-            else 
-            {
-                sendSystemMessageTestingOnly(self, "Unknown faction. Setting faction to Neutral.");
-                fullFactionName = factions.FACTION_NEUTRAL;
-            }
-            if (!fullFactionName.equals(""))
-            {
-                int factionNum = factions.getFactionNumber(fullFactionName);
-                int factionHashCode = dataTableGetInt(factions.FACTION_TABLE, factionNum, "pvpFaction");
-                pvpSetAlignedFaction(self, factionHashCode);
-                return true;
-            }
-        }
-        return false;
-    }
-    public String validateProfession(obj_id self, String professionStr, String[] roadmapList) throws InterruptedException
-    {
-        if (!professionStr.equals("") && roadmapList.length > 0)
-        {
-            String professionCodeStr = "";
-            professionStr = toLower(professionStr);
-            if (professionStr.contains("smu"))
-            {
-                professionCodeStr = roadmapList[0] + "-" + PROFESSION_PREFIX[0];
-            }
-            else if (professionStr.contains("bou") || professionStr.equals("bh"))
-            {
-                professionCodeStr = roadmapList[1] + "-" + PROFESSION_PREFIX[1];
-            }
-            else if (professionStr.contains("off"))
-            {
-                professionCodeStr = roadmapList[2] + "-" + PROFESSION_PREFIX[2];
-            }
-            else if (professionStr.contains("com"))
-            {
-                professionCodeStr = roadmapList[3] + "-" + PROFESSION_PREFIX[3];
-            }
-            else if (professionStr.contains("jed") || professionStr.contains("for"))
-            {
-                professionCodeStr = roadmapList[4] + "-" + PROFESSION_PREFIX[4];
-            }
-            else if (professionStr.contains("med"))
-            {
-                professionCodeStr = roadmapList[5] + "-" + PROFESSION_PREFIX[5];
-            }
-            else if (professionStr.contains("spy"))
-            {
-                professionCodeStr = roadmapList[6] + "-" + PROFESSION_PREFIX[6];
-            }
-            else 
-            {
-                professionCodeStr = "ERROR";
-            }
-            if (!professionCodeStr.equals(""))
-            {
-                return professionCodeStr;
-            }
-            else 
-            {
-                professionCodeStr = "ERROR";
-            }
-        }
-        return "ERROR";
-    }
-    public boolean earnProfessionLevel(obj_id self) throws InterruptedException
-    {
-        String skillName = getWorkingSkill(self);
-        dictionary xpReqs = getSkillPrerequisiteExperience(skillName);
-        if (xpReqs == null || xpReqs.isEmpty())
-        {
-            sendSystemMessageTestingOnly(self, "Current working skill is invalid.");
-        }
-        java.util.Enumeration e = xpReqs.keys();
-        String xpType = (String)(e.nextElement());
-        int xpCost = xpReqs.getInt(xpType);
-        int curXP = getExperiencePoints(self, xpType);
-        if (curXP < xpCost)
-        {
-            grantExperiencePoints(self, xpType, xpCost - curXP);
-        }
-        skill_template.earnWorkingSkill(self);
-        return true;
     }
     public boolean mulipleStaticSpawn(obj_id self, String spawnString, String intNumber, boolean silent) throws InterruptedException
     {

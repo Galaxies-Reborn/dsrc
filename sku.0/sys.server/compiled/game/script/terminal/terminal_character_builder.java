@@ -9968,26 +9968,6 @@ public class terminal_character_builder extends script.base_script
         refreshMenu(player, "Select the desired character option", "Test Center Terminal", CHARACTER_BUILDER_OPTIONS, "handleOptionSelect", true);
         return SCRIPT_CONTINUE;
     }
-    public void revokeAllSkills(obj_id player) throws InterruptedException
-    {
-        String[] skillList = getSkillListingForPlayer(player);
-        int attempts = skillList.length;
-        if ((skillList != null) && (skillList.length != 0))
-        {
-            while (skillList.length > 0 && attempts > 0)
-            {
-                for (String skillName : skillList) {
-                    if (!skillName.startsWith("species_") && !skillName.startsWith("social_language_") && !skillName.startsWith("utility_") && !skillName.startsWith("common_") && !skillName.startsWith("demo_") && !skillName.startsWith("force_title_") && !skillName.startsWith("force_sensitive_") && !skillName.startsWith("combat_melee_basic") && !skillName.startsWith("pilot_") && !skillName.startsWith("internal_expertise_") && !skillName.startsWith("class_chronicles_") && !skillName.startsWith("combat_ranged_weapon_basic")) {
-                        skill.revokeSkillSilent(player, skillName);
-                    }
-                }
-                skillList = getSkillListingForPlayer(player);
-                --attempts;
-            }
-        }
-        utils.fullExpertiseReset(player, false);
-        skill.recalcPlayerPools(player, true);
-    }
     public void handlePetAbilityOption(obj_id player) throws InterruptedException
     {
         int[] abilityList = dataTableGetIntColumn(pet_lib.PET_ABILITY_TABLE, "abilityCrc");
@@ -10742,16 +10722,8 @@ public class terminal_character_builder extends script.base_script
                         static_item.createNewItemFunction(s, pInv);
                     }
                 }
-                String template = getSkillTemplate(player);
-                if (!template.startsWith("trader") && !template.startsWith("entertainer"))
-                {
-                    if (!isGod(player))
-                    {
-                        respec.autoLevelPlayer(player, 88, false);
-                    }
-                }
             }
-            sendSystemMessageTestingOnly(player, "Heavy Weapons Pack Issued!");
+            sendSystemMessageTestingOnly(player, "Heavy Weapons Pack Issued! PRE-CU skills were not changed.");
             break;
             case 1:
 
@@ -10785,16 +10757,7 @@ public class terminal_character_builder extends script.base_script
                 }
                 static_item.createNewItemFunction("item_jedi_robe_dark_03_03", pInv);
                 static_item.createNewItemFunction("item_jedi_robe_light_03_03", pInv);
-                revokeAllSkills(player);
-                int currentCombatXp = getExperiencePoints(player, "combat_general");
-                grantExperiencePoints(player, "combat_general", -currentCombatXp);
-                setSkillTemplate(player, "force_sensitive_1a");
-                String templateSkills = dataTableGetString(skill_template.TEMPLATE_TABLE, "force_sensitive_1a", "template");
-                String[] skillList = split(templateSkills, ',');
-                setWorkingSkill(player, skillList[0]);
-                respec.autoLevelPlayer(player, 88, false);
-                skill.recalcPlayerPools(player, true);
-                sendSystemMessageTestingOnly(player, "Level 78 Gear Issued!");
+                sendSystemMessageTestingOnly(player, "Jedi gear issued. PRE-CU skills and experience were not changed.");
             }
             break;
             case 2:

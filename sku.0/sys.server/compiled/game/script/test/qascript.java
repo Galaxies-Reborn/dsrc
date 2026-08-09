@@ -56,7 +56,6 @@ public class qascript extends script.base_script
         "test.qaham",
         "test.qainventory",
         "test.qaitem",
-        "test.qaprofession",
         "test.qascript",
         "test.qaspace",
         "test.qatool",
