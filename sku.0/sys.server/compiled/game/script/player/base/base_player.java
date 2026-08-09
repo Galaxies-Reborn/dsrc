@@ -694,6 +694,7 @@ public class base_player extends script.base_script
         removeObjVar(self, "npcRespec");
         script.player.live_conversions.retirePostNgePlayerMigrationState(self);
         script.systems.combat.combat_base.retirePostNgeSpeciesAbilityState(self);
+        loot.retirePostNgeRareLootPlayerState(self);
         skill.validateExpertise(self);
         retirePostNgePassiveProfessionState(self);
         detachScript(self, group.SCRIPT_GROUP_MEMBER);
@@ -1474,6 +1475,7 @@ public class base_player extends script.base_script
     {
         script.player.live_conversions.retirePostNgePlayerMigrationState(self);
         script.systems.combat.combat_base.retirePostNgeSpeciesAbilityState(self);
+        loot.retirePostNgeRareLootPlayerState(self);
         if (gcw.isPostNgeQueuedBattlefieldRetired())
         {
             retirePostNgeQueuedBattlefieldPlayerState(self);
