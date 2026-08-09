@@ -2307,30 +2307,14 @@ public class player_utility extends script.base_script
         switch (idx)
         {
             case 0:
-            gmGrantSkillRoadmapChoice(self, target);
+            gmGrantPrecuProfessionChoice(self, target);
             break;
             case 1:
-            String skillName = getWorkingSkill(target);
-            dictionary xpReqs = getSkillPrerequisiteExperience(skillName);
-            if (xpReqs == null || xpReqs.isEmpty())
+            if (!skill.purchaseWorkingPrecuSkillForTesting(target))
             {
-                sendSystemMessageTestingOnly(self, "Player does not have a valid working skill");
-                return SCRIPT_CONTINUE;
+                sendSystemMessageTestingOnly(self, "The player does not have a purchasable PRE-CU working skill.");
             }
-            java.util.Enumeration e = xpReqs.keys();
-            String xpType = (String)(e.nextElement());
-            int xpCost = xpReqs.getInt(xpType);
-            int curXP = getExperiencePoints(target, xpType);
-            if (curXP < xpCost)
-            {
-                grantExperiencePoints(target, xpType, xpCost - curXP);
-            }
-            skill_template.earnWorkingSkill(target);
             redisplayGrantSkillSui(self, target);
-            break;
-            case 2:
-            String template = getSkillTemplate(target);
-            gmGrantSkillRoadmapProgression(self, target, template);
             break;
             default:
             utils.removeScriptVarTree(self, "gmGrantSkill");
@@ -2343,18 +2327,18 @@ public class player_utility extends script.base_script
         utils.setScriptVar(self, "gmGrantSkill.target", target);
         String prompt = "You are attempting to modify the skills for \\#pcontrast3 " + getName(target) + "\\#..\n\n";
         prompt += "Please choose an option:";
-        int pid = sui.listbox(self, self, prompt, sui.OK_CANCEL, "GM GRANT SKILL", gm.ROADMAP_SKILL_OPTIONS, "handleGmGrantSkillOptions", true, false);
+        int pid = sui.listbox(self, self, prompt, sui.OK_CANCEL, "GM GRANT SKILL", gm.PRECU_SKILL_OPTIONS, "handleGmGrantSkillOptions", true, false);
     }
-    public void gmGrantSkillRoadmapChoice(obj_id self, obj_id target) throws InterruptedException
+    public void gmGrantPrecuProfessionChoice(obj_id self, obj_id target) throws InterruptedException
     {
-        String[] roadmapList = gm.getRoadmapList();
+        String[] professionList = gm.getPrecuProfessionList();
         String prompt = "You are attempting to modify the skills for \\#pcontrast3 " + getName(target) + "\\#..\n\n";
-        prompt += "Please select a profession roadmap:";
-        int pid = sui.listbox(self, self, prompt, sui.OK_CANCEL, "GM GRANT SKILL", gm.convertRoadmapNames(roadmapList), "handleGmGrantSkillRoadmapSelect", true, false);
-        utils.setBatchScriptVar(self, "gmGrantSkill.roadmap_list", roadmapList);
+        prompt += "Please select a PRE-CU profession:";
+        int pid = sui.listbox(self, self, prompt, sui.OK_CANCEL, "GM GRANT SKILL", gm.convertPrecuProfessionNames(professionList), "handleGmGrantPrecuProfessionSelect", true, false);
+        utils.setBatchScriptVar(self, "gmGrantSkill.profession_list", professionList);
         utils.setScriptVar(self, "gmGrantSkill.target", target);
     }
-    public int handleGmGrantSkillRoadmapSelect(obj_id self, dictionary params) throws InterruptedException
+    public int handleGmGrantPrecuProfessionSelect(obj_id self, dictionary params) throws InterruptedException
     {
         obj_id target = utils.getObjIdScriptVar(self, "gmGrantSkill.target");
         if (!isIdValid(target))
@@ -2374,44 +2358,31 @@ public class player_utility extends script.base_script
         if (idx == -1)
         {
             utils.removeScriptVarTree(self, "gmGrantSkill");
-            gmGrantSkillRoadmapChoice(self, target);
+            gmGrantPrecuProfessionChoice(self, target);
             return SCRIPT_CONTINUE;
         }
         if (exists(target))
         {
-            String[] roadmapList = utils.getStringBatchScriptVar(self, "gmGrantSkill.roadmap_list");
-            gmGrantSkillRoadmapProgression(self, target, roadmapList[idx]);
+            String[] professionList = utils.getStringBatchScriptVar(self, "gmGrantSkill.profession_list");
+            if (professionList == null || idx >= professionList.length)
+            {
+                utils.removeScriptVarTree(self, "gmGrantSkill");
+                return SCRIPT_CONTINUE;
+            }
+            String[] professionSkills = skill.getPrecuProfessionSkillList(professionList[idx]);
+            if (professionSkills == null || professionSkills.length == 0)
+            {
+                sendSystemMessageTestingOnly(self, "No PRE-CU skill boxes were found for this profession.");
+                utils.removeScriptVarTree(self, "gmGrantSkill");
+                return SCRIPT_CONTINUE;
+            }
+            utils.setBatchScriptVar(self, "gmGrantSkill.skill_list", professionSkills);
+            String prompt = "Select the final PRE-CU skill box to grant to \\#pcontrast3 " + getName(target) + "\\#..\n\nPrerequisites are granted in order and the 250-point cap is enforced.";
+            int pid = sui.listbox(self, self, prompt, sui.OK_CANCEL, "GM GRANT PRE-CU SKILL", gm.convertSkillListNames(professionSkills), "handleGmGrantPrecuSkillSelect", true, false);
         }
         return SCRIPT_CONTINUE;
     }
-    public void gmGrantSkillRoadmapProgression(obj_id self, obj_id target, String template) throws InterruptedException
-    {
-        String templateSkills = dataTableGetString(skill_template.TEMPLATE_TABLE, template, "template");
-        String[] skillList = split(templateSkills, ',');
-        if (skillList == null || skillList.length == 0)
-        {
-            sendSystemMessageTestingOnly(self, "No skills found for this profession");
-            utils.removeScriptVarTree(self, "gmGrantSkill");
-            return;
-        }
-        else 
-        {
-            sendSystemMessageTestingOnly(self, "Revoking all skills and experience for " + getName(target));
-            respec.revokeAllSkillsAndExperience(target);
-            skill.recalcPlayerPools(target, true);
-            if (!template.equals(getSkillTemplate(target)))
-            {
-                setSkillTemplate(target, template);
-            }
-            setWorkingSkill(target, skillList[0]);
-            utils.setScriptVar(self, "gmGrantSkill.skill_template", template);
-            utils.setBatchScriptVar(self, "gmGrantSkill.roadmap_skills", skillList);
-        }
-        String prompt = "You are attempting to modify the skills for \\#pcontrast3 " + getName(target) + "\\#..\n\n";
-        prompt += "Please enter the level for this player:";
-        int pid = sui.inputbox(self, self, prompt, "handleGmGrantSkillLevelInput");
-    }
-    public int handleGmGrantSkillSkillSelect(obj_id self, dictionary params) throws InterruptedException
+    public int handleGmGrantPrecuSkillSelect(obj_id self, dictionary params) throws InterruptedException
     {
         obj_id target = utils.getObjIdScriptVar(self, "gmGrantSkill.target");
         if (!isIdValid(target))
@@ -2427,54 +2398,29 @@ public class player_utility extends script.base_script
             utils.removeScriptVarTree(self, "gmGrantSkill");
             return SCRIPT_CONTINUE;
         }
-        String skillTemplate = utils.getStringScriptVar(self, "gmGrantSkill.skill_template");
-        if (skillTemplate == null || skillTemplate.equals(""))
-        {
-            utils.removeScriptVarTree(self, "gmGrantSkill");
-            return SCRIPT_CONTINUE;
-        }
         if (idx == -1)
         {
             sendSystemMessageTestingOnly(self, "Please make a selection.");
-            gmGrantSkillRoadmapProgression(self, target, skillTemplate);
+            utils.removeScriptVarTree(self, "gmGrantSkill");
             return SCRIPT_CONTINUE;
         }
         if (exists(target))
         {
-            String[] roadmapSkills = utils.getStringBatchScriptVar(self, "gmGrantSkill.roadmap_skills");
-            setWorkingSkill(target, roadmapSkills[0]);
-            for (int i = 0; i < idx; i++)
+            String[] professionSkills = utils.getStringBatchScriptVar(self, "gmGrantSkill.skill_list");
+            if (professionSkills == null || idx >= professionSkills.length)
             {
-                grantSkill(target, roadmapSkills[i]);
-                skill_template.grantRoadmapItem(target);
-                setWorkingSkill(target, skill_template.getNextWorkingSkill(target));
+                utils.removeScriptVarTree(self, "gmGrantSkill");
+                return SCRIPT_CONTINUE;
             }
-            sendSystemMessageTestingOnly(self, "Skill Granting for " + getName(target) + " is complete");
+            if (skill.grantPrecuSkillWithPrerequisites(target, professionSkills[idx]))
+            {
+                sendSystemMessageTestingOnly(self, "PRE-CU skill granting for " + getName(target) + " is complete.");
+            }
+            else
+            {
+                sendSystemMessageTestingOnly(self, "PRE-CU skill grant failed. Verify prerequisites, species restrictions, and available skill points.");
+            }
         }
-        utils.removeScriptVarTree(self, "gmGrantSkill");
-        return SCRIPT_CONTINUE;
-    }
-    public int handleGmGrantSkillLevelInput(obj_id self, dictionary params) throws InterruptedException
-    {
-        obj_id target = utils.getObjIdScriptVar(self, "gmGrantSkill.target");
-        if (!isIdValid(target))
-        {
-            sendSystemMessageTestingOnly(self, "Target is no longer valid.");
-            utils.removeScriptVarTree(self, "gmGrantSkill");
-            return SCRIPT_CONTINUE;
-        }
-        String text = sui.getInputBoxText(params);
-        int level = utils.stringToInt(text);
-        if (level < 1 || level > 90)
-        {
-            sendSystemMessageTestingOnly(self, "Invalid level entered!");
-            return SCRIPT_CONTINUE;
-        }
-        else 
-        {
-            respec.autoLevelPlayer(target, level, true);
-        }
-        sendSystemMessageTestingOnly(self, "Skill Granting for " + getName(target) + " is complete");
         utils.removeScriptVarTree(self, "gmGrantSkill");
         return SCRIPT_CONTINUE;
     }

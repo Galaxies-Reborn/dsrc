@@ -812,20 +812,8 @@ public class qasetup extends script.base_script
     };
     public int OnAttach(obj_id self) throws InterruptedException
     {
-        if (isGod(self))
-        {
-            if (getGodLevel(self) < 10)
-            {
-                detachScript(self, "test.qasetup");
-                sendSystemMessage(self, "You do not have the appropriate access level to use this script.", null);
-            }
-        }
-        else if (!isGod(self))
-        {
-            detachScript(self, "test.qasetup");
-        }
-        sendSystemMessage(self, "QA-Setup attached.", null);
-        sendSystemMessage(self, "For available commands type 'qasetup'.", null);
+        detachScript(self, "test.qasetup");
+        sendSystemMessage(self, "The NGE level-90 and expertise setup tool is retired. Use PRE-CU skill-box testing tools.", null);
         return SCRIPT_CONTINUE;
     }
     public int OnSpeaking(obj_id self, String text) throws InterruptedException

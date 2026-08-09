@@ -74,6 +74,42 @@ public class skill extends script.base_script
     public static final string_id PROSE_SKILL_LEARNED = new string_id(CONVOFILE, "prose_skill_learned");
     public static final string_id PROSE_TRAIN_FAILED = new string_id(CONVOFILE, "prose_train_failed");
     public static final string_id SID_EXPERTISE_WRONG_PROFESSION = new string_id("spam", "expertise_wrong_profession");
+    public static final String[] PRECU_PUBLIC_PROFESSION_ROOTS =
+    {
+        "combat_1hsword",
+        "combat_2hsword",
+        "combat_bountyhunter",
+        "combat_brawler",
+        "combat_carbine",
+        "combat_commando",
+        "combat_marksman",
+        "combat_pistol",
+        "combat_polearm",
+        "combat_rifleman",
+        "combat_smuggler",
+        "combat_unarmed",
+        "crafting_architect",
+        "crafting_armorsmith",
+        "crafting_artisan",
+        "crafting_chef",
+        "crafting_droidengineer",
+        "crafting_merchant",
+        "crafting_tailor",
+        "crafting_weaponsmith",
+        "outdoors_bio_engineer",
+        "outdoors_creaturehandler",
+        "outdoors_ranger",
+        "outdoors_scout",
+        "outdoors_squadleader",
+        "science_combatmedic",
+        "science_doctor",
+        "science_medic",
+        "social_dancer",
+        "social_entertainer",
+        "social_imagedesigner",
+        "social_musician",
+        "social_politician"
+    };
     public static boolean isRetiredNgeProgressionSkillName(String skillName) throws InterruptedException
     {
         return skillName != null &&
@@ -237,6 +273,176 @@ public class skill extends script.base_script
             }
         }
         return SKILL_POINT_CAP - usedPoints;
+    }
+    public static String[] getPrecuPublicProfessionRoots() throws InterruptedException
+    {
+        String[] roots = new String[PRECU_PUBLIC_PROFESSION_ROOTS.length];
+        System.arraycopy(PRECU_PUBLIC_PROFESSION_ROOTS, 0, roots, 0, PRECU_PUBLIC_PROFESSION_ROOTS.length);
+        return roots;
+    }
+    public static boolean isPrecuPublicProfessionRoot(String professionRoot) throws InterruptedException
+    {
+        if (professionRoot == null || professionRoot.length() == 0)
+        {
+            return false;
+        }
+        return utils.getElementPositionInArray(PRECU_PUBLIC_PROFESSION_ROOTS, professionRoot) >= 0;
+    }
+    public static boolean isPrecuPublicProfessionSkillName(String skillName) throws InterruptedException
+    {
+        if (skillName == null || skillName.length() == 0 || skillName.indexOf("_prereq") >= 0)
+        {
+            return false;
+        }
+        int row = dataTableSearchColumnForString(skillName, "NAME", TBL_SKILL);
+        if (row < 0 || dataTableGetInt(TBL_SKILL, row, "GOD_ONLY") != 0 || dataTableGetInt(TBL_SKILL, row, "IS_HIDDEN") != 0 || dataTableGetInt(TBL_SKILL, row, "SEARCHABLE") != 1)
+        {
+            return false;
+        }
+        for (String professionRoot : PRECU_PUBLIC_PROFESSION_ROOTS)
+        {
+            if (skillName.startsWith(professionRoot + "_"))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static String[] getPrecuProfessionSkillList(String professionRoot) throws InterruptedException
+    {
+        if (!isPrecuPublicProfessionRoot(professionRoot))
+        {
+            return null;
+        }
+        String[] allSkills = dataTableGetStringColumnNoDefaults(TBL_SKILL, "NAME");
+        if (allSkills == null || allSkills.length == 0)
+        {
+            return null;
+        }
+        String novice = professionRoot + "_novice";
+        String master = professionRoot + "_master";
+        Vector professionSkills = new Vector();
+        professionSkills.setSize(0);
+        if (isPrecuPublicProfessionSkillName(novice))
+        {
+            professionSkills.add(novice);
+        }
+        for (String candidate : allSkills)
+        {
+            if (!candidate.equals(novice) && !candidate.equals(master) && candidate.startsWith(professionRoot + "_") && isPrecuPublicProfessionSkillName(candidate))
+            {
+                professionSkills.add(candidate);
+            }
+        }
+        if (isPrecuPublicProfessionSkillName(master))
+        {
+            professionSkills.add(master);
+        }
+        if (professionSkills.size() == 0)
+        {
+            return null;
+        }
+        String[] result = new String[professionSkills.size()];
+        professionSkills.toArray(result);
+        return result;
+    }
+    private static boolean collectPrecuSkillPrerequisites(obj_id player, String skillName, Vector orderedSkills, Vector visitedSkills) throws InterruptedException
+    {
+        if (hasSkill(player, skillName) || visitedSkills.contains(skillName))
+        {
+            return true;
+        }
+        if (!isPrecuPublicProfessionSkillName(skillName))
+        {
+            return false;
+        }
+        visitedSkills.add(skillName);
+        String[] prerequisites = getSkillPrerequisiteSkills(skillName);
+        if (prerequisites != null)
+        {
+            for (String prerequisite : prerequisites)
+            {
+                if (!collectPrecuSkillPrerequisites(player, prerequisite, orderedSkills, visitedSkills))
+                {
+                    return false;
+                }
+            }
+        }
+        orderedSkills.add(skillName);
+        return true;
+    }
+    public static boolean grantPrecuSkillWithPrerequisites(obj_id player, String skillName) throws InterruptedException
+    {
+        if (!isIdValid(player) || !isPlayer(player) || !isPrecuPublicProfessionSkillName(skillName))
+        {
+            return false;
+        }
+        Vector orderedSkills = new Vector();
+        orderedSkills.setSize(0);
+        Vector visitedSkills = new Vector();
+        visitedSkills.setSize(0);
+        if (!collectPrecuSkillPrerequisites(player, skillName, orderedSkills, visitedSkills))
+        {
+            return false;
+        }
+        int pointsRequired = 0;
+        for (Object orderedSkill : orderedSkills)
+        {
+            int skillCost = getSkillPointCost((String)orderedSkill);
+            if (skillCost < 0)
+            {
+                return false;
+            }
+            pointsRequired += skillCost;
+        }
+        if (pointsRequired > getAvailableSkillPoints(player))
+        {
+            return false;
+        }
+        for (Object orderedSkill : orderedSkills)
+        {
+            if (!grantSkillToPlayer(player, (String)orderedSkill))
+            {
+                return false;
+            }
+        }
+        setWorkingSkill(player, "");
+        recalcPlayerPools(player, true);
+        return true;
+    }
+    public static boolean purchaseWorkingPrecuSkillForTesting(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !isPlayer(player))
+        {
+            return false;
+        }
+        String skillName = getWorkingSkill(player);
+        if (!isPrecuPublicProfessionSkillName(skillName))
+        {
+            return false;
+        }
+        dictionary xpRequirements = getSkillPrerequisiteExperience(skillName);
+        if (xpRequirements != null && !xpRequirements.isEmpty())
+        {
+            Enumeration keys = xpRequirements.keys();
+            while (keys.hasMoreElements())
+            {
+                String xpType = (String)keys.nextElement();
+                int xpCost = xpRequirements.getInt(xpType);
+                int currentXp = getExperiencePoints(player, xpType);
+                if (currentXp < xpCost && grantExperiencePoints(player, xpType, xpCost - currentXp) == XP_ERROR)
+                {
+                    return false;
+                }
+            }
+        }
+        if (!purchaseSkill(player, skillName))
+        {
+            return false;
+        }
+        setWorkingSkill(player, "");
+        recalcPlayerPools(player, true);
+        return true;
     }
     public static boolean purchaseSkill(obj_id player, String skillName) throws InterruptedException
     {

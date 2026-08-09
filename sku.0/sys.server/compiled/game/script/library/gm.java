@@ -66,11 +66,10 @@ public class gm extends script.base_script
         "Diseased",
         "On Fire"
     };
-    public static final String[] ROADMAP_SKILL_OPTIONS = 
+    public static final String[] PRECU_SKILL_OPTIONS =
     {
-        "Select Roadmap",
-        "Earn Current Skill",
-        "Set Roadmap Progression"
+        "Select PRE-CU Skill Box",
+        "Earn Current PRE-CU Skill"
     };
     public static String removeKeyword(String params, String keyword) throws InterruptedException
     {
@@ -569,49 +568,27 @@ public class gm extends script.base_script
         attachScript(player, "player.player_jedi_conversion");
         return;
     }
-    public static String[] getRoadmapList() throws InterruptedException
+    public static String[] getPrecuProfessionList() throws InterruptedException
     {
-        String[] roadmapList = 
-        {
-            "smuggler_1a",
-            "bounty_hunter_1a",
-            "officer_1a",
-            "commando_1a",
-            "force_sensitive_1a",
-            "medic_1a",
-            "spy_1a",
-            "entertainer_1a",
-            "trader_0a",
-            "trader_0b",
-            "trader_0c",
-            "trader_0d"
-        };
-        return roadmapList;
+        return skill.getPrecuPublicProfessionRoots();
     }
-    public static String[] convertRoadmapNames(String[] list) throws InterruptedException
+    public static String[] convertPrecuProfessionNames(String[] list) throws InterruptedException
     {
         String[] newList = new String[list.length];
         for (int i = 0; i < newList.length; i++)
         {
-            char branch = list[i].charAt(list[i].length() - 1);
-            branch -= 49;
-            String roadmapName = "@ui_roadmap:title_" + list[i].substring(0, list[i].lastIndexOf('_'));
-            String branchName = "@ui_roadmap:track_title_" + list[i].substring(0, list[i].lastIndexOf('_')) + "_" + branch;
-            newList[i] = roadmapName;
-            if (list[i].startsWith("trader"))
-            {
-                newList[i] += " - " + branchName;
-            }
+            newList[i] = "@skl_n:" + list[i] + "_novice";
         }
         return newList;
     }
     public static String[] convertSkillListNames(String[] skillList) throws InterruptedException
     {
+        String[] newList = new String[skillList.length];
         for (int i = 0; i < skillList.length; i++)
         {
-            skillList[i] = "@skl_n:" + skillList[i];
+            newList[i] = "@skl_n:" + skillList[i];
         }
-        return skillList;
+        return newList;
     }
     public static String[] getAllQuests(obj_id player) throws InterruptedException
     {

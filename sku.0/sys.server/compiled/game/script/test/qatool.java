@@ -61,8 +61,8 @@ public class qatool extends script.base_script
     public static final String DATAPAD_TOOL_PROMPT = "This tool allows the tester to view, warp, export and import into the datapad";
     public static final String ITEM_TOOL_TITLE = "QA MASTER ITEM TOOL";
     public static final String ITEM_TOOL_PROMPT = "This tool allows the tester to find items such as reward armor and weapons.";
-    public static final String NGE_TOOL_TITLE = "QA NGE TOOL";
-    public static final String NGE_TOOL_PROMPT = "This tool allows the tester to attain a Respec item in their inventory.\n\nPlease select a number that will represent the level that the player character will respec to (Example: 61).";
+    public static final String NGE_TOOL_TITLE = "RETIRED NGE TOOL";
+    public static final String NGE_TOOL_PROMPT = "NGE combat-level respecs are retired. Use the PRE-CU skill-box tools instead.";
     public static final String PROFESSION_TOOL_TITLE = "QA PROFESSION ASSISTANT";
     public static final String PROFESSION_TOOL_PROMPT = "This tool allows the tester to research accurate profession data without having to create a new character or force a profession change.";
     public static final String NPCFINDER_TITLE = "NPC/Mob Finder";
@@ -78,7 +78,7 @@ public class qatool extends script.base_script
     public static final String HEAL_SCRIPTVAR = "healDamageVar";
     public static final String HEAL_TOOL_PROMPT = "Give the amount you want to heal the target for.  This tool will heal in the amount you specify as long as it doesn't exceed the target's maximum health.";
     public static final String HEAL_TOOL_TITLE = "HEAL AMOUNT";
-    public static final String SPECMEPOPUP = "Example: /qatool spec smu 22 rebsf bone pis.\n\nProfession:\n\nsmu\tSmuggler\nbou OR bh\tBounty Hunter\noff\t\tOfficer\ncom\tCommando\njed OR for\tForce Sensitive\nmed\tMedic\nspy\tSpy\n\n\nLevel:\n\n<any number between 1 - 90>\tHas to be a number!\n\nFaction (optional argument):\n\n<empty>\tfaction unchanged\nrebsf\tRebel Special Forces\nrebcm\tRebel Combatant\nrebol\tRebel On Leave\nimpsf\tImperial Special Forces\nimpcm\tImperial Combatant\nimpol\tImperial On Leave\nneu\tNeutral\n\n\nArmor (optional argument):\n\n<empty>\tno armor\nbone\tbasicbone armor\nsmuggler\troadmap basic only\nofficer\troadmap basic only\ncommando\troadmap basic only\nbh\troadmap basic only\nmedic\troadmap basic only\nspy\troadmap basic only\nassault_agi\nassault_sta\nassault_con\nassault_pre\nassault_lck\nbattle_agi\nbattle_sta\nbattle_con\nbattle_pre\nbattle_lck\nrecon_agi\nrecon_sta\nrecon_con\nrecon_pre\nrecon_lck\nassault_borvo\nmandalorian_imperial_white\nmandalorian_rebel_white\nmandalorian_imperial_black\nmandalorian_rebel_black\nmandalorian_imperial_red\nmandalorian_rebel_red\nmandalorian_imperial_blue\nmandalorian_rebel_blue\nmandalorian_imperial_green\nmandalorian_rebel_green\nrobe\tall Jedi robes\n\nWeapons (optional argument):\n<empty>\tno weapons\npis\t\tAll Pistols\nrif\t\tAll Rifles\ncar\t\tAll Carbines\nuna\tAll Unarmed\none\tAll One Handed\ntwo\tAll Two Handed\npol\t\tAll Polearms";
+    public static final String SPECMEPOPUP = "Usage: /qatool spec <PRE-CU skill box>\n\nExample: /qatool spec combat_marksman_rifle_04\n\nThe selected skill and all missing prerequisites are granted in dependency order. Existing professions are preserved and the 250-point cap is enforced.";
     public static final String BUFF_TOOL_PROMPT = "Select Spacial Attack or Buff to be performed on your test character.\n\nTo remove all buffs use the command:\n\n/qatool buff clear";
     public static final String BUFF_TOOL_TITLE = "Special Attack & Buff Tool";
     public static final String QUEST_TOOL_TITLE = "QA Quest Tool";
@@ -101,7 +101,7 @@ public class qatool extends script.base_script
         " qafaction -- Faction manipulation functions ",
         " qaxp - Experience tool.  Allows tester to attain expereince based on current profession.",
         "* (command driven tool) qabag -- Creates the QA bag into your inventory ",
-        " qange -- Allows the tester to receive a respec token.",
+        " qange -- Retired; NGE combat-level respecs are unavailable.",
         " frog -- Allows the tester to spawn character builder terminals directly into the tester inventory.",
         " qaquest -- QA version of a quest tool.  Should provide tester with a list of current quests that are yet to be completed. Allows tester to complete ground and space quests.",
         " qaprofession -- Tester can use this tool to research stats, roadmap and other data. A report can be created based off of the tool data.",
@@ -130,7 +130,7 @@ public class qatool extends script.base_script
         "* (command driven tool) helper <creatureName> - Gives tester a creature with additional functionality.  Tester can instruct the test creature to carry out specific instructions in order to assist the tester in attaining a structured combat test case.",
         "* (command driven tool) objFinder <script.string.argument | template/name.iff> - Lists all objects, that have the specified template or script attached, within the server boundary in which the tester currently resides.",
         "* (command driven tool) revokepilot - Removes the test character's Pilot profession completely.",
-        "* (command driven tool) spec - Allows tester to instantly change profession, level, faction, armor and weapons. Example: /qatool spec smu 22 rebsf bone pis",
+        "* (command driven tool) spec <skill box> - Grants a canonical PRE-CU skill box and its missing prerequisites within the 250-point cap.",
         "* (command driven tool) gmr - Restores health on test character (self only).",
         "* (command driven tool) multi - Allows for multiple spawning of a static item using 2 arguments.  Example: /qatool multi item_restuss_imperial_commendation_02_01 2000",
         "* (command driven tool) entertaineritems - Spawns all entertainer instraments into tester inventory.",
@@ -245,8 +245,8 @@ public class qatool extends script.base_script
     };
     public static final String[] NGE_TOOL_MENU = 
     {
-        "Make CU Profession",
-        "Get Respec Token"
+        "NGE Respec Retired",
+        "Use PRE-CU Skill Boxes"
     };
     public static final String[] SCRIPT_TOOL_COMMON_SCRIPTS = 
     {
@@ -274,7 +274,6 @@ public class qatool extends script.base_script
         "test.qaxp",
         "test.qadatapad",
         "test.qaitem",
-        "test.qange",
         "test.qaprofession",
         "test.qa_damage",
         "test.qa_helper",
@@ -854,7 +853,6 @@ public class qatool extends script.base_script
                 attachScript(self, "test.qascript");
                 attachScript(self, "test.qadatapad");
                 attachScript(self, "test.qaitem");
-                attachScript(self, "test.qange");
                 attachScript(self, "test.qaprofession");
                 attachScript(self, "test.qa_damage");
                 attachScript(self, "test.qa_helper");
@@ -1279,7 +1277,7 @@ public class qatool extends script.base_script
         }
         else if ((toLower(command)).equals("spec") || (toLower(command)).equals("specme"))
         {
-            boolean successMsg = specTester(self, st);
+            boolean successMsg = precuSpecTester(self, st);
             if (!successMsg)
             {
                 sendSystemMessageTestingOnly(self, "***The tool failed in part or in full.  Make sure your arguments are spelled correctly and try again.***");
@@ -1334,7 +1332,7 @@ public class qatool extends script.base_script
         }
         else if ((toLower(command)).equals("qange"))
         {
-            qa.createInputBox(self, NGE_TOOL_PROMPT, NGE_TOOL_TITLE, "handleGiveRespecItem", "qange.pid");
+            sendSystemMessageTestingOnly(self, NGE_TOOL_PROMPT);
             return SCRIPT_CONTINUE;
         }
         else if ((toLower(command)).equals("qa_cube") || (toLower(command)).equals("qacube"))
@@ -2354,7 +2352,7 @@ public class qatool extends script.base_script
                     qa.refreshMenu(self, ITEM_TOOL_PROMPT, ITEM_TOOL_TITLE, ITEM_TOOL_MENU, "handleMainMenuOptions", "qaitem.pid", sui.OK_CANCEL_REFRESH);
                     break;
                     case NGETOOL_MENUOPTION:
-                    qa.createInputBox(player, NGE_TOOL_PROMPT, NGE_TOOL_TITLE, "handleGiveRespecItem", "qange.pid");
+                    sendSystemMessageTestingOnly(player, NGE_TOOL_PROMPT);
                     break;
                     case NPCFINDERTOOL_MENUOPTION:
                     npcFinderFunction(self, st);
@@ -3361,7 +3359,33 @@ public class qatool extends script.base_script
         }
         return null;
     }
-    public boolean specTester(obj_id self, StringTokenizer st) throws InterruptedException
+    public boolean precuSpecTester(obj_id self, StringTokenizer st) throws InterruptedException
+    {
+        if (isSpaceScene())
+        {
+            sendSystemMessageTestingOnly(self, "You have to be on the ground to use this tool.");
+            return false;
+        }
+        if (!st.hasMoreTokens())
+        {
+            sui.msgbox(self, self, SPECMEPOPUP, sui.OK_ONLY, QATOOL_TITLE, "noHandler");
+            return false;
+        }
+        String skillName = st.nextToken();
+        if (skillName.equals("?") || st.hasMoreTokens())
+        {
+            sui.msgbox(self, self, SPECMEPOPUP, sui.OK_ONLY, QATOOL_TITLE, "noHandler");
+            return false;
+        }
+        if (!skill.grantPrecuSkillWithPrerequisites(self, skillName))
+        {
+            sendSystemMessageTestingOnly(self, "Unable to grant that PRE-CU skill box. Verify the exact skill name and available skill points.");
+            return false;
+        }
+        sendSystemMessageTestingOnly(self, "PRE-CU skill box and missing prerequisites granted: " + skillName);
+        return true;
+    }
+    public boolean retiredNgeSpecTester(obj_id self, StringTokenizer st) throws InterruptedException
     {
         if (isSpaceScene())
         {
@@ -3405,7 +3429,7 @@ public class qatool extends script.base_script
                                 sendSystemMessageTestingOnly(self, "90th Level is max.");
                                 return false;
                             }
-                            String[] roadmapList = gm.getRoadmapList();
+                            String[] roadmapList = new String[0];
                             String professionCodeString = validateProfession(self, professionStr, roadmapList);
                             if (!professionCodeString.equals("ERROR"))
                             {

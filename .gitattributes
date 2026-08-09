@@ -64,7 +64,14 @@ sku.0/sys.server/compiled/game/object/tangible/destructible/gcw_*.tpf -text whit
 sku.0/sys.server/compiled/game/object/building/poi/gcw_scout_camp_entertainment.tpf -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/datatables/buildout/rori/rori_7_7.tab -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/library/guild.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/library/gm.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/terminal/terminal_city.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/terminal/terminal_character_builder.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/test/qa_character.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/test/qaprofession.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/test/qascript.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/test/qasetup.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/test/qatool.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/terminal/terminal_gcw_publish_gift.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/terminal/terminal_guild.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/player/player_guild.java -text whitespace=cr-at-eol

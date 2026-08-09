@@ -43,7 +43,7 @@ public class qaprofession extends script.base_script
     };
     public static final String[] PROFESSION_DETAILS_MENU = 
     {
-        "Master this Profession",
+        "Use /qatool spec for PRE-CU Skills",
         "Export this data"
     };
     public static final String[] ABILITY_TO_SKILL_FORMULA = 
@@ -641,21 +641,7 @@ public class qaprofession extends script.base_script
                     switch (idx)
                     {
                         case MASTER_PROFESSION:
-                        String professionCodeSelection = utils.getStringScriptVar(self, SCRIPTVAR + ".professionCodeSelection");
-                        String[] professionSkillCodes = utils.getStringArrayScriptVar(self, SCRIPTVAR + ".professionSkillCodes");
-                        String[] professionTemplateNames = utils.getStringArrayScriptVar(self, SCRIPTVAR + ".professionTemplateNames");
-                        int arrayLength = professionSkillCodes.length;
-                        String templateName = getTemplateCodeString(self, professionCodeSelection, professionSkillCodes, professionTemplateNames);
-                        if (!templateName.equals(""))
-                        {
-                            qa.revokeAllSkills(self);
-                            setSkillTemplate(self, templateName);
-                            for (String professionSkillCode : professionSkillCodes) {
-                                skill.grantSkillToPlayer(self, professionSkillCode);
-                            }
-                            setWorkingSkill(self, professionSkillCodes[arrayLength - 1]);
-                            CustomerServiceLog("qaTool", "User: (" + self + ") " + getName(self) + " has attained a Master Profession (" + templateName + ") using the QA Profession Tool.");
-                        }
+                        sendSystemMessageTestingOnly(self, "NGE template mastering is retired. Use /qatool spec <PRE-CU skill box>.");
                         qa.refreshMenu(self, suiPrompt, PROFESSION_DETAILS_TITLE, PROFESSION_DETAILS_MENU, "handleProfessionDetails", SCRIPTVAR + ".pid", SCRIPTVAR + ".theDataOptions", sui.OK_CANCEL_REFRESH);
                         break;
                         case EXPORT_DATA:

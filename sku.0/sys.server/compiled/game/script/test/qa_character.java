@@ -73,9 +73,8 @@ public class qa_character extends script.base_script
     };
     public int OnAttach(obj_id self) throws InterruptedException
     {
-        if (!isGod(self) || getGodLevel(self) < 10) {
-            detachScript(self, "test.qa_character");
-        }
+        detachScript(self, "test.qa_character");
+        sendSystemMessageTestingOnly(self, "The NGE class/template setup tool is retired. Use PRE-CU skill-box testing tools.");
         return SCRIPT_CONTINUE;
     }
     public int OnSpeaking(obj_id self, String text) throws InterruptedException

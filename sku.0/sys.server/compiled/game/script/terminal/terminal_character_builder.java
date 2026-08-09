@@ -998,7 +998,7 @@ public class terminal_character_builder extends script.base_script
     public static final String[] CBTABOUT = {
         " Weapons -- Select weapons with frog stats.",
         " Armor -- Select armor with frog stats.",
-        " Skills -- Allows players to set level and skills.",
+        " Skills -- Grants canonical PRE-CU skill boxes while enforcing prerequisites and the 250-point cap.",
         " Commands -- Grant Meditate, Force Ghost or Chronicler Ventriloquism.",
         " Resources -- Gives Player specified resources.",
         " Credits -- Gives 10,000 credits.",
@@ -1379,13 +1379,10 @@ public class terminal_character_builder extends script.base_script
         "Lose One Faction Rank",
         "Resign From Current Faction"
     };
-    public static final String[] ROADMAP_SKILL_OPTIONS =
+    public static final String[] PRECU_SKILL_OPTIONS =
     {
-        "Select Roadmap",
-        "Earn Current Skill",
-        "Set Level",
-        "Reset Respec",
-	"Master Chronicles"
+        "Select PRE-CU Skill Box",
+        "Earn Current PRE-CU Skill"
     };
     public static final String[] JEDI_OPTIONS =
     {
@@ -2162,7 +2159,7 @@ public class terminal_character_builder extends script.base_script
             case 3:
             if (isGod(player) || checkConfigSetting("skillsEnabled"))
             {
-                handleRoadmapSkills(player);
+                handlePrecuSkills(player);
             }
             else
             {
@@ -9825,11 +9822,11 @@ public class terminal_character_builder extends script.base_script
         refreshMenu(player, "Select the desired faction option", "Test Center Terminal", FACTION_OPTIONS, "handleFactionOptions", false);
         return SCRIPT_CONTINUE;
     }
-    public void handleRoadmapSkills(obj_id player) throws InterruptedException
+    public void handlePrecuSkills(obj_id player) throws InterruptedException
     {
-        refreshMenu(player, "Select the desired Roadmap option", "Test Center Terminal", ROADMAP_SKILL_OPTIONS, "handleRoadmapSelect", false);
+        refreshMenu(player, "Select the desired PRE-CU skill option", "Test Center Terminal", PRECU_SKILL_OPTIONS, "handlePrecuSkillMenuSelect", false);
     }
-    public int handleRoadmapSelect(obj_id self, dictionary params) throws InterruptedException
+    public int handlePrecuSkillMenuSelect(obj_id self, dictionary params) throws InterruptedException
     {
         if (params == null || params.isEmpty())
         {
@@ -9849,7 +9846,7 @@ public class terminal_character_builder extends script.base_script
             closeOldWindow(player);
             return SCRIPT_CONTINUE;
         }
-        if (idx == -1 || idx > ROADMAP_SKILL_OPTIONS.length)
+        if (idx == -1 || idx >= PRECU_SKILL_OPTIONS.length)
         {
             cleanScriptVars(player);
             return SCRIPT_CONTINUE;
@@ -9860,15 +9857,12 @@ public class terminal_character_builder extends script.base_script
             cleanScriptVars(player);
             return SCRIPT_OVERRIDE;
         }
-        String prompt = "Select the desired roadmap skill option";
-        String title = "Test Center Terminal";
-        int pid = 0;
         switch (idx)
         {
             case 0:
             if (isGod(player))
             {
-                handleRoadmapChoice(player);
+                handlePrecuProfessionChoice(player);
             }
             else
             {
@@ -9876,87 +9870,32 @@ public class terminal_character_builder extends script.base_script
             }
             break;
             case 1:
-            String skillName = getWorkingSkill(player);
-            dictionary xpReqs = getSkillPrerequisiteExperience(skillName);
-            if (xpReqs == null || xpReqs.isEmpty())
+            if (!skill.purchaseWorkingPrecuSkillForTesting(player))
             {
-                sendSystemMessageTestingOnly(player, "Current working skill is invalid.");
-                return SCRIPT_CONTINUE;
+                sendSystemMessageTestingOnly(player, "Current working skill is not a purchasable PRE-CU skill box.");
             }
-            java.util.Enumeration e = xpReqs.keys();
-            String xpType = (String)(e.nextElement());
-            int xpCost = xpReqs.getInt(xpType);
-            int curXP = getExperiencePoints(player, xpType);
-            if (curXP < xpCost)
-            {
-                grantExperiencePoints(player, xpType, xpCost - curXP);
-            }
-            skill_template.earnWorkingSkill(player);
-            handleRoadmapSkills(player);
+            handlePrecuSkills(player);
             break;
-            case 2:
-            String template = getSkillTemplate(player);
-            sui.inputbox(self, player, "Enter your desired level.", "handleAutoLevelSelect");
-            break;
-            case 3:
-            respec.revokeAllSkillsAndExperience(player);
-            int currentCombatXp = getExperiencePoints(player, "combat_general");
-            grantExperiencePoints(player, "combat_general", -currentCombatXp);
-            skill.recalcPlayerPools(player, true);
-            respec.autoLevelPlayer(player, 90, false);
-            utils.fullExpertiseReset(player, true);
-            skill.setPlayerStatsForLevel(player, 90);
-            removeObjVar(player, "expertise_reset");
-            removeObjVar(player, "respecsBought");
-            sendSystemMessageTestingOnly(player, "Respecced to level 90 and respecs cleared.");
-            cleanScriptVars(player);
-            break;
-	    case 4:
-	    grantChronicleSkills(player, CHRONICLER_SKILLS);
-            sendSystemMessageTestingOnly(player, "Skills granted");
-	    break;
             default:
             cleanScriptVars(player);
             return SCRIPT_CONTINUE;
         }
         return SCRIPT_CONTINUE;
     }
-    public int handleAutoLevelSelect(obj_id self, dictionary params) throws InterruptedException
+    public void handlePrecuProfessionChoice(obj_id player) throws InterruptedException
     {
-        obj_id player = sui.getPlayerId(params);
-        String text = sui.getInputBoxText(params);
-        int level = utils.stringToInt(text);
-        if (level < 1 || level > 100)
-        {
-            sendSystemMessageTestingOnly(player, "Invalid level entered!");
-        }
-        else
-        {
-            respec.autoLevelPlayer(player, level, false);
-        }
-        utils.fullExpertiseReset(player, true);
-        expertise.autoAllocateExpertiseByLevel(player, false);
-        handleRoadmapSkills(player);
-        return SCRIPT_CONTINUE;
-    }
-    public void handleRoadmapChoice(obj_id player) throws InterruptedException
-    {
-        obj_id self = getSelf();
-        String[] roadmapList = getRoadmapList();
-        if (roadmapList == null || roadmapList.length == 0)
+        String[] professionList = gm.getPrecuProfessionList();
+        if (professionList == null || professionList.length == 0)
         {
             sendSystemMessage(player, SID_TERMINAL_DENIED);
             cleanScriptVars(player);
             return;
         }
-        else
-        {
-            closeOldWindow(player);
-            utils.setBatchScriptVar(player, "character_builder.roadmap_list", roadmapList);
-        }
-        refreshMenu(player, "Select a skill roadmap.", "Test Center Terminal", convertRoadmapNames(roadmapList), "handleRoadmapChoiceSelection", false);
+        closeOldWindow(player);
+        utils.setBatchScriptVar(player, "character_builder.precu_professions", professionList);
+        refreshMenu(player, "Select a PRE-CU profession.", "Test Center Terminal", gm.convertPrecuProfessionNames(professionList), "handlePrecuProfessionSelection", false);
     }
-    public int handleRoadmapChoiceSelection(obj_id self, dictionary params) throws InterruptedException
+    public int handlePrecuProfessionSelection(obj_id self, dictionary params) throws InterruptedException
     {
         int idx = sui.getListboxSelectedRow(params);
         obj_id player = sui.getPlayerId(params);
@@ -9972,121 +9911,60 @@ public class terminal_character_builder extends script.base_script
             closeOldWindow(player);
             return SCRIPT_CONTINUE;
         }
-        if (idx == -1)
-        {
-            cleanScriptVars(player);
-            return SCRIPT_CONTINUE;
-        }
-        boolean levelNinety = false;
-        if (idx % 2 == 1)
-        {
-            levelNinety = true;
-        }
-        idx = idx / 2;
-        String[] roadmapList = utils.getStringBatchScriptVar(player, "character_builder.roadmap_list");
-        if (exists(player))
-        {
-            if (!levelNinety)
-            {
-                handleRoadmapSkillProgression(player, roadmapList[idx]);
-            }
-            else
-            {
-                handleProfessionLevelToNinety(player, roadmapList[idx]);
-            }
-        }
-        return SCRIPT_CONTINUE;
-    }
-    public String[] getRoadmapList() throws InterruptedException
-    {
-        return gm.getRoadmapList();
-    }
-    public String[] convertRoadmapNames(String[] list) throws InterruptedException
-    {
-        String[] newList = new String[list.length * 2];
-        for (int i = 0; i < newList.length; i += 2)
-        {
-            char branch = list[i / 2].charAt(list[i / 2].length() - 1);
-            branch -= 49;
-            String roadmapName = "@ui_roadmap:title_" + list[i / 2].substring(0, list[i / 2].lastIndexOf('_'));
-            String branchName = "@ui_roadmap:track_title_" + list[i / 2].substring(0, list[i / 2].lastIndexOf('_')) + "_" + branch;
-            newList[i] = roadmapName + " - " + branchName;
-            newList[i + 1] = roadmapName + " - Level 90";
-        }
-        return newList;
-    }
-    public void handleProfessionLevelToNinety(obj_id player, String roadmap) throws InterruptedException
-    {
-        revokeAllSkills(player);
-        int currentCombatXp = getExperiencePoints(player, "combat_general");
-        grantExperiencePoints(player, "combat_general", -currentCombatXp);
-        skill.recalcPlayerPools(player, true);
-        setSkillTemplate(player, roadmap);
-        respec.autoLevelPlayer(player, 90, false);
-        utils.fullExpertiseReset(player, true);
-        skill.setPlayerStatsForLevel(player, 90);
-        expertise.autoAllocateExpertiseByLevel(player, false);
-        handleRoadmapSkills(player);
-    }
-    public void handleRoadmapSkillProgression(obj_id player, String roadmap) throws InterruptedException
-    {
-        obj_id self = getSelf();
-        String templateSkills = dataTableGetString(skill_template.TEMPLATE_TABLE, roadmap, "template");
-        String[] skillList = split(templateSkills, ',');
-        if (skillList == null || skillList.length == 0)
-        {
-            sendSystemMessage(player, SID_TERMINAL_DENIED);
-            cleanScriptVars(player);
-            return;
-        }
-        else
-        {
-            closeOldWindow(player);
-            utils.setScriptVar(player, "character_builder.skill_template", roadmap);
-            utils.setBatchScriptVar(player, "character_builder.roadmap_skills", skillList);
-        }
-        refreshMenu(player, "Select a the working skill in the roadmap.", "Test Center Terminal", convertSkillListNames(skillList), "handleRoadmapSkillSelection", false);
-    }
-    public int handleRoadmapSkillSelection(obj_id self, dictionary params) throws InterruptedException
-    {
-        int idx = sui.getListboxSelectedRow(params);
-        obj_id player = sui.getPlayerId(params);
-        int btn = sui.getIntButtonPressed(params);
-        if (btn == sui.BP_REVERT)
-        {
-            refreshMenu(player, "Select the desired character option", "Test Center Terminal", CHARACTER_BUILDER_OPTIONS, "handleOptionSelect", true);
-            return SCRIPT_CONTINUE;
-        }
-        if (btn == sui.BP_CANCEL)
-        {
-            cleanScriptVars(player);
-            closeOldWindow(player);
-            return SCRIPT_CONTINUE;
-        }
-        if (idx == -1)
+        String[] professionList = utils.getStringBatchScriptVar(player, "character_builder.precu_professions");
+        if (idx == -1 || professionList == null || idx >= professionList.length)
         {
             cleanScriptVars(player);
             return SCRIPT_CONTINUE;
         }
         if (exists(player) && !outOfRange(self, player, false))
         {
-            sendSystemMessageTestingOnly(player, "Revoking all old skills.");
-            revokeAllSkills(player);
-            int currentCombatXp = getExperiencePoints(player, "combat_general");
-            grantExperiencePoints(player, "combat_general", -currentCombatXp);
-            skill.recalcPlayerPools(player, true);
-            String skillTemplate = utils.getStringScriptVar(player, "character_builder.skill_template");
-            setSkillTemplate(player, skillTemplate);
-            String[] roadmapSkills = utils.getStringBatchScriptVar(player, "character_builder.roadmap_skills");
-            for (int i = 0; i < idx; i++)
+            String[] professionSkills = skill.getPrecuProfessionSkillList(professionList[idx]);
+            if (professionSkills == null || professionSkills.length == 0)
             {
-                skill.grantSkillToPlayer(player, roadmapSkills[i]);
+                sendSystemMessage(player, SID_TERMINAL_DENIED);
+                cleanScriptVars(player);
+                return SCRIPT_CONTINUE;
             }
-            setWorkingSkill(player, roadmapSkills[idx]);
-            utils.fullExpertiseReset(player, true);
-            expertise.autoAllocateExpertiseByLevel(player, false);
-            skill.recalcPlayerPools(player, true);
+            utils.setBatchScriptVar(player, "character_builder.precu_skills", professionSkills);
+            refreshMenu(player, "Select the final PRE-CU skill box to grant. Prerequisites are granted in order and the 250-point cap is enforced.", "Test Center Terminal", gm.convertSkillListNames(professionSkills), "handlePrecuSkillSelection", false);
         }
+        return SCRIPT_CONTINUE;
+    }
+    public int handlePrecuSkillSelection(obj_id self, dictionary params) throws InterruptedException
+    {
+        int idx = sui.getListboxSelectedRow(params);
+        obj_id player = sui.getPlayerId(params);
+        int btn = sui.getIntButtonPressed(params);
+        if (btn == sui.BP_REVERT)
+        {
+            handlePrecuProfessionChoice(player);
+            return SCRIPT_CONTINUE;
+        }
+        if (btn == sui.BP_CANCEL)
+        {
+            cleanScriptVars(player);
+            closeOldWindow(player);
+            return SCRIPT_CONTINUE;
+        }
+        String[] professionSkills = utils.getStringBatchScriptVar(player, "character_builder.precu_skills");
+        if (idx == -1 || professionSkills == null || idx >= professionSkills.length)
+        {
+            cleanScriptVars(player);
+            return SCRIPT_CONTINUE;
+        }
+        if (exists(player) && !outOfRange(self, player, false))
+        {
+            if (skill.grantPrecuSkillWithPrerequisites(player, professionSkills[idx]))
+            {
+                sendSystemMessageTestingOnly(player, "PRE-CU skill box and missing prerequisites granted.");
+            }
+            else
+            {
+                sendSystemMessageTestingOnly(player, "PRE-CU skill grant failed. Verify species restrictions and available skill points.");
+            }
+        }
+        cleanScriptVars(player);
         refreshMenu(player, "Select the desired character option", "Test Center Terminal", CHARACTER_BUILDER_OPTIONS, "handleOptionSelect", true);
         return SCRIPT_CONTINUE;
     }

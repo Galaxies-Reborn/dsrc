@@ -756,7 +756,7 @@ public class cmd extends script.base_script
         }
         String prompt = "You are attempting to modify the skills for \\#pcontrast3 " + getName(target) + "\\#..\n\n";
         prompt += "Please choose an option:";
-        int pid = sui.listbox(self, self, prompt, sui.OK_CANCEL, "GM GRANT SKILL", gm.ROADMAP_SKILL_OPTIONS, "handleGmGrantSkillOptions", true, false);
+        int pid = sui.listbox(self, self, prompt, sui.OK_CANCEL, "GM GRANT SKILL", gm.PRECU_SKILL_OPTIONS, "handleGmGrantSkillOptions", true, false);
         utils.setScriptVar(self, "gmGrantSkill.target", target);
         return SCRIPT_CONTINUE;
     }
