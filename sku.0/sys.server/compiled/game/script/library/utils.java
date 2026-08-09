@@ -6261,6 +6261,52 @@ public class utils extends script.base_script
                 return "";
         }
     }
+    public static String getPrecuProfessionRequirementSkillName(String requirement)
+    {
+        if (requirement == null)
+        {
+            return "";
+        }
+        if (requirement.equals("commando"))
+        {
+            return "combat_commando_novice";
+        }
+        if (requirement.equals("smuggler"))
+        {
+            return "combat_smuggler_novice";
+        }
+        if (requirement.equals("medic"))
+        {
+            return "science_medic_novice";
+        }
+        if (requirement.equals("officer"))
+        {
+            return "outdoors_squadleader_novice";
+        }
+        if (requirement.equals("spy"))
+        {
+            return "outdoors_ranger_novice";
+        }
+        if (requirement.equals("bounty_hunter") ||
+            requirement.equals("bounty"))
+        {
+            return "combat_bountyhunter_novice";
+        }
+        if (requirement.equals("force_sensitive") ||
+            requirement.equals("force"))
+        {
+            return "force_sensitive";
+        }
+        if (requirement.equals("trader"))
+        {
+            return "crafting_artisan_novice";
+        }
+        if (requirement.equals("entertainer"))
+        {
+            return "social_entertainer_novice";
+        }
+        return requirement;
+    }
     public static boolean meetsProfessionRequirement(obj_id player, String requirement) throws InterruptedException
     {
         if (!isIdValid(player) || requirement == null || requirement.equals(""))
@@ -6289,7 +6335,7 @@ public class utils extends script.base_script
         }
         if (requirement.equals("spy"))
         {
-            return false;
+            return isPrecuRetainedItemClass(player, SPY);
         }
         if (requirement.equals("bounty_hunter") ||
             requirement.equals("bounty"))

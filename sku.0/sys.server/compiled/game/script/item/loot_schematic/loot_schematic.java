@@ -160,7 +160,8 @@ public class loot_schematic extends script.base_script
                 String skill_req = getStringObjVar(self, VAR_SKILL_REQ);
                 if (!utils.meetsProfessionRequirement(player, skill_req))
                 {
-                    string_id skill_id = utils.unpackString("@skl_n:" + skill_req);
+                    string_id skill_id = utils.unpackString("@skl_n:" +
+                        utils.getPrecuProfessionRequirementSkillName(skill_req));
                     prose_package pp = prose.getPackage(SID_NOT_ENOUGH_SKILL, skill_id);
                     sendSystemMessageProse(player, pp);
                     return SCRIPT_CONTINUE;
@@ -348,7 +349,8 @@ public class loot_schematic extends script.base_script
         if (hasObjVar(self, VAR_SKILL_REQ))
         {
             String skill_req = getStringObjVar(self, VAR_SKILL_REQ);
-            string_id skill_id = utils.unpackString("@skl_n:" + skill_req);
+            string_id skill_id = utils.unpackString("@skl_n:" +
+                utils.getPrecuProfessionRequirementSkillName(skill_req));
             names[idx] = "loot_schematic_skill_required";
             attribs[idx] = localize(skill_id);
             idx++;

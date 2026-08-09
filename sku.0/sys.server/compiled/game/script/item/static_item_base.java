@@ -165,7 +165,8 @@ public class static_item_base extends script.base_script
         if (requiredSkillToEquip != null && !requiredSkillToEquip.equals("") && !hasScript(self, "systems.combat.combat_weapon"))
         {
             names[free] = utils.packStringId(new string_id("proc/proc", "required_skill"));
-            attribs[free++] = utils.packStringId(new string_id("ui_roadmap", requiredSkillToEquip));
+            attribs[free++] = utils.packStringId(new string_id("skl_n",
+                utils.getPrecuProfessionRequirementSkillName(requiredSkillToEquip)));
         }
         int buffIdentity = typeData.getInt("hide_buff_identity");
         int reuseTime = typeData.getInt("reuse_time");

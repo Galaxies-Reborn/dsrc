@@ -1200,7 +1200,8 @@ public class static_item extends script.base_script
         String skillRequiredAttribute;
         if (skillRequired != null && !skillRequired.equals(""))
         {
-            skillRequiredAttribute = "@skl_n:" + skillRequired;
+            skillRequiredAttribute = "@skl_n:" +
+                utils.getPrecuProfessionRequirementSkillName(skillRequired);
         }
         else 
         {
@@ -1275,7 +1276,8 @@ public class static_item extends script.base_script
         String skillRequiredAttribute;
         if (skillRequired != null && !skillRequired.equals(""))
         {
-            skillRequiredAttribute = "@skl_n:" + skillRequired;
+            skillRequiredAttribute = "@skl_n:" +
+                utils.getPrecuProfessionRequirementSkillName(skillRequired);
         }
         else 
         {
@@ -1333,9 +1335,11 @@ public class static_item extends script.base_script
         if (requiredSkillToEquip != null && !requiredSkillToEquip.equals(""))
         {
             names[free] = utils.packStringId(new string_id("proc/proc", "required_skill"));
-            attribs[free++] = utils.packStringId(new string_id("ui_roadmap", requiredSkillToEquip));
+            attribs[free++] = utils.packStringId(new string_id("skl_n",
+                utils.getPrecuProfessionRequirementSkillName(requiredSkillToEquip)));
             names[free] = utils.packStringId(new string_id("proc/proc", "tooltip.required_skill"));
-            attribs[free++] = utils.packStringId(new string_id("ui_roadmap", requiredSkillToEquip));
+            attribs[free++] = utils.packStringId(new string_id("skl_n",
+                utils.getPrecuProfessionRequirementSkillName(requiredSkillToEquip)));
         }
         int reuseTime = itemData.getInt("reuse_time");
         if (reuseTime != 0)

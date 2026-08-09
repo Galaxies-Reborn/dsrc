@@ -14,6 +14,7 @@ public class precu_profession_requirement_fixture extends script.base_script
     private static final int PLAYER_STATION_ID = 1001;
     private static final String ARTISAN = "crafting_artisan_novice";
     private static final String ENTERTAINER = "social_entertainer_novice";
+    private static final String RANGER = "outdoors_ranger_novice";
     private static final String LIFEDAY_DRIVER =
         "test.precu_lifeday_2004_fixture";
     private static final String LIFEDAY_ACTION =
@@ -53,6 +54,7 @@ public class precu_profession_requirement_fixture extends script.base_script
 
         boolean artisanBefore = hasSkill(player, ARTISAN);
         boolean entertainerBefore = hasSkill(player, ENTERTAINER);
+        boolean rangerBefore = hasSkill(player, RANGER);
         int jediStateBefore = getJediState(player);
         String result = "error=probeIncomplete";
         try
@@ -64,6 +66,10 @@ public class precu_profession_requirement_fixture extends script.base_script
             if (entertainerBefore)
             {
                 revokeSkill(player, ENTERTAINER);
+            }
+            if (rangerBefore)
+            {
+                revokeSkill(player, RANGER);
             }
             setJediState(player, JEDI_STATE_NONE);
 
@@ -105,6 +111,13 @@ public class precu_profession_requirement_fixture extends script.base_script
                 utils.meetsProfessionRequirement(
                     player, "force_sensitive");
 
+            boolean rangerGranted =
+                grantSkill(player, RANGER) && hasSkill(player, RANGER);
+            boolean spyMappedToRanger =
+                utils.meetsProfessionRequirement(player, "spy");
+            boolean spyPresentedAsRanger =
+                utils.getPrecuProfessionRequirementSkillName("spy").equals(RANGER);
+
             boolean passed =
                 emptyRejected &&
                 unknownRejected &&
@@ -120,7 +133,10 @@ public class precu_profession_requirement_fixture extends script.base_script
                 exactEntertainerAdmitted &&
                 entertainerTokenAdmitted &&
                 contentEntertainerAdmitted &&
-                forceAdmitted;
+                forceAdmitted &&
+                rangerGranted &&
+                spyMappedToRanger &&
+                spyPresentedAsRanger;
             result =
                 "action=probe authoritative=true" +
                 " emptyRejected=" + emptyRejected +
@@ -139,19 +155,23 @@ public class precu_profession_requirement_fixture extends script.base_script
                 " contentEntertainerAdmitted=" +
                     contentEntertainerAdmitted +
                 " forceAdmitted=" + forceAdmitted +
+                " spyMappedToRanger=" + spyMappedToRanger +
+                " spyPresentedAsRanger=" + spyPresentedAsRanger +
                 " passed=" + passed;
         }
         finally
         {
             restoreSkill(player, ARTISAN, artisanBefore);
             restoreSkill(player, ENTERTAINER, entertainerBefore);
+            restoreSkill(player, RANGER, rangerBefore);
             boolean stateRestored =
                 setJediState(player, jediStateBefore) &&
                 getJediState(player) == jediStateBefore;
             boolean restored =
                 stateRestored &&
                 hasSkill(player, ARTISAN) == artisanBefore &&
-                hasSkill(player, ENTERTAINER) == entertainerBefore;
+                hasSkill(player, ENTERTAINER) == entertainerBefore &&
+                hasSkill(player, RANGER) == rangerBefore;
             result += " restored=" + restored;
             if (!restored)
             {
