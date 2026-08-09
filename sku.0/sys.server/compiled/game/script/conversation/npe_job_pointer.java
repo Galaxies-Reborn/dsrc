@@ -138,7 +138,7 @@ public class npe_job_pointer extends script.base_script
     }
     public boolean npe_job_pointer_condition_isBH(obj_id player, obj_id npc) throws InterruptedException
     {
-        return utils.isProfession(player, utils.BOUNTY_HUNTER);
+        return false;
     }
     public boolean npe_job_pointer_condition_finishedAllGamma(obj_id player, obj_id npc) throws InterruptedException
     {

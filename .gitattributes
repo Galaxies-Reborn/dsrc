@@ -83,4 +83,6 @@ sku.0/sys.server/compiled/game/object/tangible/gcw/flip_terminal_spawner.tpf -te
 sku.0/sys.server/compiled/game/script/item/publish_gift/recruitment_letter.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/conversation/imperial_pvp_bf_vendor.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/conversation/rebel_pvp_bf_vendor.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/conversation/npe_job_pointer.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/conversation/npe_officer.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/library/heavyweapons.java -text whitespace=cr-at-eol
