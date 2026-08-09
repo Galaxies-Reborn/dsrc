@@ -17,12 +17,31 @@ public class stealth extends script.base_script
     public static final String ACTIVE_HEP = "active_hep";
     private static final String[] RETIRED_POST_P14_PLAYER_INVISIBILITY_NAMES =
     {
+        "blendIn",
+        "camouflageAlly",
+        "camouflageSelf",
+        "stealth",
+        "stealth_1",
+        "stealth_2",
+        "smokeGrenade",
+        "smokeGrenade_1",
+        "smokeGrenade_2",
+        "sm_buff_invis_ally_1",
         "urbanStealth",
         "wildernessStealth",
         "forceCloak",
+        "invis_blendIn",
+        "invis_camouflage",
         "invis_urbanStealth",
         "invis_wildernessStealth",
-        "invis_forceCloak"
+        "invis_forceCloak",
+        "invis_stealth",
+        "invis_stealth_1",
+        "invis_stealth_2",
+        "invis_smokeGrenade",
+        "invis_smokeGrenade_1",
+        "invis_smokeGrenade_2",
+        "invis_sm_buff_invis_1"
     };
     public static final int MIN_MOVEMENT_PRIORITY = 3;
     public static final int MIN_POSTURE_CHANGE_PRIORITY = 4;
@@ -179,9 +198,18 @@ public class stealth extends script.base_script
         boolean retiredStateFound = false;
         String[] retiredBuffs =
         {
+            "invis_blendIn",
+            "invis_camouflage",
             "invis_urbanStealth",
             "invis_wildernessStealth",
-            "invis_forceCloak"
+            "invis_forceCloak",
+            "invis_stealth",
+            "invis_stealth_1",
+            "invis_stealth_2",
+            "invis_smokeGrenade",
+            "invis_smokeGrenade_1",
+            "invis_smokeGrenade_2",
+            "invis_sm_buff_invis_1"
         };
         for (String retiredBuff : retiredBuffs)
         {
@@ -2687,6 +2715,11 @@ public class stealth extends script.base_script
     }
     public static boolean canPerformSmokeGrenade(obj_id player) throws InterruptedException
     {
+        if (isRetiredPostP14PlayerInvisibilityAction(player, "smokeGrenade"))
+        {
+            retirePostP14PlayerInvisibilityState(player);
+            return false;
+        }
         if (isDead(player) || isIncapacitated(player))
         {
             sendSystemMessage(player, new string_id("spam", "cant_do_it_state"));
@@ -2738,6 +2771,11 @@ public class stealth extends script.base_script
     }
     public static boolean canPerformStationaryInvis(obj_id player) throws InterruptedException
     {
+        if (isRetiredPostP14PlayerInvisibilityAction(player, "blendIn"))
+        {
+            retirePostP14PlayerInvisibilityState(player);
+            return false;
+        }
         if (isDead(player) || isIncapacitated(player))
         {
             sendSystemMessage(player, new string_id("spam", "cant_do_it_state"));
@@ -2761,6 +2799,11 @@ public class stealth extends script.base_script
     }
     public static void smokeGrenade(obj_id player) throws InterruptedException
     {
+        if (isRetiredPostP14PlayerInvisibilityAction(player, "smokeGrenade"))
+        {
+            retirePostP14PlayerInvisibilityState(player);
+            return;
+        }
         _makeInvisible(player, new string_id("spam", "smokegrenade"), "appearance/pt_smoke_puff.prt", null, -1);
         buff.applyBuff(player, BUFF_NO_BREAK_INVIS);
     }
@@ -2770,6 +2813,11 @@ public class stealth extends script.base_script
     }
     public static boolean canPerformStealth(obj_id player) throws InterruptedException
     {
+        if (isRetiredPostP14PlayerInvisibilityAction(player, "stealth"))
+        {
+            retirePostP14PlayerInvisibilityState(player);
+            return false;
+        }
         if (isDead(player) || isIncapacitated(player))
         {
             sendSystemMessage(player, new string_id("spam", "cant_do_it_state"));
@@ -2810,6 +2858,11 @@ public class stealth extends script.base_script
     }
     public static void stealth(obj_id player) throws InterruptedException
     {
+        if (isRetiredPostP14PlayerInvisibilityAction(player, "stealth"))
+        {
+            retirePostP14PlayerInvisibilityState(player);
+            return;
+        }
         _makeInvisible(player, new string_id("spam", "stealth"), "appearance/pt_smoke_puff.prt", null, calcBreachDistanceForSkill(player, "camouflage"));
         buff.applyBuff(player, BUFF_NO_BREAK_INVIS);
     }
@@ -2831,6 +2884,11 @@ public class stealth extends script.base_script
     public static void invisBuffAdded(obj_id mobile, String effectName) throws InterruptedException
     {
         effectName = toLower(effectName);
+        if (isPlayer(mobile) && isRetiredPostP14PlayerInvisibilityName(effectName))
+        {
+            retirePostP14PlayerInvisibilityState(mobile);
+            return;
+        }
         messageTo(mobile, "addAppearanceItemEffect", null, 1, false);
         if (effectName.startsWith("invis_sp_buff_invis_notrace"))
         {
@@ -2863,6 +2921,11 @@ public class stealth extends script.base_script
     }
     public static boolean canPerformCamouflageSelf(obj_id player) throws InterruptedException
     {
+        if (isRetiredPostP14PlayerInvisibilityAction(player, "camouflageSelf"))
+        {
+            retirePostP14PlayerInvisibilityState(player);
+            return false;
+        }
         if (isDead(player) || isIncapacitated(player))
         {
             sendSystemMessage(player, new string_id("spam", "cant_do_it_state"));
@@ -2898,6 +2961,11 @@ public class stealth extends script.base_script
     }
     public static void camouflageSelf(obj_id player) throws InterruptedException
     {
+        if (isRetiredPostP14PlayerInvisibilityAction(player, "camouflageSelf"))
+        {
+            retirePostP14PlayerInvisibilityState(player);
+            return;
+        }
         obj_id kit = utils.getObjIdScriptVar(player, CAMO_KIT_ID);
         if (!isIdValid(kit))
         {
@@ -2916,6 +2984,11 @@ public class stealth extends script.base_script
     }
     public static boolean canPerformCamouflageAlly(obj_id player, obj_id target) throws InterruptedException
     {
+        if (isRetiredPostP14PlayerInvisibilityAction(player, "camouflageAlly"))
+        {
+            retirePostP14PlayerInvisibilityState(player);
+            return false;
+        }
         if (!isIdValid(target))
         {
             sendSystemMessage(player, new string_id("spam", "no_target"));
