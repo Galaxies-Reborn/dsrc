@@ -594,7 +594,7 @@ misc_item_usable	@proc/proc:effect_level	int
 	amount num_in_stack	int
 	battery_power	int
 	bio_link	enum	@obj_attr_n:bio_link_pending
-	class_required	enum	@skl_n:class_1	@skl_n:class_2	@skl_n:class_3	@skl_n:class_4	@skl_n:class_5	@skl_n:class_6	@skl_n:class_7	@skl_n:class_8	@skl_n:class_9
+	class_required	enum	@skl_n:combat_commando_novice	@skl_n:combat_smuggler_novice	@skl_n:science_medic_novice	@skl_n:outdoors_squadleader_novice	@skl_n:outdoors_ranger_novice	@skl_n:combat_bountyhunter_novice	@skl_n:force_sensitive	@skl_n:crafting_artisan_novice	@skl_n:social_entertainer_novice
 	crafter	string
 	duration skill_modifier_length	int
 	enzyme_mutagen	float
@@ -1104,7 +1104,7 @@ weapon	@proc/proc:proc_name	enum	@ui_buff:proc_tow_proc_b_3 @ui_buff:towprocb_3	
 	faction_restriction	string	Imperial	Rebel
 	race_requirement	enum	@weapon_detail:species_4
 	serial_number	string
-	skillmodmin	enum	@ui_roadmap:title_bounty_hunter	@ui_roadmap:title_commando	@ui_roadmap:title_entertainer	@ui_roadmap:title_force_sensitive	@ui_roadmap:title_medic	@ui_roadmap:title_officer	@ui_roadmap:title_smuggler	@ui_roadmap:title_spy	@ui_roadmap:title_trader	None	@ui_roadmap:title_disabled
+	skillmodmin	enum	@skl_n:combat_bountyhunter_novice	@skl_n:combat_commando_novice	@skl_n:social_entertainer_novice	@skl_n:force_sensitive	@skl_n:science_medic_novice	@skl_n:outdoors_squadleader_novice	@skl_n:combat_smuggler_novice	@skl_n:outdoors_ranger_novice	@skl_n:crafting_artisan_novice	None	Disabled
 	sockets	int
 weapon_melee_misc
 weapon_ranged_thrown
@@ -1348,7 +1348,7 @@ component_new_armor	cat_attrib_mod_bonus.@att_bonus_n:health	int
 	serial_number	string
 jewelry	@proc/proc:effect_level	int
 	@proc/proc:proc_name	enum	@ui_buff:proc_tow_proc_bracelet_range	@ui_buff:towarmorassembly	@ui_buff:towdroidassembly	@ui_buff:towfireresist_3	@ui_buff:towfoodassembly	@ui_buff:towmedassembly	@ui_buff:towweaponassembly	@ui_buff:trivialcomboresist	@ui_buff:trivialhealefficiency	@ui_buff:proc_tow_proc_bracelet_combo	@ui_buff:proc_tow_proc_bracelet_melee
-	@proc/proc:required_skill	enum	@ui_roadmap:bounty_hunter	@ui_roadmap:commando	@ui_roadmap:entertainer	@ui_roadmap:force_sensitive	@ui_roadmap:medic	@ui_roadmap:officer	@ui_roadmap:smuggler	@ui_roadmap:spy	@ui_roadmap:trader
+	@proc/proc:required_skill	enum	@skl_n:combat_bountyhunter_novice	@skl_n:combat_commando_novice	@skl_n:social_entertainer_novice	@skl_n:force_sensitive	@skl_n:science_medic_novice	@skl_n:outdoors_squadleader_novice	@skl_n:combat_smuggler_novice	@skl_n:outdoors_ranger_novice	@skl_n:crafting_artisan_novice
 	bio_link	enum	@obj_attr_n:bio_link_pending
 	cat_skill_mod_bonus.@stat_n:absorption_bleeding	int
 	cat_skill_mod_bonus.@stat_n:absorption_disease	int
@@ -1540,7 +1540,7 @@ deed_droid	ai_diction	string	Default	Geek	Prissy	Sarcastic	Slang	Stupid	Worshipf
 	struct_module_rating	int
 clothing	@obj_attr_n:protection_level	enum	@obj_attr_n:pseudo_3	@obj_attr_n:pseudo_4
 	@proc/proc:proc_name	enum	@ui_buff:towgloveshealeff
-	@proc/proc:required_skill	enum	@ui_roadmap:bounty_hunter	@ui_roadmap:commando	@ui_roadmap:entertainer	@ui_roadmap:force_sensitive	@ui_roadmap:medic	@ui_roadmap:officer	@ui_roadmap:smuggler	@ui_roadmap:spy	@ui_roadmap:trader
+	@proc/proc:required_skill	enum	@skl_n:combat_bountyhunter_novice	@skl_n:combat_commando_novice	@skl_n:social_entertainer_novice	@skl_n:force_sensitive	@skl_n:science_medic_novice	@skl_n:outdoors_squadleader_novice	@skl_n:combat_smuggler_novice	@skl_n:outdoors_ranger_novice	@skl_n:crafting_artisan_novice
 	@spam:pup_expire_time	int
 	@spam:pup_modifier	enum	@stat_n:expertise_reverse_engineering_bonus	@stat_n:expertise_glancing_blow_all	@stat_n:combat_strikethrough_chance	@stat_n:jedi_saber_assembly	@stat_n:luck_modified
 	@spam:pup_power	int

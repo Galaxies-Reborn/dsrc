@@ -278,9 +278,14 @@ public class combat_weapon extends script.base_script
                 skillRequired = itemData.getString("required_skill");
             }
             String skillRequiredAttribute;
-            if (skillRequired != null && !skillRequired.equals(""))
+            if (skillRequired != null && skillRequired.equals("disabled"))
             {
-                skillRequiredAttribute = "@ui_roadmap:title_" + skillRequired;
+                skillRequiredAttribute = "Disabled";
+            }
+            else if (skillRequired != null && !skillRequired.equals(""))
+            {
+                skillRequiredAttribute = "@skl_n:" +
+                    utils.getPrecuProfessionRequirementSkillName(skillRequired);
             }
             else 
             {
