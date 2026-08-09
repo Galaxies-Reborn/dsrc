@@ -46,6 +46,10 @@ public class player_saga_quest extends script.base_script
     }
     public int handleChroniclesReserveReminder(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            return SCRIPT_CONTINUE;
+        }
         int[] pgcRatingData = pgcGetRatingData(self);
         if (pgcRatingData != null && pgcRatingData.length > 0)
         {
@@ -72,6 +76,10 @@ public class player_saga_quest extends script.base_script
     }
     public int handleChronicleProfessionGranted(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (!hasSkill(self, pgc_quests.PGC_CHRONICLES_STARTING_SKILL))
         {
             grantSkill(self, pgc_quests.PGC_CHRONICLES_STARTING_SKILL);
@@ -86,6 +94,10 @@ public class player_saga_quest extends script.base_script
     }
     public int checkForMissedRoadmapRewards(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            return SCRIPT_CONTINUE;
+        }
         String[] chronicleSkills = skill_template.getSkillTemplateSkillsByTemplateName(pgc_quests.PGC_CHRONICLES_XP_TYPE);
         if (chronicleSkills != null && chronicleSkills.length > 0)
         {
@@ -921,6 +933,11 @@ public class player_saga_quest extends script.base_script
     }
     public int OnRatingFinished(obj_id self, int rating) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            utils.removeScriptVar(self, "chronicles.rating_a_holocron");
+            return SCRIPT_CONTINUE;
+        }
         if (rating >= 0)
         {
             obj_id questHolocron = utils.getObjIdScriptVar(self, "chronicles.rating_a_holocron");

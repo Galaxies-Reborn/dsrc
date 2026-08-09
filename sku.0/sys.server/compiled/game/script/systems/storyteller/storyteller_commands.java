@@ -956,6 +956,11 @@ public class storyteller_commands extends script.base_script
     }
     public int chroniclerGetStoredXp(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            pgc_quests.retireChroniclesPlayerProgressionState(self);
+            return SCRIPT_CONTINUE;
+        }
         if (sui.hasPid(self, "commandPid_chroniclerGetStoredXp"))
         {
             int oldPid = sui.getPid(self, "commandPid_chroniclerGetStoredXp");
@@ -1006,6 +1011,11 @@ public class storyteller_commands extends script.base_script
     }
     public int handleChroniclerGetStoredXp(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            pgc_quests.retireChroniclesPlayerProgressionState(self);
+            return SCRIPT_CONTINUE;
+        }
         if (params == null || params.isEmpty())
         {
             return SCRIPT_CONTINUE;

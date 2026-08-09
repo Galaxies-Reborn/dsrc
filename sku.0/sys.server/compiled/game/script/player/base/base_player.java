@@ -832,6 +832,7 @@ public class base_player extends script.base_script
         {
             detachScript(self, "player.player_saga_quest");
         }
+        pgc_quests.retireChroniclesPlayerProgressionState(self);
         beast_lib.retirePostNgeBeastMasterPlayerState(self);
         incubator.retirePostNgeBeastMasterCreationPlayerState(self);
         if (!hasScript(self, "systems.skills.stealth.player_stealth"))

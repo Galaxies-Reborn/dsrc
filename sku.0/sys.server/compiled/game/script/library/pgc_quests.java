@@ -126,6 +126,44 @@ public class pgc_quests extends script.base_script
     public static final int PGC_NUM_QUESTS_YOU_COMPLETED_HIGH_QUALITY_INDEX = 11;
     public static final float PGC_MIN_MID_QUALITY_QUEST_WEIGHT = 15.0f;
     public static final float PGC_MIN_HIGH_QUALITY_QUEST_WEIGHT = 30.0f;
+    public static boolean isRetiredChroniclesPlayerProgression() throws InterruptedException
+    {
+        return xp.isRetiredNgeProgressionExperienceType(PGC_CHRONICLES_XP_TYPE);
+    }
+    public static void retireChroniclesPlayerProgressionState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !isPlayer(player) || !isRetiredChroniclesPlayerProgression())
+        {
+            return;
+        }
+        int[] ratingData = pgcGetRatingData(player);
+        if (ratingData != null)
+        {
+            int[] retiredIndexes =
+            {
+                PGC_STORED_CHRONICLE_XP_INDEX,
+                PGC_STORED_CHRONICLE_SILVER_TOKENS_INDEX,
+                PGC_STORED_CHRONICLE_GOLD_TOKENS_INDEX
+            };
+            String playerName = getName(player);
+            for (int retiredIndex : retiredIndexes)
+            {
+                if (retiredIndex < ratingData.length && ratingData[retiredIndex] > 0)
+                {
+                    pgcAdjustRatingData(player, playerName, retiredIndex, -ratingData[retiredIndex]);
+                }
+            }
+        }
+        if (hasObjVar(player, PGC_GRANTED_ROADMAP_REWARDS_OBJVAR))
+        {
+            removeObjVar(player, PGC_GRANTED_ROADMAP_REWARDS_OBJVAR);
+        }
+        if (hasObjVar(player, "chroniclesTermsOfServiceShown"))
+        {
+            removeObjVar(player, "chroniclesTermsOfServiceShown");
+        }
+        utils.removeScriptVar(player, "chroniclesRewards.alreadyChecking");
+    }
     public static boolean activateQuestHolocron(obj_id questHolocron, obj_id player) throws InterruptedException
     {
         obj_id datapad = utils.getPlayerDatapad(player);
@@ -1171,6 +1209,10 @@ public class pgc_quests extends script.base_script
     }
     public static boolean grantChroniclesRoadmapItem(obj_id player, String skillName, int skillIndex) throws InterruptedException
     {
+        if (isRetiredChroniclesPlayerProgression())
+        {
+            return false;
+        }
         boolean success = false;
         String[] chronicleSkills = skill_template.getSkillTemplateSkillsByTemplateName(pgc_quests.PGC_CHRONICLES_XP_TYPE);
         if (chronicleSkills != null && chronicleSkills.length > 0)
@@ -1402,6 +1444,10 @@ public class pgc_quests extends script.base_script
     }
     public static obj_id grantChroniclesRewardTokens(obj_id player, int count, String tokenType) throws InterruptedException
     {
+        if (isRetiredChroniclesPlayerProgression())
+        {
+            return obj_id.NULL_ID;
+        }
         obj_id token = obj_id.NULL_ID;
         if (count > 0)
         {
