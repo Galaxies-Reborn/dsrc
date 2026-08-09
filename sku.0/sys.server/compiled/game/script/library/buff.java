@@ -2247,20 +2247,20 @@ public class buff extends script.base_script
         }
         utils.removeScriptVarTree(player, "buff.xpBonusGeneral");
     }
-    private static final String[] RETIRED_POST_NGE_PLAYER_BUILDABUFF_AND_XP_GRANT_BUFFS =
+    private static final String RETIRED_POST_NGE_PLAYER_BUILDABUFF = "buildabuff_inspiration";
+    private static final String[] RETIRED_POST_NGE_PLAYER_INSTANT_XP_GRANT_BUFFS =
     {
-        "buildabuff_inspiration",
         "tcg_series1_nuna_ball_advertisement",
         "tcg_series2_versafunction88_datapad",
         "tcg_series9_lepese_dictionary"
     };
-    public static boolean isRetiredPostNgePlayerBuildABuffOrXpGrantBuffName(String buffName)
+    public static boolean isRetiredPostNgePlayerInstantXpGrantBuffName(String buffName)
     {
         if (buffName == null)
         {
             return false;
         }
-        for (String retiredBuff : RETIRED_POST_NGE_PLAYER_BUILDABUFF_AND_XP_GRANT_BUFFS)
+        for (String retiredBuff : RETIRED_POST_NGE_PLAYER_INSTANT_XP_GRANT_BUFFS)
         {
             if (buffName.equals(retiredBuff))
             {
@@ -2268,6 +2268,12 @@ public class buff extends script.base_script
             }
         }
         return false;
+    }
+    public static boolean isRetiredPostNgePlayerBuildABuffOrXpGrantBuffName(String buffName)
+    {
+        return buffName != null &&
+            (buffName.equals(RETIRED_POST_NGE_PLAYER_BUILDABUFF) ||
+                isRetiredPostNgePlayerInstantXpGrantBuffName(buffName));
     }
     public static boolean isRetiredPostNgePlayerBuildABuffOrXpGrantBuff(obj_id target, buff_data data) throws InterruptedException
     {
@@ -2280,7 +2286,11 @@ public class buff extends script.base_script
         {
             return;
         }
-        for (String retiredBuff : RETIRED_POST_NGE_PLAYER_BUILDABUFF_AND_XP_GRANT_BUFFS)
+        if (hasBuff(player, RETIRED_POST_NGE_PLAYER_BUILDABUFF))
+        {
+            removeBuff(player, RETIRED_POST_NGE_PLAYER_BUILDABUFF);
+        }
+        for (String retiredBuff : RETIRED_POST_NGE_PLAYER_INSTANT_XP_GRANT_BUFFS)
         {
             if (hasBuff(player, retiredBuff))
             {

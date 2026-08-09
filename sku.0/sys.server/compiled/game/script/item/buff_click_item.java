@@ -2,6 +2,7 @@ package script.item;
 
 import script.*;
 import script.library.buff;
+import script.library.collection;
 import script.library.prose;
 import script.library.static_item;
 import script.library.utils;
@@ -109,6 +110,11 @@ public class buff_click_item extends script.base_script
             int buffTime = getIntObjVar(player, varName);
             if (getGameTime() > buffTime || getGameTime() < buffTime && isGod(player))
             {
+                if (buff.isRetiredPostNgePlayerInstantXpGrantBuffName(buffName))
+                {
+                    grantPrecuTcgInstantXpReplacement(self, player, itemName, clientEffect, clientAnimation);
+                    return SCRIPT_CONTINUE;
+                }
                 if (buff.canApplyBuff(player, buffName))
                 {
                     if (getGameTime() < buffTime && isGod(player))
@@ -143,5 +149,35 @@ public class buff_click_item extends script.base_script
             }
         }
         return SCRIPT_CONTINUE;
+    }
+    public void grantPrecuTcgInstantXpReplacement(obj_id self, obj_id player, String itemName, String clientEffect, String clientAnimation) throws InterruptedException
+    {
+        obj_id collectionItem = collection.grantRandomCollectionItem(player,
+            "datatables/loot/loot_items/collectible/magseal_loot.iff", "collections");
+        if (!isValidId(collectionItem) || !exists(collectionItem))
+        {
+            CustomerServiceLog("buff", "buff_click_item object self: " + self +
+                " Static Item Name: " + itemName + " used by player: " + player +
+                " Name: " + getName(player) +
+                ". A PRE-CU collection replacement could not be delivered, so the item was not consumed.");
+            sendSystemMessage(player, CANT_APPLY_BUFF);
+            return;
+        }
+        if (clientAnimation != null && !clientAnimation.equals(""))
+        {
+            doAnimationAction(player, clientAnimation);
+        }
+        if (clientEffect != null && !clientEffect.equals(""))
+        {
+            playClientEffectObj(player, clientEffect, player, "");
+        }
+        CustomerServiceLog("buff", "buff_click_item object self: " + self +
+            " Static Item Name: " + itemName + " used by player: " + player +
+            " Name: " + getName(player) + ". PRE-CU collection item " + collectionItem +
+            " was received by the player; the consumable is being decremented by one.");
+        if (getCount(self) > 0)
+        {
+            static_item.decrementStaticItem(self);
+        }
     }
 }
