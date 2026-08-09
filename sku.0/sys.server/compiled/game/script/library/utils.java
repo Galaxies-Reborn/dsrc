@@ -6237,11 +6237,29 @@ public class utils extends script.base_script
     }
     public static String getPrecuRetainedItemClassName(int profession) throws InterruptedException
     {
-        if (profession == SPY)
+        switch (profession)
         {
-            return "@skl_n:outdoors_ranger_novice";
+            case COMMANDO:
+                return "@skl_n:combat_commando_novice";
+            case SMUGGLER:
+                return "@skl_n:combat_smuggler_novice";
+            case MEDIC:
+                return "@skl_n:science_medic_novice";
+            case OFFICER:
+                return "@skl_n:outdoors_squadleader_novice";
+            case SPY:
+                return "@skl_n:outdoors_ranger_novice";
+            case BOUNTY_HUNTER:
+                return "@skl_n:combat_bountyhunter_novice";
+            case FORCE_SENSITIVE:
+                return "@skl_n:force_sensitive";
+            case TRADER:
+                return "@skl_n:crafting_artisan_novice";
+            case ENTERTAINER:
+                return "@skl_n:social_entertainer_novice";
+            default:
+                return "";
         }
-        return "@skl_n:class_" + profession;
     }
     public static boolean meetsProfessionRequirement(obj_id player, String requirement) throws InterruptedException
     {
