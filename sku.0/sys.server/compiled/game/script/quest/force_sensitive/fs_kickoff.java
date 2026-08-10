@@ -124,7 +124,7 @@ public class fs_kickoff extends script.base_script
         {
             removeObjVar(self, "fs_kickoff_stage");
         }
-        detachScript(self, "quest.force_sensitive_fs_kickoff");
+        detachScript(self, "quest.force_sensitive.fs_kickoff");
         return SCRIPT_CONTINUE;
     }
     public int OnSkillAboutToBeRevoked(obj_id self, String strSkill) throws InterruptedException
