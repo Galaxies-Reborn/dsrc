@@ -517,8 +517,18 @@ public class precu_creature_combat_profile_runtime extends script.base_script
         throws InterruptedException
     {
         obj_id object = readObject(player, name);
-        if (isIdValid(object) && object.isLoaded())
-            destroyObject(object);
+        forceDestroy(object);
+    }
+
+    private void forceDestroy(obj_id object) throws InterruptedException
+    {
+        if (!isIdValid(object) || !object.isLoaded())
+            return;
+        setInvulnerable(object, true);
+        stopCombat(object);
+        clearHateList(object);
+        setCombatTarget(object, obj_id.NULL_ID);
+        destroyObject(object);
     }
 
     private obj_id readObject(obj_id player, String name)
