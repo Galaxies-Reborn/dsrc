@@ -162,7 +162,24 @@ public class pgc_quests extends script.base_script
         {
             removeObjVar(player, "chroniclesTermsOfServiceShown");
         }
-        utils.removeScriptVar(player, "chroniclesRewards.alreadyChecking");
+        utils.removeScriptVarTree(player, "chronicles");
+        utils.removeScriptVarTree(player, "chroniclesRewards");
+        if (utils.hasScriptVar(player, "temp_pgcTaskDictionary"))
+        {
+            utils.removeScriptVar(player, "temp_pgcTaskDictionary");
+            if (hasObjVar(player, sui.COUNTDOWNTIMER_SUI_VAR))
+            {
+                int countdownPage = getIntObjVar(player, sui.COUNTDOWNTIMER_SUI_VAR);
+                if (countdownPage > 0)
+                {
+                    forceCloseSUIPage(countdownPage);
+                }
+            }
+            if (hasScript(player, sui.COUNTDOWNTIMER_PLAYER_SCRIPT))
+            {
+                detachScript(player, sui.COUNTDOWNTIMER_PLAYER_SCRIPT);
+            }
+        }
     }
     public static boolean activateQuestHolocron(obj_id questHolocron, obj_id player) throws InterruptedException
     {

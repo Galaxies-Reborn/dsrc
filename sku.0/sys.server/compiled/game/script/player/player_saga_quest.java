@@ -8,6 +8,11 @@ public class player_saga_quest extends script.base_script
     public player_saga_quest()
     {
     }
+    public void retireChroniclesPlayerCallback(obj_id self) throws InterruptedException
+    {
+        pgc_quests.retireChroniclesPlayerProgressionState(self);
+        detachScript(self, "player.player_saga_quest");
+    }
     public int OnAttach(obj_id self) throws InterruptedException
     {
         // Chronicles is an NGE-only progression system. Keep attach inert;
@@ -16,16 +21,21 @@ public class player_saga_quest extends script.base_script
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
-        detachScript(self, "player.player_saga_quest");
+        retireChroniclesPlayerCallback(self);
         return SCRIPT_CONTINUE;
     }
     public int OnNewbieTutorialResponse(obj_id self, String action) throws InterruptedException
     {
-        detachScript(self, "player.player_saga_quest");
+        retireChroniclesPlayerCallback(self);
         return SCRIPT_CONTINUE;
     }
     public int handleChroniclesTermsOfService(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesPlayerCallback(self);
+            return SCRIPT_CONTINUE;
+        }
         string_id prompt_sid = new string_id("saga_system", "pgc_terms_of_service_text");
         string_id title_sid = new string_id("saga_system", "pgc_terms_of_service_title");
         int messageBoxSizeWidth = 484;
@@ -48,6 +58,7 @@ public class player_saga_quest extends script.base_script
     {
         if (pgc_quests.isRetiredChroniclesPlayerProgression())
         {
+            retireChroniclesPlayerCallback(self);
             return SCRIPT_CONTINUE;
         }
         int[] pgcRatingData = pgcGetRatingData(self);
@@ -78,6 +89,7 @@ public class player_saga_quest extends script.base_script
     {
         if (pgc_quests.isRetiredChroniclesPlayerProgression())
         {
+            retireChroniclesPlayerCallback(self);
             return SCRIPT_CONTINUE;
         }
         if (!hasSkill(self, pgc_quests.PGC_CHRONICLES_STARTING_SKILL))
@@ -96,6 +108,7 @@ public class player_saga_quest extends script.base_script
     {
         if (pgc_quests.isRetiredChroniclesPlayerProgression())
         {
+            retireChroniclesPlayerCallback(self);
             return SCRIPT_CONTINUE;
         }
         String[] chronicleSkills = skill_template.getSkillTemplateSkillsByTemplateName(pgc_quests.PGC_CHRONICLES_XP_TYPE);
@@ -126,6 +139,11 @@ public class player_saga_quest extends script.base_script
     }
     public int OnCreateSaga(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesPlayerCallback(self);
+            return SCRIPT_CONTINUE;
+        }
         if (params != null && !params.isEmpty())
         {
             dictionary taskDictionary = params.getDictionary("taskDictionary");
@@ -150,6 +168,11 @@ public class player_saga_quest extends script.base_script
     }
     public int handleSharedPgcHolocronOffer(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesPlayerCallback(self);
+            return SCRIPT_CONTINUE;
+        }
         if (params != null && !params.isEmpty())
         {
             obj_id sharingPlayer = params.getObjId("sharingPlayer");
@@ -167,6 +190,11 @@ public class player_saga_quest extends script.base_script
     }
     public int handleSharedChroniclesQuestResponse(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesPlayerCallback(self);
+            return SCRIPT_CONTINUE;
+        }
         if (params != null && !params.isEmpty())
         {
             obj_id player = sui.getPlayerId(params);
@@ -251,6 +279,11 @@ public class player_saga_quest extends script.base_script
     }
     public int handleSharedPgcHolocronCreation(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesPlayerCallback(self);
+            return SCRIPT_CONTINUE;
+        }
         if (params != null && !params.isEmpty())
         {
             createChronicleQuestObject(self, params);
@@ -259,6 +292,11 @@ public class player_saga_quest extends script.base_script
     }
     public int handlePgcHolocronCreation(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesPlayerCallback(self);
+            return SCRIPT_CONTINUE;
+        }
         if (params != null && !params.isEmpty())
         {
             showHolocronCreationCountdownUi(self, params, "holocron_creation_countdown");
@@ -308,6 +346,19 @@ public class player_saga_quest extends script.base_script
     }
     public int handlePgcHolocronCreationCountdownTimer(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            if (params != null && params.containsKey("id"))
+            {
+                int countdownPage = params.getInt("id");
+                if (countdownPage > 0)
+                {
+                    forceCloseSUIPage(countdownPage);
+                }
+            }
+            retireChroniclesPlayerCallback(self);
+            return SCRIPT_CONTINUE;
+        }
         int bp = sui.getIntButtonPressed(params);
         if (bp == sui.BP_CANCEL)
         {
@@ -909,6 +960,11 @@ public class player_saga_quest extends script.base_script
     }
     public int handleCheckForGainedChroniclesLevelDelay(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesPlayerCallback(self);
+            return SCRIPT_CONTINUE;
+        }
         pgc_quests.checkForGainedChroniclesLevel(self);
         return SCRIPT_CONTINUE;
     }
@@ -941,7 +997,9 @@ public class player_saga_quest extends script.base_script
     {
         if (pgc_quests.isRetiredChroniclesPlayerProgression())
         {
+            pgc_quests.retireChroniclesPlayerProgressionState(self);
             utils.removeScriptVar(self, "chronicles.rating_a_holocron");
+            detachScript(self, "player.player_saga_quest");
             return SCRIPT_CONTINUE;
         }
         if (rating >= 0)
@@ -1014,6 +1072,11 @@ public class player_saga_quest extends script.base_script
     }
     public int OnLogin(obj_id self) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesPlayerCallback(self);
+            return SCRIPT_CONTINUE;
+        }
         obj_id[] activeHolocrons = pgc_quests.getActivateQuestHolocrons(self);
         if (activeHolocrons != null && activeHolocrons.length > 0)
         {
@@ -1155,6 +1218,11 @@ public class player_saga_quest extends script.base_script
     }
     public int playerQuestSetLocationTarget(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesPlayerCallback(self);
+            return SCRIPT_CONTINUE;
+        }
         location targetLoc = params.getLocation("targetLoc");
         int radius = params.getInt("radius");
         String locationTargetName = params.getString("locationTargetName");
@@ -1187,6 +1255,19 @@ public class player_saga_quest extends script.base_script
     }
     public int playerQuestRemoveLocationTarget(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            if (params != null && params.containsKey("locationName"))
+            {
+                String retiredLocationName = params.getString("locationName");
+                if (retiredLocationName != null && retiredLocationName.length() > 0)
+                {
+                    removeLocationTarget(retiredLocationName);
+                }
+            }
+            retireChroniclesPlayerCallback(self);
+            return SCRIPT_CONTINUE;
+        }
         String locationName = params.getString("locationName");
         removeLocationTarget(locationName);
         return SCRIPT_CONTINUE;

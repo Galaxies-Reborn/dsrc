@@ -15,6 +15,19 @@ public class quest_holocron extends script.base_script
     public static final int MENU_EDIT_RECIPE = menu_info_types.SERVER_MENU5;
     public static final int MENU_SHARE_QUEST = menu_info_types.SERVER_MENU6;
     public static final int MENU_BUILD_HOLOCRON = menu_info_types.SERVER_MENU7;
+    public void retireChroniclesHolocronCallback(obj_id self, obj_id fallbackPlayer) throws InterruptedException
+    {
+        obj_id player = pgc_quests.getQuestPlayer(self);
+        if (!isIdValid(player) || !isPlayer(player))
+        {
+            player = fallbackPlayer;
+        }
+        if (isIdValid(player) && isPlayer(player))
+        {
+            pgc_quests.retireChroniclesPlayerProgressionState(player);
+        }
+        detachScript(self, "quest.task.pgc.quest_holocron");
+    }
     public int OnAttach(obj_id self) throws InterruptedException
     {
         detachScript(self, "quest.task.pgc.quest_holocron");
@@ -22,11 +35,16 @@ public class quest_holocron extends script.base_script
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
-        detachScript(self, "quest.task.pgc.quest_holocron");
+        retireChroniclesHolocronCallback(self, obj_id.NULL_ID);
         return SCRIPT_CONTINUE;
     }
     public int handleCheckCompletedHolocron(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesHolocronCallback(self, obj_id.NULL_ID);
+            return SCRIPT_CONTINUE;
+        }
         if (hasObjVar(self, pgc_quests.PCG_QUEST_COMPLETE_OBJVAR))
         {
         }
@@ -34,6 +52,11 @@ public class quest_holocron extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info menuInfo) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesHolocronCallback(self, player);
+            return SCRIPT_CONTINUE;
+        }
         return SCRIPT_CONTINUE;
         /*
         int rootMenu = 0;
@@ -93,6 +116,11 @@ public class quest_holocron extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int menu_item) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesHolocronCallback(self, player);
+            return SCRIPT_CONTINUE;
+        }
         return SCRIPT_CONTINUE;
         /*
         obj_id playerInventory = utils.getInventoryContainer(player);
@@ -284,6 +312,11 @@ public class quest_holocron extends script.base_script
     }
     public int OnGetAttributes(obj_id self, obj_id player, String[] names, String[] attribs) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesHolocronCallback(self, player);
+            return SCRIPT_CONTINUE;
+        }
         if (!exists(self))
         {
             return SCRIPT_CONTINUE;
@@ -488,6 +521,11 @@ public class quest_holocron extends script.base_script
     }
     public int OnAboutToReceiveItem(obj_id self, obj_id srcContainer, obj_id transferer, obj_id item) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesHolocronCallback(self, transferer);
+            return SCRIPT_OVERRIDE;
+        }
         if (hasObjVar(self, pgc_quests.PCG_QUEST_COMPLETE_OBJVAR))
         {
             return SCRIPT_OVERRIDE;
@@ -553,6 +591,11 @@ public class quest_holocron extends script.base_script
     }
     public int OnAboutToLoseItem(obj_id self, obj_id destContainer, obj_id transferer, obj_id item) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesHolocronCallback(self, transferer);
+            return SCRIPT_CONTINUE;
+        }
         if (utils.hasScriptVar(self, "chronicles.allowRewardsReclaimed"))
         {
             return SCRIPT_CONTINUE;
@@ -606,11 +649,21 @@ public class quest_holocron extends script.base_script
     }
     public int handleQuestHolocronActivated(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesHolocronCallback(self, obj_id.NULL_ID);
+            return SCRIPT_CONTINUE;
+        }
         pgc_quests.handlePhaseActived(self, 0);
         return SCRIPT_CONTINUE;
     }
     public int handleQuestHolocronInitializeTaskStatus(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesHolocronCallback(self, obj_id.NULL_ID);
+            return SCRIPT_CONTINUE;
+        }
         int numTasks = getIntObjVar(self, pgc_quests.PCG_QUEST_NUM_TASKS_OBJVAR);
         pgc_quests.initializeQuestTasksStatus(self, numTasks);
         return SCRIPT_CONTINUE;
@@ -618,6 +671,11 @@ public class quest_holocron extends script.base_script
     public int handleQuestHolocronAbandoned(obj_id self, dictionary params) throws InterruptedException
     {
         obj_id player = params.getObjId("player");
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesHolocronCallback(self, player);
+            return SCRIPT_CONTINUE;
+        }
         if (isIdValid(player))
         {
             string_id message = new string_id("saga_system", "qcd_quest_abandoned");
@@ -629,6 +687,11 @@ public class quest_holocron extends script.base_script
     }
     public int handleHolocronSharedSuccess(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesHolocronCallback(self, obj_id.NULL_ID);
+            return SCRIPT_CONTINUE;
+        }
         if (params != null && !params.isEmpty())
         {
             obj_id latestSharedWith = params.getObjId("sharedWith");
