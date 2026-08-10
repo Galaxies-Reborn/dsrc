@@ -1541,13 +1541,8 @@ public class ai_lib extends script.base_script
     }
     public static void creatureLevelUp(obj_id creature, obj_id victim) throws InterruptedException
     {
-        showFlyText(creature, new string_id("cbt_spam", "level_up"), 2.5f, colors.CORNFLOWERBLUE);
-        playClientEffectObj(victim, "clienteffect/level_granted.cef", creature, null);
-        String creatureName = getCreatureName(creature);
-        if (creatureName.indexOf("elite_") < 1 && creatureName.indexOf("boss_") < 1)
-        {
-            create.initializeCreature(creature, creatureName, utils.dataTableGetRow(CREATURE_TABLE, creatureName), getLevel(creature) + 1);
-        }
+        // Link-compatible no-op. Publish 14.1 creatures do not gain levels for
+        // incapacitating players; their authored PRE-CU profile remains fixed.
     }
     public static boolean mindTrick(obj_id player, obj_id target) throws InterruptedException
     {

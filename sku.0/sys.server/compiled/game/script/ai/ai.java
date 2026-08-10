@@ -2046,20 +2046,9 @@ public class ai extends script.base_script
     }
     public int OnIncapacitateTarget(obj_id self, obj_id victim) throws InterruptedException
     {
-        if (!utils.hasScriptVar(self, "experienced"))
-        {
-            if (isIdValid(victim))
-            {
-                if (isPlayer(victim))
-                {
-                    if (rand(1, 1000) == 999)
-                    {
-                        ai_lib.creatureLevelUp(self, victim);
-                        utils.setScriptVar(self, "experienced", 1);
-                    }
-                }
-            }
-        }
+        // Publish 14.1 creatures retain their authored PRE-CU combat profile.
+        // Incapacitating a player must not grant a later-era level or reinitialize
+        // the creature with progressively stronger level-derived statistics.
         return SCRIPT_CONTINUE;
     }
     public int clearCollectionCameraParticle(obj_id self, dictionary params) throws InterruptedException
