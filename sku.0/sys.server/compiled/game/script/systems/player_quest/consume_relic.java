@@ -13,8 +13,23 @@ public class consume_relic extends script.base_script
     public static final int RELIC_DECONSTRUCT_ONE = menu_info_types.SERVER_MENU12;
     public static final int RELIC_DECONSTRUCT_ALL = menu_info_types.SERVER_MENU13;
     public static final int RELIC_CONSUME_ALL = menu_info_types.SERVER_MENU14;
+    public int OnInitialize(obj_id self) throws InterruptedException
+    {
+        retireChroniclesRelic(self, obj_id.NULL_ID);
+        return SCRIPT_CONTINUE;
+    }
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        retireChroniclesRelic(self, obj_id.NULL_ID);
+        return SCRIPT_CONTINUE;
+    }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesRelic(self, player);
+            return SCRIPT_CONTINUE;
+        }
         if (utils.isNestedWithinAPlayer(self))
         {
             String relicData = getStringObjVar(self, pgc_quests.PGC_RELIC_SLOT_DATA_OBJVAR);
@@ -37,6 +52,11 @@ public class consume_relic extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesRelic(self, player);
+            return SCRIPT_CONTINUE;
+        }
         sendDirtyObjectMenuNotification(self);
         if (utils.isNestedWithinAPlayer(self))
         {
@@ -115,6 +135,11 @@ public class consume_relic extends script.base_script
     }
     public boolean getUiConsumeMessageBox(obj_id self, obj_id player, String prompt, String title, String handler) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesRelic(self, player);
+            return false;
+        }
         if (!isValidId(self) || !isValidId(player))
         {
             return false;
@@ -127,6 +152,12 @@ public class consume_relic extends script.base_script
     }
     public int handlerSuiAddToQuestBuilder(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            obj_id player = params == null || params.isEmpty() ? obj_id.NULL_ID : sui.getPlayerId(params);
+            retireChroniclesRelic(self, player);
+            return SCRIPT_CONTINUE;
+        }
         if (params == null || params.isEmpty())
         {
             if (utils.hasScriptVar(self, "relic_addQuestBuilderAll"))
@@ -183,6 +214,12 @@ public class consume_relic extends script.base_script
     }
     public int handlerSuiRelicDeconstruct(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            obj_id player = params == null || params.isEmpty() ? obj_id.NULL_ID : sui.getPlayerId(params);
+            retireChroniclesRelic(self, player);
+            return SCRIPT_CONTINUE;
+        }
         if (params == null || params.isEmpty())
         {
             if (utils.hasScriptVar(self, "relic_deconstructAll"))
@@ -239,6 +276,11 @@ public class consume_relic extends script.base_script
     }
     public void deconstructRelic(obj_id player, obj_id self, boolean deconstructEntireStack) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesRelic(self, player);
+            return;
+        }
         if (!utils.isNestedWithin(self, player))
         {
             return;
@@ -271,5 +313,26 @@ public class consume_relic extends script.base_script
             pgc_quests.sendPlacedInInventorySystemMessage(player, fragment, actualCount);
         }
         return;
+    }
+    private void retireChroniclesRelic(obj_id self, obj_id player) throws InterruptedException
+    {
+        if (isIdValid(player) && sui.hasPid(player, PID_NAME))
+        {
+            int pid = sui.getPid(player, PID_NAME);
+            forceCloseSUIPage(pid);
+            sui.removePid(player, PID_NAME);
+        }
+        if (isIdValid(self))
+        {
+            if (utils.hasScriptVar(self, "relic_addQuestBuilderAll"))
+            {
+                utils.removeScriptVar(self, "relic_addQuestBuilderAll");
+            }
+            if (utils.hasScriptVar(self, "relic_deconstructAll"))
+            {
+                utils.removeScriptVar(self, "relic_deconstructAll");
+            }
+            detachScript(self, "systems.player_quest.consume_relic");
+        }
     }
 }

@@ -1406,7 +1406,6 @@ public class gcw extends script.base_script
             finalReward += (int)(finalReward * 0.5f);
         }
         loot.rollRandomFactionalCollectible(victim, enemy, selfRank);
-        obj_id relic = loot.chroniclesPvpLootDrop(enemy);
         finalReward = addToDailyGcwPointAllotment(victim, enemy, finalReward);
         String information = getName(victim);
         grantModifiedGcwPoints(victim, enemy, finalReward, true, point_type, information);

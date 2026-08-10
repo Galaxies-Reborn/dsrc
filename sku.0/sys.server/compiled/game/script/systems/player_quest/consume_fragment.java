@@ -11,8 +11,23 @@ public class consume_fragment extends script.base_script
     {
     }
     public static final String PID_NAME = "chronicleFragmentReconstruct";
+    public int OnInitialize(obj_id self) throws InterruptedException
+    {
+        retireChroniclesFragment(self, obj_id.NULL_ID);
+        return SCRIPT_CONTINUE;
+    }
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        retireChroniclesFragment(self, obj_id.NULL_ID);
+        return SCRIPT_CONTINUE;
+    }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesFragment(self, player);
+            return SCRIPT_CONTINUE;
+        }
         if (utils.isNestedWithinAPlayer(self) && getCount(self) >= 10)
         {
             mi.addRootMenu(menu_info_types.SERVER_MENU11, new string_id("saga_system", "fragment_recontruct"));
@@ -21,6 +36,11 @@ public class consume_fragment extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesFragment(self, player);
+            return SCRIPT_CONTINUE;
+        }
         sendDirtyObjectMenuNotification(self);
         if (utils.isNestedWithinAPlayer(self))
         {
@@ -48,6 +68,11 @@ public class consume_fragment extends script.base_script
     }
     public boolean getUiConsumeMessageBox(obj_id self, obj_id player, String prompt, String title, String handler) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesFragment(self, player);
+            return false;
+        }
         if (!isValidId(self) || !isValidId(player))
         {
             return false;
@@ -60,6 +85,12 @@ public class consume_fragment extends script.base_script
     }
     public int handlerSuiFragmentReconstruct(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            obj_id player = params == null || params.isEmpty() ? obj_id.NULL_ID : sui.getPlayerId(params);
+            retireChroniclesFragment(self, player);
+            return SCRIPT_CONTINUE;
+        }
         if (params == null || params.isEmpty())
         {
             return SCRIPT_CONTINUE;
@@ -89,6 +120,11 @@ public class consume_fragment extends script.base_script
     }
     public void reconstructFragment(obj_id player, obj_id self) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesFragment(self, player);
+            return;
+        }
         if (!utils.isNestedWithin(self, player))
         {
             return;
@@ -132,5 +168,18 @@ public class consume_fragment extends script.base_script
         }
         sui.removePid(player, PID_NAME);
         return;
+    }
+    private void retireChroniclesFragment(obj_id self, obj_id player) throws InterruptedException
+    {
+        if (isIdValid(player) && sui.hasPid(player, PID_NAME))
+        {
+            int pid = sui.getPid(player, PID_NAME);
+            forceCloseSUIPage(pid);
+            sui.removePid(player, PID_NAME);
+        }
+        if (isIdValid(self))
+        {
+            detachScript(self, "systems.player_quest.consume_fragment");
+        }
     }
 }

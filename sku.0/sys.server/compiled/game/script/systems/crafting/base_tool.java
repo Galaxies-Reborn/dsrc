@@ -396,7 +396,6 @@ public class base_tool extends script.base_script
         {
             return SCRIPT_CONTINUE;
         }
-        obj_id relic = loot.chroniclesCraftingLootDrop(crafter);
         obj_id inv = utils.getInventoryContainer(crafter);
         boolean canDrop = scheduled_drop.canDropCard(scheduled_drop.SYSTEM_CRAFTER);
         boolean hasDelay = scheduled_drop.hasCardDelay(crafter, scheduled_drop.SYSTEM_CRAFTER);

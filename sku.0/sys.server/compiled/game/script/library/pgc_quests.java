@@ -1712,6 +1712,11 @@ public class pgc_quests extends script.base_script
     }
     public static void addRelicToQuestBuilder(obj_id player, obj_id relic, boolean addEntireStack) throws InterruptedException
     {
+        if (isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesPlayerProgressionState(player);
+            return;
+        }
         if (!utils.isNestedWithin(relic, player))
         {
             return;
@@ -1788,6 +1793,10 @@ public class pgc_quests extends script.base_script
     }
     public static boolean canUseRelic(obj_id player, obj_id relic, String slotName, String collectionName, boolean isVerbose) throws InterruptedException
     {
+        if (isRetiredChroniclesPlayerProgression())
+        {
+            return false;
+        }
         int relicQualitySkillmod = getEnhancedSkillStatisticModifierUncapped(player, pgc_quests.PGC_SKILLMOD_RELIC_QUALITY);
         String staticItemName = getStaticItemName(relic);
         dictionary row = dataTableGetRow(storyteller.STORYTELLER_DATATABLE, staticItemName);

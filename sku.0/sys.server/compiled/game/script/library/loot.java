@@ -1344,6 +1344,10 @@ public class loot extends script.base_script
     }
     public static boolean addChronicleLoot(obj_id target) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            return false;
+        }
         String creatureName = ai_lib.getCreatureName(target);
         if (creatureName == null || creatureName.length() < 1)
         {
@@ -1472,6 +1476,10 @@ public class loot extends script.base_script
     }
     public static obj_id chroniclesCraftingLootDrop(obj_id player) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            return obj_id.NULL_ID;
+        }
         if (hasToggledChroniclesLootOff(player))
         {
             return obj_id.NULL_ID;
@@ -1480,6 +1488,10 @@ public class loot extends script.base_script
     }
     public static obj_id chroniclesPvpLootDrop(obj_id player) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            return obj_id.NULL_ID;
+        }
         if (hasToggledChroniclesLootOff(player))
         {
             return obj_id.NULL_ID;
@@ -1488,6 +1500,10 @@ public class loot extends script.base_script
     }
     public static obj_id chroniclesNonCorpseLootDrop(obj_id player, String relicCategory, int relicChance, String activityType) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            return obj_id.NULL_ID;
+        }
         String configChance_string = getConfigSetting("GameServer", "chroniclesLootChanceOverride");
         if (configChance_string != null && configChance_string.length() > 0)
         {
@@ -1518,14 +1534,28 @@ public class loot extends script.base_script
     }
     public static boolean hasToggledChroniclesLootOff(obj_id player) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            return true;
+        }
         return hasObjVar(player, CHRONICLES_LOOT_TOGGLE_OBJVAR);
     }
     public static void disableChroniclesLoot(obj_id player) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            removeObjVar(player, CHRONICLES_LOOT_TOGGLE_OBJVAR);
+            return;
+        }
         setObjVar(player, CHRONICLES_LOOT_TOGGLE_OBJVAR, true);
     }
     public static void enableChroniclesLoot(obj_id player) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            removeObjVar(player, CHRONICLES_LOOT_TOGGLE_OBJVAR);
+            return;
+        }
         removeObjVar(player, CHRONICLES_LOOT_TOGGLE_OBJVAR);
     }
     public static boolean addCollectionLoot(obj_id target) throws InterruptedException
