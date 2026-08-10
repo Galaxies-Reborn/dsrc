@@ -12,19 +12,60 @@ public class player_jedi_conversion extends script.base_script
     public player_jedi_conversion()
     {
     }
+    public static void retireNgeJediConversionState(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
+        {
+            return;
+        }
+        if (hasObjVar(player, "jedi.conversionSui"))
+        {
+            int pid = getIntObjVar(player, "jedi.conversionSui");
+            if (pid > 0)
+            {
+                forceCloseSUIPage(pid);
+            }
+        }
+        String[] retiredObjVars =
+        {
+            "combatLevel",
+            "jedi.converted",
+            "jedi.reverted",
+            "jedi.usingSui",
+            "jedi.currentPoints",
+            "jedi.forceSensitivePoints",
+            "jedi.nonJediPoints",
+            "jedi.conversionSui",
+            "jedi.grantingSkill",
+            "jedi.revokeAllowed",
+            "jedi.currentXp"
+        };
+        for (String retiredObjVar : retiredObjVars)
+        {
+            removeObjVar(player, retiredObjVar);
+        }
+        String[] retiredScriptVars =
+        {
+            "last_force_skill_picked",
+            "last_jedi_skill_picked",
+            "last_regular_skill_picked",
+            "fullNameList",
+            "skill_list"
+        };
+        for (String retiredScriptVar : retiredScriptVars)
+        {
+            utils.removeScriptVar(player, retiredScriptVar);
+        }
+    }
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        retireNgeJediConversionState(self);
         detachScript(self, "player.player_jedi_conversion");
         return SCRIPT_CONTINUE;
     }
     public void convertOldJedi(obj_id self) throws InterruptedException
     {
-        if (hasObjVar(self, "jedi.converted"))
-        {
-            detachScript(self, "player.player_jedi_conversion");
-            return;
-        }
-        setObjVar(self, "combatLevel", 80);
+        retireNgeJediConversionState(self);
         detachScript(self, "player.player_jedi_conversion");
         return;
     }
@@ -655,11 +696,13 @@ public class player_jedi_conversion extends script.base_script
     }
     public int OnLogin(obj_id self) throws InterruptedException
     {
+        retireNgeJediConversionState(self);
         detachScript(self, "player.player_jedi_conversion");
         return SCRIPT_CONTINUE;
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        retireNgeJediConversionState(self);
         detachScript(self, "player.player_jedi_conversion");
         return SCRIPT_CONTINUE;
     }
@@ -861,29 +904,7 @@ public class player_jedi_conversion extends script.base_script
     }
     public int OnDetach(obj_id self) throws InterruptedException
     {
-        if (hasObjVar(self, "jedi.usingSui"))
-        {
-            removeObjVar(self, "jedi.usingSui");
-            utils.removeScriptVar(self, "last_force_skill_picked");
-            utils.removeScriptVar(self, "last_jedi_skill_picked");
-            utils.removeScriptVar(self, "last_regular_skill_picked");
-        }
-        if (hasObjVar(self, "jedi.currentPoints"))
-        {
-            removeObjVar(self, "jedi.currentPoints");
-        }
-        if (hasObjVar(self, "jedi.forceSensitivePoints"))
-        {
-            removeObjVar(self, "jedi.forceSensitivePoints");
-        }
-        if (hasObjVar(self, "jedi.nonJediPoints"))
-        {
-            removeObjVar(self, "jedi.nonJediPoints");
-        }
-        if (hasObjVar(self, "jedi.conversionSui"))
-        {
-            removeObjVar(self, "jedi.conversionSui");
-        }
+        retireNgeJediConversionState(self);
         return SCRIPT_CONTINUE;
     }
     public void completeTraining(obj_id self) throws InterruptedException

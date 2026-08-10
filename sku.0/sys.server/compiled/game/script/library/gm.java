@@ -545,27 +545,16 @@ public class gm extends script.base_script
     }
     public static void cmdResetJedi(obj_id player) throws InterruptedException
     {
-        if (isIdNull(player))
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player))
         {
             sendSystemMessage(getSelf(), "This command can only be used on players. Please target a player and try again.", null);
             return;
         }
-        if (hasObjVar(player, "jedi.converted"))
+        script.player.player_jedi_conversion.retireNgeJediConversionState(player);
+        if (hasScript(player, "player.player_jedi_conversion"))
         {
-            removeObjVar(player, "jedi.converted");
-            if (hasObjVar(player, "jedi.reverted"))
-            {
-                int numReverts = getIntObjVar(player, "jedi.reverted");
-                numReverts = numReverts + 1;
-                setObjVar(player, "jedi.reverted", numReverts);
-            }
-            else 
-            {
-                setObjVar(player, "jedi.reverted", 1);
-            }
+            detachScript(player, "player.player_jedi_conversion");
         }
-        setObjVar(player, "jedi.usingSui", 1);
-        attachScript(player, "player.player_jedi_conversion");
         return;
     }
     public static String[] getPrecuProfessionList() throws InterruptedException
