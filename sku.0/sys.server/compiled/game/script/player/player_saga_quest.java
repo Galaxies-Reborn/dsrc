@@ -1139,6 +1139,12 @@ public class player_saga_quest extends script.base_script
     }
     public int OnArrivedAtLocation(obj_id self, String locationName) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            pgc_quests.retireChroniclesPlayerProgressionState(self);
+            detachScript(self, "player.player_saga_quest");
+            return SCRIPT_CONTINUE;
+        }
         obj_id[] activeHolocrons = pgc_quests.getActivateQuestHolocrons(self);
         if (activeHolocrons != null && activeHolocrons.length > 0)
         {

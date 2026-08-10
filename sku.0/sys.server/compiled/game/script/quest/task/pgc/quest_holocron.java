@@ -905,6 +905,15 @@ public class quest_holocron extends script.base_script
     public int pqOnArrivedAtLocation(obj_id self, dictionary params) throws InterruptedException
     {
         obj_id player = pgc_quests.getQuestPlayer(self);
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            if (isIdValid(player))
+            {
+                pgc_quests.retireChroniclesPlayerProgressionState(player);
+            }
+            detachScript(self, "quest.task.pgc.quest_holocron");
+            return SCRIPT_CONTINUE;
+        }
         if (!isIdValid(player))
         {
             return SCRIPT_CONTINUE;
