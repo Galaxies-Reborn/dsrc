@@ -12650,7 +12650,7 @@ public class base_player extends script.base_script
     }
     public int handleSurveyToolbarSetup(obj_id self, dictionary params) throws InterruptedException
     {
-        // This delayed callback belongs to the retired NGE crafter respec and
+        // This delayed callback belongs to the retired later-era crafter respec and
         // auto-level path.  A queued legacy message must not manufacture an
         // item or rewrite a Publish 14.1 player's toolbar.
         return SCRIPT_CONTINUE;
