@@ -5230,6 +5230,11 @@ public class buff_handler extends script.base_script
     }
     public int gcwFatigueDecay(obj_id self, dictionary params) throws InterruptedException
     {
+        if (gcw.isPostNgeCityInvasionRetired())
+        {
+            gcw.cleanupRetiredCityInvasionPlayerState(self);
+            return SCRIPT_CONTINUE;
+        }
         int gcwFatigueTime = params.getInt("gcwFatigueTime");
         int gcwFatigueScriptTime = utils.getIntScriptVar(self, "gcw.fatigueTime");
         LOG("buff_handler", "gcwFatigueDecay  gcwFatigueTime: " + gcwFatigueTime + " gcwFatigueScriptTime: " + gcwFatigueScriptTime);
