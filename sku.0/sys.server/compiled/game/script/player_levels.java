@@ -21,40 +21,10 @@ public class player_levels
 
 	public static level_data getPlayerLevelData(String profession, int level)
 	{
-		if(level < 1)
-		{
-			level = 1;
-		}
-		else
-		{
-			if(level > 90)
-			{
-				level = 90;
-			}
-		}
-
-		if(profession == null || profession.length() <= 0)
-		{
-			return null;
-		}
-
-		if(m_PlayerLevelDataCache.containsKey(profession + level))
-		{
-			return level_data.clone((level_data)m_PlayerLevelDataCache.get(profession + level));
-		}
-
-		level_data dat = loadLevelData(profession, level);
-
-		if(dat != null)
-		{
-			m_PlayerLevelDataCache.put(profession + level, dat);
-		}
-		else
-		{
-			return null;
-		}
-
-		return level_data.clone(dat);
+		// Publish 14.1 player HAM, regeneration, and secondary attributes are
+		// authored independently of an NGE profession/level table. Keep this
+		// compatibility entry point link-safe, but never publish level data.
+		return null;
 	}
 
 	private static level_data loadLevelData(String profession, int level)
@@ -132,28 +102,10 @@ public class player_levels
 
 	public static skill_template_data getSkillTemplateData(String professionTemplate)
 	{
-		if(professionTemplate == null || professionTemplate.length() <= 0)
-		{
-			return null;
-		}
-
-		if(m_SkillTemplateDataCache.containsKey(professionTemplate))
-		{
-			return skill_template_data.clone((skill_template_data)m_SkillTemplateDataCache.get(professionTemplate));
-		}
-
-		skill_template_data dat = loadSkillTemplateData(professionTemplate);
-
-		if(dat != null)
-		{
-			m_SkillTemplateDataCache.put(professionTemplate, dat);
-		}
-		else
-		{
-			return null;
-		}
-
-		return skill_template_data.clone(dat);
+		// Publish 14.1 characters own independent skill boxes rather than one
+		// NGE profession template. Retain the compatibility type and source data,
+		// but never expose a singular class template to production scripts.
+		return null;
 	}
 
 	private static skill_template_data loadSkillTemplateData(String professionTemplate)
