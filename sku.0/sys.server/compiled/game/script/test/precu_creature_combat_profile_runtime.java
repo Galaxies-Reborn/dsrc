@@ -24,9 +24,16 @@ public class precu_creature_combat_profile_runtime extends script.base_script
     private static final String PROTOCOL = ROOT + ".protocol";
     private static final String KREETLE = ROOT + ".kreetle";
     private static final String RANCOR = ROOT + ".rancor";
+    private static final String DIAGNOSTIC_ROOT =
+        "precu.p14.marksmanTier1Fixture.liveDiagnostic";
+    private static final String DIAGNOSTIC_ENABLED =
+        DIAGNOSTIC_ROOT + ".enabled";
     private static final String HARVEST_COMMAND = "harvestCorpse";
+    private static final String ATTACK_COMMAND = "creatureMeleeAttack";
+    private static final int DIAGNOSTIC_ATTACK_COUNT = 8;
     private static final String USAGE =
-        "usage: prepare|probe|harvestAdmission|status|cleanup " +
+        "usage: prepare|probe|harvestAdmission|armCombatDiagnostics|" +
+        "diagnostics|status|cleanup " +
         "<playerOid> <32-hex-lifecycle>";
 
     public String executeFixture(String params) throws InterruptedException
@@ -57,6 +64,10 @@ public class precu_creature_combat_profile_runtime extends script.base_script
             return probe(player, args[2]);
         if (args[0].equalsIgnoreCase("harvestAdmission"))
             return harvestAdmission(player, args[2]);
+        if (args[0].equalsIgnoreCase("armCombatDiagnostics"))
+            return armCombatDiagnostics(player, args[2]);
+        if (args[0].equalsIgnoreCase("diagnostics"))
+            return diagnostics(player, args[2]);
         if (args[0].equalsIgnoreCase("status"))
             return status(player, args[2]);
         if (args[0].equalsIgnoreCase("cleanup"))
@@ -84,9 +95,9 @@ public class precu_creature_combat_profile_runtime extends script.base_script
         setObjVar(player, PROTOCOL, PROTOCOL_VERSION);
 
         location kreetleLocation = new location(origin);
-        kreetleLocation.x += 8.0f;
+        kreetleLocation.x += 20.0f;
         location rancorLocation = new location(origin);
-        rancorLocation.x += 13.0f;
+        rancorLocation.x += 22.0f;
 
         obj_id kreetle = createFixtureCreature("kreetle", kreetleLocation);
         obj_id rancor = createFixtureCreature("rancor", rancorLocation);
@@ -202,6 +213,197 @@ public class precu_creature_combat_profile_runtime extends script.base_script
         return hitData.damage + hitData.elementalDamage;
     }
 
+    private String armCombatDiagnostics(obj_id player, String lifecycle)
+        throws InterruptedException
+    {
+        String ownership = validateOwnership(player, lifecycle);
+        if (ownership != null)
+            return ownership;
+        obj_id kreetle = readObject(player, KREETLE);
+        obj_id rancor = readObject(player, RANCOR);
+        if (!isFixtureCreatureAvailable(kreetle) ||
+            !isFixtureCreatureAvailable(rancor))
+            return "error=fixtureCreatureUnavailable";
+
+        if (hasObjVar(rancor, DIAGNOSTIC_ROOT))
+            removeObjVar(rancor, DIAGNOSTIC_ROOT);
+        setObjVar(rancor, DIAGNOSTIC_ENABLED, 1);
+        setInvulnerable(kreetle, false);
+        setInvulnerable(rancor, false);
+        fortify(kreetle);
+        fortify(rancor);
+        pvpSetAttackableOverride(kreetle, true);
+        pvpSetAttackableOverride(rancor, true);
+        pvpSetPermanentPersonalEnemyFlag(rancor, kreetle);
+        pvpSetPermanentPersonalEnemyFlag(kreetle, rancor);
+        setCombatTarget(rancor, kreetle);
+        setCombatTarget(kreetle, rancor);
+        startCombat(rancor, kreetle);
+        startCombat(kreetle, rancor);
+        aiEquipPrimaryWeapon(rancor);
+        aiEquipPrimaryWeapon(kreetle);
+        addToMentalStateToward(rancor, kreetle, ANGER, 100, BEHAVIOR_ATTACK);
+
+        int queued = 0;
+        int commandCrc = getStringCrc(ATTACK_COMMAND.toLowerCase());
+        for (int attack = 0; attack < DIAGNOSTIC_ATTACK_COUNT; ++attack)
+        {
+            if (queueCommand(
+                rancor,
+                commandCrc,
+                kreetle,
+                "",
+                COMMAND_PRIORITY_DEFAULT))
+                ++queued;
+        }
+        obj_id attackerWeapon = getCurrentWeapon(rancor);
+        return "action=armCombatDiagnostics queued=" + queued +
+            " requested=" + DIAGNOSTIC_ATTACK_COUNT +
+            " attacker=" + rancor + " defender=" + kreetle +
+            " command=" + ATTACK_COMMAND +
+            " combatScript=" +
+                hasScript(rancor, "systems.combat.combat_actions") +
+            " pvpCanAttack=" + pvpCanAttack(rancor, kreetle) +
+            " weapon=" + attackerWeapon +
+            " weaponTemplate=" +
+                (isIdValid(attackerWeapon) ?
+                    getTemplateName(attackerWeapon) : "none") +
+            " weaponType=" +
+                (isIdValid(attackerWeapon) ?
+                    getWeaponType(attackerWeapon) : -1) +
+            " playerStateMutated=false";
+    }
+
+    private String diagnostics(obj_id player, String lifecycle)
+        throws InterruptedException
+    {
+        String ownership = validateOwnership(player, lifecycle);
+        if (ownership != null)
+            return ownership;
+        obj_id kreetle = readObject(player, KREETLE);
+        obj_id rancor = readObject(player, RANCOR);
+        if (!isFixtureCreatureAvailable(kreetle) ||
+            !isFixtureCreatureAvailable(rancor))
+            return "error=fixtureCreatureUnavailable";
+
+        int ngeDelay = readDiagnosticInt(rancor,
+            "preparation.ngeDelayApplied", -1);
+        int ngeRange = readDiagnosticInt(rancor,
+            "preparation.ngeRangeApplied", -1);
+        int ngeElemental = readDiagnosticInt(rancor,
+            "preparation.ngeElementalMultiplierApplied", -1);
+        int ngeOverload = readDiagnosticInt(rancor,
+            "preparation.ngeWeaponOverloadApplied", -1);
+        int ngeExpertise = readDiagnosticInt(rancor,
+            "damage.ngeExpertiseApplied", -1);
+        int ngeKillMeter = readDiagnosticInt(rancor,
+            "damage.ngeKillMeterApplied", -1);
+        int ngeNiche = readDiagnosticInt(rancor,
+            "damage.ngeNicheApplied", -1);
+        String damagePipeline = readDiagnosticString(rancor,
+            "damage.pipeline", "none");
+        String primaryResult = readDiagnosticString(rancor,
+            "primary.resultName", "none");
+        String secondaryProfile = readDiagnosticString(rancor,
+            "secondary.profile", "none");
+        String secondaryResult = readDiagnosticString(rancor,
+            "secondary.resultName", "none");
+        int targetPool = readDiagnosticInt(rancor,
+            "targetPool.resolved", -1);
+        boolean passed = ngeDelay == 0 && ngeRange == 0 &&
+            ngeElemental == 0 && ngeOverload == 0 &&
+            ngeExpertise == 0 && ngeKillMeter == 0 && ngeNiche == 0 &&
+            damagePipeline.equals("PRECU_CORE3") &&
+            !primaryResult.equals("none") &&
+            !primaryResult.equals("FALLBACK") &&
+            !secondaryProfile.equals("none") &&
+            !secondaryProfile.startsWith("FALLBACK") &&
+            !secondaryResult.equals("none") &&
+            !secondaryResult.equals("FALLBACK") &&
+            targetPool >= 0 && targetPool <= 2;
+
+        stopCombat(rancor);
+        stopCombat(kreetle);
+        clearHateList(rancor);
+        clearHateList(kreetle);
+
+        return "action=diagnostics result=" +
+            (passed ? "passed" : "failed") +
+            " attackerProfile=" +
+                getStringObjVar(rancor, "precu.combatProfile") +
+            " command=" + ATTACK_COMMAND +
+            " traceStage=" +
+                readDiagnosticString(rancor, "trace.stage", "none") +
+            " costHealth=" +
+                readDiagnosticInt(rancor, "cost.health", -3) +
+            " costAction=" +
+                readDiagnosticInt(rancor, "cost.action", -3) +
+            " costMind=" +
+                readDiagnosticInt(rancor, "cost.mind", -3) +
+            " preparationDelay=" +
+                readDiagnosticInt(rancor, "preparation.delay", -1) +
+            " preparationMaxRange=" +
+                readDiagnosticFloat(rancor, "preparation.maxRange", -1.0f) +
+            " preparationElementalValue=" +
+                readDiagnosticInt(rancor, "preparation.elementalValue", -1) +
+            " ngeDelayApplied=" + ngeDelay +
+            " ngeRangeApplied=" + ngeRange +
+            " ngeElementalMultiplierApplied=" + ngeElemental +
+            " ngeWeaponOverloadApplied=" + ngeOverload +
+            " primaryResult=" + primaryResult +
+            " primaryAccuracyBonus=" +
+                readDiagnosticFloat(rancor, "primary.accuracyBonus", -1.0f) +
+            " primaryHitChance=" +
+                readDiagnosticFloat(rancor, "primary.hitChance", -1.0f) +
+            " secondaryProfile=" + secondaryProfile +
+            " secondaryResult=" + secondaryResult +
+            " targetPoolResolved=" + targetPool +
+            " damagePipeline=" + damagePipeline +
+            " damageMinimum=" +
+                readDiagnosticFloat(rancor, "damage.minimum", -1.0f) +
+            " damageMaximum=" +
+                readDiagnosticFloat(rancor, "damage.maximum", -1.0f) +
+            " ngeExpertiseApplied=" + ngeExpertise +
+            " ngeKillMeterApplied=" + ngeKillMeter +
+            " ngeNicheApplied=" + ngeNiche +
+            " playerStateMutated=false";
+    }
+
+    private void fortify(obj_id creature) throws InterruptedException
+    {
+        for (int attribute = HEALTH; attribute <= MIND; ++attribute)
+        {
+            setMaxAttrib(creature, attribute, 100000);
+            setAttrib(creature, attribute, 100000);
+        }
+    }
+
+    private int readDiagnosticInt(obj_id creature, String leaf, int fallback)
+        throws InterruptedException
+    {
+        String path = DIAGNOSTIC_ROOT + "." + leaf;
+        return hasObjVar(creature, path) ? getIntObjVar(creature, path)
+            : fallback;
+    }
+
+    private float readDiagnosticFloat(
+        obj_id creature, String leaf, float fallback)
+        throws InterruptedException
+    {
+        String path = DIAGNOSTIC_ROOT + "." + leaf;
+        return hasObjVar(creature, path) ? getFloatObjVar(creature, path)
+            : fallback;
+    }
+
+    private String readDiagnosticString(
+        obj_id creature, String leaf, String fallback)
+        throws InterruptedException
+    {
+        String path = DIAGNOSTIC_ROOT + "." + leaf;
+        return hasObjVar(creature, path) ? getStringObjVar(creature, path)
+            : fallback;
+    }
+
     private boolean profileMatches(
         obj_id creature,
         String profile,
@@ -244,6 +446,10 @@ public class precu_creature_combat_profile_runtime extends script.base_script
         if (!isIdValid(creature))
             return obj_id.NULL_ID;
         create.initializeCreature(creature, creatureType, data, -1);
+        create.attachCreatureScripts(
+            creature,
+            data.getString("scripts"),
+            true);
         return creature;
     }
 

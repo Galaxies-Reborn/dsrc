@@ -4,6 +4,7 @@ object/weapon/ranged/rifle/rifle_cdef.iff	10	15	10
 object/weapon/ranged/pistol/pistol_cdef.iff	10	15	10
 object/weapon/ranged/carbine/carbine_cdef.iff	10	15	10
 object/weapon/melee/polearm/lance_staff_wood_s2.iff	20	38	15
+object/weapon/creature/creature_default_weapon.iff	0	0	0
 object/weapon/melee/unarmed/unarmed_default_player.iff	10	10	10
 object/weapon/melee/sword/sword_rantok.iff	27	40	25
 object/weapon/melee/2h_sword/2h_sword_cleaver.iff	38	35	20

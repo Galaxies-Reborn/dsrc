@@ -743,9 +743,16 @@ public class combat extends script.base_script
         {
             return invalid;
         }
-        dictionary weaponCosts = dataTableGetRow(PRECU_WEAPON_HAM_COST_TABLE, getTemplateName(weaponData.id));
+        String weaponTemplate = getTemplateName(weaponData.id);
+        dictionary weaponCosts = dataTableGetRow(
+            PRECU_WEAPON_HAM_COST_TABLE, weaponTemplate);
         if (weaponCosts == null)
         {
+            if (hasObjVar(self, "precu.combatProfile") &&
+                weaponTemplate.startsWith("object/weapon/creature/"))
+            {
+                return new int[] { 0, 0, 0 };
+            }
             return invalid;
         }
         int[] costs = new int[3];

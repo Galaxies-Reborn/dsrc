@@ -539,6 +539,7 @@ public class combat_base extends script.base_script
         }
         precuAuthoritativeAction =
             isPrecuAuthoritativeAttack(self, actionData);
+        recordPrecuLiveDiagnostic(self, "trace.stage", "AUTHORITY");
         if (isEggWeapon && actionName.equals("forceThrow"))
         {
             self = utils.getObjIdScriptVar(objWeapon, "objOwner");
@@ -600,6 +601,12 @@ public class combat_base extends script.base_script
         {
             isDelayedAttack = (hitType == combat.DELAY_ATTACK);
         }
+        if (precuAuthoritativeAction && !isDelayedAttack)
+        {
+            recordPrecuLiveDiagnostic(self, "preparation.delay", 0.0f);
+            recordPrecuLiveDiagnostic(
+                self, "preparation.ngeDelayApplied", 0);
+        }
         weapon_data weaponData = getOverloadedWeaponData(self, objWeapon, actionData);
         if (weaponData == null)
         {
@@ -627,6 +634,7 @@ public class combat_base extends script.base_script
             CustomerServiceLog("combat_errors: ", logString);
             return false;
         }
+        recordPrecuLiveDiagnostic(self, "trace.stage", "WEAPON_DATA");
         if (!isTangibleAttacking)
         {
             if (!combat.canUseWeaponWithAbility(self, weaponData, actionData, verbose))
@@ -635,6 +643,7 @@ public class combat_base extends script.base_script
                 return false;
             }
         }
+        recordPrecuLiveDiagnostic(self, "trace.stage", "WEAPON_ADMISSION");
         obj_id combatTarget = target;
         if (isTangibleAttacking)
         {
@@ -658,6 +667,7 @@ public class combat_base extends script.base_script
                 return false;
             }
         }
+        recordPrecuLiveDiagnostic(self, "trace.stage", "TARGET_ADMISSION");
         attacker_data attackerData = new attacker_data();
         defender_data[] defenderData = null;
         if (isGroundTarget || isDirectionTarget)
@@ -721,6 +731,7 @@ public class combat_base extends script.base_script
                     self, precuAuthoritativeAction);
                 return false;
             }
+            recordPrecuLiveDiagnostic(self, "trace.stage", "DEFENDERS");
             weapon_data junkData = new weapon_data();
             defenderData = new defender_data[defenders.length];
             if (!getCombatData(self, defenders, attackerData, defenderData, junkData))
@@ -731,6 +742,7 @@ public class combat_base extends script.base_script
                     self, precuAuthoritativeAction);
                 return false;
             }
+            recordPrecuLiveDiagnostic(self, "trace.stage", "COMBAT_DATA");
         }
         else 
         {
@@ -746,6 +758,12 @@ public class combat_base extends script.base_script
         if (!isTangibleAttacking)
         {
             actionCost = combat.getActionCost(self, weaponData, actionData);
+            recordPrecuLiveDiagnostic(
+                self, "cost.health", actionCost == null ? -2 : actionCost[0]);
+            recordPrecuLiveDiagnostic(
+                self, "cost.action", actionCost == null ? -2 : actionCost[1]);
+            recordPrecuLiveDiagnostic(
+                self, "cost.mind", actionCost == null ? -2 : actionCost[2]);
             if (!combat.canDrainCombatActionAttributes(self, actionCost, actionData.precuHamCostModel > 0))
             {
                 showFlyTextPrivate(self, self, new string_id("combat_effects", "action_too_tired"), 1.5f, colors.GOLDENROD);
@@ -775,6 +793,7 @@ public class combat_base extends script.base_script
                 }
             }
         }
+        recordPrecuLiveDiagnostic(self, "trace.stage", "ACTION_COST");
         boolean isHeal = hitType == combat.HEAL;
         boolean isRevive = hitType == combat.REVIVE;
         if (isHeal || isRevive)
@@ -849,6 +868,7 @@ public class combat_base extends script.base_script
                     self, precuAuthoritativeAction);
                 return false;
             }
+            recordPrecuLiveDiagnostic(self, "trace.stage", "PRECHECK");
             boolean isSingleTargetAttack = actionData.hitType == -1 && actionData.attackType == combat.SINGLE_TARGET;
             if (!isSingleTargetAttack && !combat.drainCombatActionAttributes(self, actionCost, actionData.precuHamCostModel > 0))
             {
@@ -867,6 +887,7 @@ public class combat_base extends script.base_script
         defender_results[] defenderResults = new defender_results[defenderData.length];
         if (!isDelayedAttack)
         {
+            recordPrecuLiveDiagnostic(self, "trace.stage", "HIT_ENGINE");
             hit_result[] hitData = null;
             hitData = runHitEngine(attackerData, weaponData, defenderData, attackerResults, defenderResults, actionData, isTangibleAttacking, isAutoAiming, overloadDamage);
             if (hitData == null)
