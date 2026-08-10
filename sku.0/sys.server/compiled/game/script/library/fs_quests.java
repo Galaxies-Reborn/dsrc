@@ -127,7 +127,11 @@ public class fs_quests extends script.base_script
     }
     public static boolean isVillageEligible(obj_id player) throws InterruptedException
     {
-        return false;
+        if (!isIdValid(player))
+        {
+            return false;
+        }
+        return hasObjVar(player, VAR_VILLAGE_ELIGIBLE);
     }
     public static boolean makeVillageEligible(obj_id player) throws InterruptedException
     {
