@@ -14,7 +14,7 @@ public class utilities extends script.base_script
     {
         chat.chat(self, "Usagement!: utility <cmd> [<args ...>]");
         chat.chat(self, "commands: ");
-        chat.chat(self, "grantSkills - grant all skills to yourself");
+        chat.chat(self, "grantSkills - grant the PRE-CU Teras Kasi tree within the 250-point skill cap");
         chat.chat(self, "quest - execute a quest command dammit!!?");
         chat.chat(self, "  activate <name> - activate a quest named <name> from player.quests datatable");
         chat.chat(self, "  clear           - clear all quest bits");
@@ -23,6 +23,16 @@ public class utilities extends script.base_script
         chat.chat(self, "makeFsVillageEligible");
         chat.chat(self, "makeFsVillageIneligible");
         chat.chat(self, "unlock <branch> - unlock fs branch using the fs_quests library. E.g. force_sensitive_combat_prowess_ranged_speed");
+    }
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        if (!isGod(self) || getGodLevel(self) < 50 || !isPlayer(self))
+        {
+            detachScript(self, "working.justin.utilities");
+            return SCRIPT_CONTINUE;
+        }
+        chat.chat(self, "PRE-CU developer utility ready.");
+        return SCRIPT_CONTINUE;
     }
     public int OnSpeaking(obj_id self, String text) throws InterruptedException
     {
@@ -33,7 +43,11 @@ public class utilities extends script.base_script
             String cmd = st.nextToken();
             switch (cmd) {
                 case "grantSkills":
-                    grantSkill(self, "combat_unarmed_master");
+                    if (!skill.grantPrecuSkillWithPrerequisites(self, "combat_unarmed_master"))
+                    {
+                        chat.chat(self, "Unable to grant the PRE-CU Teras Kasi tree within the 250-point skill cap.");
+                        break;
+                    }
                     obj_id pInv = utils.getInventoryContainer(self);
                     if (isIdValid(pInv)) {
                         createObject("object/tangible/terminal/terminal_character_builder.iff", pInv, "");

@@ -3,6 +3,7 @@ package script.working.jcarpenter;
 import script.attribute;
 import script.library.create;
 import script.library.healing;
+import script.library.skill;
 import script.library.utils;
 import script.location;
 import script.obj_id;
@@ -31,8 +32,7 @@ public class util extends script.base_script
         "destroyObject (target)",
         "grant <profession>",
         "grant help",
-        "revoke <profession>",
-        "revoke help",
+        "revoke <profession> (retired; use normal PRE-CU skill surrender)",
         "wound <attribute> <amount> (target)",
         "wound all <amount> (target)",
         "damage <attribute> <amount> (target)",
@@ -91,7 +91,8 @@ public class util extends script.base_script
         if (remove)
         {
             sendSystemMessageTestingOnly(self, "...you do not have a sufficient access level to use this script...");
-            detachScript(self, "jcarpenter.util");
+            detachScript(self, "working.jcarpenter.util");
+            return SCRIPT_CONTINUE;
         }
         else 
         {
@@ -251,47 +252,20 @@ public class util extends script.base_script
             {
                 return SCRIPT_CONTINUE;
             }
-            boolean result = true;
-            for (String skill : skills) {
-                if (!hasSkill(self, skill)) {
-                    result &= grantSkill(self, skill);
-                }
-            }
-            if (result)
+            String masterSkill = skills[skills.length - 1];
+            if (skill.grantPrecuSkillWithPrerequisites(self, masterSkill))
             {
-                sendSystemMessageTestingOnly(self, "...profession successfully granted...");
+                sendSystemMessageTestingOnly(self, "...PRE-CU profession and prerequisites successfully granted within the 250-point skill cap...");
+            }
+            else
+            {
+                sendSystemMessageTestingOnly(self, "...unable to grant that PRE-CU profession within the 250-point skill cap...");
             }
             return SCRIPT_CONTINUE;
         }
         else if ((toLower(text)).startsWith("revoke"))
         {
-            StringTokenizer st = new StringTokenizer(text);
-            if (st.countTokens() != 2)
-            {
-                return SCRIPT_CONTINUE;
-            }
-            String command = st.nextToken();
-            String profession = st.nextToken();
-            if (profession.equals("help"))
-            {
-                sendSystemMessageTestingOnly(self, "These are the professions that can be used with the revoke utility:");
-                for (String profession1 : PROFESSIONS) {
-                    sendSystemMessageTestingOnly(self, profession1);
-                }
-                return SCRIPT_CONTINUE;
-            }
-            String[] skills = getSkills(profession);
-            if (skills == null || skills.length == 0)
-            {
-                return SCRIPT_CONTINUE;
-            }
-            for (int i = (skills.length - 1); i >= 0; i--)
-            {
-                if (hasSkill(self, skills[i]))
-                {
-                    revokeSkill(self, skills[i]);
-                }
-            }
+            sendSystemMessageTestingOnly(self, "...bulk skill revocation is retired; use normal PRE-CU skill surrender...");
             return SCRIPT_CONTINUE;
         }
         else if ((toLower(text)).startsWith("wound"))

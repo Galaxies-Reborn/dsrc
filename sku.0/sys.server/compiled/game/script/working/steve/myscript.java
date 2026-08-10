@@ -16,6 +16,11 @@ public class myscript extends script.base_script
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        if (!isGod(self) || getGodLevel(self) < 50 || !isPlayer(self))
+        {
+            detachScript(self, "working.steve.myscript");
+            return SCRIPT_CONTINUE;
+        }
         boolean result;
         int intArrayIndex;
         obj_id other = null;
@@ -205,23 +210,11 @@ public class myscript extends script.base_script
         }
         else if (text.equals("makemejedi"))
         {
-            setJediState(self, JEDI_STATE_JEDI);
-            setMaxForcePower(self, 100);
+            debugSpeakMsg(self, "Direct Jedi conversion is retired; use PRE-CU Force-sensitive and Jedi progression.");
         }
         else if (text.equals("makemeoldjedi"))
         {
-            setJediState(self, JEDI_STATE_JEDI);
-            setMaxForcePower(self, 100);
-            removeObjVar(self, "jedi.skillsNeeded");
-            grantSkill(self, "jedi_padawan_novice");
-            grantSkill(self, "jedi_padawan_saber_01");
-            grantSkill(self, "jedi_padawan_saber_02");
-            grantSkill(self, "jedi_padawan_saber_03");
-            grantSkill(self, "jedi_padawan_saber_04");
-            grantSkill(self, "jedi_padawan_force_power_01");
-            grantSkill(self, "jedi_padawan_force_power_02");
-            grantSkill(self, "jedi_padawan_force_power_03");
-            removeObjVar(self, "jedi.state");
+            debugSpeakMsg(self, "Direct legacy Jedi skill grants are retired; use PRE-CU Force-sensitive and Jedi progression.");
         }
         else if (text.equals("isjedi"))
         {

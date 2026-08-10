@@ -299,6 +299,28 @@ public class grievous_test extends script.base_script
         "ithorian_sentinel/ith_armor_s03_bracer_r.iff"
     };
     public static final String ARMOR_SET_PREFIX = "object/tangible/wearables/armor/";
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        if (!isGod(self) || getGodLevel(self) < 50 || !isPlayer(self))
+        {
+            detachScript(self, "working.wwallace.grievous_test");
+            return SCRIPT_CONTINUE;
+        }
+        sendSystemMessageTestingOnly(self, "PRE-CU Grievous loadout test ready.");
+        return SCRIPT_CONTINUE;
+    }
+    public boolean grantPrecuLoadout(obj_id player, String[] masterSkills) throws InterruptedException
+    {
+        for (String masterSkill : masterSkills)
+        {
+            if (!skill.grantPrecuSkillWithPrerequisites(player, masterSkill))
+            {
+                sendSystemMessageTestingOnly(player, "Unable to grant the PRE-CU loadout within the 250-point skill cap.");
+                return false;
+            }
+        }
+        return true;
+    }
     public int OnSpeaking(obj_id self, String strText) throws InterruptedException
     {
         String[] strCommands = split(strText, ' ');
@@ -328,20 +350,13 @@ public class grievous_test extends script.base_script
         }
         if (strCommands[0].equals("makeCharacterOne"))
         {
-            for (String s1 : BRAWLER) {
-                skill.grantSkill(self, s1);
-            }
-            for (String s : TKA) {
-                skill.grantSkill(self, s);
-            }
+            grantPrecuLoadout(self, new String[] { BRAWLER[BRAWLER.length - 1], TKA[TKA.length - 1] });
         }
         if (strCommands[0].equals("makeCharacterTwo"))
         {
-            for (String s1 : BRAWLER) {
-                skill.grantSkill(self, s1);
-            }
-            for (String s : PIKEMAN) {
-                skill.grantSkill(self, s);
+            if (!grantPrecuLoadout(self, new String[] { BRAWLER[BRAWLER.length - 1], PIKEMAN[PIKEMAN.length - 1] }))
+            {
+                return SCRIPT_CONTINUE;
             }
             issueBattleArmorSet(self, ARMOR_SET_BATTLE);
             weapons.createWeapon("object/weapon/melee/polearm/lance_massassi.iff", pInv, weapons.VIA_TEMPLATE, CRAFTED_QUALITY);
@@ -364,11 +379,9 @@ public class grievous_test extends script.base_script
                 "thyroidrupture",
                 "traumatize"
             };
-            for (String s1 : MEDIC) {
-                skill.grantSkill(self, s1);
-            }
-            for (String s : DOCTOR) {
-                skill.grantSkill(self, s);
+            if (!grantPrecuLoadout(self, new String[] { MEDIC[MEDIC.length - 1], DOCTOR[DOCTOR.length - 1] }))
+            {
+                return SCRIPT_CONTINUE;
             }
             issueBattleArmorSet(self, ARMOR_SET_BATTLE_2);
             obj_id stimd = createObject("object/tangible/medicine/instant_stimpack/stimpack_d.iff", pInv, "");
@@ -387,39 +400,27 @@ public class grievous_test extends script.base_script
         }
         if (strCommands[0].equals("makeCharacterFour"))
         {
-            for (String s2 : BRAWLER) {
-                skill.grantSkill(self, s2);
-            }
-            for (String s1 : MARKSMAN) {
-                skill.grantSkill(self, s1);
-            }
-            for (String s : COMMANDO) {
-                skill.grantSkill(self, s);
+            if (!grantPrecuLoadout(self, new String[] { BRAWLER[BRAWLER.length - 1], MARKSMAN[MARKSMAN.length - 1], COMMANDO[COMMANDO.length - 1] }))
+            {
+                return SCRIPT_CONTINUE;
             }
             issueAssaultArmorSet(self, ARMOR_SET_ASSAULT);
             weapons.createWeapon("object/weapon/ranged/heavy/heavy_lightning_beam.iff", pInv, weapons.VIA_TEMPLATE, CRAFTED_QUALITY);
         }
         if (strCommands[0].equals("makeCharacterFive"))
         {
-            for (String s1 : MARKSMAN) {
-                skill.grantSkill(self, s1);
-            }
-            for (String s : CARBINEER) {
-                skill.grantSkill(self, s);
+            if (!grantPrecuLoadout(self, new String[] { MARKSMAN[MARKSMAN.length - 1], CARBINEER[CARBINEER.length - 1] }))
+            {
+                return SCRIPT_CONTINUE;
             }
             issueBattleArmorSet(self, ARMOR_SET_BATTLE_3);
             weapons.createWeapon("object/weapon/ranged/carbine/carbine_elite.iff", pInv, weapons.VIA_TEMPLATE, CRAFTED_QUALITY);
         }
         if (strCommands[0].equals("makeCharacterSix"))
         {
-            for (String s2 : MARKSMAN) {
-                skill.grantSkill(self, s2);
-            }
-            for (String s1 : SCOUT) {
-                skill.grantSkill(self, s1);
-            }
-            for (String s : BOUNTY_HUNTER) {
-                skill.grantSkill(self, s);
+            if (!grantPrecuLoadout(self, new String[] { MARKSMAN[MARKSMAN.length - 1], SCOUT[SCOUT.length - 1], BOUNTY_HUNTER[BOUNTY_HUNTER.length - 1] }))
+            {
+                return SCRIPT_CONTINUE;
             }
             issueAssaultArmorSet(self, ARMOR_SET_ASSAULT_ITHORIAN);
             weapons.createWeapon("object/weapon/ranged/carbine/carbine_czerka_dart.iff", pInv, weapons.VIA_TEMPLATE, CRAFTED_QUALITY);

@@ -17,6 +17,16 @@ public class dantest extends script.base_script
     public static final int SPAWN_CHECK_DISTANCE = 64;
     public static final int SPAWN_CHECK_LIMIT = 15;
     public static final int SPAWN_CHECK_THEATER_LIMIT = 1;
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        if (!isGod(self) || getGodLevel(self) < 50 || !isPlayer(self))
+        {
+            detachScript(self, "working.dantest");
+            return SCRIPT_CONTINUE;
+        }
+        sendSystemMessageTestingOnly(self, "PRE-CU developer diagnostic ready.");
+        return SCRIPT_CONTINUE;
+    }
     public String getLevelString(int intLevel) throws InterruptedException
     {
         if (intLevel <= 10)
@@ -1876,12 +1886,7 @@ public class dantest extends script.base_script
         }
         if (strCommands[0].equals("jediSetup"))
         {
-            grantSkill(self, "jedi_padawan_novice");
-            queueCommand(self, (-1292820740), null, "metal", COMMAND_PRIORITY_IMMEDIATE);
-            queueCommand(self, (-1292820740), null, "mineral", COMMAND_PRIORITY_IMMEDIATE);
-            queueCommand(self, (-1292820740), null, "chemical", COMMAND_PRIORITY_IMMEDIATE);
-            queueCommand(self, (-1292820740), null, "gemstone", COMMAND_PRIORITY_IMMEDIATE);
-            queueCommand(self, (-1292820740), null, "gas", COMMAND_PRIORITY_IMMEDIATE);
+            sendSystemMessageTestingOnly(self, "Direct Jedi setup is retired; use PRE-CU Force-sensitive and Jedi progression.");
         }
         if (strCommands[0].equals("forcePower"))
         {
@@ -2052,13 +2057,7 @@ public class dantest extends script.base_script
         }
         if (strCommands[0].equals("jediFull"))
         {
-            String[] skillsNeeded = getStringArrayObjVar(self, pclib.OBJVAR_JEDI_SKILL_REQUIREMENTS);
-            if (skillsNeeded != null)
-            {
-                for (String s : skillsNeeded) {
-                    skill.grantSkillToPlayer(self, s);
-                }
-            }
+            sendSystemMessageTestingOnly(self, "Direct Jedi skill completion is retired; use PRE-CU Force-sensitive and Jedi progression.");
         }
         if (strCommands[0].equals("whoAreYou"))
         {
@@ -2095,14 +2094,7 @@ public class dantest extends script.base_script
         }
         if (strCommands[0].equals("jedi5"))
         {
-            String[] skillsNeeded = getStringArrayObjVar(self, pclib.OBJVAR_JEDI_SKILL_REQUIREMENTS);
-            if (skillsNeeded != null)
-            {
-                for (int i = 0; i < 5; ++i)
-                {
-                    skill.grantSkillToPlayer(self, skillsNeeded[i]);
-                }
-            }
+            sendSystemMessageTestingOnly(self, "Direct Jedi skill grants are retired; use PRE-CU Force-sensitive and Jedi progression.");
         }
         if (strCommands[0].equals("setJediTime"))
         {
