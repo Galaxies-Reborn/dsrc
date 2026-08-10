@@ -234,8 +234,11 @@ public class collection extends script.base_script
         {
             String[] commands = split(command, ',');
             for (String command1 : commands) {
-                grantCommand(player, command1);
-                CustomerServiceLog("CollectionComplete: ", "Player " + getFirstName(player) + "(" + player + ") has completed " + collectionName + " and was granted Command: " + command + ".");
+                if (grantCommand(player, command1)) {
+                    CustomerServiceLog("CollectionComplete: ", "Player " + getFirstName(player) + "(" + player + ") has completed " + collectionName + " and was granted Command: " + command1 + ".");
+                } else {
+                    CustomerServiceLog("CollectionComplete: ", "Player " + getFirstName(player) + "(" + player + ") completed " + collectionName + " but Command " + command1 + " was rejected by PRE-CU progression authority.");
+                }
             }
         }
         if (skillMod != null && !skillMod.equals(""))
