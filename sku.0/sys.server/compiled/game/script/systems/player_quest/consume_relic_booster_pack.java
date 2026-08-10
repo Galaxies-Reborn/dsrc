@@ -11,10 +11,21 @@ public class consume_relic_booster_pack extends script.base_script
     {
     }
     public static final String PID_NAME = "chronicleBoosterPack";
+    public int OnInitialize(obj_id self) throws InterruptedException
+    {
+        retireChroniclesBoosterPack(self, obj_id.NULL_ID);
+        return SCRIPT_CONTINUE;
+    }
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        retireChroniclesBoosterPack(self, obj_id.NULL_ID);
+        return SCRIPT_CONTINUE;
+    }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
-        if (!isChroniclesBoosterPackEnabled())
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
         {
+            retireChroniclesBoosterPack(self, player);
             return SCRIPT_CONTINUE;
         }
         string_id openMenu = new string_id("saga_system", "booster_pack_open");
@@ -30,8 +41,9 @@ public class consume_relic_booster_pack extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
-        if (!isChroniclesBoosterPackEnabled())
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
         {
+            retireChroniclesBoosterPack(self, player);
             return SCRIPT_CONTINUE;
         }
         sendDirtyObjectMenuNotification(self);
@@ -65,6 +77,11 @@ public class consume_relic_booster_pack extends script.base_script
     }
     public boolean getUiConsumeMessageBox(obj_id self, obj_id player, String prompt, String title, String handler) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            retireChroniclesBoosterPack(self, player);
+            return false;
+        }
         if (!isValidId(self) || !isValidId(player))
         {
             return false;
@@ -77,8 +94,10 @@ public class consume_relic_booster_pack extends script.base_script
     }
     public int handlerSuiBoosterPackOpen(obj_id self, dictionary params) throws InterruptedException
     {
-        if (!isChroniclesBoosterPackEnabled())
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
         {
+            obj_id player = params == null || params.isEmpty() ? obj_id.NULL_ID : sui.getPlayerId(params);
+            retireChroniclesBoosterPack(self, player);
             return SCRIPT_CONTINUE;
         }
         if (params == null || params.isEmpty())
@@ -188,8 +207,17 @@ public class consume_relic_booster_pack extends script.base_script
         sui.removePid(player, PID_NAME);
         return SCRIPT_CONTINUE;
     }
-    private static boolean isChroniclesBoosterPackEnabled()
+    private void retireChroniclesBoosterPack(obj_id self, obj_id player) throws InterruptedException
     {
-        return false;
+        if (isIdValid(player) && sui.hasPid(player, PID_NAME))
+        {
+            int pid = sui.getPid(player, PID_NAME);
+            forceCloseSUIPage(pid);
+            sui.removePid(player, PID_NAME);
+        }
+        if (isIdValid(self))
+        {
+            detachScript(self, "systems.player_quest.consume_relic_booster_pack");
+        }
     }
 }
