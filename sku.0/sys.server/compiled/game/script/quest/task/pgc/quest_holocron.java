@@ -660,6 +660,16 @@ public class quest_holocron extends script.base_script
     }
     public int receiveCreditForKill(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            obj_id player = pgc_quests.getQuestPlayer(self);
+            if (isIdValid(player))
+            {
+                pgc_quests.retireChroniclesPlayerProgressionState(player);
+            }
+            detachScript(self, "quest.task.pgc.quest_holocron");
+            return SCRIPT_CONTINUE;
+        }
         String phaseString = pgc_quests.getActivePhaseObjVarString(self);
         for (int i = 0; i < pgc_quests.PGC_QUEST_MAX_NUM_TASKS_PER_PHASE; i++)
         {
@@ -677,6 +687,16 @@ public class quest_holocron extends script.base_script
     }
     public int recivedGcwCreditForKill(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            obj_id player = pgc_quests.getQuestPlayer(self);
+            if (isIdValid(player))
+            {
+                pgc_quests.retireChroniclesPlayerProgressionState(player);
+            }
+            detachScript(self, "quest.task.pgc.quest_holocron");
+            return SCRIPT_CONTINUE;
+        }
         String phaseString = pgc_quests.getActivePhaseObjVarString(self);
         for (int i = 0; i < pgc_quests.PGC_QUEST_MAX_NUM_TASKS_PER_PHASE; i++)
         {
@@ -691,6 +711,16 @@ public class quest_holocron extends script.base_script
     }
     public int handleCommMessageTaskCompletion(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            obj_id player = pgc_quests.getQuestPlayer(self);
+            if (isIdValid(player))
+            {
+                pgc_quests.retireChroniclesPlayerProgressionState(player);
+            }
+            detachScript(self, "quest.task.pgc.quest_holocron");
+            return SCRIPT_CONTINUE;
+        }
         obj_id questControlDevice = getContainedBy(self);
         if (isIdValid(questControlDevice) && !(getTemplateName(questControlDevice)).equals(pgc_quests.PGC_QUEST_CONTROL_DEVICE_TEMPLATE))
         {
@@ -706,6 +736,16 @@ public class quest_holocron extends script.base_script
     }
     public int ChroniclesMessageBoxCompleted(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            obj_id player = pgc_quests.getQuestPlayer(self);
+            if (isIdValid(player))
+            {
+                pgc_quests.retireChroniclesPlayerProgressionState(player);
+            }
+            detachScript(self, "quest.task.pgc.quest_holocron");
+            return SCRIPT_CONTINUE;
+        }
         int pageId = params.getInt("pageId");
         obj_id questControlDevice = getContainedBy(self);
         if (isIdValid(questControlDevice) && !(getTemplateName(questControlDevice)).equals(pgc_quests.PGC_QUEST_CONTROL_DEVICE_TEMPLATE))
@@ -727,6 +767,15 @@ public class quest_holocron extends script.base_script
     public int startPerform(obj_id self, dictionary params) throws InterruptedException
     {
         obj_id player = pgc_quests.getQuestPlayer(self);
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            if (isIdValid(player))
+            {
+                pgc_quests.retireChroniclesPlayerProgressionState(player);
+            }
+            detachScript(self, "quest.task.pgc.quest_holocron");
+            return SCRIPT_CONTINUE;
+        }
         if (!isIdValid(player))
         {
             return SCRIPT_CONTINUE;
@@ -780,6 +829,15 @@ public class quest_holocron extends script.base_script
     public int stopPerform(obj_id self, dictionary params) throws InterruptedException
     {
         obj_id player = pgc_quests.getQuestPlayer(self);
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            if (isIdValid(player))
+            {
+                pgc_quests.retireChroniclesPlayerProgressionState(player);
+            }
+            detachScript(self, "quest.task.pgc.quest_holocron");
+            return SCRIPT_CONTINUE;
+        }
         if (!isIdValid(player))
         {
             return SCRIPT_CONTINUE;
@@ -798,6 +856,16 @@ public class quest_holocron extends script.base_script
     }
     public int CheckPerformanceComplete(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            obj_id player = pgc_quests.getQuestPlayer(self);
+            if (isIdValid(player))
+            {
+                pgc_quests.retireChroniclesPlayerProgressionState(player);
+            }
+            detachScript(self, "quest.task.pgc.quest_holocron");
+            return SCRIPT_CONTINUE;
+        }
         String phaseString = params.getString("phaseString");
         String taskString = params.getString("taskString");
         if (!pgc_quests.isTaskComplete(self, phaseString, taskString))

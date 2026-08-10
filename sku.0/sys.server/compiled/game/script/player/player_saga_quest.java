@@ -1039,6 +1039,12 @@ public class player_saga_quest extends script.base_script
     }
     public int receiveCreditForKill(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            pgc_quests.retireChroniclesPlayerProgressionState(self);
+            detachScript(self, "player.player_saga_quest");
+            return SCRIPT_CONTINUE;
+        }
         obj_id[] activeHolocrons = pgc_quests.getActivateQuestHolocrons(self);
         if (activeHolocrons != null && activeHolocrons.length > 0)
         {
@@ -1058,6 +1064,12 @@ public class player_saga_quest extends script.base_script
     }
     public int recivedGcwCreditForKill(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            pgc_quests.retireChroniclesPlayerProgressionState(self);
+            detachScript(self, "player.player_saga_quest");
+            return SCRIPT_CONTINUE;
+        }
         obj_id[] activeHolocrons = pgc_quests.getActivateQuestHolocrons(self);
         if (activeHolocrons != null && activeHolocrons.length > 0)
         {
@@ -1075,6 +1087,12 @@ public class player_saga_quest extends script.base_script
     }
     public int startPerform(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            pgc_quests.retireChroniclesPlayerProgressionState(self);
+            detachScript(self, "player.player_saga_quest");
+            return SCRIPT_CONTINUE;
+        }
         obj_id[] activeHolocrons = pgc_quests.getActivateQuestHolocrons(self);
         if (activeHolocrons != null && activeHolocrons.length > 0)
         {
@@ -1091,6 +1109,12 @@ public class player_saga_quest extends script.base_script
     }
     public int stopPerform(obj_id self, dictionary params) throws InterruptedException
     {
+        if (pgc_quests.isRetiredChroniclesPlayerProgression())
+        {
+            pgc_quests.retireChroniclesPlayerProgressionState(self);
+            detachScript(self, "player.player_saga_quest");
+            return SCRIPT_CONTINUE;
+        }
         obj_id[] activeHolocrons = pgc_quests.getActivateQuestHolocrons(self);
         if (activeHolocrons != null && activeHolocrons.length > 0)
         {
