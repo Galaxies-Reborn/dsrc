@@ -750,18 +750,11 @@ public class mission_dynamic_base extends script.systems.missions.base.mission_b
     {
         setMissionRootScriptName(objMissionData, "systems.missions.dynamic.mission_bounty");
         setMissionType(objMissionData, "bounty");
-        int bhMin = 20;
-        int bhMax = 90;
-        if (hunterLevel < 22)
+        if (!hasSkill(bountyHunterId, "combat_bountyhunter_investigation_03"))
         {
             return null;
         }
-        else 
-        {
-            bhMin = (int)(hunterLevel * 0.75);
-            bhMax = (int)(hunterLevel * 1.5);
-        }
-        dictionary dctJediInfo = requestJedi(IGNORE_JEDI_STAT, 15000, bhMin, bhMax, IGNORE_JEDI_STAT, -3);
+        dictionary dctJediInfo = requestJedi(IGNORE_JEDI_STAT, 15000, IGNORE_JEDI_STAT, IGNORE_JEDI_STAT, IGNORE_JEDI_STAT, -3);
         if (dctJediInfo == null)
         {
             LIVE_LOG("bh_jedi_mission", "mission_dynamic_base.createJediBountyMission: No PvP target found (null)");
