@@ -124,17 +124,14 @@ public class qa_pilot_roadmap_tatooine_imperial extends script.base_script
     public static final int COMPLETE_MASTER_2 = 32;
     public int OnAttach(obj_id self) throws InterruptedException
     {
-        if (isGod(self))
-        {
-            if (getGodLevel(self) < 10)
-            {
-                detachScript(self, "test.qa_pilot_roadmap_tatooine_imperial");
-                sendSystemMessage(self, "You do not have the appropriate access level to use this script.", null);
-            }
-        }
-        else if (!isGod(self))
+        if (!isPlayer(self) || !isGod(self) || getGodLevel(self) < 10)
         {
             detachScript(self, "test.qa_pilot_roadmap_tatooine_imperial");
+            if (isPlayer(self))
+            {
+                sendSystemMessage(self, "You do not have the appropriate access level to use this script.", null);
+            }
+            return SCRIPT_CONTINUE;
         }
         return SCRIPT_CONTINUE;
     }

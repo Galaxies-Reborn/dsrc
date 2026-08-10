@@ -119,17 +119,14 @@ public class qa_pilot_roadmap_tatooine_rebel extends script.base_script
     public static final int COMPLETE_MASTER_2 = 31;
     public int OnAttach(obj_id self) throws InterruptedException
     {
-        if (isGod(self))
-        {
-            if (getGodLevel(self) < 10)
-            {
-                detachScript(self, "test.qa_pilot_roadmap_tatooine_rebel");
-                sendSystemMessage(self, "You do not have the appropriate access level to use this script.", null);
-            }
-        }
-        else if (!isGod(self))
+        if (!isPlayer(self) || !isGod(self) || getGodLevel(self) < 10)
         {
             detachScript(self, "test.qa_pilot_roadmap_tatooine_rebel");
+            if (isPlayer(self))
+            {
+                sendSystemMessage(self, "You do not have the appropriate access level to use this script.", null);
+            }
+            return SCRIPT_CONTINUE;
         }
         return SCRIPT_CONTINUE;
     }
@@ -573,11 +570,11 @@ public class qa_pilot_roadmap_tatooine_rebel extends script.base_script
     {
         qa.removeScriptVars(self, SCRIPTVAR);
         utils.removeScriptVarTree(self, SCRIPTVAR);
-        detachScript(self, "test.qa_pilot_roadmap_tatooine_imperial");
+        detachScript(self, "test.qa_pilot_roadmap_tatooine_rebel");
     }
     public void detachAndcleanAllScriptVars(obj_id self) throws InterruptedException
     {
         utils.removeScriptVarTree(self, SCRIPTVAR);
-        detachScript(self, "test.qa_pilot_roadmap_tatooine_imperial");
+        detachScript(self, "test.qa_pilot_roadmap_tatooine_rebel");
     }
 }

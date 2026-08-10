@@ -10,6 +10,15 @@ public class wwallace_test extends script.base_script
     public wwallace_test()
     {
     }
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        if (!isGod(self) || getGodLevel(self) < 50 || !isPlayer(self))
+        {
+            detachScript(self, "working.wwallace.wwallace_test");
+            return SCRIPT_CONTINUE;
+        }
+        return SCRIPT_CONTINUE;
+    }
     public int OnSpeaking(obj_id self, String strText) throws InterruptedException
     {
         String[] strCommands = split(strText, ' ');
@@ -277,24 +286,7 @@ public class wwallace_test extends script.base_script
         }
         if (strCommands[0].equals("makeRebelPilot"))
         {
-            skill.grantSkill(self, "pilot_rebel_navy_novice");
-            skill.grantSkill(self, "pilot_rebel_navy_starships_01");
-            skill.grantSkill(self, "pilot_rebel_navy_starships_02");
-            skill.grantSkill(self, "pilot_rebel_navy_starships_03");
-            skill.grantSkill(self, "pilot_rebel_navy_starships_04");
-            skill.grantSkill(self, "pilot_rebel_navy_weapons_01");
-            skill.grantSkill(self, "pilot_rebel_navy_weapons_02");
-            skill.grantSkill(self, "pilot_rebel_navy_weapons_03");
-            skill.grantSkill(self, "pilot_rebel_navy_weapons_04");
-            skill.grantSkill(self, "pilot_rebel_navy_procedures_01");
-            skill.grantSkill(self, "pilot_rebel_navy_procedures_02");
-            skill.grantSkill(self, "pilot_rebel_navy_procedures_03");
-            skill.grantSkill(self, "pilot_rebel_navy_procedures_04");
-            skill.grantSkill(self, "pilot_rebel_navy_droid_01");
-            skill.grantSkill(self, "pilot_rebel_navy_droid_02");
-            skill.grantSkill(self, "pilot_rebel_navy_droid_03");
-            skill.grantSkill(self, "pilot_rebel_navy_droid_04");
-            skill.grantSkill(self, "pilot_rebel_navy_master");
+            qa.revokeAndGrantPilot(self, "Rebel Ships");
         }
         if (strCommands[0].equals("giveMeMass"))
         {

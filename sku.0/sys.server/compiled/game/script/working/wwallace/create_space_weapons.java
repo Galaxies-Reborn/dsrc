@@ -1,6 +1,5 @@
 package script.working.wwallace;
 
-import script.library.skill;
 import script.library.utils;
 import script.obj_id;
 
@@ -8,6 +7,15 @@ public class create_space_weapons extends script.base_script
 {
     public create_space_weapons()
     {
+    }
+    public int OnAttach(obj_id self) throws InterruptedException
+    {
+        if (!isGod(self) || getGodLevel(self) < 50 || !isPlayer(self))
+        {
+            detachScript(self, "working.wwallace.create_space_weapons");
+            return SCRIPT_CONTINUE;
+        }
+        return SCRIPT_CONTINUE;
     }
     public int OnSpeaking(obj_id self, String strText) throws InterruptedException
     {
@@ -42,63 +50,7 @@ public class create_space_weapons extends script.base_script
         }
         if (strCommands[0].equals("grantPilotSkills"))
         {
-            skill.grantSkill(self, "pilot_rebel_navy");
-            skill.grantSkill(self, "pilot_rebel_navy_novice");
-            skill.grantSkill(self, "pilot_rebel_navy_master");
-            skill.grantSkill(self, "pilot_rebel_navy_starships_01");
-            skill.grantSkill(self, "pilot_rebel_navy_starships_02");
-            skill.grantSkill(self, "pilot_rebel_navy_starships_03");
-            skill.grantSkill(self, "pilot_rebel_navy_starships_04");
-            skill.grantSkill(self, "pilot_rebel_navy_weapons_01");
-            skill.grantSkill(self, "pilot_rebel_navy_weapons_02");
-            skill.grantSkill(self, "pilot_rebel_navy_weapons_03");
-            skill.grantSkill(self, "pilot_rebel_navy_weapons_04");
-            skill.grantSkill(self, "pilot_rebel_navy_procedures_01");
-            skill.grantSkill(self, "pilot_rebel_navy_procedures_02");
-            skill.grantSkill(self, "pilot_rebel_navy_procedures_03");
-            skill.grantSkill(self, "pilot_rebel_navy_procedures_04");
-            skill.grantSkill(self, "pilot_rebel_navy_droid_01");
-            skill.grantSkill(self, "pilot_rebel_navy_droid_02");
-            skill.grantSkill(self, "pilot_rebel_navy_droid_03");
-            skill.grantSkill(self, "pilot_rebel_navy_droid_04");
-            skill.grantSkill(self, "pilot_imperial_navy");
-            skill.grantSkill(self, "pilot_imperial_navy_novice");
-            skill.grantSkill(self, "pilot_imperial_navy_master");
-            skill.grantSkill(self, "pilot_imperial_navy_starships_01");
-            skill.grantSkill(self, "pilot_imperial_navy_starships_02");
-            skill.grantSkill(self, "pilot_imperial_navy_starships_03");
-            skill.grantSkill(self, "pilot_imperial_navy_starships_04");
-            skill.grantSkill(self, "pilot_imperial_navy_weapons_01");
-            skill.grantSkill(self, "pilot_imperial_navy_weapons_02");
-            skill.grantSkill(self, "pilot_imperial_navy_weapons_03");
-            skill.grantSkill(self, "pilot_imperial_navy_weapons_04");
-            skill.grantSkill(self, "pilot_imperial_navy_procedures_01");
-            skill.grantSkill(self, "pilot_imperial_navy_procedures_02");
-            skill.grantSkill(self, "pilot_imperial_navy_procedures_03");
-            skill.grantSkill(self, "pilot_imperial_navy_procedures_04");
-            skill.grantSkill(self, "pilot_imperial_navy_droid_01");
-            skill.grantSkill(self, "pilot_imperial_navy_droid_02");
-            skill.grantSkill(self, "pilot_imperial_navy_droid_03");
-            skill.grantSkill(self, "pilot_imperial_navy_droid_04");
-            skill.grantSkill(self, "pilot_neutral");
-            skill.grantSkill(self, "pilot_neutral_novice");
-            skill.grantSkill(self, "pilot_neutral_master");
-            skill.grantSkill(self, "pilot_neutral_starships_01");
-            skill.grantSkill(self, "pilot_neutral_starships_02");
-            skill.grantSkill(self, "pilot_neutral_starships_03");
-            skill.grantSkill(self, "pilot_neutral_starships_04");
-            skill.grantSkill(self, "pilot_neutral_weapons_01");
-            skill.grantSkill(self, "pilot_neutral_weapons_02");
-            skill.grantSkill(self, "pilot_neutral_weapons_03");
-            skill.grantSkill(self, "pilot_neutral_weapons_04");
-            skill.grantSkill(self, "pilot_neutral_procedures_01");
-            skill.grantSkill(self, "pilot_neutral_procedures_02");
-            skill.grantSkill(self, "pilot_neutral_procedures_03");
-            skill.grantSkill(self, "pilot_neutral_procedures_04");
-            skill.grantSkill(self, "pilot_neutral_droid_01");
-            skill.grantSkill(self, "pilot_neutral_droid_02");
-            skill.grantSkill(self, "pilot_neutral_droid_03");
-            skill.grantSkill(self, "pilot_neutral_droid_04");
+            sendSystemMessageTestingOnly(self, "The all-faction pilot grant is retired. Use the authenticated JTL QA or test-center pilot selector and choose one faction.");
         }
         return SCRIPT_CONTINUE;
     }

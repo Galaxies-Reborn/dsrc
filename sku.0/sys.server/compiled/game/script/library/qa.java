@@ -78,6 +78,12 @@ public class qa extends script.base_script
         "_droid_01",
         "_novice"
     };
+    public static final String[] PILOT_FACTION_SKILL_ROOTS =
+    {
+        space_skill.REBEL,
+        space_skill.IMPERIAL,
+        space_skill.NEUTRAL
+    };
     public static final String[][] KNOWN_CHARACTER_SLOTS = 
     {
         
@@ -1147,75 +1153,104 @@ public class qa extends script.base_script
     }
     public static void revokePilotingSkills(obj_id player) throws InterruptedException
     {
-        if (hasSkill(player, "pilot_rebel_navy_novice") || hasSkill(player, "pilot_imperial_navy_novice") || hasSkill(player, "pilot_neutral_novice"))
+        if (!isIdValid(player) || !isPlayer(player))
         {
-            String pilotFaction = "";
-            if (!utils.hasScriptVar(player, "revokePilotSkill"))
-            {
-                utils.setScriptVar(player, "revokePilotSkill", 1);
-            }
-            if (hasSkill(player, "pilot_rebel_navy_novice"))
-            {
-                pilotFaction = "rebel_navy";
-            }
-            else if (hasSkill(player, "pilot_imperial_navy_novice"))
-            {
-                pilotFaction = "imperial_navy";
-            }
-            else if (hasSkill(player, "pilot_neutral_novice"))
-            {
-                pilotFaction = "neutral";
-            }
-            else 
-            {
-                pilotFaction = "";
-            }
-            if (!pilotFaction.equals(""))
-            {
-                for (String revokeSpaceSkill : REVOKE_SPACE_SKILLS) {
-                    skill.revokeSkill(player, "pilot_" + pilotFaction + revokeSpaceSkill);
+            return;
+        }
+        utils.setScriptVar(player, "revokePilotSkill", 1);
+        for (String pilotSkillRoot : PILOT_FACTION_SKILL_ROOTS) {
+            for (String revokeSpaceSkill : REVOKE_SPACE_SKILLS) {
+                String pilotSkill = pilotSkillRoot + revokeSpaceSkill;
+                if (hasSkill(player, pilotSkill)) {
+                    skill.revokeSkill(player, pilotSkill);
                 }
-                utils.removeScriptVar(player, "revokePilotSkill");
+            }
+            if (hasSkill(player, pilotSkillRoot)) {
+                skill.revokeSkill(player, pilotSkillRoot);
             }
         }
+        utils.removeScriptVar(player, "revokePilotSkill");
     }
-    public static boolean revokeAndGrantPilot(obj_id self, String factionType) throws InterruptedException
+    public static String getPilotFactionSkillRoot(String factionType) throws InterruptedException
     {
-        if (toLower(factionType) == "rebel" || factionType.equals("Rebel Ships"))
+        if (factionType == null)
         {
-            revokePilotingSkills(self);
-            grantPilotingSkills(self, "rebel_navy");
-            sendSystemMessageTestingOnly(self, "Rebel Pilot Granted.");
-            CustomerServiceLog("qaTool", "User: (" + self + ") " + getName(self) + " has attained Master Rebel Pilot by using a QA Tool or command.");
-            return true;
+            return "";
         }
-        else if (factionType.equals("Imperial Ships") || toLower(factionType) == "imperial")
+        String normalizedFaction = toLower(factionType);
+        if (normalizedFaction.equals("rebel") || normalizedFaction.equals("rebel ships"))
         {
-            revokePilotingSkills(self);
-            grantPilotingSkills(self, "imperial_navy");
-            sendSystemMessageTestingOnly(self, "Imperial Pilot Granted.");
-            CustomerServiceLog("qaTool", "User: (" + self + ") " + getName(self) + " has attained Master Imperial Pilot by using a QA Tool or command.");
-            return true;
+            return space_skill.REBEL;
         }
-        else if (factionType.equals("Neutral/Freelancer Ships") || toLower(factionType) == "neutral")
+        if (normalizedFaction.equals("imperial") || normalizedFaction.equals("imperial ships"))
         {
-            revokePilotingSkills(self);
-            grantPilotingSkills(self, "neutral");
-            sendSystemMessageTestingOnly(self, "Neutral Pilot Granted.");
-            CustomerServiceLog("qaTool", "User: (" + self + ") " + getName(self) + " has attained Master Neutral Pilot by using a QA Tool or command.");
-            return true;
+            return space_skill.IMPERIAL;
         }
-        else 
+        if (normalizedFaction.equals("neutral") || normalizedFaction.equals("neutral/freelancer ships"))
         {
-            sendSystemMessageTestingOnly(self, "The revokeAndGrantPilot function was not used properly. Exiting.");
+            return space_skill.NEUTRAL;
+        }
+        return "";
+    }
+    public static boolean isPilotFactionSkillRoot(String pilotSkillRoot) throws InterruptedException
+    {
+        for (String validPilotSkillRoot : PILOT_FACTION_SKILL_ROOTS) {
+            if (validPilotSkillRoot.equals(pilotSkillRoot)) {
+                return true;
+            }
         }
         return false;
     }
-    public static void grantPilotingSkills(obj_id self, String factionToggle) throws InterruptedException
+    public static boolean grantPilotingSkills(obj_id player, String pilotSkillRoot) throws InterruptedException
     {
-        for (String grantSpaceSkill : GRANT_SPACE_SKILLS) {
-            grantSkill(self, "pilot_" + factionToggle + grantSpaceSkill);
+        if (!isIdValid(player) || !isPlayer(player) || !isPilotFactionSkillRoot(pilotSkillRoot))
+        {
+            return false;
         }
+        for (String grantSpaceSkill : GRANT_SPACE_SKILLS) {
+            skill.grantSkill(player, pilotSkillRoot + grantSpaceSkill);
+        }
+        for (String grantSpaceSkill : GRANT_SPACE_SKILLS) {
+            if (!hasSkill(player, pilotSkillRoot + grantSpaceSkill)) {
+                revokePilotingSkills(player);
+                return false;
+            }
+        }
+        return true;
+    }
+    public static boolean revokeAndGrantPilot(obj_id player, String factionType) throws InterruptedException
+    {
+        String pilotSkillRoot = getPilotFactionSkillRoot(factionType);
+        if (!isIdValid(player) || !isPlayer(player) || pilotSkillRoot.equals(""))
+        {
+            if (isIdValid(player) && isPlayer(player))
+            {
+                sendSystemMessageTestingOnly(player, "The revokeAndGrantPilot function was not used properly. Exiting.");
+            }
+            return false;
+        }
+        revokePilotingSkills(player);
+        if (!grantPilotingSkills(player, pilotSkillRoot))
+        {
+            sendSystemMessageTestingOnly(player, "The requested pilot profession could not be granted.");
+            return false;
+        }
+        if (pilotSkillRoot.equals(space_skill.REBEL))
+        {
+            sendSystemMessageTestingOnly(player, "Rebel Pilot Granted.");
+            CustomerServiceLog("qaTool", "User: (" + player + ") " + getName(player) + " has attained Master Rebel Pilot by using a QA Tool or command.");
+        }
+        else if (pilotSkillRoot.equals(space_skill.IMPERIAL))
+        {
+            sendSystemMessageTestingOnly(player, "Imperial Pilot Granted.");
+            CustomerServiceLog("qaTool", "User: (" + player + ") " + getName(player) + " has attained Master Imperial Pilot by using a QA Tool or command.");
+        }
+        else
+        {
+            sendSystemMessageTestingOnly(player, "Neutral Pilot Granted.");
+            CustomerServiceLog("qaTool", "User: (" + player + ") " + getName(player) + " has attained Master Neutral Pilot by using a QA Tool or command.");
+        }
+        return true;
     }
     public static String getClientBuffName(obj_id self, String buffCommand) throws InterruptedException
     {

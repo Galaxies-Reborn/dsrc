@@ -112,3 +112,10 @@ sku.0/sys.server/compiled/game/script/working/justin/utilities.java -text whites
 sku.0/sys.server/compiled/game/script/working/steve/myscript.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/working/dantest.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/working/wwallace/grievous_test.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/library/qa.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/test/qa_jtl_tools.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/test/qa_pilot_roadmap_tatooine_rebel.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/test/qa_pilot_roadmap_tatooine_imperial.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/test/teidson_test.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/working/wwallace/create_space_weapons.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/working/wwallace/wwallace_test.java -text whitespace=cr-at-eol

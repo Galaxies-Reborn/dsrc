@@ -3554,40 +3554,6 @@ public class terminal_character_builder extends script.base_script
         }
         return SCRIPT_CONTINUE;
     }
-    public boolean revokePilotingSkills(obj_id player) throws InterruptedException
-    {
-        if (hasSkill(player, "pilot_rebel_navy_novice") || hasSkill(player, "pilot_imperial_navy_novice") || hasSkill(player, "pilot_neutral_novice"))
-        {
-            String pilotFaction = "";
-            if (!utils.hasScriptVar(player, "revokePilotSkill"))
-            {
-                utils.setScriptVar(player, "revokePilotSkill", 1);
-            }
-            if (hasSkill(player, "pilot_rebel_navy_novice"))
-            {
-                pilotFaction = "rebel_navy";
-            }
-            else if (hasSkill(player, "pilot_imperial_navy_novice"))
-            {
-                pilotFaction = "imperial_navy";
-            }
-            else if (hasSkill(player, "pilot_neutral_novice"))
-            {
-                pilotFaction = "neutral";
-            }
-            if (!pilotFaction.equals(""))
-            {
-                for (int i = 0; i < space_skill.SKILL_NAMES.length; i++)
-                {
-                    skill.revokeSkill(player, "pilot_" + pilotFaction + space_skill.SKILL_NAMES[i]);
-                }
-                utils.removeScriptVar(player, "revokePilotSkill");
-                sendSystemMessageTestingOnly(player, "Pilot Skills Revoked.");
-                return true;
-            }
-        }
-        return false;
-    }
     public void handlePilotSkillSelect(obj_id player) throws InterruptedException
     {
         refreshMenu(player, GENERIC_PROMPT, GENERIC_TITLE, PILOT_SKILLS, "handlePilotSkillSelect", false);
@@ -3612,7 +3578,7 @@ public class terminal_character_builder extends script.base_script
             closeOldWindow(player);
             return SCRIPT_CONTINUE;
         }
-        if (idx == -1 || idx > PILOT_SKILLS.length)
+        if (idx < 0 || idx >= PILOT_SKILLS.length)
         {
             cleanScriptVars(player);
             return SCRIPT_CONTINUE;
@@ -3623,81 +3589,30 @@ public class terminal_character_builder extends script.base_script
             cleanScriptVars(player);
             return SCRIPT_OVERRIDE;
         }
-        boolean pilotRevoked = true;
-        if (space_skill.hasSpaceSkills(player))
+        if (idx == 3)
         {
-            pilotRevoked = revokePilotingSkills(player);
+            qa.revokePilotingSkills(player);
+            sendSystemMessageTestingOnly(player, "Pilot skills revoked.");
+            handlePilotSkillSelect(player);
+            return SCRIPT_CONTINUE;
         }
-        if (!pilotRevoked)
-        {
-            sendSystemMessageTestingOnly(player, "The system was unable to revoke your pilot skills.");
-            return SCRIPT_OVERRIDE;
-        }
+        String pilotFaction = "";
         if (idx == 0)
         {
-            skill.grantSkill(player, "pilot_imperial_navy_novice");
-            skill.grantSkill(player, "pilot_imperial_navy_starships_01");
-            skill.grantSkill(player, "pilot_imperial_navy_starships_02");
-            skill.grantSkill(player, "pilot_imperial_navy_starships_03");
-            skill.grantSkill(player, "pilot_imperial_navy_starships_04");
-            skill.grantSkill(player, "pilot_imperial_navy_weapons_01");
-            skill.grantSkill(player, "pilot_imperial_navy_weapons_02");
-            skill.grantSkill(player, "pilot_imperial_navy_weapons_03");
-            skill.grantSkill(player, "pilot_imperial_navy_weapons_04");
-            skill.grantSkill(player, "pilot_imperial_navy_procedures_01");
-            skill.grantSkill(player, "pilot_imperial_navy_procedures_02");
-            skill.grantSkill(player, "pilot_imperial_navy_procedures_03");
-            skill.grantSkill(player, "pilot_imperial_navy_procedures_04");
-            skill.grantSkill(player, "pilot_imperial_navy_droid_01");
-            skill.grantSkill(player, "pilot_imperial_navy_droid_02");
-            skill.grantSkill(player, "pilot_imperial_navy_droid_03");
-            skill.grantSkill(player, "pilot_imperial_navy_droid_04");
-            skill.grantSkill(player, "pilot_imperial_navy_master");
-            sendSystemMessageTestingOnly(player, "Master Imperial Pilot skills received.");
+            pilotFaction = "Imperial Ships";
         }
         else if (idx == 1)
         {
-            skill.grantSkill(player, "pilot_rebel_navy_novice");
-            skill.grantSkill(player, "pilot_rebel_navy_starships_01");
-            skill.grantSkill(player, "pilot_rebel_navy_starships_02");
-            skill.grantSkill(player, "pilot_rebel_navy_starships_03");
-            skill.grantSkill(player, "pilot_rebel_navy_starships_04");
-            skill.grantSkill(player, "pilot_rebel_navy_weapons_01");
-            skill.grantSkill(player, "pilot_rebel_navy_weapons_02");
-            skill.grantSkill(player, "pilot_rebel_navy_weapons_03");
-            skill.grantSkill(player, "pilot_rebel_navy_weapons_04");
-            skill.grantSkill(player, "pilot_rebel_navy_procedures_01");
-            skill.grantSkill(player, "pilot_rebel_navy_procedures_02");
-            skill.grantSkill(player, "pilot_rebel_navy_procedures_03");
-            skill.grantSkill(player, "pilot_rebel_navy_procedures_04");
-            skill.grantSkill(player, "pilot_rebel_navy_droid_01");
-            skill.grantSkill(player, "pilot_rebel_navy_droid_02");
-            skill.grantSkill(player, "pilot_rebel_navy_droid_03");
-            skill.grantSkill(player, "pilot_rebel_navy_droid_04");
-            skill.grantSkill(player, "pilot_rebel_navy_master");
-            sendSystemMessageTestingOnly(player, "Master Rebel Pilot skills received.");
+            pilotFaction = "Rebel Ships";
         }
         else if (idx == 2)
         {
-            skill.grantSkill(player, "pilot_neutral_novice");
-            skill.grantSkill(player, "pilot_neutral_starships_01");
-            skill.grantSkill(player, "pilot_neutral_starships_02");
-            skill.grantSkill(player, "pilot_neutral_starships_03");
-            skill.grantSkill(player, "pilot_neutral_starships_04");
-            skill.grantSkill(player, "pilot_neutral_weapons_01");
-            skill.grantSkill(player, "pilot_neutral_weapons_02");
-            skill.grantSkill(player, "pilot_neutral_weapons_03");
-            skill.grantSkill(player, "pilot_neutral_weapons_04");
-            skill.grantSkill(player, "pilot_neutral_procedures_01");
-            skill.grantSkill(player, "pilot_neutral_procedures_02");
-            skill.grantSkill(player, "pilot_neutral_procedures_03");
-            skill.grantSkill(player, "pilot_neutral_procedures_04");
-            skill.grantSkill(player, "pilot_neutral_droid_01");
-            skill.grantSkill(player, "pilot_neutral_droid_02");
-            skill.grantSkill(player, "pilot_neutral_droid_03");
-            skill.grantSkill(player, "pilot_neutral_droid_04");
-            skill.grantSkill(player, "pilot_neutral_master");
-            sendSystemMessageTestingOnly(player, "Master Privateer Pilot skills received.");
+            pilotFaction = "Neutral/Freelancer Ships";
+        }
+        if (!qa.revokeAndGrantPilot(player, pilotFaction))
+        {
+            sendSystemMessageTestingOnly(player, "The system was unable to grant the requested pilot profession.");
+            return SCRIPT_OVERRIDE;
         }
         handlePilotSkillSelect(player);
         return SCRIPT_CONTINUE;
@@ -9644,24 +9559,11 @@ public class terminal_character_builder extends script.base_script
     public void handleSpaceMiningOption(obj_id player) throws InterruptedException
     {
         obj_id self = getSelf();
-        skill.grantSkill(player, "pilot_rebel_navy_novice");
-        skill.grantSkill(player, "pilot_rebel_navy_starships_01");
-        skill.grantSkill(player, "pilot_rebel_navy_starships_02");
-        skill.grantSkill(player, "pilot_rebel_navy_starships_03");
-        skill.grantSkill(player, "pilot_rebel_navy_starships_04");
-        skill.grantSkill(player, "pilot_rebel_navy_weapons_01");
-        skill.grantSkill(player, "pilot_rebel_navy_weapons_02");
-        skill.grantSkill(player, "pilot_rebel_navy_weapons_03");
-        skill.grantSkill(player, "pilot_rebel_navy_weapons_04");
-        skill.grantSkill(player, "pilot_rebel_navy_procedures_01");
-        skill.grantSkill(player, "pilot_rebel_navy_procedures_02");
-        skill.grantSkill(player, "pilot_rebel_navy_procedures_03");
-        skill.grantSkill(player, "pilot_rebel_navy_procedures_04");
-        skill.grantSkill(player, "pilot_rebel_navy_droid_01");
-        skill.grantSkill(player, "pilot_rebel_navy_droid_02");
-        skill.grantSkill(player, "pilot_rebel_navy_droid_03");
-        skill.grantSkill(player, "pilot_rebel_navy_droid_04");
-        skill.grantSkill(player, "pilot_rebel_navy_master");
+        if (!qa.revokeAndGrantPilot(player, "Rebel Ships"))
+        {
+            sendSystemMessageTestingOnly(player, "The system was unable to grant the Rebel pilot profession required for space mining.");
+            return;
+        }
         attachScript(player, "wwallace.space_mining_test");
         obj_id objInventory = utils.getInventoryContainer(player);
         sendSystemMessageTestingOnly(player, "Granting a mining vessel...and launching you to spaaaace!");

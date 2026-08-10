@@ -307,17 +307,14 @@ public class qa_jtl_tools extends script.base_script
     };
     public int OnAttach(obj_id self) throws InterruptedException
     {
-        if (isGod(self))
-        {
-            if (getGodLevel(self) < 10)
-            {
-                detachScript(self, "test.qa_jtl_tools");
-                sendSystemMessage(self, "You do not have the appropriate access level to use this script.", null);
-            }
-        }
-        else if (!isGod(self))
+        if (!isPlayer(self) || !isGod(self) || getGodLevel(self) < 10)
         {
             detachScript(self, "test.qa_jtl_tools");
+            if (isPlayer(self))
+            {
+                sendSystemMessage(self, "You do not have the appropriate access level to use this script.", null);
+            }
+            return SCRIPT_CONTINUE;
         }
         return SCRIPT_CONTINUE;
     }
