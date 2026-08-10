@@ -185,12 +185,12 @@ public class ai_aggro extends script.base_script
                 }
                 if (doDistanceCheck)
                 {
-                    final float respectRadius = aiGetRespectRadius(self, target);
+                    final float aggroRadius = aiGetAggroRadius(self);
                     final float distanceToTarget = getDistance(self, target);
-                    if (distanceToTarget > respectRadius)
+                    if (distanceToTarget > aggroRadius)
                     {
-                        LOGC(aiLoggingEnabled(self), "debug_ai", "ai_aggro::getAggroStatus() self(" + self + ":" + getName(self) + ") target(" + target + ":" + getName(target) + ") OUT OF RESPECT RADIUS " + respectRadius);
-                        debugSpeakMsgc(aiLoggingEnabled(self), self, "AggroCheck(" + target + ") OUT OF RESPECT RADIUS " + respectRadius);
+                        LOGC(aiLoggingEnabled(self), "debug_ai", "ai_aggro::getAggroStatus() self(" + self + ":" + getName(self) + ") target(" + target + ":" + getName(target) + ") OUT OF AGGRO RADIUS " + aggroRadius);
+                        debugSpeakMsgc(aiLoggingEnabled(self), self, "AggroCheck(" + target + ") OUT OF AGGRO RADIUS " + aggroRadius);
                         result = AGGRO_STATUS_WAITING;
                         doLosCheck = false;
                     }
