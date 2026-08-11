@@ -2884,26 +2884,12 @@ public class combat extends script.base_script
     }
     public static void doCombatDebuffs(obj_id self) throws InterruptedException
     {
-        if (!utils.hasScriptVar(self, "fltNonCombatHealthRegen"))
-        {
-            float fltHealthRegen = getHealthRegenRate(self);
-            utils.setScriptVar(self, "fltNonCombatHealthRegen", fltHealthRegen);
-            setRegenRate(self, HEALTH, 0);
-        }
+        utils.removeScriptVar(self, "fltNonCombatHealthRegen");
     }
     public static boolean clearCombatDebuffs(obj_id self) throws InterruptedException
     {
-        if (getGameTime() > utils.getIntScriptVar(self, "incap.timeStamp"))
-        {
-            if (utils.hasScriptVar(self, "fltNonCombatHealthRegen"))
-            {
-                float fltHealthRegen = utils.getFloatScriptVar(self, "fltNonCombatHealthRegen");
-                setRegenRate(self, HEALTH, fltHealthRegen);
-                utils.removeScriptVar(self, "fltNonCombatHealthRegen");
-                return true;
-            }
-        }
-        return false;
+        utils.removeScriptVar(self, "fltNonCombatHealthRegen");
+        return getGameTime() > utils.getIntScriptVar(self, "incap.timeStamp");
     }
     public static boolean armPrecuFeignDeath(obj_id player)
         throws InterruptedException
