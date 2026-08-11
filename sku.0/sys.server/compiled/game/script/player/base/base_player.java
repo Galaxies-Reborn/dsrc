@@ -6525,30 +6525,9 @@ public class base_player extends script.base_script
         {
             idx = 0;
         }
-        obj_id player = sui.getPlayerId(params);
         int btn = sui.getIntButtonPressed(params);
-        if ((btn == sui.BP_CANCEL) || (idx == 0))
+        if ((btn == sui.BP_CANCEL) || (idx != 1))
         {
-            dictionary outparams = new dictionary();
-            outparams.put("player", self);
-            messageTo(tool, "continueSampleLoop", outparams, 0.0f, false);
-            return SCRIPT_CONTINUE;
-        }
-        else if (idx == 2)
-        {
-            if (!hasCompletedCollection(player, "sampling_pet_collection"))
-            {
-                modifyCollectionSlotValue(player, "col_pet_resource_sampling", 1);
-            }
-            int dieRoll = rand(1, 100);
-            if (dieRoll < 75)
-            {
-                utils.setScriptVar(player, "survey_event.gamble", 3);
-            }
-            else 
-            {
-                utils.setScriptVar(player, "survey_event.gamble", 4);
-            }
             dictionary outparams = new dictionary();
             outparams.put("player", self);
             messageTo(tool, "continueSampleLoop", outparams, 0.0f, false);
@@ -6601,31 +6580,18 @@ public class base_player extends script.base_script
         {
             idx = 0;
         }
-        obj_id player = sui.getPlayerId(params);
         int btn = sui.getIntButtonPressed(params);
-        if ((btn == sui.BP_CANCEL) || (idx == 0))
+        if ((btn == sui.BP_CANCEL) || (idx != 1))
         {
             dictionary outparams = new dictionary();
             outparams.put("player", self);
             messageTo(tool, "continueSampleLoop", outparams, 0.0f, false);
             return SCRIPT_CONTINUE;
         }
-        int action = getAttrib(player, ACTION);
-        int actioncost = 2000;
-        if (!drainAttributes(player, actioncost, 0))
+        // Publish 14.1 charges 300 Action for the optional recovery gamble.
+        if (!drainAttributes(self, resource.PRECU_GAMBLE_ACTION_COST, 0))
         {
-            sendSystemMessage(player, SID_GAMBLE_NO_ACTION);
-            dictionary outparams = new dictionary();
-            outparams.put("player", self);
-            messageTo(tool, "continueSampleLoop", outparams, 0.0f, false);
-            return SCRIPT_CONTINUE;
-        }
-        if (idx == 2)
-        {
-            String resource_class = getStringObjVar(tool, resource.VAR_SURVEY_CLASS);
-            String collectionName = "col_resource_" + resource_class + "_01";
-            modifyCollectionSlotValue(player, collectionName, 1);
-            utils.setScriptVar(player, "survey_event.gamble", 5);
+            sendSystemMessage(self, SID_GAMBLE_NO_ACTION);
             dictionary outparams = new dictionary();
             outparams.put("player", self);
             messageTo(tool, "continueSampleLoop", outparams, 0.0f, false);
@@ -6634,11 +6600,11 @@ public class base_player extends script.base_script
         int dieRoll = rand(1, 100);
         if (dieRoll < 75)
         {
-            utils.setScriptVar(player, "survey_event.gamble", 1);
+            utils.setScriptVar(self, "survey_event.gamble", 1);
         }
         else 
         {
-            utils.setScriptVar(player, "survey_event.gamble", 2);
+            utils.setScriptVar(self, "survey_event.gamble", 2);
         }
         dictionary outparams = new dictionary();
         outparams.put("player", self);

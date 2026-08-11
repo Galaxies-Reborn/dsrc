@@ -133,9 +133,6 @@ public class resource extends script.base_script
     public static final string_id SID_NODE_RECOVERY = new string_id(STF_SURVEY, "node_recovery");
     public static final string_id SID_GAMBLE_SUCCESS = new string_id(STF_SURVEY, "gamble_success");
     public static final string_id SID_GAMBLE_FAIL = new string_id(STF_SURVEY, "gamble_fail");
-    public static final string_id SID_PET_SEARCH_SUCCESS = new string_id(STF_SURVEY, "pet_search_success");
-    public static final string_id SID_PET_SEARCH_FAIL = new string_id(STF_SURVEY, "pet_search_fail");
-    public static final string_id SID_GAMBLE_RARE = new string_id(STF_SURVEY, "gamble_rare");
     public static final string_id SID_EFFECTS_OF_RADIATION_SICKNESS = new string_id(STF_SURVEY, "effects_of_radiation_sickness");
     public static final string_id SID_SUI_SURVEY_TOOL_PROPERTIES_TITLE = new string_id(STF_SURVEY, "sui_survey_tool_properties_title");
     public static final string_id SID_SUI_SURVEY_TOOL_PROPERTIES_HEADER = new string_id(STF_SURVEY, "sui_survey_tool_properties_header");
@@ -161,6 +158,7 @@ public class resource extends script.base_script
     public static final int SAMPLE_CONTINUE_LOOP = 1;
     public static final int SAMPLE_CONTINUE_LOOP_NOSAMPLE = 2;
     public static final int SAMPLE_PAUSE_LOOP_EVENT = 3;
+    public static final int PRECU_GAMBLE_ACTION_COST = 300;
     public static boolean isResourceDerivedFrom(String resource_type, String parent_class) throws InterruptedException
     {
         if ((resource_type.equals("")) || (parent_class.equals("")))
@@ -486,19 +484,6 @@ public class resource extends script.base_script
                 {
                     sendSystemMessage(user, SID_GAMBLE_FAIL);
                 }
-                else if (gamble == 3)
-                {
-                    sendSystemMessage(user, SID_PET_SEARCH_SUCCESS);
-                    amt *= 3;
-                }
-                else if (gamble == 4)
-                {
-                    sendSystemMessage(user, SID_PET_SEARCH_FAIL);
-                }
-                else if (gamble == 5)
-                {
-                    sendSystemMessage(user, SID_GAMBLE_RARE);
-                }
                 else if (nodecritloc != null)
                 {
                     sendSystemMessage(user, SID_NODE_RECOVERY);
@@ -524,58 +509,28 @@ public class resource extends script.base_script
                         else if (critRoll <= 75)
                         {
                             utils.setScriptVar(user, "survey_event.tool", tool);
-                            obj_id beastCheck = (beast_lib.getBeastOnPlayer(user));
-                            if (beastCheck != null)
+                            // Publish 14.1 offers only continue or investigate.
+                            String[] nodeOptions = new String[2];
+                            nodeOptions[0] = "@survey:cnode_1";
+                            nodeOptions[1] = "@survey:cnode_2";
+                            if (!sui.hasPid(user, PID_NAME))
                             {
-                                String[] nodeOptions = new String[3];
-                                nodeOptions[0] = "@survey:cnode_1";
-                                nodeOptions[1] = "@survey:cnode_2";
-                                nodeOptions[2] = "@survey:cnode_collection";
-                                if (!sui.hasPid(user, PID_NAME))
-                                {
-                                    int pid = sui.listbox(user, user, "@survey:cnode_d", sui.OK_CANCEL, "@survey:cnode_t", nodeOptions, "handleSurveyNodeChoice", true);
-                                    sui.setPid(user, pid, PID_NAME);
-                                }
-                            }
-                            else 
-                            {
-                                String[] nodeOptions = new String[2];
-                                nodeOptions[0] = "@survey:cnode_1";
-                                nodeOptions[1] = "@survey:cnode_2";
-                                if (!sui.hasPid(user, PID_NAME))
-                                {
-                                    int pid = sui.listbox(user, user, "@survey:cnode_d", sui.OK_CANCEL, "@survey:cnode_t", nodeOptions, "handleSurveyNodeChoice", true);
-                                    sui.setPid(user, pid, PID_NAME);
-                                }
+                                int pid = sui.listbox(user, user, "@survey:cnode_d", sui.OK_CANCEL, "@survey:cnode_t", nodeOptions, "handleSurveyNodeChoice", true);
+                                sui.setPid(user, pid, PID_NAME);
                             }
                             return SAMPLE_PAUSE_LOOP_EVENT;
                         }
-                        else 
+                        else
                         {
                             utils.setScriptVar(user, "survey_event.tool", tool);
-                            String collectionName = "col_resource_" + resource_class + "_01";
-                            if (!hasCompletedCollectionSlot(user, collectionName))
+                            // Publish 14.1 offers only continue or attempt recovery.
+                            String[] nodeOptions = new String[2];
+                            nodeOptions[0] = "@survey:gnode_1";
+                            nodeOptions[1] = "@survey:gnode_2";
+                            if (!sui.hasPid(user, PID_NAME))
                             {
-                                String[] nodeOptions = new String[3];
-                                nodeOptions[0] = "@survey:gnode_1";
-                                nodeOptions[1] = "@survey:gnode_2";
-                                nodeOptions[2] = "@survey:gnode_collection";
-                                if (!sui.hasPid(user, PID_NAME))
-                                {
-                                    int pid = sui.listbox(user, user, "@survey:gnode_d", sui.OK_CANCEL, "@survey:gnode_t", nodeOptions, "handleSurveyGambleChoice", true);
-                                    sui.setPid(user, pid, PID_NAME);
-                                }
-                            }
-                            else 
-                            {
-                                String[] nodeOptions = new String[2];
-                                nodeOptions[0] = "@survey:gnode_1";
-                                nodeOptions[1] = "@survey:gnode_2";
-                                if (!sui.hasPid(user, PID_NAME))
-                                {
-                                    int pid = sui.listbox(user, user, "@survey:gnode_d", sui.OK_CANCEL, "@survey:gnode_t", nodeOptions, "handleSurveyGambleChoice", true);
-                                    sui.setPid(user, pid, PID_NAME);
-                                }
+                                int pid = sui.listbox(user, user, "@survey:gnode_d", sui.OK_CANCEL, "@survey:gnode_t", nodeOptions, "handleSurveyGambleChoice", true);
+                                sui.setPid(user, pid, PID_NAME);
                             }
                             return SAMPLE_PAUSE_LOOP_EVENT;
                         }
