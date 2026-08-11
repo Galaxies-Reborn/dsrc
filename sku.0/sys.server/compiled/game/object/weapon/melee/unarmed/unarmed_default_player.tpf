@@ -19,7 +19,7 @@
 weaponType = WT_unarmed
 minDamageAmount = 10
 maxDamageAmount = 20
-attackSpeed = 0.5
+attackSpeed = 2.0
 audibleRange = 30
 woundChance = 7.0
 

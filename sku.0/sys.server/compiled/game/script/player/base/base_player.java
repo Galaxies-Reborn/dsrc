@@ -877,11 +877,6 @@ public class base_player extends script.base_script
                 attachScript(objWeapon, "systems.combat.combat_weapon");
                 messageTo(objWeapon, "weaponConversion", null, 2, false);
             }
-            float fltWeaponSpeed = getWeaponAttackSpeed(objWeapon);
-            if (fltWeaponSpeed != 0.50f)
-            {
-                setWeaponAttackSpeed(objWeapon, 0.50f);
-            }
         }
         expertise.cacheExpertiseProcReacList(self);
         proc.buildCurrentProcList(self);

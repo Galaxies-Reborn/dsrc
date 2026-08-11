@@ -8,6 +8,7 @@ sku.0/sys.server/compiled/game/script/library/bounty_hunter.java -text whitespac
 sku.0/sys.server/compiled/game/script/systems/missions/dynamic/mission_bounty.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/object/tangible/medicine/channelled_stimpack/*.tpf -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/object/tangible/medicine/instant_stimpack/*.tpf -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/object/weapon/melee/unarmed/unarmed_default_player.tpf -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/systems/crafting/weapon/component/crafting_weapon_component_attribute.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/systems/crafting/base_tool.java -text whitespace=cr-at-eol
 sku.0/sys.shared/compiled/game/datatables/commodity/advanced_search_attribute.tab -text whitespace=cr-at-eol
