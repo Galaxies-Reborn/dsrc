@@ -346,6 +346,30 @@ public class combat_actions extends script.systems.combat.combat_base
         }
         return SCRIPT_CONTINUE;
     }
+    public int stopBleeding(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!script.systems.jedi.jedi_base.performPrecuForceCureCommand(self, target, "stopBleeding"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int forceCureDisease(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!script.systems.jedi.jedi_base.performPrecuForceCureCommand(self, target, "forceCureDisease"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int forceCurePoison(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!script.systems.jedi.jedi_base.performPrecuForceCureCommand(self, target, "forceCurePoison"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
     public int bh_detect_camouflage_1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
         if (!stealth.canDetectCamouflage(self) || !combatStandardAction("bh_detect_camouflage_1", self, target, params, "", ""))

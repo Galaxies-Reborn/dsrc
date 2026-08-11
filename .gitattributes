@@ -4,6 +4,7 @@
 *.tpf text eol=lf
 sku.0/sys.server/compiled/game/datatables/jedi/jedi_actions.tab -text whitespace=-blank-at-eol,cr-at-eol
 sku.0/sys.server/compiled/game/datatables/jedi/jedi_combat_data.tab -text whitespace=-blank-at-eol,cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/jedi/jedi_base.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/library/bounty_hunter.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/systems/missions/dynamic/mission_bounty.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/object/tangible/medicine/channelled_stimpack/*.tpf -text whitespace=cr-at-eol

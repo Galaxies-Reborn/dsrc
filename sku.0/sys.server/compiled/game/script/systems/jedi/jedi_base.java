@@ -18,6 +18,11 @@ public class jedi_base extends script.base_script
     public static final int BLEEDING = 11;
     public static final int DISEASE = 12;
     public static final int POISON = 13;
+    public static final int PRECU_FORCE_CURE_RANGE = 32;
+    public static final int PRECU_FORCE_CURE_TOTAL_COST = 75;
+    public static final int PRECU_BLEED_HEAL_STRENGTH = 250;
+    public static final int PRECU_DISEASE_HEAL_STRENGTH = 200;
+    public static final int PRECU_POISON_HEAL_STRENGTH = 250;
     public static final String[] STAT_STRINGS = 
     {
         "health",
@@ -225,6 +230,246 @@ public class jedi_base extends script.base_script
         dctJediInfo.put("intMaxBattleFatigueHeal", intMaxBattleFatigueHeal);
         return dctJediInfo;
     }
+    public static boolean performPrecuForceCureCommand(obj_id player, obj_id target, String commandName) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player) || commandName == null)
+        {
+            return false;
+        }
+
+        int healType;
+        String dotType;
+        int healStrength;
+        String healCostColumn;
+        int expectedBaseCost;
+        int expectedHealCost;
+        switch (commandName)
+        {
+            case "stopBleeding":
+                healType = BLEEDING;
+                dotType = dot.DOT_BLEEDING;
+                healStrength = PRECU_BLEED_HEAL_STRENGTH;
+                healCostColumn = "intHealBleeding";
+                expectedBaseCost = 50;
+                expectedHealCost = 25;
+                break;
+            case "forceCureDisease":
+                healType = DISEASE;
+                dotType = dot.DOT_DISEASE;
+                healStrength = PRECU_DISEASE_HEAL_STRENGTH;
+                healCostColumn = "intHealDisease";
+                expectedBaseCost = 0;
+                expectedHealCost = 75;
+                break;
+            case "forceCurePoison":
+                healType = POISON;
+                dotType = dot.DOT_POISON;
+                healStrength = PRECU_POISON_HEAL_STRENGTH;
+                healCostColumn = "intHealPoison";
+                expectedBaseCost = 0;
+                expectedHealCost = 75;
+                break;
+            default:
+                return false;
+        }
+
+        dictionary actionData = dataTableGetRow(jedi.JEDI_ACTIONS_FILE, commandName);
+        if (actionData == null)
+        {
+            return false;
+        }
+        int baseForceCost = actionData.getInt("intJediPowerCost");
+        int healForceCost = actionData.getInt(healCostColumn);
+        int totalForceCost = baseForceCost + healForceCost;
+        if (baseForceCost != expectedBaseCost || healForceCost != expectedHealCost ||
+            totalForceCost != PRECU_FORCE_CURE_TOTAL_COST ||
+            actionData.getFloat("fltRange") != PRECU_FORCE_CURE_RANGE ||
+            actionData.getInt("intVisibilityValue") != 10 ||
+            actionData.getInt("intVisibilityRange") != PRECU_FORCE_CURE_RANGE ||
+            actionData.getFloat("actionCost") != 0.0f ||
+            actionData.getFloat("mindCost") != 0.0f)
+        {
+            return false;
+        }
+
+        if (isDead(player) || isIncapacitated(player))
+        {
+            return false;
+        }
+        if (getPosture(player) == POSTURE_PRONE ||
+            meditation.isMeditating(player) ||
+            getState(player, STATE_SWIMMING) == 1)
+        {
+            sendSystemMessage(player, new string_id("error_message", "wrong_state"));
+            return false;
+        }
+        if (pet_lib.isMounted(player))
+        {
+            sendSystemMessage(player, new string_id("error_message", "survey_on_mount"));
+            return false;
+        }
+        if (utils.getIntScriptVar(player, armor.SCRIPTVAR_ARMOR_COUNT) > 0)
+        {
+            sendSystemMessage(player, new string_id("jedi_spam", "not_with_armor"));
+            return false;
+        }
+        if (buff.isParalyzed(player))
+        {
+            return false;
+        }
+
+        int currentForce = getForcePower(player);
+        if (currentForce < baseForceCost)
+        {
+            sendSystemMessage(player, new string_id("jedi_spam", "no_force_power"));
+            return false;
+        }
+
+        obj_id healTarget = getPrecuForceCureTarget(player, target);
+        if (!isIdValid(healTarget))
+        {
+            return false;
+        }
+        if (healTarget != player)
+        {
+            if (getPosture(player) == POSTURE_KNOCKED_DOWN)
+            {
+                return false;
+            }
+            float distance = getDistance(player, healTarget);
+            if (distance < 0.0f || distance > PRECU_FORCE_CURE_RANGE)
+            {
+                sendSystemMessage(player, new string_id("cbt_spam", "out_of_range_single"));
+                return false;
+            }
+            if (!canSee(player, healTarget))
+            {
+                sendSystemMessage(player, new string_id("healing", "no_line_of_sight"));
+                return false;
+            }
+        }
+
+        String[] dotsBefore = dot.getAllDotsType(healTarget, dotType);
+        if (dotsBefore == null || dotsBefore.length == 0 || totalForceCost >= currentForce)
+        {
+            sendPrecuForceCureNoDamage(player, healTarget);
+            return false;
+        }
+
+        int amountReduced = dot.reduceDotTypeStrength(healTarget, dotType, healStrength);
+        if (amountReduced < 0)
+        {
+            sendPrecuForceCureNoDamage(player, healTarget);
+            return false;
+        }
+        String[] dotsAfter = dot.getAllDotsType(healTarget, dotType);
+        boolean fullyRemoved = dotsAfter == null || dotsAfter.length == 0;
+        sendPrecuForceCureResult(player, healTarget, healType, fullyRemoved);
+        playPrecuForceCureEffect(player, healTarget, actionData);
+        alterForcePower(player, -totalForceCost);
+        jedi.jediActionPerformed(
+            player,
+            actionData.getInt("intVisibilityValue"),
+            actionData.getInt("intVisibilityRange"));
+        if (healTarget != player)
+        {
+            pvpHelpPerformed(player, healTarget);
+        }
+        return true;
+    }
+
+    private static obj_id getPrecuForceCureTarget(obj_id player, obj_id target) throws InterruptedException
+    {
+        if (!isIdValid(target) || !exists(target) || target == player)
+        {
+            return player;
+        }
+
+        if (!isMob(target))
+        {
+            return player;
+        }
+
+        boolean creatureOrNpcPet = pet_lib.isCreaturePet(target) || pet_lib.isNpcPet(target);
+        if ((!isPlayer(target) && !creatureOrNpcPet) || isDead(target) ||
+            ai_lib.isDroid(target) || ai_lib.isAndroid(target) || ai_lib.isVehicle(target) ||
+            vehicle.isVehicle(target) || pet_lib.isVehiclePet(target) ||
+            utils.hasScriptVar(target, arena.VAR_I_AM_DUELING) ||
+            utils.hasScriptVar(target, "noBeneficialJediHelp"))
+        {
+            sendSystemMessage(player, new string_id("jedi_spam", "no_help_target"));
+            return null;
+        }
+        if (pvpCanAttack(player, target) || !pvpCanHelp(player, target) ||
+            !factions.pvpDoAllowedHelpCheck(player, target))
+        {
+            return player;
+        }
+        return target;
+    }
+
+    private static void sendPrecuForceCureNoDamage(obj_id player, obj_id target) throws InterruptedException
+    {
+        sendSystemMessage(
+            player,
+            new string_id(
+                "jedi_spam",
+                target == player ? "no_damage_heal_self" : "no_damage_heal_other"));
+    }
+
+    private static void sendPrecuForceCureResult(obj_id player, obj_id target, int healType, boolean fullyRemoved) throws InterruptedException
+    {
+        if (target == player)
+        {
+            return;
+        }
+        String condition;
+        if (healType == BLEEDING)
+        {
+            condition = "bleeding";
+        }
+        else if (healType == DISEASE)
+        {
+            condition = "disease";
+        }
+        else
+        {
+            condition = "poison";
+        }
+        string_id message = new string_id(
+            "jedi_spam",
+            (fullyRemoved ? "stop_" : "staunch_") + condition + "_other");
+        sendSystemMessageProse(player, prose.getPackage(message, target));
+    }
+
+    private static void playPrecuForceCureEffect(obj_id player, obj_id target, dictionary actionData) throws InterruptedException
+    {
+        if (target == player)
+        {
+            String clientEffect = actionData.getString("clientEffectFile");
+            if (clientEffect != null && !clientEffect.equals(""))
+            {
+                playClientEffectObj(player, clientEffect, player, "");
+            }
+            return;
+        }
+
+        String combatAnimation = actionData.getString("combatActionAnimation");
+        if (combatAnimation == null || combatAnimation.equals(""))
+        {
+            return;
+        }
+        defender_results[] defenderResults = new defender_results[1];
+        defenderResults[0] = new defender_results();
+        defenderResults[0].id = target;
+        defenderResults[0].endPosture = getPosture(target);
+        defenderResults[0].result = COMBAT_RESULT_HIT;
+        attacker_results attackerResults = new attacker_results();
+        attackerResults.id = player;
+        attackerResults.weapon = null;
+        doCombatResults(combatAnimation, attackerResults, defenderResults);
+    }
+
     public int performJediHealCommand(obj_id player, obj_id target, dictionary actionData) throws InterruptedException
     {
         final int BLEED_HEAL_STRENGTH = 250;
