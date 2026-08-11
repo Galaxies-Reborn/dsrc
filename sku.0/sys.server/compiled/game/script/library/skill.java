@@ -114,6 +114,7 @@ public class skill extends script.base_script
     {
         return skillName != null &&
             (skillName.startsWith("class_") ||
+                skillName.startsWith("bh_title") ||
                 skillName.equals("expertise") ||
                 skillName.startsWith("expertise_") ||
                 skillName.startsWith("internal_expertise_") ||
