@@ -810,49 +810,23 @@ public class smuggler extends script.base_script
     {
         if (questCrc == (1824374497) || questCrc == (1752998742))
         {
-            if (hasObjVar(self, "smuggler.bounty"))
-            {
-                int bounty = getIntObjVar(self, "smuggler.bounty");
-                int current_bounty = 0;
-                if (failed)
-                {
-                    bounty *= 0.95f;
-                }
-                if (hasObjVar(self, "bounty.amount"))
-                {
-                    current_bounty = getIntObjVar(self, "bounty.amount");
-                }
-                current_bounty -= bounty;
-                if (current_bounty <= 0)
-                {
-                    current_bounty = 0;
-                    removeObjVar(self, "bounty.amount");
-                    setJediBountyValue(self, 0);
-                }
-                else 
-                {
-                    setObjVar(self, "bounty.amount", current_bounty);
-                    setJediBountyValue(self, current_bounty);
-                }
-                if (current_bounty < 15000)
-                {
-                    obj_id[] hunters = getJediBounties(self);
-                    dictionary d = new dictionary();
-                    d.put("target", self);
-                    d.put("bounty", current_bounty);
-                    if (hunters != null && hunters.length > 0)
-                    {
-                        for (obj_id hunter : hunters) {
-                            messageTo(hunter, "handleBountyMissionIncomplete", d, 0.0f, true);
-                        }
-                    }
-                    removeAllJediBounties(self);
-                }
-                removeObjVar(self, "smuggler.bounty");
-                updateJediScriptData(self, "smuggler", 0);
-            }
+            clearSmugglerPlayerBounty(self);
         }
         return;
+    }
+    public static void clearSmugglerPlayerBounty(obj_id target) throws InterruptedException
+    {
+        if (!hasObjVar(target, "smuggler.bounty"))
+        {
+            return;
+        }
+        bounty_hunter.notifyPlayerBountyMissionsIncomplete(target,
+            bounty_hunter.PLAYER_BOUNTY_PROVENANCE_SMUGGLER);
+        removeObjVar(target, "smuggler.bounty");
+        updateJediScriptData(target, "smuggler", 0);
+        updateJediScriptData(target, "smugglerBountyValue", 0);
+        // Native rederives the canonical reward for an exact-title Jedi.
+        setJediBountyValue(target, 0);
     }
     public static void checkSmugglerMissionBountyFailure(obj_id player, obj_id killer) throws InterruptedException
     {
@@ -866,8 +840,7 @@ public class smuggler extends script.base_script
                     amount = 100;
                 }
                 groundquests.applyQuestPenalty(killer, "underworld", amount);
-                removeObjVar(player, "smuggler.bounty");
-                updateJediScriptData(player, "smuggler", 0);
+                clearSmugglerPlayerBounty(player);
                 messageTo(player, "handleSmugglerMissionFailureSignal", null, 1.0f, true);
             }
         }

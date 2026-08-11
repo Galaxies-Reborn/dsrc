@@ -940,6 +940,19 @@ public class combat_base extends script.base_script
             removeAttribOrSkillModModifier(self, PRECU_AIM_MODIFIER);
             setState(self, STATE_AIMING, false);
         }
+        dictionary jediCombatAction = dataTableGetRow(JEDI_COMBAT_DATATABLE, actionName);
+        if (jedi.hasPlayerBountyJediProvenance(self) &&
+            (jediCombatAction != null || jedi.isLightsaber(objWeapon)))
+        {
+            int visibility = jedi.COMBAT_VISIBILITY;
+            int range = jedi.VISIBILITY_WITNESS_RANGE;
+            if (jediCombatAction != null)
+            {
+                visibility = jediCombatAction.getInt("intVisibilityValue");
+                range = jediCombatAction.getInt("intVisibilityRange");
+            }
+            jedi.jediActionPerformed(self, visibility, range);
+        }
         return true;
     }
     public void startDelayedAttack(obj_id attacker, obj_id target, obj_id objWeapon, String attackName, combat_data actionData, boolean instantHit, boolean isAutoAimed) throws InterruptedException

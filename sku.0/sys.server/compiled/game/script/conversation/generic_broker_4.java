@@ -144,17 +144,11 @@ public class generic_broker_4 extends script.base_script
             money.requestPayment(player, npc, smuggler.TIER_4_GENERIC_PVP_FRONT_COST, "none", null, true);
             groundquests.requestGrantQuest(player, "quest/smuggle_pvp_4", true);
             int mission_bounty = 15000;
-            int current_bounty = 0;
             mission_bounty += rand(1, 2000);
-            if (hasObjVar(player, "bounty.amount"))
-            {
-                current_bounty = getIntObjVar(player, "bounty.amount");
-            }
-            current_bounty += mission_bounty;
-            setObjVar(player, "bounty.amount", current_bounty);
             setObjVar(player, "smuggler.bounty", mission_bounty);
-            setJediBountyValue(player, current_bounty);
             updateJediScriptData(player, "smuggler", 1);
+            updateJediScriptData(player, "smugglerBountyValue", mission_bounty);
+            setJediBountyValue(player, mission_bounty);
         }
     }
     public int generic_broker_4_tokenDI_frontMoney(obj_id player, obj_id npc) throws InterruptedException

@@ -828,31 +828,9 @@ public class pvp extends script.base_script
     }
     public static void incrementPlayerDeathBounty(obj_id killer, obj_id victim) throws InterruptedException
     {
-        if (!isIdValid(killer) || !isIdValid(victim))
-        {
-            return;
-        }
-        if (!isPlayer(killer) || !isPlayer(victim))
-        {
-            return;
-        }
-        if (hasKilledVictimRecently(killer, victim))
-        {
-            return;
-        }
-        registerPlayerKill(killer, victim);
-        int bounty = 0;
-        if (hasObjVar(killer, "bounty.amount"))
-        {
-            bounty = getIntObjVar(killer, "bounty.amount");
-        }
-        bounty += 1000;
-        setObjVar(killer, "bounty.amount", bounty);
-        if (bounty >= 10000)
-        {
-            setJediBountyValue(killer, bounty);
-        }
-        CustomerServiceLog("bounty", "A bounty of 1000 credits has been automatically put on %TU for killing %TT", killer, victim);
+        // Link-compatible no-op. PvP kill history remains owned by
+        // adjustPvPRatings/registerPlayerKill; ordinary PvP kills do not create
+        // Publish 14 Jedi bounties.
     }
     public static void battlefieldWarp(obj_id player, location loc) throws InterruptedException
     {

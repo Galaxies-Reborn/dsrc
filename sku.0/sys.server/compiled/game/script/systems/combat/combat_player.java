@@ -129,6 +129,10 @@ public class combat_player extends script.systems.combat.combat_base
                 string_id strSpam = new string_id("combat_effects", "no_proficiency");
                 sendSystemMessage(objTransferer, strSpam);
             }
+            if (utils.isEquipped(objItem) && jedi.isLightsaber(objItem))
+            {
+                jedi.jediActionPerformed(self, jedi.SABER_EQUIP_VISIBILITY, jedi.VISIBILITY_WITNESS_RANGE);
+            }
         }
         return SCRIPT_CONTINUE;
     }

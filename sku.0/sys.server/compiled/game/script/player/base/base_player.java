@@ -514,6 +514,13 @@ public class base_player extends script.base_script
     }
     public int OnSkillRevoked(obj_id self, String strSkill) throws InterruptedException
     {
+        if (strSkill.equals(jedi.JEDI_BOUNTY_TITLE_SKILL))
+        {
+            bounty_hunter.notifyPlayerBountyMissionsIncomplete(self,
+                bounty_hunter.PLAYER_BOUNTY_PROVENANCE_JEDI);
+            utils.setScriptVar(self, jedi.SCRIPTVAR_VISIBILITY_DECAY_SEQUENCE,
+                utils.getIntScriptVar(self, jedi.SCRIPTVAR_VISIBILITY_DECAY_SEQUENCE) + 1);
+        }
         if (strSkill.startsWith("force_sensitive_"))
         {
             jedi.recalculateForcePower(self);
@@ -885,24 +892,76 @@ public class base_player extends script.base_script
         trial.bumpSession(self, "displayDefensiveMods");
         messageTo(self, "setDisplayOnlyDefensiveMods", trial.getSessionDict(self, "displayDefensiveMods"), 5, false);
         missions.initializeDailyOnLogin(self);
-        int lastDecayTime = getIntObjVar(self, "bounty.decayTime");
-        int currentTime = getCalendarTime();
-        if (lastDecayTime == 0)
+        migrateLegacySmugglerBounty(self);
+        if (hasObjVar(self, "bounty.amount"))
         {
-            setObjVar(self, "bounty.decayTime", currentTime);
+            removeObjVar(self, "bounty.amount");
         }
-        else 
+        if (hasObjVar(self, "bounty.decayTime"))
         {
-            int bounty = getIntObjVar(self, "bounty.amount");
-            if (currentTime - lastDecayTime > 604800)
-            {
-                setObjVar(self, "bounty.decayTime", currentTime);
-                if (bounty < 10000)
-                {
-                    removeObjVar(self, "bounty.amount");
-                }
-            }
+            removeObjVar(self, "bounty.decayTime");
         }
+        if (hasObjVar(self, bounty_hunter.VAR_PLAYER_BOUNTY_LAST_KILL_TIME))
+        {
+            bounty_hunter.syncPlayerBountyKillBuffer(self);
+        }
+        startJediVisibilityDecay(self);
+        return SCRIPT_CONTINUE;
+    }
+    public void migrateLegacySmugglerBounty(obj_id self) throws InterruptedException
+    {
+        int smugglerBounty = getIntObjVar(self, "smuggler.bounty");
+        boolean tierFourActive = groundquests.isQuestActive(self, "quest/smuggle_pvp_4");
+        boolean tierFiveActive = groundquests.isQuestActive(self, "quest/smuggle_pvp_5");
+        if (!tierFourActive && !tierFiveActive)
+        {
+            smugglerBounty = 0;
+        }
+        if (smugglerBounty <= 0 && (tierFourActive || tierFiveActive) &&
+            hasObjVar(self, "bounty.amount"))
+        {
+            int legacyBounty = getIntObjVar(self, "bounty.amount");
+            int questMaximum = tierFiveActive ? 22000 : 17000;
+            smugglerBounty = Math.min(questMaximum, Math.max(0, legacyBounty));
+        }
+        if (smugglerBounty > 0)
+        {
+            setObjVar(self, "smuggler.bounty", smugglerBounty);
+            updateJediScriptData(self, "smuggler", 1);
+            updateJediScriptData(self, "smugglerBountyValue", smugglerBounty);
+            setJediBountyValue(self, smugglerBounty);
+        }
+        else if (hasObjVar(self, "smuggler.bounty"))
+        {
+            removeObjVar(self, "smuggler.bounty");
+            updateJediScriptData(self, "smuggler", 0);
+            updateJediScriptData(self, "smugglerBountyValue", 0);
+            setJediBountyValue(self, 0);
+        }
+    }
+    public void startJediVisibilityDecay(obj_id self) throws InterruptedException
+    {
+        jedi.decayJediVisibility(self);
+        if (!jedi.hasPlayerBountyJediProvenance(self))
+        {
+            return;
+        }
+        int sequence = utils.getIntScriptVar(self, jedi.SCRIPTVAR_VISIBILITY_DECAY_SEQUENCE) + 1;
+        utils.setScriptVar(self, jedi.SCRIPTVAR_VISIBILITY_DECAY_SEQUENCE, sequence);
+        dictionary params = new dictionary();
+        params.put("sequence", sequence);
+        messageTo(self, "handleJediVisibilityDecay", params, jedi.VISIBILITY_DECAY_TICK_SECONDS, false);
+    }
+    public int handleJediVisibilityDecay(obj_id self, dictionary params) throws InterruptedException
+    {
+        int sequence = params.getInt("sequence");
+        if (sequence != utils.getIntScriptVar(self, jedi.SCRIPTVAR_VISIBILITY_DECAY_SEQUENCE) ||
+            !jedi.hasPlayerBountyJediProvenance(self))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        jedi.decayJediVisibility(self);
+        messageTo(self, "handleJediVisibilityDecay", params, jedi.VISIBILITY_DECAY_TICK_SECONDS, false);
         return SCRIPT_CONTINUE;
     }
     public int handleRetireWarning(obj_id self, dictionary params) throws InterruptedException
@@ -1735,6 +1794,8 @@ public class base_player extends script.base_script
                 }
                 if (!foundMatch) {
                     CustomerServiceLog("bounty_inconsistency", self + " (" + getName(self) + ") has a bounty for " + bounty + " (" + getPlayerName(bounty) + ") but doesn't have a corresponding bounty misssion");
+                    bounty_hunter.recordPlayerBountyMissionCooldown(obj_id.NULL_ID, self, bounty);
+                    bounty_hunter.clearPlayerBountyPersonalEnemyFlags(self, bounty);
                     removeJediBounty(bounty, self);
                 }
             }
@@ -8170,6 +8231,10 @@ public class base_player extends script.base_script
         {
             return SCRIPT_OVERRIDE;
         }
+        if (skillName.equals(jedi.JEDI_BOUNTY_TITLE_SKILL))
+        {
+            startJediVisibilityDecay(self);
+        }
         recomputeCommandSeries(self);
         beast_lib.retirePostNgeBeastMasterPlayerState(self);
         incubator.retirePostNgeBeastMasterCreationPlayerState(self);
@@ -12778,89 +12843,32 @@ public class base_player extends script.base_script
     }
     public int handleSetBounty(obj_id self, dictionary params) throws InterruptedException
     {
-        int bp = sui.getIntButtonPressed(params);
-        if (bp == sui.BP_CANCEL)
-        {
-            return SCRIPT_CONTINUE;
-        }
-        if (!utils.hasScriptVar(self, "setbounty.killer"))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        obj_id killer = utils.getObjIdScriptVar(self, "setbounty.killer");
+        // Retained only for queued legacy SUI callbacks.
         utils.removeScriptVar(self, "setbounty.killer");
-        int amount = utils.stringToInt(sui.getInputBoxText(params));
-        if (amount < 0)
-        {
-            sendSystemMessage(self, new string_id("bounty_hunter", "setbounty_invalid_number"));
-            bounty_hunter.showSetBountySUI(self, killer);
-            return SCRIPT_CONTINUE;
-        }
-        if (amount > bounty_hunter.MAX_BOUNTY_SET)
-        {
-            sendSystemMessage(self, new string_id("bounty_hunter", "setbounty_cap"));
-            amount = bounty_hunter.MAX_BOUNTY_SET;
-        }
-        if (amount < bounty_hunter.MIN_BOUNTY_SET)
-        {
-            sendSystemMessage(self, new string_id("bounty_hunter", "setbounty_too_little"));
-            bounty_hunter.showSetBountySUI(self, killer);
-            return SCRIPT_CONTINUE;
-        }
-        if (hasObjVar(killer, "bounty.amount"))
-        {
-            int bounty = getIntObjVar(killer, "bounty.amount");
-            if (bounty >= bounty_hunter.MAX_BOUNTY)
-            {
-                sendSystemMessage(self, new string_id("bounty_hunter", "max_bounty"));
-                return SCRIPT_CONTINUE;
-            }
-            else if ((bounty + amount) > bounty_hunter.MAX_BOUNTY)
-            {
-                amount = (bounty + amount) - bounty_hunter.MAX_BOUNTY;
-            }
-        }
-        int total = getTotalMoney(self);
-        if (amount > total)
-        {
-            sendSystemMessage(self, new string_id("bounty_hunter", "setbounty_too_much"));
-            bounty_hunter.showSetBountySUI(self, killer);
-            return SCRIPT_CONTINUE;
-        }
-        dictionary d = new dictionary();
-        d.put("killer", killer);
-        d.put("amt", amount);
-        money.pay(self, money.ACCT_BOUNTY, amount, "handleSetBountyTransaction", d, true);
         return SCRIPT_CONTINUE;
     }
     public int handleSetBountyTransaction(obj_id self, dictionary params) throws InterruptedException
     {
-        int code = money.getReturnCode(params);
-        if (code == money.RET_FAIL)
-        {
-            return SCRIPT_CONTINUE;
-        }
-        obj_id killer = params.getObjId("killer");
-        int amount = params.getInt("amt");
-        int bounty = 0;
-        if (hasObjVar(killer, "bounty.amount"))
-        {
-            bounty = getIntObjVar(killer, "bounty.amount");
-        }
-        bounty += amount;
-        if (bounty >= 10000)
-        {
-            setJediBountyValue(killer, bounty);
-        }
-        setObjVar(killer, "bounty.amount", bounty);
-        CustomerServiceLog("bounty", "%TU has taken a bounty of " + amount + " credits out on %TT", self, killer);
+        // Link-compatible no-op for callbacks queued before funded bounties
+        // were retired.
         return SCRIPT_CONTINUE;
     }
     public int handleBountyMissionIncomplete(obj_id self, dictionary params) throws InterruptedException
     {
         obj_id target = params.getObjId("target");
-        removeJediBounty(target, self);
         obj_id mission = bounty_hunter.getBountyMission(self, target);
+        int provenance = params.getInt(bounty_hunter.VAR_PLAYER_BOUNTY_PROVENANCE);
+        if (provenance != 0 && (!isIdValid(mission) ||
+            !hasObjVar(mission, bounty_hunter.VAR_PLAYER_BOUNTY_PROVENANCE) ||
+            getIntObjVar(mission, bounty_hunter.VAR_PLAYER_BOUNTY_PROVENANCE) != provenance))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        if (!isIdValid(mission))
+        {
+            bounty_hunter.clearPlayerBountyPersonalEnemyFlags(self, target);
+        }
+        removeJediBounty(target, self);
         if (isIdValid(mission))
         {
             sendSystemMessage(self, new string_id("bounty_hunter", "bounty_incomplete"));

@@ -277,6 +277,7 @@ public class player_force_rank extends script.base_script
                 String rank_skill = force_rank.getForceRankSkill(force_rank.getForceRank(self), force_rank.getCouncilAffiliation(self));
                 int new_rank = force_rank.getForceRank(self);
                 updateJediScriptData(self, "bountyTrackingData.forceRank", new_rank);
+                setJediBountyValue(self, 0);
                 string_id rank_name = new string_id(force_rank.STF_FILE, "rank" + new_rank);
                 prose_package pp = prose.getPackage(new string_id(force_rank.STF_FILE, "rank_gained"), rank_name, 0);
                 sendSystemMessageProse(self, pp);
@@ -301,6 +302,7 @@ public class player_force_rank extends script.base_script
                 force_rank.removeForceRankSkills(self, new_rank);
                 setObjVar(self, force_rank.VAR_RANK, new_rank);
                 updateJediScriptData(self, "bountyTrackingData.forceRank", new_rank);
+                setJediBountyValue(self, 0);
                 obj_id enclave = force_rank.getEnclave(self);
                 if (isIdValid(enclave))
                 {
@@ -1675,6 +1677,7 @@ public class player_force_rank extends script.base_script
             setObjVar(self, force_rank.VAR_RANK, player_rank);
         }
         force_rank.resyncForceRankSkills(self);
+        setJediBountyValue(self, 0);
         int council = force_rank.getCouncilAffiliation(self);
         if (council == force_rank.LIGHT_COUNCIL)
         {

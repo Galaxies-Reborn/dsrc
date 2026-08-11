@@ -1,6 +1,7 @@
 package script.systems.missions.dynamic;
 
 import script.dictionary;
+import script.library.bounty_hunter;
 import script.library.locations;
 import script.library.missions;
 import script.library.utils;
@@ -103,7 +104,7 @@ public class mission_bounty extends script.systems.missions.base.mission_dynamic
             dctParams.put("objKiller", getMissionHolder(self));
             messageTo(objTarget, "addJediListener", dctParams, 0, true);
             dictionary d = new dictionary();
-            d.put("gametime", getGameTime());
+            d.put("gameTime", getGameTime());
             messageTo(objTarget, "handleUpdateBountyMissionTime", d, 0.0f, true);
         }
         setObjVar(self, "intState", STATE_BOUNTY_INFORMANT);
@@ -189,6 +190,16 @@ public class mission_bounty extends script.systems.missions.base.mission_dynamic
     }
     public int OnEndMission(obj_id self, dictionary params) throws InterruptedException
     {
+        if (hasObjVar(self, bounty_hunter.VAR_PLAYER_BOUNTY_ASSIGNMENT_ACCEPTED) &&
+            hasObjVar(self, bounty_hunter.VAR_PLAYER_BOUNTY_PROVENANCE) &&
+            hasObjVar(self, "objTarget"))
+        {
+            obj_id missionHolder = getMissionHolder(self);
+            obj_id target = getObjIdObjVar(self, "objTarget");
+            bounty_hunter.recordPlayerBountyMissionCooldown(self, missionHolder, target);
+            bounty_hunter.clearPlayerBountyPersonalEnemyFlags(missionHolder, target);
+            removeJediBounty(target, missionHolder);
+        }
         cleanupObjects(self);
         debugServerConsoleMsg(self, "Ending mission");
         cleanupLocationTargets(self);

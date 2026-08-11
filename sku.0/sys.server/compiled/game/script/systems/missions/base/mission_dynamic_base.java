@@ -754,7 +754,19 @@ public class mission_dynamic_base extends script.systems.missions.base.mission_b
         {
             return null;
         }
-        dictionary dctJediInfo = requestJedi(IGNORE_JEDI_STAT, 15000, IGNORE_JEDI_STAT, IGNORE_JEDI_STAT, IGNORE_JEDI_STAT, -3);
+        dictionary dctJediInfo;
+        if (flag == missions.BOUNTY_FLAG_SMUGGLER)
+        {
+            dctJediInfo = requestJedi(IGNORE_JEDI_STAT, IGNORE_JEDI_STAT,
+                IGNORE_JEDI_STAT, IGNORE_JEDI_STAT, IGNORE_JEDI_STAT, -5,
+                IGNORE_JEDI_STAT);
+        }
+        else
+        {
+            dctJediInfo = requestJedi(jedi.BOUNTY_VISIBILITY_THRESHHOLD,
+                IGNORE_JEDI_STAT, IGNORE_JEDI_STAT, IGNORE_JEDI_STAT,
+                IGNORE_JEDI_STAT, -5, bounty_hunter.PLAYER_BOUNTY_JEDI_STATE_MASK);
+        }
         if (dctJediInfo == null)
         {
             LIVE_LOG("bh_jedi_mission", "mission_dynamic_base.createJediBountyMission: No PvP target found (null)");
@@ -777,10 +789,37 @@ public class mission_dynamic_base extends script.systems.missions.base.mission_b
         location bountyHunterLocation = getLocation(bountyHunterId);
         location[] jediLocation = dctJediInfo.getLocationArray("location");
         int[] smugglerFlags = dctJediInfo.getIntArray("smuggler");
+        int[] canonicalBountyValues = dctJediInfo.getIntArray("bountyValue");
+        int[] smugglerBountyValues = dctJediInfo.getIntArray("smugglerBountyValue");
+        int[] jediVisibility = dctJediInfo.getIntArray("visibility");
+        int[] jediState = dctJediInfo.getIntArray("state");
+        int[] killBufferUntil = dctJediInfo.getIntArray(bounty_hunter.DATA_PLAYER_BOUNTY_KILL_BUFFER_UNTIL);
         if (objJedis == null || objJedis.length == 0)
         {
             LIVE_LOG("bh_jedi_mission", "mission_dynamic_base.createJediBountyMission: No PvP bounty found (no data)");
             return null;
+        }
+        int[] selectedBountyValues = new int[objJedis.length];
+        for (int i = 0; i < objJedis.length; ++i)
+        {
+            if (flag == missions.BOUNTY_FLAG_SMUGGLER)
+            {
+                if (smugglerBountyValues != null && smugglerBountyValues.length > i &&
+                    smugglerBountyValues[i] > 0)
+                {
+                    selectedBountyValues[i] = smugglerBountyValues[i];
+                }
+                else if (canonicalBountyValues != null && canonicalBountyValues.length > i &&
+                    (jediState == null || jediState.length <= i ||
+                        (jediState[i] & bounty_hunter.PLAYER_BOUNTY_JEDI_STATE_MASK) == 0))
+                {
+                    selectedBountyValues[i] = canonicalBountyValues[i];
+                }
+            }
+            else if (canonicalBountyValues != null && canonicalBountyValues.length > i)
+            {
+                selectedBountyValues[i] = canonicalBountyValues[i];
+            }
         }
         LIVE_LOG("bh_jedi_mission", "mission_dynamic_base.createJediBountyMission: found " + objJedis.length + " qualifying PvP Bounties");
         int intRoll = -1;
@@ -807,7 +846,36 @@ public class mission_dynamic_base extends script.systems.missions.base.mission_b
                 jediList = utils.removeElementAt(jediList, intRoll);
                 jediIdx = utils.removeElementAt(jediIdx, intRoll);
             }
-            else if (flag == missions.BOUNTY_FLAG_SMUGGLER && ((smugglerFlags == null) || (smugglerFlags.length < ((Integer) (jediIdx.get(intRoll)) + 1)) || (smugglerFlags[(Integer) (jediIdx.get(intRoll))] != 1)))
+            else if (bounty_hunter.hasPlayerBountyAccountConflict(bountyHunterId,
+                (obj_id)jediList.get(intRoll), false))
+            {
+                jediList = utils.removeElementAt(jediList, intRoll);
+                jediIdx = utils.removeElementAt(jediIdx, intRoll);
+            }
+            else if (flag == missions.BOUNTY_FLAG_SMUGGLER &&
+                ((smugglerFlags == null) ||
+                    (smugglerFlags.length < ((Integer)(jediIdx.get(intRoll)) + 1)) ||
+                    (smugglerFlags[(Integer)jediIdx.get(intRoll)] != 1) ||
+                    selectedBountyValues[(Integer)jediIdx.get(intRoll)] <= 0))
+            {
+                jediList = utils.removeElementAt(jediList, intRoll);
+                jediIdx = utils.removeElementAt(jediIdx, intRoll);
+            }
+            else if (flag != missions.BOUNTY_FLAG_SMUGGLER &&
+                (jediVisibility == null || jediVisibility.length <= (Integer)jediIdx.get(intRoll) ||
+                    jediVisibility[(Integer)jediIdx.get(intRoll)] < jedi.BOUNTY_VISIBILITY_THRESHHOLD ||
+                    jediState == null || jediState.length <= (Integer)jediIdx.get(intRoll) ||
+                    (jediState[(Integer)jediIdx.get(intRoll)] & bounty_hunter.PLAYER_BOUNTY_JEDI_STATE_MASK) == 0 ||
+                    selectedBountyValues[(Integer)jediIdx.get(intRoll)] <= 0))
+            {
+                jediList = utils.removeElementAt(jediList, intRoll);
+                jediIdx = utils.removeElementAt(jediIdx, intRoll);
+            }
+            else if ((killBufferUntil != null &&
+                    killBufferUntil.length > (Integer)jediIdx.get(intRoll) &&
+                    killBufferUntil[(Integer)jediIdx.get(intRoll)] > getCalendarTime()) ||
+                bounty_hunter.isPlayerBountyMissionCooldownActive(bountyHunterId,
+                    (obj_id)jediList.get(intRoll)))
             {
                 jediList = utils.removeElementAt(jediList, intRoll);
                 jediIdx = utils.removeElementAt(jediIdx, intRoll);
@@ -825,8 +893,7 @@ public class mission_dynamic_base extends script.systems.missions.base.mission_b
                 intRoll = (Integer) jediIdx.get(intRoll);
                 String[] strNames = dctJediInfo.getStringArray("name");
                 strTargetName = strNames[intRoll];
-                int[] bountyValue = dctJediInfo.getIntArray("bountyValue");
-                jediBountyValue = bountyValue[intRoll];
+                jediBountyValue = selectedBountyValues[intRoll];
                 objTarget = objJedis[intRoll];
                 if (!isIdValid(objTarget))
                 {
@@ -837,7 +904,7 @@ public class mission_dynamic_base extends script.systems.missions.base.mission_b
         }
         if (jediList.size() <= 0 && SamePlanetCounter > 0)
         {
-            int randomChoice = rand(0, SamePlanetObjId.length - 1);
+            int randomChoice = rand(0, SamePlanetCounter - 1);
             obj_id farthestBounty = null;
             int farthestBountyIndex = -1;
             for (int i = 0; i <= 100; ++i)
@@ -852,7 +919,7 @@ public class mission_dynamic_base extends script.systems.missions.base.mission_b
                         break;
                     }
                 }
-                randomChoice = rand(0, SamePlanetObjId.length - 1);
+                randomChoice = rand(0, SamePlanetCounter - 1);
                 if (i >= 100)
                 {
                     farthestBounty = SamePlanetObjId[randomChoice];
@@ -862,8 +929,7 @@ public class mission_dynamic_base extends script.systems.missions.base.mission_b
             intRoll = farthestBountyIndex;
             String[] strNames = dctJediInfo.getStringArray("name");
             strTargetName = strNames[intRoll];
-            int[] bountyValue = dctJediInfo.getIntArray("bountyValue");
-            jediBountyValue = bountyValue[intRoll];
+            jediBountyValue = selectedBountyValues[intRoll];
             objTarget = objJedis[intRoll];
             if (!isIdValid(objTarget))
             {
@@ -880,6 +946,10 @@ public class mission_dynamic_base extends script.systems.missions.base.mission_b
         setObjVar(objMissionData, "intInformantLevel", 3);
         setObjVar(objMissionData, "intBountyDifficulty", 3);
         setObjVar(objMissionData, "strTargetName", strTargetName);
+        setObjVar(objMissionData, bounty_hunter.VAR_PLAYER_BOUNTY_PROVENANCE,
+            flag == missions.BOUNTY_FLAG_SMUGGLER ?
+                bounty_hunter.PLAYER_BOUNTY_PROVENANCE_SMUGGLER :
+                bounty_hunter.PLAYER_BOUNTY_PROVENANCE_JEDI);
         String strGoal = "object/tangible/mission/mission_bounty_jedi_target.iff";
         setMissionTargetAppearance(objMissionData, strGoal);
         if (flag == missions.BOUNTY_FLAG_SMUGGLER)

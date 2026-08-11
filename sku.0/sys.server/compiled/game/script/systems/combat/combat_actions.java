@@ -7403,7 +7403,8 @@ public class combat_actions extends script.systems.combat.combat_base
         {
             return SCRIPT_OVERRIDE;
         }
-        int amount = getIntObjVar(infoTarget, "bounty.amount");
+        dictionary bountyData = requestJedi(infoTarget);
+        int amount = bountyData == null ? 0 : bountyData.getInt("bountyValue");
         if (amount <= 0)
         {
             prose_package pp = new prose_package();

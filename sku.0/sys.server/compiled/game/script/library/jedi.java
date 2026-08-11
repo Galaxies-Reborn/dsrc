@@ -25,8 +25,19 @@ public class jedi extends script.base_script
     public static final int JEDI_NEUTRAL = 0;
     public static final int JEDI_LIGHT_SIDE = 1;
     public static final int JEDI_DARK_SIDE = 2;
-    public static final int BOUNTY_VISIBILITY_THRESHHOLD = 2000;
-    public static final int NO_BOUNTY_VISIBLITY_THRESHOLD = 500;
+    public static final String JEDI_BOUNTY_TITLE_SKILL = "force_title_jedi_rank_02";
+    public static final int MAX_JEDI_VISIBILITY = 8000;
+    public static final int BOUNTY_VISIBILITY_THRESHHOLD = 1500;
+    public static final int NO_BOUNTY_VISIBLITY_THRESHOLD = 0;
+    public static final int VISIBILITY_DECAY_TIME_SECONDS = 21 * 24 * 60 * 60;
+    public static final int VISIBILITY_DECAY_TICK_SECONDS = 60 * 60;
+    public static final int VISIBILITY_WITNESS_RANGE = 32;
+    public static final int NONCOMBAT_VISIBILITY = 10;
+    public static final int COMBAT_VISIBILITY = 25;
+    public static final int SABER_EQUIP_VISIBILITY = 10;
+    public static final String VAR_VISIBILITY_LAST_UPDATE = "jedi.visibilityLastUpdate";
+    public static final String VAR_VISIBILITY_DECAY_REMAINDER = "jedi.visibilityDecayRemainder";
+    public static final String SCRIPTVAR_VISIBILITY_DECAY_SEQUENCE = "jedi.visibilityDecaySequence";
     public static final int JEDI_DEATH_DECAY_TIME = 7 * 24 * 60 * 60;
     public static final int BOUNTY_SPLOIT_INTERVAL = 60 * 24 * 3;
     public static final int MAX_JEDI_DEATHS_PADAWAN = 3;
@@ -81,87 +92,132 @@ public class jedi extends script.base_script
     public static final string_id SID_WILL_ATTEMPT_NEXT_TIME = new string_id("jedi_spam", "will_attempt_next_time");
     public static final string_id SID_ALL_PEARLS_RESTORED = new string_id("jedi_spam", "all_pearls_restored");
     public static final string_id SID_LOST_JEDI_XP = new string_id("jedi_spam", "lost_jedi_xp");
-    public static final String[] JEDI_ENEMY_FACTIONS = 
-    {
-        factions.FACTION_IMPERIAL
-    };
-    public static final String[] JEDI_NEUTRAL_FACTIONS = 
-    {
-        factions.FACTION_NEUTRAL
-    };
     public static final float ENEMY_VISIBILITY_MULTIPLIER = 1.0f;
     public static final float NEUTRAL_VISIBILITY_MULTIPLIER = 0.5f;
+    public static final float FRIENDLY_VISIBILITY_MULTIPLIER = 0.25f;
+    public static boolean hasPlayerBountyJediProvenance(obj_id player) throws InterruptedException
+    {
+        return isIdValid(player) && isPlayer(player) && hasSkill(player, JEDI_BOUNTY_TITLE_SKILL);
+    }
+    private static boolean isValidVisibilityWitness(obj_id player, obj_id witness) throws InterruptedException
+    {
+        return isIdValid(witness) && witness != player && !isDead(witness) &&
+            !isIncapacitated(witness) && !isGod(witness) && canSee(witness, player);
+    }
+    private static float getVisibilityWitnessMultiplier(obj_id player, obj_id witness) throws InterruptedException
+    {
+        int playerFaction = pvpGetAlignedFaction(player);
+        int witnessFaction = pvpGetAlignedFaction(witness);
+        int imperialFaction = getStringCrc(factions.FACTION_IMPERIAL);
+        int rebelFaction = getStringCrc(factions.FACTION_REBEL);
+        if (playerFaction == 0 || (witnessFaction != imperialFaction && witnessFaction != rebelFaction))
+        {
+            return NEUTRAL_VISIBILITY_MULTIPLIER;
+        }
+        if (playerFaction == witnessFaction)
+        {
+            return FRIENDLY_VISIBILITY_MULTIPLIER;
+        }
+        return ENEMY_VISIBILITY_MULTIPLIER;
+    }
     public static int getJediActionVisibilityValue(obj_id objPlayer, int intActionVisibility, int intActionRange) throws InterruptedException
     {
-        float fltActionRange = intActionRange;
-        float fltBaseVisibility = intActionVisibility;
-        float fltActualVisibility = 0;
-        obj_id[] objNPCs = getNPCsInRange(objPlayer, fltActionRange);
-        obj_id[] objPlayers = getPlayerCreaturesInRange(objPlayer, fltActionRange);
-        if ((objNPCs != null) && (objNPCs.length > 0))
+        if (!hasPlayerBountyJediProvenance(objPlayer) || intActionVisibility <= 0 || intActionRange <= 0)
         {
-            for (obj_id objNPC : objNPCs) {
-                if (ai_lib.isNpc(objNPC) || ai_lib.isAndroid(objNPC)) {
-                    String strFaction = factions.getFaction(objNPC);
-                    if (strFaction != null) {
-                        int intIndex = utils.getElementPositionInArray(JEDI_ENEMY_FACTIONS, strFaction);
-                        if (intIndex > -1) {
-                            float fltTempVisibility = fltBaseVisibility * ENEMY_VISIBILITY_MULTIPLIER;
-                            if (fltTempVisibility > fltActualVisibility) {
-                                fltActualVisibility = fltTempVisibility;
-                            }
-                        } else {
-                            float fltTempVisibility = fltBaseVisibility * NEUTRAL_VISIBILITY_MULTIPLIER;
-                            if (fltTempVisibility > fltActualVisibility) {
-                                fltActualVisibility = fltTempVisibility;
-                            }
-                        }
-                    } else {
-                        float fltTempVisibility = fltBaseVisibility * 0.25f;
-                        if (fltTempVisibility > fltActualVisibility) {
-                            fltActualVisibility = fltTempVisibility;
-                        }
-                    }
+            return 0;
+        }
+        float witnessMultiplier = 0.0f;
+        obj_id[] objNPCs = getNPCsInRange(objPlayer, intActionRange);
+        if (objNPCs != null)
+        {
+            for (obj_id objNPC : objNPCs)
+            {
+                if (isValidVisibilityWitness(objPlayer, objNPC))
+                {
+                    witnessMultiplier += getVisibilityWitnessMultiplier(objPlayer, objNPC);
                 }
             }
         }
-        else 
-        {
-        }
+        obj_id[] objPlayers = getPlayerCreaturesInRange(objPlayer, intActionRange);
         if (objPlayers != null && objPlayers.length > 0)
         {
-            for (obj_id objPlayer1 : objPlayers) {
-                if ((!group.inSameGroup(objPlayer, objPlayer1)) && (objPlayer1 != objPlayer) && (!isGod(objPlayer1))) {
-                    if (factions.pvpDoAllowedAttackCheck(objPlayer, objPlayer1)) {
-                        fltActualVisibility += (fltBaseVisibility * ENEMY_VISIBILITY_MULTIPLIER);
-                    } else if (factions.isNeutral(objPlayer1)) {
-                        fltActualVisibility += (fltBaseVisibility * NEUTRAL_VISIBILITY_MULTIPLIER);
-                    } else {
-                        fltActualVisibility += (fltBaseVisibility * 0.25f);
-                    }
+            for (obj_id objWitness : objPlayers)
+            {
+                if (isValidVisibilityWitness(objPlayer, objWitness))
+                {
+                    witnessMultiplier += getVisibilityWitnessMultiplier(objPlayer, objWitness);
                 }
             }
         }
-        else 
-        {
-        }
-        int intActualVisibility = (int)fltActualVisibility;
-        return intActualVisibility;
+        return (int)(intActionVisibility * witnessMultiplier);
     }
     public static void jediActionPerformed(obj_id objPlayer, int intActionVisibility, int intActionRadius) throws InterruptedException
     {
-        return;
+        if (!hasPlayerBountyJediProvenance(objPlayer))
+        {
+            return;
+        }
+        decayJediVisibility(objPlayer);
+        int visibilityIncrease = getJediActionVisibilityValue(objPlayer, intActionVisibility, intActionRadius);
+        if (visibilityIncrease <= 0)
+        {
+            return;
+        }
+        int currentVisibility = getJediVisibility(objPlayer);
+        if (currentVisibility < 0)
+        {
+            currentVisibility = 0;
+        }
+        setJediVisibility(objPlayer, Math.min(MAX_JEDI_VISIBILITY, currentVisibility + visibilityIncrease));
     }
     public static void setJediVisibilityTimeStamp(obj_id self) throws InterruptedException
     {
-        final int JEDI_BOUNTY_TIMER = 60 * 60 * 24 * 7;
-        int intTimeStamp = getGameTime();
-        intTimeStamp = intTimeStamp + JEDI_BOUNTY_TIMER;
-        setObjVar(self, "jedi.intVisibilityTime", intTimeStamp);
+        setObjVar(self, VAR_VISIBILITY_LAST_UPDATE, getCalendarTime());
+    }
+    public static void decayJediVisibility(obj_id player) throws InterruptedException
+    {
+        if (!hasPlayerBountyJediProvenance(player))
+        {
+            return;
+        }
+        int now = getCalendarTime();
+        int lastUpdate = getIntObjVar(player, VAR_VISIBILITY_LAST_UPDATE);
+        if (lastUpdate <= 0 || lastUpdate > now)
+        {
+            setObjVar(player, VAR_VISIBILITY_LAST_UPDATE, now);
+            return;
+        }
+        int elapsed = now - lastUpdate;
+        if (elapsed <= 0)
+        {
+            return;
+        }
+        float remainder = getFloatObjVar(player, VAR_VISIBILITY_DECAY_REMAINDER);
+        float exactDecay = remainder + ((float)elapsed * MAX_JEDI_VISIBILITY / VISIBILITY_DECAY_TIME_SECONDS);
+        int decay = (int)exactDecay;
+        setObjVar(player, VAR_VISIBILITY_LAST_UPDATE, now);
+        int currentVisibility = getJediVisibility(player);
+        if (currentVisibility <= 0)
+        {
+            removeObjVar(player, VAR_VISIBILITY_DECAY_REMAINDER);
+            return;
+        }
+        if (decay > 0)
+        {
+            setJediVisibility(player, Math.max(0, currentVisibility - decay));
+        }
+        if (decay >= currentVisibility)
+        {
+            removeObjVar(player, VAR_VISIBILITY_DECAY_REMAINDER);
+        }
+        else
+        {
+            setObjVar(player, VAR_VISIBILITY_DECAY_REMAINDER, exactDecay - decay);
+        }
     }
     public static void checkJediPenalties(obj_id objPlayer, int intVisiblity) throws InterruptedException
     {
-        if (intVisiblity < NO_BOUNTY_VISIBLITY_THRESHOLD)
+        if (intVisiblity <= NO_BOUNTY_VISIBLITY_THRESHOLD)
         {
             clearJediBounties(objPlayer);
         }

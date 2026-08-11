@@ -52,6 +52,21 @@ public class bounty_hunter extends script.base_script
     public static final int MAX_BOUNTY = 2000000000;
     public static final int MAX_BOUNTY_SET = 1000000;
     public static final int MIN_BOUNTY_SET = 20000;
+    public static final int MAX_ACTIVE_PLAYER_BOUNTIES = 5;
+    public static final String VAR_PLAYER_BOUNTY_PROVENANCE = "bounty.precuProvenance";
+    public static final int PLAYER_BOUNTY_PROVENANCE_JEDI = 1;
+    public static final int PLAYER_BOUNTY_PROVENANCE_SMUGGLER = 2;
+    public static final int PLAYER_BOUNTY_JEDI_STATE_MASK = JEDI_STATE_JEDI |
+        JEDI_STATE_FORCE_RANKED_LIGHT | JEDI_STATE_FORCE_RANKED_DARK;
+    public static final int MIN_JEDI_BOUNTY_XP_LOSS = 50000;
+    public static final int MAX_JEDI_BOUNTY_XP_LOSS = 500000;
+    public static final int PLAYER_BOUNTY_KILL_BUFFER_SECONDS = 30 * 60;
+    public static final int PLAYER_BOUNTY_MISSION_COOLDOWN_SECONDS = 24 * 60 * 60;
+    public static final String VAR_PLAYER_BOUNTY_LAST_KILL_TIME = "bounty.precuLastKillTime";
+    public static final String DATA_PLAYER_BOUNTY_KILL_BUFFER_UNTIL = "precuBountyKillBufferUntil";
+    public static final String VAR_PLAYER_BOUNTY_MISSION_COOLDOWN_ROOT = "bounty.precuMissionCooldown.";
+    public static final String VAR_PLAYER_BOUNTY_COOLDOWN_RECORDED = "bounty.precuCooldownRecorded";
+    public static final String VAR_PLAYER_BOUNTY_ASSIGNMENT_ACCEPTED = "bounty.precuAssignmentAccepted";
     public static final String CREATURE_TABLE = "datatables/mob/creatures.iff";
     public static final String BOUNTY_CHECK_TABLE = "datatables/missions/bounty/bounty_check.iff";
     public static final String STF = "bounty_hunter";
@@ -345,45 +360,42 @@ public class bounty_hunter extends script.base_script
     }
     public static void showSetBountySUI(obj_id player, obj_id killer) throws InterruptedException
     {
-        String prompt = "@bounty_hunter:setbounty_prompt1 ";
-        prompt += getName(killer) + "? ";
-        prompt += "@bounty_hunter:setbounty_prompt2";
-        prompt += " " + getTotalMoney(player);
-        String title = "@bounty_hunter:setbounty_title";
-        int pid = createSUIPage(sui.SUI_INPUTBOX, player, player, "handleSetBounty");
-        sui.setAutosaveProperty(pid, false);
-        sui.setSizeProperty(pid, 300, 325);
-        sui.setLocationProperty(pid, 400, 200);
-        setSUIProperty(pid, sui.INPUTBOX_PROMPT, sui.PROP_TEXT, prompt);
-        setSUIProperty(pid, sui.INPUTBOX_TITLE, sui.PROP_TEXT, title);
-        sui.inputboxButtonSetup(pid, sui.OK_CANCEL);
-        sui.inputboxStyleSetup(pid, sui.INPUT_NORMAL);
-        setSUIProperty(pid, sui.INPUTBOX_INPUT, "MaxLength", "20");
-        setSUIProperty(pid, sui.INPUTBOX_COMBO, "MaxLength", "20");
-        subscribeToSUIProperty(pid, sui.INPUTBOX_INPUT, sui.PROP_LOCALTEXT);
-        subscribeToSUIProperty(pid, sui.INPUTBOX_COMBO, sui.PROP_SELECTEDTEXT);
-        showSUIPage(pid);
-        utils.setScriptVar(player, "setbounty.killer", killer);
+        // Retained for queued legacy calls. Publish 14 player bounties are
+        // visibility-driven and never funded through a death SUI.
+        utils.removeScriptVar(player, "setbounty.killer");
     }
     public static void endBountySession(obj_id hunter, obj_id target, boolean hunterWon) throws InterruptedException
     {
     }
     public static void winBountyMission(obj_id hunter, obj_id target) throws InterruptedException
     {
-        int bountyValue = 0;
-        if (hasObjVar(target, "bounty.amount"))
+        obj_id mission = getBountyMission(hunter, target);
+        if (!isIdValid(mission) || !hasObjVar(mission, VAR_PLAYER_BOUNTY_PROVENANCE))
         {
-            bountyValue = getIntObjVar(target, "bounty.amount");
+            failInvalidPlayerBountyMission(hunter, target, mission);
+            return;
         }
+        int provenance = getIntObjVar(mission, VAR_PLAYER_BOUNTY_PROVENANCE);
+        int bountyValue = getMissionReward(mission);
+        if (bountyValue <= 0 ||
+            (provenance != PLAYER_BOUNTY_PROVENANCE_JEDI &&
+                provenance != PLAYER_BOUNTY_PROVENANCE_SMUGGLER))
+        {
+            failInvalidPlayerBountyMission(hunter, target, mission);
+            return;
+        }
+        if (!hasCurrentPlayerBountyProvenance(target, provenance))
+        {
+            notifyPlayerBountyMissionsIncomplete(target, provenance);
+            failInvalidPlayerBountyMission(hunter, target, mission);
+            return;
+        }
+        recordPlayerBountyKill(target);
+        xp.grant(hunter, xp.BOUNTYHUNTER, bountyValue / 50);
         dictionary d = new dictionary();
         d.put("target", target);
         d.put("bounty", bountyValue);
         money.systemPayout(money.ACCT_BOUNTY, hunter, bountyValue, "handleAwardedPlayerBounty", d);
-        float factionAdj = getBountyFactionPointAdjustment(hunter, target);
-        if (factionAdj != 0.0f)
-        {
-            factions.addFactionStanding(hunter, factions.getFactionNameByHashCode(pvpGetAlignedFaction(hunter)), factionAdj);
-        }
         prose_package pp = new prose_package();
         pp = prose.setStringId(pp, new string_id("bounty_hunter", "bounty_success_hunter"));
         pp = prose.setTT(pp, target);
@@ -401,14 +413,59 @@ public class bounty_hunter extends script.base_script
                 }
             }
         }
-        obj_id mission = getBountyMission(hunter);
+        if (provenance == PLAYER_BOUNTY_PROVENANCE_JEDI)
+        {
+            setJediVisibility(target, 0);
+            if (target.isLoaded())
+            {
+                removeObjVar(target, jedi.VAR_VISIBILITY_DECAY_REMAINDER);
+                jedi.setJediVisibilityTimeStamp(target);
+            }
+            applyJediBountyExperienceLoss(target, bountyValue);
+        }
+        else
+        {
+            removeObjVar(target, "smuggler.bounty");
+            updateJediScriptData(target, "smuggler", 0);
+            updateJediScriptData(target, "smugglerBountyValue", 0);
+            setJediBountyValue(target, 0);
+        }
+        endMission(mission);
+        removeAllJediBounties(target);
+    }
+    public static void failInvalidPlayerBountyMission(obj_id hunter, obj_id target, obj_id mission) throws InterruptedException
+    {
+        boolean acceptedAssignment = isBeingHuntedByBountyHunter(target, hunter) ||
+            (isIdValid(mission) && hasObjVar(mission, VAR_PLAYER_BOUNTY_ASSIGNMENT_ACCEPTED));
+        if (acceptedAssignment)
+        {
+            recordPlayerBountyMissionCooldown(mission, hunter, target);
+        }
+        clearPlayerBountyPersonalEnemyFlags(hunter, target);
+        removeJediBounty(target, hunter);
         if (isIdValid(mission))
         {
+            sendSystemMessage(hunter, new string_id("bounty_hunter", "bounty_incomplete"));
             endMission(mission);
         }
-        removeObjVar(target, "bounty");
-        setJediBountyValue(target, 0);
-        removeAllJediBounties(target);
+    }
+    public static void applyJediBountyExperienceLoss(obj_id target, int bountyValue) throws InterruptedException
+    {
+        long calculatedLoss = (long)bountyValue * 2L;
+        int xpLoss = (int)Math.min(MAX_JEDI_BOUNTY_XP_LOSS,
+            Math.max(MIN_JEDI_BOUNTY_XP_LOSS, calculatedLoss));
+        int currentXp = getExperiencePoints(target, xp.JEDI_GENERAL);
+        int actualLoss = Math.min(xpLoss, Math.max(0, currentXp));
+        if (actualLoss <= 0)
+        {
+            return;
+        }
+        grantExperiencePoints(target, xp.JEDI_GENERAL, -actualLoss);
+        prose_package pp = new prose_package();
+        pp = prose.setStringId(pp, xp.PROSE_REVOKE_XP);
+        pp = prose.setDI(pp, actualLoss);
+        pp = prose.setTO(pp, new string_id("exp_n", xp.JEDI_GENERAL));
+        sendSystemMessageProse(target, pp);
     }
     public static void loseBountyMission(obj_id hunter, obj_id target) throws InterruptedException
     {
@@ -419,18 +476,70 @@ public class bounty_hunter extends script.base_script
         pp = prose.setStringId(pp, new string_id("bounty_hunter", "bounty_failed_target"));
         pp = prose.setTT(pp, hunter);
         sendSystemMessageProse(target, pp);
-        obj_id mission = getBountyMission(hunter);
+        obj_id mission = getBountyMission(hunter, target);
         if (isIdValid(mission))
         {
             endMission(mission);
         }
-        removeJediBounty(target, hunter);
-        // remove TEFs that were set when players engaged in battle
-        if(isPlayer(hunter) && isPlayer(target)) {
-            if (pvpHasPersonalEnemyFlag(target, hunter)) pvpRemovePersonalEnemyFlags(target, hunter);
-            if (pvpHasPersonalEnemyFlag(hunter, target)) pvpRemovePersonalEnemyFlags(hunter, target);
+        else
+        {
+            clearPlayerBountyPersonalEnemyFlags(hunter, target);
         }
+        removeJediBounty(target, hunter);
         CustomerServiceLog("bounty", "%TU was defeated by %TT and failed to collect the bounty on %PT head", hunter, target);
+    }
+    public static void clearPlayerBountyPersonalEnemyFlags(obj_id hunter, obj_id target) throws InterruptedException
+    {
+        if (!isIdValid(hunter) || !isIdValid(target) || !isPlayer(hunter) || !isPlayer(target))
+        {
+            return;
+        }
+        if (pvpHasPersonalEnemyFlag(target, hunter))
+        {
+            pvpRemovePersonalEnemyFlags(target, hunter);
+        }
+        if (pvpHasPersonalEnemyFlag(hunter, target))
+        {
+            pvpRemovePersonalEnemyFlags(hunter, target);
+        }
+    }
+    public static boolean hasCurrentPlayerBountyProvenance(obj_id target, int provenance) throws InterruptedException
+    {
+        if (!isIdValid(target) || !isPlayer(target))
+        {
+            return false;
+        }
+        if (provenance == PLAYER_BOUNTY_PROVENANCE_JEDI)
+        {
+            return jedi.hasPlayerBountyJediProvenance(target);
+        }
+        if (provenance == PLAYER_BOUNTY_PROVENANCE_SMUGGLER)
+        {
+            return getIntObjVar(target, "smuggler.bounty") > 0;
+        }
+        return false;
+    }
+    public static void notifyPlayerBountyMissionsIncomplete(obj_id target, int provenance) throws InterruptedException
+    {
+        if (!isIdValid(target) ||
+            (provenance != PLAYER_BOUNTY_PROVENANCE_JEDI &&
+                provenance != PLAYER_BOUNTY_PROVENANCE_SMUGGLER))
+        {
+            return;
+        }
+        obj_id[] hunters = getJediBounties(target);
+        if (hunters == null || hunters.length == 0)
+        {
+            return;
+        }
+        dictionary params = new dictionary();
+        params.put("target", target);
+        params.put("bounty", 0);
+        params.put(VAR_PLAYER_BOUNTY_PROVENANCE, provenance);
+        for (obj_id hunter : hunters)
+        {
+            messageTo(hunter, "handleBountyMissionIncomplete", params, 0.0f, true);
+        }
     }
     public static obj_id getBountyMission(obj_id player) throws InterruptedException
     {
@@ -470,37 +579,153 @@ public class bounty_hunter extends script.base_script
         {
             return false;
         }
-        int numHunters = hunters.length;
-        String Smax = getConfigSetting("GameServer", "maxJediBounties");
-        int maxHunters = 3;
-        if (Smax != null && !Smax.equals(""))
+        return hunters.length >= MAX_ACTIVE_PLAYER_BOUNTIES;
+    }
+    public static void syncPlayerBountyKillBuffer(obj_id target) throws InterruptedException
+    {
+        int lastKillTime = getIntObjVar(target, VAR_PLAYER_BOUNTY_LAST_KILL_TIME);
+        int bufferUntil = lastKillTime > 0 ? lastKillTime + PLAYER_BOUNTY_KILL_BUFFER_SECONDS : 0;
+        if (bufferUntil <= getCalendarTime())
         {
-            Integer Imax = Integer.getInteger(Smax);
-            if (Imax != null)
+            bufferUntil = 0;
+            if (hasObjVar(target, VAR_PLAYER_BOUNTY_LAST_KILL_TIME))
             {
-                maxHunters = Imax;
+                removeObjVar(target, VAR_PLAYER_BOUNTY_LAST_KILL_TIME);
             }
         }
-        if (numHunters >= maxHunters)
+        updateJediScriptData(target, DATA_PLAYER_BOUNTY_KILL_BUFFER_UNTIL, bufferUntil);
+    }
+    public static void recordPlayerBountyKill(obj_id target) throws InterruptedException
+    {
+        int now = getCalendarTime();
+        setObjVar(target, VAR_PLAYER_BOUNTY_LAST_KILL_TIME, now);
+        updateJediScriptData(target, DATA_PLAYER_BOUNTY_KILL_BUFFER_UNTIL,
+            now + PLAYER_BOUNTY_KILL_BUFFER_SECONDS);
+    }
+    public static boolean isPlayerBountyKillBufferActive(dictionary targetData) throws InterruptedException
+    {
+        return targetData != null &&
+            targetData.getInt(DATA_PLAYER_BOUNTY_KILL_BUFFER_UNTIL) > getCalendarTime();
+    }
+    public static String getPlayerBountyMissionCooldownKey(obj_id target) throws InterruptedException
+    {
+        return VAR_PLAYER_BOUNTY_MISSION_COOLDOWN_ROOT + target;
+    }
+    public static boolean isPlayerBountyMissionCooldownActive(obj_id hunter, obj_id target) throws InterruptedException
+    {
+        String key = getPlayerBountyMissionCooldownKey(target);
+        int cooldownUntil = getIntObjVar(hunter, key);
+        if (cooldownUntil <= getCalendarTime())
+        {
+            if (hasObjVar(hunter, key))
+            {
+                removeObjVar(hunter, key);
+            }
+            return false;
+        }
+        return true;
+    }
+    public static void recordPlayerBountyMissionCooldown(obj_id mission, obj_id hunter, obj_id target) throws InterruptedException
+    {
+        if (!isIdValid(hunter) || !isIdValid(target))
+        {
+            return;
+        }
+        if (isIdValid(mission))
+        {
+            if (hasObjVar(mission, VAR_PLAYER_BOUNTY_COOLDOWN_RECORDED))
+            {
+                return;
+            }
+            setObjVar(mission, VAR_PLAYER_BOUNTY_COOLDOWN_RECORDED, 1);
+        }
+        setObjVar(hunter, getPlayerBountyMissionCooldownKey(target),
+            getCalendarTime() + PLAYER_BOUNTY_MISSION_COOLDOWN_SECONDS);
+    }
+    public static boolean hasPlayerBountyAccountConflict(obj_id hunter, obj_id target,
+        boolean allowExistingAssignment) throws InterruptedException
+    {
+        int hunterStationId = getPlayerStationId(hunter);
+        if (hunterStationId != 0 && hunterStationId == getPlayerStationId(target))
         {
             return true;
         }
+        obj_id[] existingHunters = getJediBounties(target);
+        if (existingHunters == null)
+        {
+            return false;
+        }
+        for (obj_id existingHunter : existingHunters)
+        {
+            if (existingHunter == hunter)
+            {
+                if (!allowExistingAssignment)
+                {
+                    return true;
+                }
+                continue;
+            }
+            if (hunterStationId != 0 && hunterStationId == getPlayerStationId(existingHunter))
+            {
+                return true;
+            }
+        }
         return false;
     }
-    public static float getBountyFactionPointAdjustment(obj_id hunter, obj_id target) throws InterruptedException
+    public static boolean isValidPlayerBountyTarget(obj_id hunter, obj_id target, int provenance) throws InterruptedException
     {
-        float pvpRating = pvp.getCurrentPvPRating(target);
-        float points = 0.0f;
-        if ((pvpGetAlignedFaction(hunter) != 0) && (pvpGetAlignedFaction(hunter) == pvpGetAlignedFaction(target)))
+        return isValidPlayerBountyTarget(hunter, target, provenance, false);
+    }
+    public static boolean isValidPlayerBountyTarget(obj_id hunter, obj_id target, int provenance,
+        boolean allowExistingAssignment) throws InterruptedException
+    {
+        if (!isIdValid(hunter) || !isPlayer(hunter) || !hasSkill(hunter, "combat_bountyhunter_investigation_03") ||
+            !isIdValid(target) || hunter == target)
         {
-            points = pvpRating / 4.0f;
-            points *= -1.0f;
+            return false;
         }
-        else if (factions.pvpAreFactionsOpposed(pvpGetAlignedFaction(hunter), pvpGetAlignedFaction(target)))
+        if (hasPlayerBountyAccountConflict(hunter, target, allowExistingAssignment))
         {
-            points = pvpRating / 10.0f;
+            return false;
         }
-        return points;
+        dictionary targetData = requestJedi(target);
+        if (targetData == null || !targetData.getBoolean("online"))
+        {
+            return false;
+        }
+        if (isPlayerBountyKillBufferActive(targetData) ||
+            isPlayerBountyMissionCooldownActive(hunter, target))
+        {
+            return false;
+        }
+        if (hasMaxBountyMissionsOnTarget(target) &&
+            (!allowExistingAssignment || !isBeingHuntedByBountyHunter(target, hunter)))
+        {
+            return false;
+        }
+        if (provenance == PLAYER_BOUNTY_PROVENANCE_JEDI)
+        {
+            int state = targetData.getInt("state");
+            if (targetData.getInt("visibility") < jedi.BOUNTY_VISIBILITY_THRESHHOLD ||
+                (state & PLAYER_BOUNTY_JEDI_STATE_MASK) == 0)
+            {
+                return false;
+            }
+            return !target.isLoaded() || jedi.hasPlayerBountyJediProvenance(target);
+        }
+        if (provenance == PLAYER_BOUNTY_PROVENANCE_SMUGGLER)
+        {
+            int smugglerReward = targetData.getInt("smugglerBountyValue");
+            if (smugglerReward <= 0 &&
+                (targetData.getInt("state") & PLAYER_BOUNTY_JEDI_STATE_MASK) == 0)
+            {
+                smugglerReward = targetData.getInt("bountyValue");
+            }
+            return targetData.getInt("smuggler") == 1 &&
+                smugglerReward > 0 &&
+                (!target.isLoaded() || getIntObjVar(target, "smuggler.bounty") > 0);
+        }
+        return false;
     }
     public static void probeDroidTrackTarget(obj_id player, obj_id droid) throws InterruptedException
     {

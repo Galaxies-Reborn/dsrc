@@ -881,14 +881,6 @@ public class pclib extends script.base_script
             {
                 bounty_hunter.loseBountyMission(player, killer);
             }
-            else 
-            {
-                if ((getTotalMoney(player) >= bounty_hunter.MIN_BOUNTY_SET) && (!dueling) && (skill.getPrecuEncounterDifficulty(killer) >= 20))
-                {
-                    bounty_hunter.showSetBountySUI(player, killer);
-                }
-            }
-            pvp.incrementPlayerDeathBounty(killer, player);
             if (isPlayer(player))
             {
                 guildUpdateGuildWarKillTracking(killer, player);

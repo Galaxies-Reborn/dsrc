@@ -442,8 +442,14 @@ public class mission_player extends script.systems.missions.base.mission_player_
                     debugServerConsoleMsg(objMission, "Mission Object is " + objMission.toString());
                     if (strMissionType.equals("bounty"))
                     {
-                        if (hasObjVar(objMessageSource, "objTarget"))
+                        if (hasObjVar(objMessageSource, "objTarget") &&
+                            hasObjVar(objMessageSource, bounty_hunter.VAR_PLAYER_BOUNTY_PROVENANCE))
                         {
+                            if (utils.hasScriptVar(self, "bounty_hunter.jedi_mission"))
+                            {
+                                sendSystemMessage(self, new string_id("mission/mission_generic", "jedi_mission_start_failed"));
+                                return SCRIPT_CONTINUE;
+                            }
                             obj_id target = getObjIdObjVar(objMessageSource, "objTarget");
                             LOG("LOG_CHANNEL", "target ->" + target + " self ->" + self);
                             if (!isIdValid(target))
@@ -451,8 +457,20 @@ public class mission_player extends script.systems.missions.base.mission_player_
                                 LOG("LOG_CHANNEL", "mission_player.bondTransferSuccess: Invalid target obj_id");
                                 return SCRIPT_CONTINUE;
                             }
+                            int provenance = getIntObjVar(objMessageSource,
+                                bounty_hunter.VAR_PLAYER_BOUNTY_PROVENANCE);
+                            if (!bounty_hunter.isValidPlayerBountyTarget(self, target, provenance))
+                            {
+                                sendSystemMessage(self, new string_id("mission/mission_generic", "jedi_mission_start_failed"));
+                                return SCRIPT_CONTINUE;
+                            }
                             utils.setScriptVar(self, "bounty_hunter.jedi_mission", objMessageSource);
-                            requestJediBounty(target, self, "msgJediMissionStartConfirmed", "msgJediMissionStartFailed");
+                            if (!requestJediBounty(target, self, "msgJediMissionStartConfirmed", "msgJediMissionStartFailed"))
+                            {
+                                utils.removeScriptVar(self, "bounty_hunter.jedi_mission");
+                                sendSystemMessage(self, new string_id("mission/mission_generic", "jedi_mission_start_failed"));
+                                return SCRIPT_CONTINUE;
+                            }
                             debugServerConsoleMsg(self, "Waiting for requestJediBountyResult for hunter " + self);
                             return SCRIPT_CONTINUE;
                         }
@@ -482,24 +500,50 @@ public class mission_player extends script.systems.missions.base.mission_player_
     public int msgJediMissionStartConfirmed(obj_id self, dictionary params) throws InterruptedException
     {
         debugServerConsoleMsg(self, "requestJediBountyResult for hunter " + self + " success");
+        obj_id confirmedTarget = params.getObjId("jedi");
         if (utils.hasScriptVar(self, "bounty_hunter.jedi_mission"))
         {
             obj_id jedi_mission = utils.getObjIdScriptVar(self, "bounty_hunter.jedi_mission");
             utils.removeScriptVar(self, "bounty_hunter.jedi_mission");
             if (isIdValid(jedi_mission))
             {
+                obj_id target = getObjIdObjVar(jedi_mission, "objTarget");
+                int provenance = getIntObjVar(jedi_mission,
+                    bounty_hunter.VAR_PLAYER_BOUNTY_PROVENANCE);
+                if (confirmedTarget != target ||
+                    !bounty_hunter.isValidPlayerBountyTarget(self, target, provenance, true))
+                {
+                    obj_id cleanupTarget = isIdValid(confirmedTarget) ? confirmedTarget : target;
+                    bounty_hunter.recordPlayerBountyMissionCooldown(
+                        confirmedTarget == target ? jedi_mission : obj_id.NULL_ID,
+                        self, cleanupTarget);
+                    bounty_hunter.clearPlayerBountyPersonalEnemyFlags(self, cleanupTarget);
+                    removeJediBounty(cleanupTarget, self);
+                    sendSystemMessage(self, new string_id("mission/mission_generic", "jedi_mission_start_failed"));
+                    return SCRIPT_CONTINUE;
+                }
                 obj_id bounty_mission = getBountyMission(self);
                 if (isIdValid(bounty_mission))
                 {
+                    bounty_hunter.recordPlayerBountyMissionCooldown(jedi_mission, self, target);
+                    bounty_hunter.clearPlayerBountyPersonalEnemyFlags(self, target);
+                    removeJediBounty(target, self);
                     string_id message = new string_id("mission/mission_generic", "too_many_missions");
                     sendSystemMessage(self, message);
                 }
                 else 
                 {
+                    setObjVar(jedi_mission, bounty_hunter.VAR_PLAYER_BOUNTY_ASSIGNMENT_ACCEPTED, 1);
                     startMission(jedi_mission);
                 }
                 return SCRIPT_CONTINUE;
             }
+        }
+        if (isIdValid(confirmedTarget))
+        {
+            bounty_hunter.recordPlayerBountyMissionCooldown(obj_id.NULL_ID, self, confirmedTarget);
+            bounty_hunter.clearPlayerBountyPersonalEnemyFlags(self, confirmedTarget);
+            removeJediBounty(confirmedTarget, self);
         }
         string_id message = new string_id("mission/mission_generic", "jedi_mission_start_failed");
         sendSystemMessage(self, message);

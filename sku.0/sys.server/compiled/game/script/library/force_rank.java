@@ -143,6 +143,7 @@ public class force_rank extends script.base_script
         }
         pvpMakeDeclared(player);
         grantSkill(player, rank_skill);
+        setJediBountyValue(player, 0);
         prose_package pp = prose.getPackage(new string_id(STF_FILE, "council_joined"), getCouncilName(council), 0);
         sendSystemMessageProse(player, pp);
         if (!hasScript(player, SCRIPT_FRS_PLAYER))
@@ -177,6 +178,7 @@ public class force_rank extends script.base_script
             force_rank.removeForceRankSkills(player, -1);
         }
         removeObjVar(player, "force_rank");
+        setJediBountyValue(player, 0);
         if (hasScript(player, SCRIPT_FRS_PLAYER))
         {
             detachScript(player, SCRIPT_FRS_PLAYER);
