@@ -48,6 +48,14 @@ public class jedi extends script.base_script
     public static final float PRECU_FORCE_DEFENSE_1_FRS_BUFF_MODIFIER = 0.25f;
     public static final float PRECU_FORCE_DEFENSE_2_FRS_BUFF_MODIFIER = 0.35f;
     public static final float PRECU_FORCE_DEFENSE_FRS_DRAIN_MODIFIER = -0.003f;
+    public static final String PRECU_FORCE_SPEED_1_BUFF = "forceSpeed";
+    public static final String PRECU_FORCE_SPEED_2_BUFF = "forceSpeed_1";
+    public static final int PRECU_FORCE_SPEED_1_COST = 150;
+    public static final int PRECU_FORCE_SPEED_2_COST = 300;
+    public static final float PRECU_FORCE_SPEED_1_DURATION = 180.0f;
+    public static final float PRECU_FORCE_SPEED_2_DURATION = 360.0f;
+    public static final int PRECU_FORCE_SPEED_1_STRENGTH = 15;
+    public static final int PRECU_FORCE_SPEED_2_STRENGTH = 25;
     public static final String VAR_VISIBILITY_LAST_UPDATE = "jedi.visibilityLastUpdate";
     public static final String VAR_VISIBILITY_DECAY_REMAINDER = "jedi.visibilityDecayRemainder";
     public static final String SCRIPTVAR_VISIBILITY_DECAY_SEQUENCE = "jedi.visibilityDecaySequence";
@@ -766,6 +774,107 @@ public class jedi extends script.base_script
         playClientEffectObj(
             player,
             forceArmor ? "clienteffect/pl_force_armor_self.cef" : "clienteffect/pl_force_shield_self.cef",
+            player,
+            "");
+        return true;
+    }
+    public static boolean performPrecuForceSpeedCommand(obj_id player, String commandName) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player) || commandName == null)
+        {
+            return false;
+        }
+
+        boolean rankTwo = commandName.equals("forceSpeed2");
+        if (!rankTwo && !commandName.equals("forceSpeed1"))
+        {
+            return false;
+        }
+
+        String buffName = rankTwo ? PRECU_FORCE_SPEED_2_BUFF : PRECU_FORCE_SPEED_1_BUFF;
+
+        // Core3 toggles the same rank off before medical, armor, stacking, or Force checks.
+        if (buff.hasBuff(player, buffName))
+        {
+            buff.removeBuff(player, buffName);
+            sendSystemMessage(
+                player,
+                new string_id(
+                    "jedi_spam", "remove_" + commandName.toLowerCase()));
+            return true;
+        }
+
+        if (isDead(player) || isIncapacitated(player))
+        {
+            return false;
+        }
+        if (getPosture(player) == POSTURE_PRONE ||
+            meditation.isMeditating(player) ||
+            getState(player, STATE_SWIMMING) == 1)
+        {
+            sendSystemMessage(player, new string_id("error_message", "wrong_state"));
+            return false;
+        }
+        if (pet_lib.isMounted(player))
+        {
+            sendSystemMessage(player, new string_id("error_message", "survey_on_mount"));
+            return false;
+        }
+        if (utils.getIntScriptVar(player, armor.SCRIPTVAR_ARMOR_COUNT) > 0)
+        {
+            sendSystemMessage(player, new string_id("jedi_spam", "not_with_armor"));
+            return false;
+        }
+        if (!rankTwo && buff.hasBuff(player, PRECU_FORCE_SPEED_2_BUFF))
+        {
+            sendSystemMessage(player, new string_id("jedi_spam", "force_buff_present"));
+            return false;
+        }
+
+        int forceCost = rankTwo ? PRECU_FORCE_SPEED_2_COST : PRECU_FORCE_SPEED_1_COST;
+        if (getForcePower(player) < forceCost)
+        {
+            sendSystemMessage(player, new string_id("jedi_spam", "no_force_power"));
+            return false;
+        }
+
+        float duration = rankTwo ? PRECU_FORCE_SPEED_2_DURATION : PRECU_FORCE_SPEED_1_DURATION;
+        int buffStrength = rankTwo ? PRECU_FORCE_SPEED_2_STRENGTH : PRECU_FORCE_SPEED_1_STRENGTH;
+        boolean hadLowerBuff = rankTwo && buff.hasBuff(player, PRECU_FORCE_SPEED_1_BUFF);
+        float lowerDuration = 0.0f;
+        float lowerStrength = 0.0f;
+        if (hadLowerBuff)
+        {
+            lowerDuration = buff.getBuffTimeRemaining(player, PRECU_FORCE_SPEED_1_BUFF);
+            lowerStrength = _getBuffCustomValue(
+                player,
+                getStringCrc(PRECU_FORCE_SPEED_1_BUFF.toLowerCase()));
+        }
+
+        if (!buff.applyBuff(player, player, buffName, duration, buffStrength))
+        {
+            if (hadLowerBuff && lowerDuration > 0.0f &&
+                !buff.hasBuff(player, PRECU_FORCE_SPEED_1_BUFF))
+            {
+                buff.applyBuff(
+                    player,
+                    player,
+                    PRECU_FORCE_SPEED_1_BUFF,
+                    lowerDuration,
+                    lowerStrength);
+            }
+            return false;
+        }
+
+        sendSystemMessage(
+            player,
+            new string_id(
+                "jedi_spam", "apply_" + commandName.toLowerCase()));
+        alterForcePower(player, -forceCost);
+        jediActionPerformed(player, NONCOMBAT_VISIBILITY, VISIBILITY_WITNESS_RANGE);
+        playClientEffectObj(
+            player,
+            "clienteffect/pl_force_speed_self.cef",
             player,
             "");
         return true;

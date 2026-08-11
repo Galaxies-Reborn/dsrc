@@ -330,6 +330,22 @@ public class combat_actions extends script.systems.combat.combat_base
         }
         return SCRIPT_CONTINUE;
     }
+    public int forceSpeed1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!jedi.performPrecuForceSpeedCommand(self, "forceSpeed1"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int forceSpeed2(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!jedi.performPrecuForceSpeedCommand(self, "forceSpeed2"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
     public int bh_detect_camouflage_1(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
         if (!stealth.canDetectCamouflage(self) || !combatStandardAction("bh_detect_camouflage_1", self, target, params, "", ""))

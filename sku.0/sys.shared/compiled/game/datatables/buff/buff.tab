@@ -246,8 +246,8 @@ forceShield	forceShield			1	jedi.forceShield	900	force_shield	25		0		0		0		0	STA
 forceShield_1	forceShield			2	jedi.forceShield	1800	force_shield	45		0		0		0		0	STATE_NONE	none			1	0		1	1	1	0	1	1	0	1	1	1
 forceArmor	forceArmor			1	jedi.forceArmor	900	force_armor	25		0		0		0		0	STATE_NONE	none			1	0		1	1	1	0	1	1	0	1	1	1
 forceArmor_1	forceArmor			2	jedi.forceArmor	1800	force_armor	45		0		0		0		0	STATE_NONE	none			1	0		1	1	1	0	1	1	0	1	1	1
-forceSpeed	forceSpeed	haste		1	jedi.forceSpeed	360	combat_haste	10		0		0		0		0	STATE_NONE	none			1	0		1	1	1	0	1	1	0	1	1	1
-forceSpeed_1	forceSpeed	haste		3	jedi.forceSpeed	720	combat_haste	20		0		0		0		0	STATE_NONE	none			1	0		1	1	1	0	1	1	0	1	1	1
+forceSpeed	forceSpeed	haste		1	jedi.forceSpeed	180	combat_haste	15		0		0		0		0	STATE_NONE	none			1	0		1	1	1	0	1	1	0	1	1	1
+forceSpeed_1	forceSpeed	haste		3	jedi.forceSpeed	360	combat_haste	25		0		0		0		0	STATE_NONE	none			1	0		1	1	1	0	1	1	0	1	1	1
 forceRunDeprecated	forceRun	escape		3	jedi.forceRun	-1	movement	0	slope_move	33		0		0		0	STATE_NONE	handleClearBuffEffect	appearance/pt_force_speed.prt		1	0		0	1	1	0	1	1	0	1	1	1
 forceRun_1	forceRun	escape		4	jedi.forceRun	-1	movement	0	slope_move	66		0		0		0	STATE_NONE	handleClearBuffEffect	appearance/pt_force_speed.prt		1	0		0	1	1	0	1	1	0	1	1	1
 forceRun_2	forceRun	escape		5	jedi.forceRun	-1	movement	0	slope_move	99		0		0		0	STATE_NONE	handleClearBuffEffect	appearance/pt_force_speed.prt		1	0		0	1	1	0	1	1	0	1	1	1
