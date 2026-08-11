@@ -447,8 +447,33 @@ public class consumable extends script.base_script
                     if (am != null)
                     {
                         boolean isBuff = false;
+                        boolean medicine = healing.isMedicine(item);
+                        boolean revivePack = healing.isRevivePack(item);
+                        boolean notifiedMedicinePool = false;
                         for (attrib_mod attrib_mod : am) {
-                            utils.addAttribMod(target, attrib_mod);
+                            if (attrib_mod == null) {
+                                continue;
+                            }
+                            boolean damageHealing =
+                                attrib_mod.getValue() > 0 &&
+                                attrib_mod.getDuration() <= 0.0f &&
+                                (int)attrib_mod.getDecay() == (int)MOD_POOL;
+                            if (damageHealing) {
+                                boolean notifyCampHealing =
+                                    revivePack ||
+                                    (medicine && !notifiedMedicinePool);
+                                healing.healDamage(
+                                    player,
+                                    target,
+                                    attrib_mod.getAttribute(),
+                                    attrib_mod.getValue(),
+                                    notifyCampHealing);
+                                if (medicine && !revivePack) {
+                                    notifiedMedicinePool = true;
+                                }
+                            } else {
+                                utils.addAttribMod(target, attrib_mod);
+                            }
                             if (attrib_mod.getDuration() > 0) {
                                 isBuff = true;
                             }

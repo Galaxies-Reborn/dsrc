@@ -78,7 +78,7 @@ public class camp_controlpanel extends script.base_script
             {
                 if (owner == player)
                 {
-                    camping.nukeCamp(master);
+                    camping.awardCampExperienceAndNuke(master);
                 }
             }
         }

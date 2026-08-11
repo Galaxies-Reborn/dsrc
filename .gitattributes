@@ -12,8 +12,10 @@ sku.0/sys.server/compiled/game/script/beta/tc_jedi.java -text whitespace=cr-at-e
 sku.0/sys.server/compiled/game/script/beta/terminal_xp.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/beta/debugger.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/beta/xp_test.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/event/event_tool.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/hnguyen/cwdm_test.java text eol=lf whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/library/innate.java -text
+sku.0/sys.server/compiled/game/script/library/camping.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/library/battlefield.java -text
 sku.0/sys.server/compiled/game/script/library/qa.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/library/respec.java -text whitespace=cr-at-eol
@@ -46,6 +48,7 @@ sku.0/sys.server/compiled/game/script/systems/gcw/gcw_city_kit_vehicle.java -tex
 sku.0/sys.server/compiled/game/script/systems/gcw/gcw_city_kit_vehicle_boss.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/systems/gcw/gcw_patrol_point_npc_ai.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/systems/missions/dynamic/mission_escort_npc.java -text
+sku.0/sys.server/compiled/game/script/systems/camping/camp_master.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/systems/player_quest/consume_fragment.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/systems/player_quest/consume_relic.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/library/metrics.java -text

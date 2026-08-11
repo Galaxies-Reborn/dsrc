@@ -254,10 +254,14 @@ public class healing extends script.base_script
                 }
                 toHeal += bonus;
             }
-            int hBefore = getAttrib(defenderDatum.id, action_data.attribute);
-            boolean success = healDamage(defenderDatum.id, action_data.attribute, toHeal);
+            int delta = healDamage(
+                medic,
+                defenderDatum.id,
+                action_data.attribute,
+                toHeal,
+                true);
+            boolean success = delta >= 0;
             if (success) {
-                int delta = getAttrib(defenderDatum.id, action_data.attribute) - hBefore;
                 if (delta <= 0) {
                     continue;
                 }
@@ -438,9 +442,10 @@ public class healing extends script.base_script
             }
             toHeal += bonus;
         }
-        int delta = healDamage(user, target, attrib, toHeal);
+        int delta = healDamage(user, target, attrib, toHeal, true);
         if (delta > 0)
         {
+            pvp.bfCreditForHealing(user, delta);
             decrementCount(item);
             prose_package pp = new prose_package();
             pp = prose.setStringId(pp, new string_id("healing", "heal_fly"));
@@ -817,13 +822,26 @@ public class healing extends script.base_script
         {
             return;
         }
+        if (!isIdValid(medic))
+        {
+            medic = target;
+        }
         if (tick < 1.0f)
         {
             tick = 1.0f;
         }
         int hot_id = rand(-99999, 99999);
         utils.setScriptVar(target, VAR_PLAYER_HOT_ID, hot_id);
-        int delta = healDamage(medic, target, HEALTH, healPerTick);
+        int delta = healDamage(
+            medic,
+            target,
+            HEALTH,
+            healPerTick,
+            true);
+        if (delta > 0)
+        {
+            pvp.bfCreditForHealing(medic, delta);
+        }
         prose_package pp = new prose_package();
         pp = prose.setStringId(pp, new string_id("healing", "heal_fly"));
         pp = prose.setDI(pp, delta);
@@ -852,6 +870,7 @@ public class healing extends script.base_script
         d.put("heal", healPerTick);
         d.put("id", hot_id);
         d.put("medic", medic);
+        d.put("notifyCampHealing", true);
         if (combatFollowUp)
         {
             d.put("combat", 1);
@@ -962,17 +981,25 @@ public class healing extends script.base_script
     }
     public static int healDamage(obj_id source, obj_id target, int attrib, int amount) throws InterruptedException
     {
-        if (!isIdValid(source) || !isIdValid(target) || amount <= 0)
-        {
-            return 0;
-        }
-        int hBefore = getAttrib(target, attrib);
-        addAttribModifier(target, attrib, amount, 0, 0, MOD_POOL);
-        int delta = getAttrib(target, attrib) - hBefore;
+        int delta = healDamage(source, target, attrib, amount, true);
         if (delta > 0)
         {
             pvp.bfCreditForHealing(source, delta);
         }
+        return delta;
+    }
+    public static int healDamage(obj_id source, obj_id target, int attrib, int amount, boolean notifyHealingReceived) throws InterruptedException
+    {
+        if (!isIdValid(source) || !isIdValid(target) || amount <= 0)
+        {
+            return 0;
+        }
+        int delta = applyDamageHealing(
+            target,
+            source,
+            attrib,
+            amount,
+            notifyHealingReceived);
         return delta;
     }
     public static boolean healClone(obj_id player, boolean woundPlayer) throws InterruptedException
@@ -4832,20 +4859,18 @@ public class healing extends script.base_script
         }
 
         int power = getTendTreatmentPower(medic, target, false);
-        if (healthBefore < getWoundedMaxAttrib(target, HEALTH))
-        {
-            utils.addAttribMod(
-                target,
-                utils.createHealDamageAttribMod(HEALTH, power));
-        }
-        if (actionBefore < getWoundedMaxAttrib(target, ACTION))
-        {
-            utils.addAttribMod(
-                target,
-                utils.createHealDamageAttribMod(ACTION, power));
-        }
-        int healthHealed = getAttrib(target, HEALTH) - healthBefore;
-        int actionHealed = getAttrib(target, ACTION) - actionBefore;
+        int healthHealed = healDamage(
+            medic,
+            target,
+            HEALTH,
+            power,
+            true);
+        int actionHealed = healDamage(
+            medic,
+            target,
+            ACTION,
+            power,
+            false);
         if (healthHealed <= 0 && actionHealed <= 0)
         {
             return false;

@@ -132,9 +132,19 @@ public class quick_heal extends script.base_script
             getExperiencePoints(self, "medical");
         int healPower = rand(MIN_HEAL, MAX_HEAL);
         int healthHealed =
-            healDamage(target, HEALTH, healPower);
+            healing.healDamage(
+                self,
+                target,
+                HEALTH,
+                healPower,
+                true);
         int actionHealed =
-            healDamage(target, ACTION, healPower);
+            healing.healDamage(
+                self,
+                target,
+                ACTION,
+                healPower,
+                true);
         setAttrib(self, MIND, mindBefore - mindCost);
         addWound(self, FOCUS, MIND_WOUND_COST);
         addWound(self, WILLPOWER, MIND_WOUND_COST);
@@ -201,20 +211,6 @@ public class quick_heal extends script.base_script
             (((focus - 300.0f) / 1200.0f) *
                 BASE_MIND_COST);
         return Math.max(0, (int)cost);
-    }
-
-    private int healDamage(
-        obj_id target,
-        int attribute,
-        int power)
-        throws InterruptedException
-    {
-        int before = getAttrib(target, attribute);
-        int after = Math.min(
-            getWoundedMaxAttrib(target, attribute),
-            before + power);
-        setAttrib(target, attribute, after);
-        return getAttrib(target, attribute) - before;
     }
 
     private boolean isEligiblePatient(

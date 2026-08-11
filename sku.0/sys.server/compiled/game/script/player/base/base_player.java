@@ -425,6 +425,21 @@ public class base_player extends script.base_script
     }
     public int OnEnteredCombat(obj_id self) throws InterruptedException
     {
+        if (hasObjVar(self, camping.VAR_PLAYER_CAMP))
+        {
+            obj_id camp = getObjIdObjVar(self, camping.VAR_PLAYER_CAMP);
+            if (isIdValid(camp))
+            {
+                dictionary ownerCombat = new dictionary();
+                ownerCombat.put("owner", self);
+                messageTo(
+                    camp,
+                    camping.HANDLER_CAMP_OWNER_COMBAT,
+                    ownerCombat,
+                    0,
+                    false);
+            }
+        }
         int shapechange = buff.getBuffOnTargetFromGroup(self, "shapechange");
         if (shapechange != 0)
         {
@@ -1673,12 +1688,6 @@ public class base_player extends script.base_script
             space_dungeon.verifyPlayerSession(self);
             space_dungeon.validateInstanceControllerId(self);
         }
-        int campXp = getExperiencePoints(self, "camp");
-        if (campXp > 0)
-        {
-            grantExperiencePoints(self, "scout", campXp);
-            grantExperiencePoints(self, "camp", 0 - campXp);
-        }
         if (!utils.hasScriptVar(self, "bountyConsistencyCheck"))
         {
             Vector playerBountyMissionTargetId = new Vector();
@@ -2751,6 +2760,31 @@ public class base_player extends script.base_script
         }
         return SCRIPT_CONTINUE;
     }
+    public int OnHealingReceived(obj_id self, obj_id healer, int actualDelta) throws InterruptedException
+    {
+        if (!isIdValid(self) || !isPlayer(self) || !isIdValid(healer))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        obj_id camp = camping.getCurrentCamp(self);
+        if (!isIdValid(camp) ||
+            camping.getStatus(camp) != camping.STATUS_MAINTAIN ||
+            !isInTriggerVolume(camp, "camp_" + camp, self))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        dictionary healingEvent = new dictionary();
+        healingEvent.put("player", self);
+        healingEvent.put("healer", healer);
+        healingEvent.put("actualDelta", actualDelta);
+        messageTo(
+            camp,
+            camping.HANDLER_CAMP_HEALING,
+            healingEvent,
+            0,
+            false);
+        return SCRIPT_CONTINUE;
+    }
     public int handleHealOverTimeTick(obj_id self, dictionary params) throws InterruptedException
     {
         float duration = params.getFloat("duration");
@@ -2759,6 +2793,9 @@ public class base_player extends script.base_script
         int hot_id = params.getInt("id");
         int isCombat = params.getInt("combat");
         obj_id medic = params.getObjId("medic");
+        boolean notifyCampHealing =
+            params.containsKey("notifyCampHealing") &&
+                params.getBoolean("notifyCampHealing");
         if (isDead(self))
         {
             if (buff.hasBuff(self, "healOverTime"))
@@ -2782,7 +2819,16 @@ public class base_player extends script.base_script
         }
         if (!isIncapacitated(self))
         {
-            int delta = healing.healDamage(medic, self, HEALTH, heal);
+            int delta = healing.healDamage(
+                medic,
+                self,
+                HEALTH,
+                heal,
+                notifyCampHealing);
+            if (delta > 0)
+            {
+                pvp.bfCreditForHealing(medic, delta);
+            }
             if (isCombat == 1 && isIdValid(medic))
             {
                 prose_package pp = new prose_package();
@@ -2819,6 +2865,7 @@ public class base_player extends script.base_script
         d.put("id", hot_id);
         d.put("combat", isCombat);
         d.put("medic", medic);
+        d.put("notifyCampHealing", notifyCampHealing);
         if (tick >= 0)
         {
             messageTo(self, healing.MSG_HEAL_OVER_TIME, d, tick, false);
@@ -12876,7 +12923,7 @@ public class base_player extends script.base_script
             if (type.equals("avoid_incap_heal")) {
                 String subType = dataTableGetString("datatables/buff/effect_mapping.iff", "avoid_incap_heal", "SUBTYPE");
                 float value = utils.getFloatScriptVar(self, "buff_handler." + subType);
-                healing.healDamage(self, self, HEALTH, (int) value);
+                healing.healDamage(self, self, HEALTH, (int) value, false);
                 buff.removeBuff(self, buff.getBuffNameFromCrc(b));
                 buff.applyBuff(self, "gcw_base_critical_heal_recourse");
                 string_id SID_INCAP_HEAL = new string_id("cbt_spam", "incap_heal");

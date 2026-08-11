@@ -492,6 +492,8 @@ public class base_class
     public static final int TRIG_ON_RATING_FINISHED = 301;
     public static final int TRIG_ON_ABANDON_PLAYER_QUEST = 302;
     public static final int TRIG_ON_GCW_SCORE_CATEGORY_PERCENTILE_CHANGE = 303;
+    /** trigger id for OnHealingReceived(obj_id healer, int actualDelta) */
+    public static final int TRIG_HEALING_RECEIVED = 308;
 
     /**
      * @}
@@ -7859,6 +7861,17 @@ public class base_class
     public static boolean setAttrib(obj_id target, int attrib, int value)
     {
         return _setAttrib(getLongWithNull(target), attrib, value);
+    }
+    /**
+     * Applies positive damage healing while preserving the healer identity.
+     * The native authority optionally fires OnHealingReceived on the target
+     * exactly once after the clamped mutation, including when the actual delta
+     * is zero because the authored pool was already full.
+     */
+    private static native int _healDamage(long target, long healer, int attrib, int amount, boolean notifyHealingReceived);
+    public static int applyDamageHealing(obj_id target, obj_id healer, int attrib, int amount, boolean notifyHealingReceived)
+    {
+        return _healDamage(getLongWithNull(target), getLongWithNull(healer), attrib, amount, notifyHealingReceived);
     }
     /**
      * Sets a max attribute of an creature.

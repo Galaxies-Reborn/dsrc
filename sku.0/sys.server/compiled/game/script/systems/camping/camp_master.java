@@ -8,29 +8,6 @@ public class camp_master extends script.base_script
     public camp_master()
     {
     }
-    public static final String TOTAL_XP = "total_xp";
-    public static final int CAMP_TICK_XP = 25;
-    public static final int XP_MAX[] = 
-    {
-        0,
-        350,
-        600,
-        800,
-        1000,
-        1100,
-        1200
-    };
-    public static final float XP_MULT[] = 
-    {
-            0.0f,
-            1.0f,
-        1.1f,
-        1.2f,
-        1.3f,
-        1.4f,
-        1.5f
-    };
-    public static final String IGNORE_RESTORE_MESSAGE = "ignoreRestoreMsg";
     public static final String VAR_CAMP_CAMPFIRE = "campfire";
     public static final String TEMPLATE_LOGS_FRESH = "object/static/structure/general/campfire_fresh.iff";
     public static final String TEMPLATE_LOGS_BURNT = "object/static/structure/general/campfire_burnt.iff";
@@ -39,28 +16,20 @@ public class camp_master extends script.base_script
     public static final string_id SID_SYS_COMBAT_ABANDONED = new string_id("camp", "sys_combat_abandoned");
     public static final string_id SID_SYS_ABANDONED_CAMP = new string_id("camp", "sys_abandoned_camp");
     public static final string_id SID_SYS_CAMP_HEAL = new string_id("camp", "sys_camp_heal");
-    public static final int HEALING_PULSE_MIN = 100;
-    public static final int HEALING_PULSE_MAX = 300;
-    public static final int WOUND_HEAL = 5;
-    public static final int SHOCK_HEAL = 1;
     public int OnAttach(obj_id self) throws InterruptedException
     {
         setObjVar(self, camping.VAR_BEEN_INITIALIZED, true);
         createTriggerVolume("camp_" + self, camping.getCampSize(self), true);
         camping.setCampMasterName(self);
         obj_id owner = getObjIdObjVar(self, camping.VAR_OWNER);
-        obj_id[] players = getPlayerCreaturesInRange(getLocation(self), camping.getCampSize(self));
         setObjVar(self, camping.VAR_OWNER_NEAR, true);
-        int campPower = getIntObjVar(self, camping.VAR_CAMP_POWER);
-        int campPowerBonus = campPower;
-        if (campPowerBonus > 5)
-        {
-            campPowerBonus = 5;
-        }
-        int min = HEALING_PULSE_MIN;
-        int max = HEALING_PULSE_MAX - (50 * campPowerBonus);
-        int pulse = rand(min, max);
-        messageTo(self, "OnHealingLoop", null, pulse, false);
+        camping.registerCampVisitor(self, owner);
+        messageTo(
+            self,
+            camping.HANDLER_CAMP_NATURAL_EXPIRY,
+            null,
+            camping.CAMP_NATURAL_EXPIRY,
+            false);
         return SCRIPT_CONTINUE;
     }
     public int OnDestroy(obj_id self) throws InterruptedException
@@ -115,7 +84,7 @@ public class camp_master extends script.base_script
     }
     public int OnTriggerVolumeEntered(obj_id self, String volName, obj_id who) throws InterruptedException
     {
-        if (who == self)
+        if (who == self || !isPlayer(who))
         {
             return SCRIPT_CONTINUE;
         }
@@ -139,28 +108,20 @@ public class camp_master extends script.base_script
         if (who == owner)
         {
             setObjVar(self, camping.VAR_OWNER_NEAR, true);
-            int status = camping.getStatus(self);
-            if (status == camping.STATUS_ABANDONED)
-            {
-                camping.setStatus(self, camping.STATUS_MAINTAIN);
-                camping.sendCampMaintenanceHeartbeat(self);
-                setObjVar(self, IGNORE_RESTORE_MESSAGE, true);
-            }
+            camping.cancelCampOwnerAbsence(self);
         }
         camping.setCurrentCamp(who, self);
         prose_package pp = prose.getPackage(camping.PROSE_CAMP_ENTER, getName(self));
         sendSystemMessageProse(who, pp);
         sendSystemMessage(who, SID_SYS_CAMP_HEAL);
-        int count = getIntObjVar(self, "visitor_count");
-        count++;
-        setObjVar(self, "visitor_count", count);
+        camping.registerCampVisitor(self, who);
         int occ = getIntObjVar(self, "occ_count");
         occ++;
         setObjVar(self, "occ_count", occ);
     }
     public int OnTriggerVolumeExited(obj_id self, String volName, obj_id who) throws InterruptedException
     {
-        if (who == self)
+        if (who == self || !isPlayer(who))
         {
             return SCRIPT_CONTINUE;
         }
@@ -176,46 +137,77 @@ public class camp_master extends script.base_script
                 if (who == owner)
                 {
                     setObjVar(self, camping.VAR_OWNER_NEAR, false);
+                    camping.beginCampOwnerAbsence(self);
                 }
                 camping.clearCurrentCamp(who);
                 prose_package pp = prose.getPackage(camping.PROSE_CAMP_EXIT, getName(self));
                 sendSystemMessageProse(who, pp);
             }
             int occ = getIntObjVar(self, "occ_count");
-            occ--;
+            occ = Math.max(0, occ - 1);
             setObjVar(self, "occ_count", occ);
         }
         return SCRIPT_CONTINUE;
     }
-    public int OnHealingLoop(obj_id self, dictionary params) throws InterruptedException
+    public int handleCampHealingReceived(obj_id self, dictionary params) throws InterruptedException
     {
-        int campPower = getIntObjVar(self, camping.VAR_CAMP_POWER);
-        obj_id[] players = getPlayerCreaturesInRange(getLocation(self), camping.getCampSize(self));
-        if (players != null)
+        if (params == null || !params.containsKey("player") ||
+            camping.getStatus(self) != camping.STATUS_MAINTAIN ||
+            !isIdValid(camping.getCampOwner(self)))
         {
-            for (obj_id player : players) {
-                for (int j = 0; j < NUM_ATTRIBUTES; j++) {
-                    if (healing.isWounded(player, j)) {
-                        int xpAmt = getIntObjVar(self, camping.VAR_CAMP_XP);
-                        int xpMax = XP_MAX[campPower];
-                        if (xpAmt < xpMax) {
-                            int toGrant = CAMP_TICK_XP;
-                            xpAmt += toGrant;
-                            setObjVar(self, camping.VAR_CAMP_XP, xpAmt);
-                        }
-                    }
-                }
+            return SCRIPT_CONTINUE;
+        }
+        obj_id player = params.getObjId("player");
+        if (!isIdValid(player) || !isPlayer(player) ||
+            camping.getCurrentCamp(player) != self ||
+            !isInTriggerVolume(self, "camp_" + self, player))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        camping.recordCampHealingEvent(self);
+        return SCRIPT_CONTINUE;
+    }
+    public int handleCampNaturalExpiry(obj_id self, dictionary params) throws InterruptedException
+    {
+        if (camping.getStatus(self) == camping.STATUS_MAINTAIN)
+        {
+            obj_id owner = camping.getCampOwner(self);
+            if (!isIdValid(owner) || !owner.isLoaded() ||
+                !exists(owner) || !isInWorld(owner))
+            {
+                camping.nukeCamp(self);
+            }
+            else if (!camping.awardCampExperienceAndNuke(self))
+            {
+                messageTo(
+                    self,
+                    camping.HANDLER_CAMP_NATURAL_EXPIRY,
+                    null,
+                    5.0f,
+                    false);
             }
         }
-        int campPowerBonus = campPower;
-        if (campPowerBonus > 5)
+        return SCRIPT_CONTINUE;
+    }
+    public int handleCampOwnerEnteredCombat(obj_id self, dictionary params) throws InterruptedException
+    {
+        int status = camping.getStatus(self);
+        if (params == null || !params.containsKey("owner") ||
+            status < camping.STATUS_NEW ||
+            status >= camping.STATUS_ABANDONED)
         {
-            campPowerBonus = 5;
+            return SCRIPT_CONTINUE;
         }
-        int min = HEALING_PULSE_MIN;
-        int max = HEALING_PULSE_MAX - (25 * campPowerBonus);
-        int pulse = rand(min, max);
-        messageTo(self, "OnHealingLoop", null, pulse, false);
+        obj_id owner = params.getObjId("owner");
+        if (!isIdValid(owner) || !isPlayer(owner) ||
+            camping.getCampOwner(self) != owner ||
+            camping.getCurrentCamp(owner) != self ||
+            !isInTriggerVolume(self, "camp_" + self, owner))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        sendSystemMessage(owner, SID_SYS_COMBAT_ABANDONED);
+        camping.campAbandoned(self);
         return SCRIPT_CONTINUE;
     }
     public int handleSetStatus(obj_id self, dictionary params) throws InterruptedException
@@ -269,12 +261,8 @@ public class camp_master extends script.base_script
             return SCRIPT_CONTINUE;
         }
         obj_id owner = getObjIdObjVar(self, camping.VAR_OWNER);
-        if ((owner == null) || (owner == obj_id.NULL_ID))
-        {
-            camping.nukeCamp(self);
-            return SCRIPT_CONTINUE;
-        }
-        if ((!exists(owner)) || (!isInWorld(owner)) || (!owner.isLoaded()))
+        if ((owner == null) || (owner == obj_id.NULL_ID) ||
+            (!exists(owner)) || (!isInWorld(owner)) || (!owner.isLoaded()))
         {
             camping.nukeCamp(self);
             return SCRIPT_CONTINUE;
@@ -318,61 +306,32 @@ public class camp_master extends script.base_script
         if (!hasObjVar(self, camping.VAR_OWNER))
         {
             setObjVar(self, camping.VAR_OWNER, obj_id.NULL_ID);
-            camping.sendCampRestoreHeartbeat(self);
+            camping.campAbandoned(self);
             return SCRIPT_CONTINUE;
         }
         obj_id owner = getObjIdObjVar(self, camping.VAR_OWNER);
         if ((owner == null) || (owner == obj_id.NULL_ID))
         {
             camping.campAbandoned(self);
-            camping.sendCampRestoreHeartbeat(self);
             return SCRIPT_CONTINUE;
         }
         if ((!exists(owner)) || (!isInWorld(owner)) || (!owner.isLoaded()))
         {
-            camping.campAbandoned(self);
-            camping.sendCampRestoreHeartbeat(self);
+            camping.beginCampOwnerAbsence(self);
+            camping.sendCampMaintenanceHeartbeat(self);
             return SCRIPT_CONTINUE;
         }
         if (ai_lib.isInCombat(owner))
         {
             sendSystemMessage(owner, SID_SYS_COMBAT_ABANDONED);
             camping.campAbandoned(self);
-            camping.sendCampRestoreHeartbeat(self);
-            return SCRIPT_CONTINUE;
-        }
-        int ticks = getIntObjVar(self, "camp.ticks");
-        ticks++;
-        setObjVar(self, "camp.ticks", ticks);
-        if (ticks > 100)
-        {
-            camping.nukeCamp(self);
             return SCRIPT_CONTINUE;
         }
         if (!camping.isOwnerInVicinity(self))
         {
-            camping.setStatus(self, camping.STATUS_ABANDONED);
-            camping.sendCampRestoreHeartbeat(self);
+            camping.beginCampOwnerAbsence(self);
+            camping.sendCampMaintenanceHeartbeat(self);
             return SCRIPT_CONTINUE;
-        }
-        int campOcc = getIntObjVar(self, "occ_count");
-        int roll = rand(0, 100);
-        roll += (campOcc - 1) * 5;
-        if (campOcc > 5)
-        {
-            campOcc = 5;
-        }
-        if (roll > 40)
-        {
-            int xpAmt = getIntObjVar(self, camping.VAR_CAMP_XP);
-            int campPower = getIntObjVar(self, camping.VAR_CAMP_POWER);
-            int xpMax = XP_MAX[campPower];
-            if (xpAmt < xpMax)
-            {
-                int toGrant = (int)(CAMP_TICK_XP * campOcc * XP_MULT[campPower]);
-                xpAmt += toGrant;
-                setObjVar(self, camping.VAR_CAMP_XP, xpAmt);
-            }
         }
         camping.sendCampMaintenanceHeartbeat(self);
         return SCRIPT_CONTINUE;
@@ -384,9 +343,17 @@ public class camp_master extends script.base_script
             camping.nukeCamp(self);
             return SCRIPT_CONTINUE;
         }
-        if (hasObjVar(self, IGNORE_RESTORE_MESSAGE))
+        if (params == null ||
+            !params.containsKey(camping.DICT_ABANDON_SEQUENCE))
         {
-            removeObjVar(self, IGNORE_RESTORE_MESSAGE);
+            return SCRIPT_CONTINUE;
+        }
+        int sequence = params.getInt(camping.DICT_ABANDON_SEQUENCE);
+        if (sequence !=
+                getIntObjVar(self, camping.VAR_CAMP_ABANDON_SEQUENCE) ||
+            camping.getStatus(self) != camping.STATUS_MAINTAIN ||
+            !hasObjVar(self, camping.VAR_CAMP_ABANDON_PENDING))
+        {
             return SCRIPT_CONTINUE;
         }
         obj_id owner = getObjIdObjVar(self, camping.VAR_OWNER);
@@ -397,19 +364,19 @@ public class camp_master extends script.base_script
         }
         else 
         {
-            if (camping.isOwnerInVicinity(self))
+            if (owner.isLoaded() && exists(owner) && isInWorld(owner) &&
+                camping.isOwnerInVicinity(self) &&
+                isInTriggerVolume(self, "camp_" + self, owner))
             {
-                camping.setStatus(self, camping.STATUS_MAINTAIN);
-                camping.sendCampMaintenanceHeartbeat(self);
+                camping.cancelCampOwnerAbsence(self);
                 return SCRIPT_CONTINUE;
             }
             else 
             {
-                sendSystemMessage(owner, SID_SYS_ABANDONED_CAMP);
-                camping.clearCampOwner(self);
-                setObjVar(self, camping.VAR_CAMP_XP, 0);
-                camping.setCampMasterName(self);
-                camping.sendCampRestoreHeartbeat(self);
+                if (owner.isLoaded() && isInWorld(owner))
+                {
+                    sendSystemMessage(owner, SID_SYS_ABANDONED_CAMP);
+                }
                 camping.campAbandoned(self);
                 return SCRIPT_CONTINUE;
             }

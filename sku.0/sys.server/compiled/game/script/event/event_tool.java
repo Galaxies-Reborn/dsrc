@@ -576,7 +576,7 @@ public class event_tool extends script.base_script
         }
         String damageStr = st.nextToken();
         int damage = utils.stringToInt(damageStr) * -1;
-        healing.healDamage(self, myTarget, HEALTH, damage);
+        healing.healDamage(self, myTarget, HEALTH, damage, false);
         CustomerServiceLog("EventPerk", "[EventTool] /eventDamage used by " + getName(self) + ":" + self + " on target " + getName(myTarget) + ":" + myTarget + " for " + damage + " damage.", null);
         return SCRIPT_CONTINUE;
     }

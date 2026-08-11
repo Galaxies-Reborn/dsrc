@@ -1967,7 +1967,7 @@ public class buff_handler extends script.base_script
         }
         else if (subtype.equals("healing_health"))
         {
-            healing.healDamage(caster, self, HEALTH, (int)value);
+            healing.healDamage(caster, self, HEALTH, (int)value, false);
             return SCRIPT_CONTINUE;
         }
         return SCRIPT_CONTINUE;

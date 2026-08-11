@@ -20,7 +20,11 @@ public class camping extends script.base_script
     public static final int NUM_MARKER = 6;
     public static final float HEARTBEAT_CREATION = 1.0f;
     public static final float HEARTBEAT_MAINTAIN = 30.0f;
-    public static final float HEARTBEAT_RESTORE = 120.0f;
+    public static final float HEARTBEAT_RESTORE = 60.0f;
+    public static final float CAMP_NATURAL_EXPIRY = 3300.0f;
+    public static final float CAMP_ABANDONED_MAX_LIFETIME = CAMP_NATURAL_EXPIRY / 6.0f;
+    public static final int CAMP_XP_DURATION = 3600;
+    public static final int CAMP_XP_FULL_DURATION = CAMP_XP_DURATION / 4;
     public static final String MOD_CAMP = "camp";
     public static final String MOD_CAMP_ADVANCED = "camp_advanced";
     public static final String VAR_CAMP_BASE = "camp";
@@ -35,6 +39,11 @@ public class camping extends script.base_script
     public static final String VAR_CAMP_XP = VAR_CAMP_BASE + ".xp";
     public static final String VAR_CAMP_REPEL = VAR_CAMP_BASE + ".repel";
     public static final String VAR_CAMP_POWER = VAR_CAMP_BASE + ".power";
+    public static final String VAR_CAMP_HEALING_XP = VAR_CAMP_BASE + ".healingXp";
+    public static final String VAR_CAMP_UNIQUE_VISITORS = VAR_CAMP_BASE + ".uniqueVisitors";
+    public static final String VAR_CAMP_XP_CLAIMED = VAR_CAMP_BASE + ".xpClaimed";
+    public static final String VAR_CAMP_ABANDON_SEQUENCE = VAR_CAMP_BASE + ".abandonSequence";
+    public static final String VAR_CAMP_ABANDON_PENDING = VAR_CAMP_BASE + ".abandonPending";
     public static final String VAR_TRIGGER_VOLUME = VAR_CAMP_BASE + ".triggerVolume";
     public static final String VAR_CAMP_ITEM_BASE = VAR_CAMP_BASE + ".items";
     public static final String VAR_ITEM_IDX = VAR_CAMP_BASE + ".item_idx";
@@ -60,7 +69,20 @@ public class camping extends script.base_script
     public static final String HANDLER_CAMP_MAINTAIN = "handleCampMaintenanceHeartbeat";
     public static final String HANDLER_CAMP_RESTORE = "handleCampRestoreHeartbeat";
     public static final String HANDLER_CAMP_COMPLETE = "handleCampComplete";
+    public static final String HANDLER_CAMP_HEALING = "handleCampHealingReceived";
+    public static final String HANDLER_CAMP_NATURAL_EXPIRY = "handleCampNaturalExpiry";
+    public static final String HANDLER_CAMP_OWNER_COMBAT = "handleCampOwnerEnteredCombat";
     public static final String DICT_NEW_STATUS = "newStatus";
+    public static final String DICT_ABANDON_SEQUENCE = "abandonSequence";
+    public static final int[] CAMP_BASE_XP =
+    {
+        360,
+        640,
+        800,
+        1000,
+        1100,
+        1250
+    };
     public static final string_id SID_ABANDONED_CAMP = new string_id("camp", "abandoned_camp");
     public static final string_id SID_STARTING_CAMP = new string_id("camp", "starting_camp");
     public static final string_id SID_CAMP_COMPLETE = new string_id("camp", "camp_complete");
@@ -127,6 +149,7 @@ public class camping extends script.base_script
             else 
             {
                 setCampOwner(master, creator);
+                registerCampVisitor(master, creator);
                 setCampMasterName(master);
                 if (campPower > 4 && factions.isDeclared(creator))
                 {
@@ -145,14 +168,15 @@ public class camping extends script.base_script
                 }
                 setObjVar(master, VAR_CAMP_REPEL, repel);
                 setObjVar(master, VAR_CAMP_POWER, campPower);
+                int createTime = getCalendarTime();
+                setObjVar(master, VAR_CREATION_TIME, createTime);
+                setObjVar(master, "camp.createTime", getGameTime());
                 attachScript(master, SCRIPT_MASTER_OBJECT);
                 setStatus(master, STATUS_NEW);
                 setObjVar(master, VAR_ITEM_IDX, 0);
                 int maxItem = (int)(mod_camp / 20) + 2;
                 setObjVar(master, VAR_ITEM_MAX, maxItem);
                 sendCampCreationHeartbeat(master);
-                int createTime = getGameTime();
-                setObjVar(master, "camp.createTime", createTime);
                 return master;
             }
         }
@@ -227,6 +251,128 @@ public class camping extends script.base_script
         }
         return true;
     }
+    public static boolean registerCampVisitor(obj_id master, obj_id visitor) throws InterruptedException
+    {
+        if (!isIdValid(master) || !isIdValid(visitor) || !isPlayer(visitor))
+        {
+            return false;
+        }
+        obj_id[] visitors = getObjIdArrayObjVar(master, VAR_CAMP_UNIQUE_VISITORS);
+        if (visitors == null || visitors.length == 0)
+        {
+            setObjVar(master, VAR_CAMP_UNIQUE_VISITORS, new obj_id[] { visitor });
+            setObjVar(master, "visitor_count", 1);
+            return true;
+        }
+        for (obj_id recorded : visitors)
+        {
+            if (recorded == visitor)
+            {
+                setObjVar(master, "visitor_count", visitors.length);
+                return false;
+            }
+        }
+        obj_id[] updated = new obj_id[visitors.length + 1];
+        for (int index = 0; index < visitors.length; ++index)
+        {
+            updated[index] = visitors[index];
+        }
+        updated[visitors.length] = visitor;
+        setObjVar(master, VAR_CAMP_UNIQUE_VISITORS, updated);
+        setObjVar(master, "visitor_count", updated.length);
+        return true;
+    }
+    public static int getUniqueCampVisitorCount(obj_id master) throws InterruptedException
+    {
+        obj_id[] visitors = getObjIdArrayObjVar(master, VAR_CAMP_UNIQUE_VISITORS);
+        return visitors == null ? 0 : visitors.length;
+    }
+    public static boolean recordCampHealingEvent(obj_id master) throws InterruptedException
+    {
+        if (!isIdValid(master) ||
+            getStatus(master) != STATUS_MAINTAIN ||
+            hasObjVar(master, VAR_CAMP_XP_CLAIMED))
+        {
+            return false;
+        }
+        int campPower = Math.max(1, Math.min(6, getIntObjVar(master, VAR_CAMP_POWER)));
+        int baseIndex = campPower - 1;
+        int healingXp = getIntObjVar(master, VAR_CAMP_HEALING_XP);
+        setObjVar(
+            master,
+            VAR_CAMP_HEALING_XP,
+            healingXp + (CAMP_BASE_XP[baseIndex] / 180));
+        return true;
+    }
+    public static int calculateCampExperience(obj_id master) throws InterruptedException
+    {
+        if (!isIdValid(master))
+        {
+            return 0;
+        }
+        int campPower = Math.max(1, Math.min(6, getIntObjVar(master, VAR_CAMP_POWER)));
+        int baseIndex = campPower - 1;
+        int baseXp = CAMP_BASE_XP[baseIndex];
+        if (!hasObjVar(master, VAR_CREATION_TIME))
+        {
+            return 0;
+        }
+        int created = getIntObjVar(master, VAR_CREATION_TIME);
+        int elapsed = Math.max(0, getCalendarTime() - created);
+        float durationUsed = Math.min(1.0f, elapsed / (float)CAMP_XP_FULL_DURATION);
+        int uniqueVisitors = Math.max(0, getUniqueCampVisitorCount(master) - 1);
+        int healingXp = Math.max(0, getIntObjVar(master, VAR_CAMP_HEALING_XP));
+        return
+            (int)(baseXp * durationUsed) +
+            (int)(uniqueVisitors * (baseXp / 30) * durationUsed) +
+            (int)(healingXp * durationUsed);
+    }
+    public static boolean claimCampExperience(obj_id master) throws InterruptedException
+    {
+        if (!isIdValid(master) ||
+            getStatus(master) != STATUS_MAINTAIN ||
+            hasObjVar(master, VAR_CAMP_XP_CLAIMED))
+        {
+            return false;
+        }
+        obj_id owner = getCampOwner(master);
+        if (!isIdValid(owner) ||
+            !owner.isLoaded() ||
+            !exists(owner) ||
+            !isInWorld(owner))
+        {
+            return false;
+        }
+        int amount = calculateCampExperience(master);
+        int healingXp = getIntObjVar(master, VAR_CAMP_HEALING_XP);
+        boolean hadRetiredPool = hasObjVar(master, VAR_CAMP_XP);
+        int retiredPool = getIntObjVar(master, VAR_CAMP_XP);
+        setObjVar(master, VAR_CAMP_XP_CLAIMED, true);
+        setObjVar(master, VAR_CAMP_HEALING_XP, 0);
+        if (hadRetiredPool)
+        {
+            setObjVar(master, VAR_CAMP_XP, 0);
+        }
+        if (amount > 0 && !pclib.msgGrantXP(owner, "camp", amount))
+        {
+            removeObjVar(master, VAR_CAMP_XP_CLAIMED);
+            setObjVar(master, VAR_CAMP_HEALING_XP, healingXp);
+            if (hadRetiredPool)
+            {
+                setObjVar(master, VAR_CAMP_XP, retiredPool);
+            }
+            return false;
+        }
+        return true;
+    }
+    public static boolean awardCampExperienceAndNuke(obj_id master) throws InterruptedException
+    {
+        if (hasObjVar(master, VAR_CAMP_XP_CLAIMED))
+        {
+            return nukeCamp(master);
+        }
+        return claimCampExperience(master) && nukeCamp(master);
+    }
     public static boolean nukeCamp(obj_id master) throws InterruptedException
     {
         if (!isIdValid(master) || !exists(master))
@@ -244,7 +390,6 @@ public class camping extends script.base_script
                 clearCurrentCamp(player);
             }
         }
-        int xpGranted = getIntObjVar(master, VAR_CAMP_XP);
         obj_id owner = getObjIdObjVar(master, VAR_OWNER);
         if ((owner != null) && (owner != obj_id.NULL_ID))
         {
@@ -368,28 +513,63 @@ public class camping extends script.base_script
         setCampOwner(master, newOwner);
         return setStatus(master, STATUS_MAINTAIN);
     }
+    public static boolean beginCampOwnerAbsence(obj_id master) throws InterruptedException
+    {
+        if (!isIdValid(master) || getStatus(master) != STATUS_MAINTAIN ||
+            hasObjVar(master, VAR_CAMP_ABANDON_PENDING))
+        {
+            return false;
+        }
+        int sequence = getIntObjVar(master, VAR_CAMP_ABANDON_SEQUENCE) + 1;
+        setObjVar(master, VAR_CAMP_ABANDON_SEQUENCE, sequence);
+        setObjVar(master, VAR_CAMP_ABANDON_PENDING, true);
+        sendCampRestoreHeartbeat(master, sequence);
+        return true;
+    }
+    public static boolean cancelCampOwnerAbsence(obj_id master) throws InterruptedException
+    {
+        if (!isIdValid(master) || getStatus(master) != STATUS_MAINTAIN ||
+            !hasObjVar(master, VAR_CAMP_ABANDON_PENDING))
+        {
+            return false;
+        }
+        int sequence = getIntObjVar(master, VAR_CAMP_ABANDON_SEQUENCE) + 1;
+        setObjVar(master, VAR_CAMP_ABANDON_SEQUENCE, sequence);
+        removeObjVar(master, VAR_CAMP_ABANDON_PENDING);
+        return true;
+    }
     public static boolean campAbandoned(obj_id master) throws InterruptedException
     {
-        obj_id owner = getCampOwner(master);
-        if (isIdValid(owner))
+        if (!isIdValid(master) || getStatus(master) == STATUS_ABANDONED)
         {
-            setObjVar(master, camping.VAR_CAMP_XP, 0);
+            return false;
         }
+        setObjVar(master, VAR_CAMP_HEALING_XP, 0);
+        setObjVar(master, VAR_CAMP_XP, 0);
+        removeObjVar(master, VAR_CAMP_ABANDON_PENDING);
+        setObjVar(
+            master,
+            VAR_CAMP_ABANDON_SEQUENCE,
+            getIntObjVar(master, VAR_CAMP_ABANDON_SEQUENCE) + 1);
+        setStatus(master, STATUS_ABANDONED);
         setName(master, SID_ABANDONED_CAMP);
         obj_id[] children = getObjIdArrayObjVar(master, "theater.children");
-        if (children == null)
+        if (children != null)
         {
-            return true;
-        }
-        int numKids = children.length;
-        for (obj_id thisChild : children) {
-            if (hasScript(thisChild, "systems.camping.camp_controlpanel")) {
-                setName(thisChild, SID_ABANDONED_CAMP);
+            for (obj_id thisChild : children) {
+                if (hasScript(thisChild, "systems.camping.camp_controlpanel")) {
+                    setName(thisChild, SID_ABANDONED_CAMP);
+                }
             }
         }
         clearCampOwner(master);
-        messageTo(master, "handleNuke", null, 300.0f, false);
-        return setStatus(master, STATUS_ABANDONED);
+        int elapsed = hasObjVar(master, VAR_CREATION_TIME)
+            ? Math.max(0, getCalendarTime() - getIntObjVar(master, VAR_CREATION_TIME))
+            : 0;
+        float remainingNaturalLifetime = Math.max(0.0f, CAMP_NATURAL_EXPIRY - elapsed);
+        float cleanupDelay = Math.min(CAMP_ABANDONED_MAX_LIFETIME, remainingNaturalLifetime);
+        messageTo(master, "handleNuke", null, cleanupDelay, false);
+        return true;
     }
     public static int getStatus(obj_id master) throws InterruptedException
     {
@@ -428,7 +608,15 @@ public class camping extends script.base_script
     }
     public static void sendCampRestoreHeartbeat(obj_id master) throws InterruptedException
     {
-        messageTo(master, HANDLER_CAMP_RESTORE, null, HEARTBEAT_RESTORE, false);
+        sendCampRestoreHeartbeat(
+            master,
+            getIntObjVar(master, VAR_CAMP_ABANDON_SEQUENCE));
+    }
+    public static void sendCampRestoreHeartbeat(obj_id master, int sequence) throws InterruptedException
+    {
+        dictionary params = new dictionary();
+        params.put(DICT_ABANDON_SEQUENCE, sequence);
+        messageTo(master, HANDLER_CAMP_RESTORE, params, HEARTBEAT_RESTORE, false);
     }
     public static int campingSkillCheck(obj_id owner) throws InterruptedException
     {
