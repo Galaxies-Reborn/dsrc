@@ -1574,27 +1574,49 @@ public class combat extends script.base_script
         obj_id defender,
         hit_result hitData) throws InterruptedException
     {
-        int effectiveness =
-            getEnhancedSkillStatisticModifier(defender, "mitigate_damage");
+        int effectiveness = getPrecuFoodMitigationEffectiveness(defender);
+        consumePrecuFoodMitigationUse(defender);
+        return applyPrecuFoodMitigation(hitData, effectiveness);
+    }
+    public static int getPrecuFoodMitigationEffectiveness(obj_id defender)
+        throws InterruptedException
+    {
+        int effectiveness = getEnhancedSkillStatisticModifier(
+            defender, "mitigate_damage");
         if (utils.hasScriptVar(defender, "food.mitigate_damage.eff"))
         {
             effectiveness =
                 utils.getIntScriptVar(defender, "food.mitigate_damage.eff");
-            if (utils.hasScriptVar(defender, "food.mitigate_damage.dur"))
+        }
+        return Math.max(0, Math.min(100, effectiveness));
+    }
+    public static void consumePrecuFoodMitigationUse(obj_id defender)
+        throws InterruptedException
+    {
+        if (utils.hasScriptVar(defender, "food.mitigate_damage.eff") &&
+            utils.hasScriptVar(defender, "food.mitigate_damage.dur"))
+        {
+            int duration =
+                utils.getIntScriptVar(defender, "food.mitigate_damage.dur") - 1;
+            if (duration <= 0)
             {
-                int duration =
-                    utils.getIntScriptVar(defender, "food.mitigate_damage.dur") - 1;
-                if (duration <= 0)
-                {
-                    clearBuffIcon(defender, "food.mitigate_damage");
-                    utils.removeScriptVarTree(defender, "food.mitigate_damage");
-                }
-                else
-                {
-                    utils.setScriptVar(
-                        defender, "food.mitigate_damage.dur", duration);
-                }
+                clearBuffIcon(defender, "food.mitigate_damage");
+                utils.removeScriptVarTree(defender, "food.mitigate_damage");
             }
+            else
+            {
+                utils.setScriptVar(
+                    defender, "food.mitigate_damage.dur", duration);
+            }
+        }
+    }
+    public static int applyPrecuFoodMitigation(
+        hit_result hitData,
+        int effectiveness)
+    {
+        if (hitData == null)
+        {
+            return 0;
         }
         effectiveness = Math.max(0, Math.min(100, effectiveness));
         int baseMitigated = (int)(hitData.damage * (effectiveness / 100.0f));

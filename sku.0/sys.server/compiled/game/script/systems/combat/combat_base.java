@@ -4927,6 +4927,17 @@ public class combat_base extends script.base_script
                 }
             }
         }
+        boolean precuForceAttack =
+            precuAuthoritativeAttack &&
+            jedi.isPrecuForceAttackAction(actionData.actionName);
+        boolean precuPerPoolForceDefense =
+            precuAuthoritativeAttack &&
+            precuMultiPoolDamage &&
+            isPlayer(defender) &&
+            jedi.hasPrecuForceDefenseBuff(defender, precuForceAttack);
+        int precuPerPoolFoodEffectiveness = precuPerPoolForceDefense ?
+            combat.getPrecuFoodMitigationEffectiveness(defender) :
+            0;
         int precuResolvedTargetPool = actionData.precuTargetPool;
         if (!precuMultiPoolDamage &&
             precuResolvedTargetPool < 0 &&
@@ -4953,6 +4964,7 @@ public class combat_base extends script.base_script
             actionData.precuPoolDamageIncrement);
         recordPrecuLiveDiagnostic(
             attacker, "poolDamage.activeMask", precuActivePoolMask);
+        int precuArmorPiercing = 0;
         if (precuResolvedTargetPool >= 0 || precuMultiPoolDamage)
         {
             if (!precuMultiPoolDamage)
@@ -4961,11 +4973,10 @@ public class combat_base extends script.base_script
                     combat.selectPrecuHitLocationForPool(
                         precuResolvedTargetPool);
             }
-            int armorPiercing = 0;
             int weaponRow = getPrecuWeaponProfileRow(weaponData);
             if (weaponRow >= 0)
             {
-                armorPiercing = dataTableGetInt(
+                precuArmorPiercing = dataTableGetInt(
                     PRECU_WEAPON_PROFILES, weaponRow, "armorPiercing");
             }
             int rawMitigationDamage =
@@ -4975,39 +4986,71 @@ public class combat_base extends script.base_script
             recordPrecuLiveDiagnostic(
                 attacker, "armor.hitLocation", hitData.hitLocation);
             recordPrecuLiveDiagnostic(
-                attacker, "armor.piercing", armorPiercing);
+                attacker, "armor.piercing", precuArmorPiercing);
 
             if (isPlayer(defender))
             {
-                int armorMitigated = combat.applyPrecuArmorProtection(
-                    defender, weaponData, hitData, armorPiercing);
-                int postArmorDamage =
-                    hitData.damage + hitData.elementalDamage;
-                int foodMitigated =
-                    combat.applyPrecuFoodMitigation(defender, hitData);
-                hitData.blockedDamage += armorMitigated + foodMitigated;
-                recordPrecuLiveDiagnostic(
-                    attacker, "armor.postArmorDamage", postArmorDamage);
-                recordPrecuLiveDiagnostic(
-                    attacker, "armor.foodMitigated", foodMitigated);
-                recordPrecuLiveDiagnostic(
-                    attacker,
-                    "armor.finalDamage",
-                    hitData.damage + hitData.elementalDamage);
-                recordPrecuLiveDiagnostic(
-                    attacker,
-                    "armor.rating",
-                    isIdValid(hitData.blockingArmor) ?
-                        combat.getPrecuArmorRating(hitData.blockingArmor) : 0);
-                recordPrecuLiveDiagnostic(
-                    attacker,
-                    "armor.protection",
-                    isIdValid(hitData.blockingArmor) ?
-                        combat.getPrecuArmorObjectProtection(
-                            hitData.blockingArmor,
-                            weaponData.damageType,
-                            armor.isPsg(hitData.blockingArmor)) :
-                        0.0f);
+                if (precuPerPoolForceDefense)
+                {
+                    recordPrecuLiveDiagnostic(
+                        attacker, "armor.postArmorDamage", -1);
+                    recordPrecuLiveDiagnostic(
+                        attacker, "armor.foodMitigated", -1);
+                    recordPrecuLiveDiagnostic(
+                        attacker, "armor.finalDamage", -1);
+                    recordPrecuLiveDiagnostic(attacker, "armor.rating", -1);
+                    recordPrecuLiveDiagnostic(
+                        attacker, "armor.protection", -1.0f);
+                }
+                else
+                {
+                    int originalElementalDamage = weaponData.elementalValue;
+                    int forceDefenseMitigated = precuAuthoritativeAttack ?
+                        jedi.applyPrecuForceDefenseMitigation(
+                            defender,
+                            precuForceAttack,
+                            weaponData,
+                            hitData) :
+                        0;
+                    int armorMitigated = combat.applyPrecuArmorProtection(
+                        defender,
+                        weaponData,
+                        hitData,
+                        precuArmorPiercing);
+                    int postArmorDamage =
+                        hitData.damage + hitData.elementalDamage;
+                    int foodMitigated =
+                        combat.applyPrecuFoodMitigation(defender, hitData);
+                    weaponData.elementalValue = originalElementalDamage;
+                    hitData.blockedDamage +=
+                        forceDefenseMitigated +
+                        armorMitigated +
+                        foodMitigated;
+                    recordPrecuLiveDiagnostic(
+                        attacker, "armor.postArmorDamage", postArmorDamage);
+                    recordPrecuLiveDiagnostic(
+                        attacker, "armor.foodMitigated", foodMitigated);
+                    recordPrecuLiveDiagnostic(
+                        attacker,
+                        "armor.finalDamage",
+                        hitData.damage + hitData.elementalDamage);
+                    recordPrecuLiveDiagnostic(
+                        attacker,
+                        "armor.rating",
+                        isIdValid(hitData.blockingArmor) ?
+                            combat.getPrecuArmorRating(
+                                hitData.blockingArmor) :
+                            0);
+                    recordPrecuLiveDiagnostic(
+                        attacker,
+                        "armor.protection",
+                        isIdValid(hitData.blockingArmor) ?
+                            combat.getPrecuArmorObjectProtection(
+                                hitData.blockingArmor,
+                                weaponData.damageType,
+                                armor.isPsg(hitData.blockingArmor)) :
+                            0.0f);
+                }
             }
             else if (hasObjVar(defender, "precu.combatProfile"))
             {
@@ -5016,7 +5059,7 @@ public class combat_base extends script.base_script
                     defender,
                     weaponData,
                     hitData,
-                    armorPiercing);
+                    precuArmorPiercing);
                 hitData.blockedDamage += creatureArmorMitigated;
                 recordPrecuLiveDiagnostic(
                     attacker,
@@ -5123,6 +5166,11 @@ public class combat_base extends script.base_script
         int precuWoundPoolMask = 0;
         if (precuMultiPoolDamage)
         {
+            int precuPerPoolBaseDamage = Math.max(0, hitData.damage);
+            int precuPerPoolOriginalElementalDamage =
+                weaponData.elementalValue;
+            int precuPerPoolElementalDamage =
+                Math.max(0, precuPerPoolOriginalElementalDamage);
             int basePoolDamage =
                 Math.max(0, hitData.damage + hitData.elementalDamage);
             int activePoolCount = 0;
@@ -5142,7 +5190,59 @@ public class combat_base extends script.base_script
             for (int pool = 0; pool < precuPoolMultipliers.length; ++pool)
             {
                 float multiplier = precuPoolMultipliers[pool];
-                int rawPoolDamage = (int)(basePoolDamage * multiplier);
+                int rawPoolDamage;
+                if (precuPerPoolForceDefense && multiplier > 0.0f)
+                {
+                    hit_result poolMitigationHit = new hit_result();
+                    int scaledPoolDamage = (int)(
+                        (precuPerPoolBaseDamage +
+                            precuPerPoolElementalDamage) *
+                        multiplier);
+                    int scaledPoolBaseDamage =
+                        (int)(precuPerPoolBaseDamage * multiplier);
+                    int scaledPoolElementalDamage =
+                        (int)(precuPerPoolElementalDamage * multiplier);
+                    scaledPoolBaseDamage +=
+                        scaledPoolDamage -
+                        scaledPoolBaseDamage -
+                        scaledPoolElementalDamage;
+                    poolMitigationHit.damage = scaledPoolBaseDamage;
+                    poolMitigationHit.hitLocation =
+                        combat.selectPrecuHitLocationForPool(pool);
+                    weaponData.elementalValue =
+                        scaledPoolElementalDamage;
+                    int forceDefenseMitigated =
+                        jedi.applyPrecuForceDefenseMitigation(
+                            defender,
+                            precuForceAttack,
+                            weaponData,
+                            poolMitigationHit);
+                    int armorMitigated = combat.applyPrecuArmorProtection(
+                        defender,
+                        weaponData,
+                        poolMitigationHit,
+                        precuArmorPiercing);
+                    int foodMitigated = combat.applyPrecuFoodMitigation(
+                        poolMitigationHit,
+                        precuPerPoolFoodEffectiveness);
+                    hitData.blockedDamage +=
+                        forceDefenseMitigated +
+                        armorMitigated +
+                        foodMitigated;
+                    if (isIdValid(poolMitigationHit.blockingArmor))
+                    {
+                        hitData.blockingArmor =
+                            poolMitigationHit.blockingArmor;
+                    }
+                    rawPoolDamage = Math.max(
+                        0,
+                        poolMitigationHit.damage +
+                            poolMitigationHit.elementalDamage);
+                }
+                else
+                {
+                    rawPoolDamage = (int)(basePoolDamage * multiplier);
+                }
                 int spilledDamage =
                     (int)(rawPoolDamage * spillMultiplierPerPool);
                 if (multiplier > 0.0f)
@@ -5154,6 +5254,12 @@ public class combat_base extends script.base_script
                     attacker, "poolDamage.multiplier" + pool, multiplier);
                 recordPrecuLiveDiagnostic(
                     attacker, "poolDamage.direct" + pool, poolDamage[pool]);
+            }
+            if (precuPerPoolForceDefense)
+            {
+                weaponData.elementalValue =
+                    precuPerPoolOriginalElementalDamage;
+                combat.consumePrecuFoodMitigationUse(defender);
             }
             if (spillPoolCount > 0)
             {

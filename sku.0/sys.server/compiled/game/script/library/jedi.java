@@ -35,6 +35,19 @@ public class jedi extends script.base_script
     public static final int NONCOMBAT_VISIBILITY = 10;
     public static final int COMBAT_VISIBILITY = 25;
     public static final int SABER_EQUIP_VISIBILITY = 10;
+    public static final String PRECU_FORCE_ARMOR_1_BUFF = "forceArmor";
+    public static final String PRECU_FORCE_ARMOR_2_BUFF = "forceArmor_1";
+    public static final String PRECU_FORCE_SHIELD_1_BUFF = "forceShield";
+    public static final String PRECU_FORCE_SHIELD_2_BUFF = "forceShield_1";
+    public static final int PRECU_FORCE_DEFENSE_1_COST = 75;
+    public static final int PRECU_FORCE_DEFENSE_2_COST = 150;
+    public static final float PRECU_FORCE_DEFENSE_1_DURATION = 900.0f;
+    public static final float PRECU_FORCE_DEFENSE_2_DURATION = 1800.0f;
+    public static final int PRECU_FORCE_DEFENSE_1_STRENGTH = 25;
+    public static final int PRECU_FORCE_DEFENSE_2_STRENGTH = 45;
+    public static final float PRECU_FORCE_DEFENSE_1_FRS_BUFF_MODIFIER = 0.25f;
+    public static final float PRECU_FORCE_DEFENSE_2_FRS_BUFF_MODIFIER = 0.35f;
+    public static final float PRECU_FORCE_DEFENSE_FRS_DRAIN_MODIFIER = -0.003f;
     public static final String VAR_VISIBILITY_LAST_UPDATE = "jedi.visibilityLastUpdate";
     public static final String VAR_VISIBILITY_DECAY_REMAINDER = "jedi.visibilityDecayRemainder";
     public static final String SCRIPTVAR_VISIBILITY_DECAY_SEQUENCE = "jedi.visibilityDecaySequence";
@@ -666,6 +679,241 @@ public class jedi extends script.base_script
             }
         }
         return true;
+    }
+    public static boolean performPrecuForceDefenseCommand(obj_id player, String commandName) throws InterruptedException
+    {
+        if (!isIdValid(player) || !exists(player) || !isPlayer(player) || commandName == null)
+        {
+            return false;
+        }
+
+        boolean forceArmor = commandName.equals("forceArmor1") || commandName.equals("forceArmor2");
+        boolean forceShield = commandName.equals("forceShield1") || commandName.equals("forceShield2");
+        if (!forceArmor && !forceShield)
+        {
+            return false;
+        }
+
+        boolean rankTwo = commandName.endsWith("2");
+        String buffName = forceArmor ?
+            (rankTwo ? PRECU_FORCE_ARMOR_2_BUFF : PRECU_FORCE_ARMOR_1_BUFF) :
+            (rankTwo ? PRECU_FORCE_SHIELD_2_BUFF : PRECU_FORCE_SHIELD_1_BUFF);
+        String lowerBuffName = forceArmor ? PRECU_FORCE_ARMOR_1_BUFF : PRECU_FORCE_SHIELD_1_BUFF;
+        String higherBuffName = forceArmor ? PRECU_FORCE_ARMOR_2_BUFF : PRECU_FORCE_SHIELD_2_BUFF;
+
+        // Core3 toggles the same rank off before medical, armor, stacking, or Force checks.
+        if (buff.hasBuff(player, buffName))
+        {
+            buff.removeBuff(player, buffName);
+            sendSystemMessage(
+                player,
+                new string_id(
+                    "jedi_spam", "remove_" + commandName.toLowerCase()));
+            return true;
+        }
+        if (isDead(player) || isIncapacitated(player))
+        {
+            return false;
+        }
+        if (utils.getIntScriptVar(player, armor.SCRIPTVAR_ARMOR_COUNT) > 0)
+        {
+            sendSystemMessage(player, new string_id("jedi_spam", "not_with_armor"));
+            return false;
+        }
+        if (!rankTwo && buff.hasBuff(player, higherBuffName))
+        {
+            sendSystemMessage(player, new string_id("jedi_spam", "force_buff_present"));
+            return false;
+        }
+
+        int forceCost = rankTwo ? PRECU_FORCE_DEFENSE_2_COST : PRECU_FORCE_DEFENSE_1_COST;
+        if (getForcePower(player) < forceCost)
+        {
+            sendSystemMessage(player, new string_id("jedi_spam", "no_force_power"));
+            return false;
+        }
+
+        int controlModifier = getPrecuForceControlModifier(player);
+        int baseStrength = rankTwo ? PRECU_FORCE_DEFENSE_2_STRENGTH : PRECU_FORCE_DEFENSE_1_STRENGTH;
+        float frsBuffModifier = rankTwo ?
+            PRECU_FORCE_DEFENSE_2_FRS_BUFF_MODIFIER : PRECU_FORCE_DEFENSE_1_FRS_BUFF_MODIFIER;
+        int buffStrength = baseStrength + (int)((controlModifier * frsBuffModifier) + 0.5f);
+        float duration = rankTwo ? PRECU_FORCE_DEFENSE_2_DURATION : PRECU_FORCE_DEFENSE_1_DURATION;
+
+        boolean hadLowerBuff = rankTwo && buff.hasBuff(player, lowerBuffName);
+        float lowerDuration = 0.0f;
+        float lowerStrength = 0.0f;
+        if (hadLowerBuff)
+        {
+            lowerDuration = buff.getBuffTimeRemaining(player, lowerBuffName);
+            lowerStrength = _getBuffCustomValue(player, getStringCrc(lowerBuffName.toLowerCase()));
+        }
+        if (!buff.applyBuff(player, player, buffName, duration, buffStrength))
+        {
+            if (hadLowerBuff && lowerDuration > 0.0f && !buff.hasBuff(player, lowerBuffName))
+            {
+                buff.applyBuff(player, player, lowerBuffName, lowerDuration, lowerStrength);
+            }
+            return false;
+        }
+
+        sendSystemMessage(
+            player,
+            new string_id(
+                "jedi_spam", "apply_" + commandName.toLowerCase()));
+        alterForcePower(player, -forceCost);
+        jediActionPerformed(player, NONCOMBAT_VISIBILITY, VISIBILITY_WITNESS_RANGE);
+        playClientEffectObj(
+            player,
+            forceArmor ? "clienteffect/pl_force_armor_self.cef" : "clienteffect/pl_force_shield_self.cef",
+            player,
+            "");
+        return true;
+    }
+    private static int getPrecuForceControlModifier(obj_id player) throws InterruptedException
+    {
+        if (hasSkill(player, "force_rank_light_novice"))
+        {
+            return getSkillStatisticModifier(player, "force_control_light");
+        }
+        if (hasSkill(player, "force_rank_dark_novice"))
+        {
+            return getSkillStatisticModifier(player, "force_control_dark");
+        }
+        return 0;
+    }
+    private static int getPrecuForceManipulationModifier(obj_id player) throws InterruptedException
+    {
+        if (hasSkill(player, "force_rank_light_novice"))
+        {
+            return getSkillStatisticModifier(player, "force_manipulation_light");
+        }
+        if (hasSkill(player, "force_rank_dark_novice"))
+        {
+            return getSkillStatisticModifier(player, "force_manipulation_dark");
+        }
+        return 0;
+    }
+    public static boolean isPrecuForceAttackAction(String actionName)
+    {
+        if (actionName == null)
+        {
+            return false;
+        }
+        switch (actionName)
+        {
+            case "animalAttack":
+            case "animalCalm":
+            case "animalScare":
+            case "forceChoke":
+            case "forceIntimidate1":
+            case "forceIntimidate2":
+            case "forceKnockdown1":
+            case "forceKnockdown2":
+            case "forceKnockdown3":
+            case "forceLightningCone1":
+            case "forceLightningCone2":
+            case "forceLightningSingle1":
+            case "forceLightningSingle2":
+            case "forceThrow1":
+            case "forceThrow2":
+            case "forceWeaken1":
+            case "forceWeaken2":
+            case "jediMindTrick":
+            case "mindBlast1":
+            case "mindBlast2":
+                return true;
+            default:
+                return false;
+        }
+    }
+    private static String getPrecuForceDefenseBuff(obj_id defender, boolean forceAttack) throws InterruptedException
+    {
+        String rankTwoBuff = forceAttack ? PRECU_FORCE_SHIELD_2_BUFF : PRECU_FORCE_ARMOR_2_BUFF;
+        String rankOneBuff = forceAttack ? PRECU_FORCE_SHIELD_1_BUFF : PRECU_FORCE_ARMOR_1_BUFF;
+        if (buff.hasBuff(defender, rankTwoBuff))
+        {
+            return rankTwoBuff;
+        }
+        if (buff.hasBuff(defender, rankOneBuff))
+        {
+            return rankOneBuff;
+        }
+        return null;
+    }
+    public static boolean hasPrecuForceDefenseBuff(obj_id defender, boolean forceAttack) throws InterruptedException
+    {
+        return isIdValid(defender) && isPlayer(defender) &&
+            getPrecuForceDefenseBuff(defender, forceAttack) != null;
+    }
+    public static int applyPrecuForceDefenseMitigation(
+        obj_id defender,
+        boolean forceAttack,
+        weapon_data weaponData,
+        hit_result hitData) throws InterruptedException
+    {
+        if (!isIdValid(defender) || !isPlayer(defender) || weaponData == null || hitData == null)
+        {
+            return 0;
+        }
+
+        String buffName = getPrecuForceDefenseBuff(defender, forceAttack);
+        if (buffName == null)
+        {
+            return 0;
+        }
+
+        boolean rankTwo = buffName.endsWith("_1");
+        int buffCrc = getStringCrc(buffName.toLowerCase());
+        int mitigationPercent = (int)_getBuffCustomValue(defender, buffCrc);
+        if (mitigationPercent <= 0)
+        {
+            mitigationPercent = rankTwo ? PRECU_FORCE_DEFENSE_2_STRENGTH : PRECU_FORCE_DEFENSE_1_STRENGTH;
+        }
+
+        int originalBaseDamage = Math.max(0, hitData.damage);
+        int originalElementalDamage = Math.max(0, weaponData.elementalValue);
+        int incomingDamage = originalBaseDamage + originalElementalDamage;
+        float remainingMultiplier = 1.0f - (mitigationPercent / 100.0f);
+        int remainingDamage = (int)(incomingDamage * remainingMultiplier);
+        int remainingBaseDamage = (int)(originalBaseDamage * remainingMultiplier);
+        int remainingElementalDamage = (int)(originalElementalDamage * remainingMultiplier);
+        remainingBaseDamage += remainingDamage - remainingBaseDamage - remainingElementalDamage;
+        hitData.damage = remainingBaseDamage;
+        weaponData.elementalValue = remainingElementalDamage;
+        int mitigatedDamage = incomingDamage - remainingDamage;
+        int observerAbsorbedDamage =
+            (int)(incomingDamage * (mitigationPercent / 100.0f));
+
+        String commandName;
+        if (forceAttack)
+        {
+            commandName = rankTwo ? "forceShield2" : "forceShield1";
+            playClientEffectObj(defender, "clienteffect/pl_force_shield_hit.cef", defender, "");
+        }
+        else
+        {
+            commandName = rankTwo ? "forceArmor2" : "forceArmor1";
+            playClientEffectObj(defender, "clienteffect/pl_force_armor_hit.cef", defender, "");
+        }
+
+        float extraForceCost = dataTableGetFloat(JEDI_ACTIONS_FILE, buffName, "extraForceCost");
+        extraForceCost += getPrecuForceManipulationModifier(defender) *
+            PRECU_FORCE_DEFENSE_FRS_DRAIN_MODIFIER;
+        int forceCost = (int)(observerAbsorbedDamage * extraForceCost);
+        if (getForcePower(defender) <= forceCost)
+        {
+            buff.removeBuff(defender, buffName);
+            sendSystemMessage(
+                defender,
+                new string_id(
+                    "jedi_spam", "remove_" + commandName.toLowerCase()));
+        }
+        else
+        {
+            alterForcePower(defender, -forceCost);
+        }
+        return mitigatedDamage;
     }
     public static boolean doBuffAction(obj_id self, obj_id target, String actionName) throws InterruptedException
     {
