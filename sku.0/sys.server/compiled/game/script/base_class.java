@@ -7722,6 +7722,24 @@ public class base_class
     */
     /*@{*/
     /**
+     * Returns the creature's validated PRE-CU nine-attribute allocation for CTS.
+     * @return the exact nine-value allocation, or null on invalid state
+     */
+    private static native int[] _getPrecuCtsStatAllocation(long target);
+    public static int[] getPrecuCtsStatAllocation(obj_id target)
+    {
+        return _getPrecuCtsStatAllocation(getLongWithNull(target));
+    }
+    /**
+     * Atomically validates and applies a PRE-CU nine-attribute CTS allocation.
+     * @return true only when the complete allocation was applied
+     */
+    private static native boolean _applyPrecuCtsStatAllocation(long target, int[] allocation);
+    public static boolean applyPrecuCtsStatAllocation(obj_id target, int[] allocation)
+    {
+        return _applyPrecuCtsStatAllocation(getLongWithNull(target), allocation);
+    }
+    /**
      * Gets an attribute of a creature.
      * @param target        the creature
      * @param attrib        attribute id of the attribute to get

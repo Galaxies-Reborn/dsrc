@@ -296,6 +296,10 @@ public class base_player extends script.base_script
     public static final string_id MILK_TOO_FAR_START = new string_id("skl_use", "milk_too_far_start");
     public static final string_id MILK_NO_TARGET = new string_id("skl_use", "milk_no_target");
     public static final String CTS_LOT_COUNT = "cts.lotcount";
+    private static final String PRECU_CTS_STAT_ALLOCATION_VERSION_KEY = "precuCtsStatAllocationVersion";
+    private static final String PRECU_CTS_STAT_ALLOCATION_KEY = "precuCtsStatAllocation";
+    private static final int PRECU_CTS_STAT_ALLOCATION_VERSION = 1;
+    private static final String PRECU_STAT_MIGRATION_OBJVAR_ROOT = "precu.statMigration";
     public static final String PVP_SKILL_1 = "retaliation_ability";
     public static final String PVP_SKILL_2 = "adrenaline_ability";
     public static final String PVP_SKILL_3 = "unstoppable_ability";
@@ -9734,6 +9738,19 @@ public class base_player extends script.base_script
                 CustomerServiceLog("CharacterTransfer", "OnUploadCharacter() : FAILED because of CTS completed or in progress for character");
                 return SCRIPT_OVERRIDE;
             }
+            if (hasObjVar(self, PRECU_STAT_MIGRATION_OBJVAR_ROOT))
+            {
+                CustomerServiceLog("CharacterTransfer", "OnUploadCharacter() : FAILED because a PRE-CU stat migration is pending");
+                return SCRIPT_OVERRIDE;
+            }
+            int[] precuStatAllocation = getPrecuCtsStatAllocation(self);
+            if (precuStatAllocation == null || precuStatAllocation.length != NUM_ATTRIBUTES)
+            {
+                CustomerServiceLog("CharacterTransfer", "OnUploadCharacter() : FAILED to obtain an exact valid PRE-CU nine-attribute allocation");
+                return SCRIPT_OVERRIDE;
+            }
+            characterData.put(PRECU_CTS_STAT_ALLOCATION_VERSION_KEY, PRECU_CTS_STAT_ALLOCATION_VERSION);
+            characterData.put(PRECU_CTS_STAT_ALLOCATION_KEY, precuStatAllocation);
             CustomerServiceLog("CharacterTransfer", "OnUploadCharacter() : using PRE-CU skill-box authority; NGE template, level, working-skill, and raw-command fields are intentionally omitted");
             characterData.put("skills", getSkillListingForPlayer(self));
             final String[] strObjVarLists = 
@@ -10390,10 +10407,32 @@ public class base_player extends script.base_script
             {
                 return SCRIPT_OVERRIDE;
             }
+            dictionary characterData = dictionary.unpack(packedData);
+            if (characterData == null)
+            {
+                CustomerServiceLog("CharacterTransfer", "OnDownloadCharacter() : FAILED to unpack character data");
+                return SCRIPT_OVERRIDE;
+            }
+            if (!characterData.isInt(PRECU_CTS_STAT_ALLOCATION_VERSION_KEY) ||
+                characterData.getInt(PRECU_CTS_STAT_ALLOCATION_VERSION_KEY) != PRECU_CTS_STAT_ALLOCATION_VERSION ||
+                !characterData.isIntArray(PRECU_CTS_STAT_ALLOCATION_KEY))
+            {
+                CustomerServiceLog("CharacterTransfer", "OnDownloadCharacter() : FAILED strict PRE-CU stat allocation payload validation");
+                return SCRIPT_OVERRIDE;
+            }
+            int[] precuStatAllocation = characterData.getIntArray(PRECU_CTS_STAT_ALLOCATION_KEY);
+            if (precuStatAllocation == null || precuStatAllocation.length != NUM_ATTRIBUTES)
+            {
+                CustomerServiceLog("CharacterTransfer", "OnDownloadCharacter() : FAILED exact PRE-CU stat allocation length validation");
+                return SCRIPT_OVERRIDE;
+            }
+            if (!applyPrecuCtsStatAllocation(self, precuStatAllocation))
+            {
+                CustomerServiceLog("CharacterTransfer", "OnDownloadCharacter() : FAILED atomic PRE-CU stat allocation apply");
+                return SCRIPT_OVERRIDE;
+            }
             utils.setLocalVar(self, "ctsBeingUnpacked", true);
             setObjVar(self, "hasTransferred", 1);
-            dictionary characterData = dictionary.unpack(packedData);
-            if (characterData != null)
             {
                 String[] skills = characterData.getStringArray("skills");
                 if (skills != null)
@@ -10960,10 +10999,6 @@ public class base_player extends script.base_script
                 {
                     attachScript(self, "space.quest_logic.player_spacequest");
                 }
-            }
-            else 
-            {
-                return SCRIPT_OVERRIDE;
             }
         }
         catch(Throwable t)
