@@ -2011,14 +2011,8 @@ public class base_player extends script.base_script
     }
     public int delayRespecInstructions(obj_id self, dictionary params) throws InterruptedException
     {
-        int pid = createSUIPage(sui.SUI_MSGBOX, self, self, "noHandler");
-        setSUIProperty(pid, "this", "Size", "475,575");
-        setSUIProperty(pid, "this", "Location", "100,100");
-        setSUIProperty(pid, sui.MSGBOX_TITLE, sui.PROP_TEXT, "@click_respec:respec_title");
-        setSUIProperty(pid, sui.MSGBOX_PROMPT, sui.PROP_TEXT, "@click_respec:respec_message");
-        sui.msgboxButtonSetup(pid, sui.OK_ONLY);
-        showSUIPage(pid);
-        flushSUIPage(pid);
+        // Retired later-era click-respec instructions must not be presented by a
+        // stale queued or externally dispatched callback.
         return SCRIPT_CONTINUE;
     }
     public int OnRemovingFromWorld(obj_id self) throws InterruptedException
