@@ -19,6 +19,9 @@ public class combat_trainer_spawner extends script.base_script
     }
     public void spawnEveryone(obj_id self) throws InterruptedException
     {
+        spawnMarksman(self);
+        spawnScout(self);
+        spawnBrawler(self);
         spawnJunkdealer(self);
         spawnDeliverMission(self);
         spawnDestroyMission(self);

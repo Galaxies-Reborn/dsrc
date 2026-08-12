@@ -20,7 +20,9 @@ public class hospital_trainer_spawner extends script.base_script
     }
     public void spawnEveryone(obj_id self) throws InterruptedException
     {
+        spawnMedic(self);
         spawnDoctor(self);
+        spawnMedic2(self);
     }
     public void spawnCombatMedic(obj_id self) throws InterruptedException
     {

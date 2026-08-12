@@ -851,6 +851,7 @@ i	i	h	i	f	f	f	f	f	f	f	s	p
 2125381	2125378	object/cell/cell.iff	3	0	0	0	1	0	0	0		$|
 2125382	2125378	object/cell/cell.iff	4	0	0	0	1	0	0	0		$|
 -3	2125382	object/tangible/npc/naboo_spawn/gavyn_sykes.iff	4	8.5	0.6	66.9	0.707106781	0	-0.707106781	0		$|
+4295476	2125382	object/tangible/space/content_infrastructure/ground_npc_spawner.iff	4	-0.5	0.6	67.2	0	0	1	0	space.content_tools.npc_spawner	$|
 4295477	2125382	object/tangible/space/content_infrastructure/ground_npc_spawner.iff	4	2.19	0.64	67.12	0	0	1	0		$|
 1270282	2125382	object/tangible/terminal/terminal_space.iff	4	-1.46906	0.639421	58.5166	0.717914	0	-0.696132	0		$|
 1270283	2125382	object/tangible/terminal/terminal_space.iff	4	0.635765	0.639421	58.3934	0.691962	0	0.721935	0		$|

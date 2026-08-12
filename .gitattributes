@@ -59,6 +59,25 @@ sku.0/sys.server/compiled/game/script/systems/player_quest/consume_fragment.java
 sku.0/sys.server/compiled/game/script/systems/player_quest/consume_relic.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/library/metrics.java -text
 sku.0/sys.server/compiled/game/script/npc/vendor/vendor.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/npc/skillteacher/combat_trainer_spawner.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/npc/skillteacher/commerce_trainer_spawner.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/npc/skillteacher/hospital_02_trainer_spawner.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/npc/skillteacher/hospital_trainer_spawner.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/npc/skillteacher/theater_trainer_spawner.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/space/content_tools/npc_spawner.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/datatables/space_content/npc_spawners.tab -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/datatables/buildout/corellia/corellia_2_3_ws.tab -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/datatables/buildout/corellia/corellia_3_6_ws.tab -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/datatables/buildout/corellia/corellia_6_7_ws.tab -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/datatables/buildout/naboo/naboo_5_6_ws.tab -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/datatables/buildout/naboo/naboo_7_2_ws.tab -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/datatables/buildout/naboo/naboo_7_8_ws.tab -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/datatables/buildout/rori/rori_2_3_ws.tab -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/datatables/buildout/talus/talus_5_3_ws.tab -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/datatables/buildout/tatooine/tatooine_3_6_ws.tab -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/datatables/buildout/tatooine/tatooine_4_3_ws.tab -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/datatables/buildout/tatooine/tatooine_5_6_ws.tab -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/datatables/buildout/tatooine/tatooine_6_2_ws.tab -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/theme_park/meatlump/mtp_vendor.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/theme_park/dungeon/nova_orion_station/nova_orion_vendor.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/library/player_structure.java -text whitespace=cr-at-eol

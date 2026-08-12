@@ -20,6 +20,7 @@ public class theater_trainer_spawner extends script.base_script
     }
     public void spawnEveryone(obj_id self) throws InterruptedException
     {
+        spawnEntertainer(self);
         spawnMusicMission(self);
         spawnDanceMission(self);
         spawnStorytellerVendor(self);

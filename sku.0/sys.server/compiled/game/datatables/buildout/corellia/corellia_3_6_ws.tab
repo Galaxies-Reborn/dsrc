@@ -563,6 +563,7 @@ i	i	h	i	f	f	f	f	f	f	f	s	p
 4255421	4255419	object/cell/cell.iff	2	0	0	0	1	0	0	0		$|
 4255422	4255419	object/cell/cell.iff	3	0	0	0	1	0	0	0		$|
 4255423	4255419	object/cell/cell.iff	4	0	0	0	1	0	0	0		$|
+1509592	4255423	object/tangible/space/content_infrastructure/ground_npc_spawner.iff	4	-0.1	0.6	67.4	0.0348995	0	0.999391	0	space.content_tools.npc_spawner	$|
 1033595	4255423	object/tangible/terminal/terminal_space.iff	4	-10.3602	0.639423	57.4963	1	0	0	0		$|
 1033596	4255423	object/tangible/terminal/terminal_space.iff	4	-10.5132	0.639424	62.2151	1	0	0	0		$|
 1033597	4255423	object/tangible/terminal/terminal_space.iff	4	-0.276184	0.639421	57.4062	1	0	0	0		$|

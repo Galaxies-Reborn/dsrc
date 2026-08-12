@@ -20,6 +20,7 @@ public class commerce_trainer_spawner extends script.base_script
     }
     public void spawnEveryone(obj_id self) throws InterruptedException
     {
+        spawnArtisan(self);
         spawnSurveyMission(self);
         spawnFoodStation(self);
         spawnClothingStation(self);

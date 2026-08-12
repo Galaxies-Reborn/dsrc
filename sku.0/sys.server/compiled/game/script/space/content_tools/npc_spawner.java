@@ -9,6 +9,8 @@ import script.string_id;
 
 public class npc_spawner extends script.base_script
 {
+    public static final String RANDOM_SHIPWRIGHT_TEMPLATE = "random_space_shipwright_trainer";
+
     public npc_spawner()
     {
     }
@@ -25,6 +27,10 @@ public class npc_spawner extends script.base_script
             return SCRIPT_CONTINUE;
         }
         String strTemplate = dctSpawnInfo.getString("strTemplate");
+        if (strTemplate.equals(RANDOM_SHIPWRIGHT_TEMPLATE))
+        {
+            strTemplate = "object/mobile/space_shipwright_trainer_0" + rand(1, 3) + ".iff";
+        }
         if (strTemplate.equals("unused"))
         {
             return SCRIPT_CONTINUE;

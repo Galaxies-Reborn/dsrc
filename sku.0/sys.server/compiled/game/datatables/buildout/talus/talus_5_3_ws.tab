@@ -96,6 +96,7 @@ i	i	h	i	f	f	f	f	f	f	f	s	p
 3075997	0	object/tangible/terminal/terminal_mission_bounty.iff	0	265.857	6	1025.73	-0.00500001	0	0.999987	0		$|
 3175352	0	object/building/corellia/starport_corellia.iff	0	244.894	6	1164.87	0.707108	0	0.707106	0	structure.municipal.starport:theme_park.dungeon.generic_spawner	travel.air_time|0|60|travel.cost|0|150|travel.ground_time|0|300|travel.point_name|4|Dearic Starport|travel.shuttle_available|0|1|travel.version|0|3|spawn_table|4|datatables/spawning/building_spawns/talus_dearic_starport.iff|$|
 3175353	3175352	object/cell/cell.iff	1	0	0	0	1	0	0	0		$|
+5585426	3175353	object/tangible/space/content_infrastructure/ground_npc_spawner.iff	1	0.1	0.6	73	1	0	0	0	space.content_tools.npc_spawner	$|
 3175354	3175352	object/cell/cell.iff	2	0	0	0	1	0	0	0		$|
 3175355	3175352	object/cell/cell.iff	3	0	0	0	1	0	0	0		$|
 3175356	3175352	object/cell/cell.iff	4	0	0	0	1	0	0	0		$|
