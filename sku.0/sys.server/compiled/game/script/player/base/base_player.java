@@ -121,6 +121,17 @@ public class base_player extends script.base_script
     private static final int PRECU_RETREAT_PROTOCOL_VERSION = 1;
     private static final String PRECU_RETREAT_FIXTURE_ROOT =
         "precu.retreatFixture";
+    public static final int PRECU_BURST_RUN_BASE_COST = 100;
+    public static final int PRECU_BURST_RUN_DURATION_SECONDS = 30;
+    public static final int PRECU_BURST_RUN_RECOVERY_SECONDS = 300;
+    public static final float PRECU_BURST_RUN_MOUNT_POLL_SECONDS = 0.25f;
+    public static final float PRECU_BURST_RUN_SPEED_STRENGTH = 82.2f;
+    public static final float PRECU_BURST_RUN_ACCEL_MULTIPLIER = 1.822f;
+    private static final String PRECU_BURST_RUN_BUFF = "burstRun";
+    private static final String PRECU_BURST_RUN_EFFECT_ROOT =
+        "precu.burstRun.effect";
+    private static final String PRECU_BURST_RUN_COOLDOWN_UNTIL =
+        "precu.burstRun.cooldownUntil";
     public static final float RANGE_COUP_DE_GRACE = 5.0f;
     public static final String JEDI_CLOAK_TEMPLATE = "object/tangible/wearable/robe/robe_s05.iff";
     public static final String MSG_REVIVE_TITLE = "@base_player:revive_title";
@@ -1559,6 +1570,7 @@ public class base_player extends script.base_script
         }
         restorePrecuBerserkState(self);
         restorePrecuRetreatState(self);
+        restorePrecuBurstRunState(self);
         combat.restorePrecuFeignDeathOnLoad(self);
         boolean ctsDisconnectRequested = false;
         if (hasObjVar(self, "disableLoginCtsInProgress"))
@@ -4585,6 +4597,416 @@ public class base_player extends script.base_script
             membersApplied > 0 ? "passed" : "noRangedMembers");
         return SCRIPT_CONTINUE;
     }
+    public int burstRun(obj_id self, obj_id target, String params,
+        float defaultTime) throws InterruptedException
+    {
+        if (!isIdValid(self) || !exists(self) || !isPlayer(self) ||
+            isDead(self) || isIncapacitated(self))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        if (isIdValid(getMountId(self)) ||
+            getState(self, STATE_RIDING_MOUNT) != 0)
+        {
+            sendSystemMessage(self, new string_id("cbt_spam", "no_burst"));
+            return SCRIPT_OVERRIDE;
+        }
+        location playerLocation = getLocation(self);
+        if (playerLocation == null || "dungeon1".equals(playerLocation.area))
+        {
+            sendSystemMessage(self, new string_id("combat_effects",
+                "burst_run_space_dungeon"));
+            return SCRIPT_OVERRIDE;
+        }
+
+        expireStalePrecuBurstRunState(self);
+        if (hasPrecuBurstRunConflict(self))
+        {
+            sendSystemMessage(self, new string_id("combat_effects",
+                "burst_run_no"));
+            return SCRIPT_OVERRIDE;
+        }
+        int now = getGameTime();
+        if (hasObjVar(self, PRECU_BURST_RUN_COOLDOWN_UNTIL))
+        {
+            int cooldownUntil = getIntObjVar(self,
+                PRECU_BURST_RUN_COOLDOWN_UNTIL);
+            if (cooldownUntil > now)
+            {
+                sendSystemMessage(self, new string_id("combat_effects",
+                    "burst_run_wait"));
+                return SCRIPT_OVERRIDE;
+            }
+            removeObjVar(self, PRECU_BURST_RUN_COOLDOWN_UNTIL);
+        }
+
+        float skillMod = Math.min(100.0f,
+            getSkillStatisticModifier(self, "burst_run"));
+        int healthCost = calculatePrecuBurstRunCost(
+            getAttrib(self, STRENGTH), skillMod);
+        int actionCost = calculatePrecuBurstRunCost(
+            getAttrib(self, QUICKNESS), skillMod);
+        int mindCost = calculatePrecuBurstRunCost(
+            getAttrib(self, FOCUS), skillMod);
+        if (getAttrib(self, HEALTH) <= healthCost ||
+            getAttrib(self, ACTION) <= actionCost ||
+            getAttrib(self, MIND) <= mindCost)
+        {
+            sendSystemMessage(self, new string_id("combat_effects",
+                "burst_run_wait"));
+            return SCRIPT_OVERRIDE;
+        }
+
+        float baseAcceleration = getAccelPercent(self);
+        int expiresAt = now + PRECU_BURST_RUN_DURATION_SECONDS;
+        setObjVar(self, PRECU_BURST_RUN_EFFECT_ROOT + ".baseAcceleration",
+            baseAcceleration);
+        setObjVar(self, PRECU_BURST_RUN_EFFECT_ROOT + ".expiresAt",
+            expiresAt);
+        setObjVar(self, PRECU_BURST_RUN_EFFECT_ROOT + ".active", 0);
+        setObjVar(self,
+            PRECU_BURST_RUN_EFFECT_ROOT + ".accelerationSuspended", 0);
+        setObjVar(self,
+            PRECU_BURST_RUN_EFFECT_ROOT + ".mountPollVersion", 1);
+        if (!buff.applyBuff(self, self, PRECU_BURST_RUN_BUFF,
+                PRECU_BURST_RUN_DURATION_SECONDS,
+                PRECU_BURST_RUN_SPEED_STRENGTH) ||
+            !setAccelPercent(self, baseAcceleration *
+                PRECU_BURST_RUN_ACCEL_MULTIPLIER))
+        {
+            rollbackPrecuBurstRun(self, baseAcceleration);
+            sendSystemMessage(self, new string_id("combat_effects",
+                "burst_run_no"));
+            return SCRIPT_OVERRIDE;
+        }
+        if (!drainCombatAttributes(self, healthCost, actionCost, mindCost))
+        {
+            rollbackPrecuBurstRun(self, baseAcceleration);
+            sendSystemMessage(self, new string_id("combat_effects",
+                "burst_run_wait"));
+            return SCRIPT_OVERRIDE;
+        }
+
+        setObjVar(self, PRECU_BURST_RUN_EFFECT_ROOT + ".active", 1);
+        int cooldownUntil = expiresAt + PRECU_BURST_RUN_RECOVERY_SECONDS;
+        setObjVar(self, PRECU_BURST_RUN_COOLDOWN_UNTIL, cooldownUntil);
+        schedulePrecuBurstRunExpiry(self, expiresAt);
+        schedulePrecuBurstRunMountState(self, expiresAt, 1);
+        schedulePrecuBurstRunReady(self, cooldownUntil);
+        sendSystemMessage(self,
+            new string_id("cbt_spam", "burstrun_start_single"));
+        combat.sendCombatSpamMessage(self, null,
+            new string_id("cbt_spam", "burstrun_start"), true, false, true);
+        return SCRIPT_CONTINUE;
+    }
+    private int calculatePrecuBurstRunCost(int governingValue, float skillMod)
+        throws InterruptedException
+    {
+        float adjustedCost = PRECU_BURST_RUN_BASE_COST;
+        adjustedCost -= ((governingValue - 300.0f) / 1200.0f) *
+            adjustedCost;
+        adjustedCost = Math.max(0.0f, adjustedCost);
+        return (int)(adjustedCost * (1.0f - skillMod / 100.0f));
+    }
+    private boolean hasPrecuBurstRunConflict(obj_id player)
+        throws InterruptedException
+    {
+        return buff.hasBuff(player, PRECU_BURST_RUN_BUFF) ||
+            movement.hasMovementModifier(player, PRECU_BURST_RUN_BUFF) ||
+            hasObjVar(player, PRECU_BURST_RUN_EFFECT_ROOT + ".expiresAt") ||
+            movement.hasMovementModifier(player, PRECU_RETREAT_MODIFIER) ||
+            buff.hasBuff(player, "forceRun") ||
+            buff.hasBuff(player, "forceRunDeprecated") ||
+            buff.hasBuff(player, "forceRun_1") ||
+            buff.hasBuff(player, "forceRun_2") ||
+            buff.hasBuff(player, "forceRun_3") ||
+            buff.hasBuff(player, "fs_force_run") ||
+            movement.hasMovementModifier(player, "forceRun") ||
+            movement.hasMovementModifier(player, "forceRun_1") ||
+            movement.hasMovementModifier(player, "forceRun_2") ||
+            movement.hasMovementModifier(player, "forceRun_3") ||
+            movement.hasMovementModifier(player, "fs_force_run");
+    }
+    private void rollbackPrecuBurstRun(obj_id player, float baseAcceleration)
+        throws InterruptedException
+    {
+        setObjVar(player, PRECU_BURST_RUN_EFFECT_ROOT + ".active", 0);
+        if (buff.hasBuff(player, PRECU_BURST_RUN_BUFF))
+        {
+            buff.removeBuff(player, PRECU_BURST_RUN_BUFF);
+        }
+        if (movement.hasMovementModifier(player, PRECU_BURST_RUN_BUFF))
+        {
+            movement.removeMovementModifier(player, PRECU_BURST_RUN_BUFF);
+        }
+        setAccelPercent(player, baseAcceleration);
+        removeObjVar(player, PRECU_BURST_RUN_EFFECT_ROOT);
+    }
+    public int removeBurstRun(obj_id self, dictionary params)
+        throws InterruptedException
+    {
+        boolean notify = hasObjVar(self,
+            PRECU_BURST_RUN_EFFECT_ROOT + ".active") &&
+            getIntObjVar(self,
+                PRECU_BURST_RUN_EFFECT_ROOT + ".active") == 1;
+        boolean hasBaseAcceleration = hasObjVar(self,
+            PRECU_BURST_RUN_EFFECT_ROOT + ".baseAcceleration");
+        float baseAcceleration = hasBaseAcceleration ?
+                getFloatObjVar(self,
+                    PRECU_BURST_RUN_EFFECT_ROOT + ".baseAcceleration") :
+                getAccelPercent(self);
+        if (movement.hasMovementModifier(self, PRECU_BURST_RUN_BUFF))
+        {
+            movement.removeMovementModifier(self, PRECU_BURST_RUN_BUFF);
+        }
+        if (hasBaseAcceleration)
+        {
+            setAccelPercent(self, baseAcceleration);
+        }
+        removeObjVar(self, PRECU_BURST_RUN_EFFECT_ROOT);
+        if (notify)
+        {
+            sendSystemMessage(self,
+                new string_id("cbt_spam", "burstrun_stop_single"));
+            combat.sendCombatSpamMessage(self, null,
+                new string_id("cbt_spam", "burstrun_stop"), true, false,
+                true);
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int handlePrecuBurstRunExpiry(obj_id self, dictionary params)
+        throws InterruptedException
+    {
+        if (params == null || !hasObjVar(self,
+                PRECU_BURST_RUN_EFFECT_ROOT + ".expiresAt"))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        int scheduledExpiry = params.getInt("expiresAt");
+        int currentExpiry = getIntObjVar(self,
+            PRECU_BURST_RUN_EFFECT_ROOT + ".expiresAt");
+        if (scheduledExpiry != currentExpiry)
+        {
+            return SCRIPT_CONTINUE;
+        }
+        if (currentExpiry > getGameTime())
+        {
+            schedulePrecuBurstRunExpiry(self, currentExpiry);
+            return SCRIPT_CONTINUE;
+        }
+        if (buff.hasBuff(self, PRECU_BURST_RUN_BUFF))
+        {
+            buff.removeBuff(self, PRECU_BURST_RUN_BUFF);
+        }
+        else
+        {
+            removeBurstRun(self, null);
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int handlePrecuBurstRunReady(obj_id self, dictionary params)
+        throws InterruptedException
+    {
+        if (params == null ||
+            !hasObjVar(self, PRECU_BURST_RUN_COOLDOWN_UNTIL))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        int scheduledReady = params.getInt("cooldownUntil");
+        int currentReady = getIntObjVar(self,
+            PRECU_BURST_RUN_COOLDOWN_UNTIL);
+        if (scheduledReady != currentReady)
+        {
+            return SCRIPT_CONTINUE;
+        }
+        if (currentReady > getGameTime())
+        {
+            schedulePrecuBurstRunReady(self, currentReady);
+            return SCRIPT_CONTINUE;
+        }
+        removeObjVar(self, PRECU_BURST_RUN_COOLDOWN_UNTIL);
+        sendSystemMessage(self, new string_id("combat_effects",
+            "burst_run_not_tired"));
+        return SCRIPT_CONTINUE;
+    }
+    public int handlePrecuBurstRunMountState(obj_id self, dictionary params)
+        throws InterruptedException
+    {
+        if (params == null || !hasObjVar(self,
+                PRECU_BURST_RUN_EFFECT_ROOT + ".expiresAt") ||
+            !hasObjVar(self,
+                PRECU_BURST_RUN_EFFECT_ROOT + ".baseAcceleration") ||
+            !hasObjVar(self,
+                PRECU_BURST_RUN_EFFECT_ROOT + ".mountPollVersion"))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        int expectedExpiry = params.getInt("expiresAt");
+        int expectedVersion = params.getInt("mountPollVersion");
+        int currentExpiry = getIntObjVar(self,
+            PRECU_BURST_RUN_EFFECT_ROOT + ".expiresAt");
+        int currentVersion = getIntObjVar(self,
+            PRECU_BURST_RUN_EFFECT_ROOT + ".mountPollVersion");
+        if (expectedExpiry != currentExpiry ||
+            expectedVersion != currentVersion ||
+            currentExpiry <= getGameTime())
+        {
+            return SCRIPT_CONTINUE;
+        }
+        boolean mounted = isIdValid(getMountId(self)) ||
+            getState(self, STATE_RIDING_MOUNT) != 0;
+        boolean suspended = hasObjVar(self,
+            PRECU_BURST_RUN_EFFECT_ROOT + ".accelerationSuspended") &&
+            getIntObjVar(self,
+                PRECU_BURST_RUN_EFFECT_ROOT + ".accelerationSuspended") == 1;
+        if (mounted != suspended)
+        {
+            float baseAcceleration = getFloatObjVar(self,
+                PRECU_BURST_RUN_EFFECT_ROOT + ".baseAcceleration");
+            float desiredAcceleration = mounted ? baseAcceleration :
+                baseAcceleration * PRECU_BURST_RUN_ACCEL_MULTIPLIER;
+            if (!setAccelPercent(self, desiredAcceleration))
+            {
+                setObjVar(self,
+                    PRECU_BURST_RUN_EFFECT_ROOT + ".active", 0);
+                if (buff.hasBuff(self, PRECU_BURST_RUN_BUFF))
+                {
+                    buff.removeBuff(self, PRECU_BURST_RUN_BUFF);
+                }
+                else
+                {
+                    removeBurstRun(self, null);
+                }
+                return SCRIPT_CONTINUE;
+            }
+            setObjVar(self,
+                PRECU_BURST_RUN_EFFECT_ROOT + ".accelerationSuspended",
+                mounted ? 1 : 0);
+        }
+        schedulePrecuBurstRunMountState(self, currentExpiry, currentVersion);
+        return SCRIPT_CONTINUE;
+    }
+    private void expireStalePrecuBurstRunState(obj_id player)
+        throws InterruptedException
+    {
+        if (hasObjVar(player, PRECU_BURST_RUN_EFFECT_ROOT + ".expiresAt") &&
+            getIntObjVar(player,
+                PRECU_BURST_RUN_EFFECT_ROOT + ".expiresAt") <= getGameTime())
+        {
+            if (buff.hasBuff(player, PRECU_BURST_RUN_BUFF))
+            {
+                buff.removeBuff(player, PRECU_BURST_RUN_BUFF);
+            }
+            else
+            {
+                removeBurstRun(player, null);
+            }
+        }
+    }
+    private void restorePrecuBurstRunState(obj_id player)
+        throws InterruptedException
+    {
+        int now = getGameTime();
+        boolean hasEffectState = hasObjVar(player,
+            PRECU_BURST_RUN_EFFECT_ROOT + ".expiresAt");
+        boolean hasStatusBuff = buff.hasBuff(player, PRECU_BURST_RUN_BUFF);
+        if (hasEffectState && hasStatusBuff)
+        {
+            int expiresAt = getIntObjVar(player,
+                PRECU_BURST_RUN_EFFECT_ROOT + ".expiresAt");
+            if (expiresAt > now)
+            {
+                if (movement.hasMovementModifier(player,
+                    PRECU_BURST_RUN_BUFF))
+                {
+                    movement.removeMovementModifier(player,
+                        PRECU_BURST_RUN_BUFF, false);
+                }
+                float baseAcceleration = getFloatObjVar(player,
+                    PRECU_BURST_RUN_EFFECT_ROOT + ".baseAcceleration");
+                boolean mounted = isIdValid(getMountId(player)) ||
+                    getState(player, STATE_RIDING_MOUNT) != 0;
+                if (movement.applyMovementModifier(player,
+                        PRECU_BURST_RUN_BUFF,
+                        PRECU_BURST_RUN_SPEED_STRENGTH) &&
+                    setAccelPercent(player, mounted ? baseAcceleration :
+                        baseAcceleration * PRECU_BURST_RUN_ACCEL_MULTIPLIER))
+                {
+                    setObjVar(player,
+                        PRECU_BURST_RUN_EFFECT_ROOT +
+                            ".accelerationSuspended", mounted ? 1 : 0);
+                    int mountPollVersion = hasObjVar(player,
+                        PRECU_BURST_RUN_EFFECT_ROOT + ".mountPollVersion") ?
+                            getIntObjVar(player, PRECU_BURST_RUN_EFFECT_ROOT +
+                                ".mountPollVersion") + 1 : 1;
+                    setObjVar(player,
+                        PRECU_BURST_RUN_EFFECT_ROOT + ".mountPollVersion",
+                        mountPollVersion);
+                    schedulePrecuBurstRunExpiry(player, expiresAt);
+                    schedulePrecuBurstRunMountState(player, expiresAt,
+                        mountPollVersion);
+                }
+                else
+                {
+                    setObjVar(player,
+                        PRECU_BURST_RUN_EFFECT_ROOT + ".active", 0);
+                    buff.removeBuff(player, PRECU_BURST_RUN_BUFF);
+                }
+            }
+            else
+            {
+                buff.removeBuff(player, PRECU_BURST_RUN_BUFF);
+            }
+        }
+        else if (hasEffectState || hasStatusBuff)
+        {
+            if (hasStatusBuff)
+            {
+                buff.removeBuff(player, PRECU_BURST_RUN_BUFF);
+            }
+            removeBurstRun(player, null);
+        }
+
+        if (hasObjVar(player, PRECU_BURST_RUN_COOLDOWN_UNTIL))
+        {
+            int cooldownUntil = getIntObjVar(player,
+                PRECU_BURST_RUN_COOLDOWN_UNTIL);
+            if (cooldownUntil > now)
+            {
+                schedulePrecuBurstRunReady(player, cooldownUntil);
+            }
+            else
+            {
+                removeObjVar(player, PRECU_BURST_RUN_COOLDOWN_UNTIL);
+            }
+        }
+    }
+    private void schedulePrecuBurstRunExpiry(obj_id player, int expiresAt)
+        throws InterruptedException
+    {
+        dictionary expiry = new dictionary();
+        expiry.put("expiresAt", expiresAt);
+        messageTo(player, "handlePrecuBurstRunExpiry", expiry,
+            Math.max(0.1f, expiresAt - getGameTime()), false);
+    }
+    private void schedulePrecuBurstRunReady(obj_id player, int cooldownUntil)
+        throws InterruptedException
+    {
+        dictionary ready = new dictionary();
+        ready.put("cooldownUntil", cooldownUntil);
+        messageTo(player, "handlePrecuBurstRunReady", ready,
+            Math.max(0.1f, cooldownUntil - getGameTime()), false);
+    }
+    private void schedulePrecuBurstRunMountState(obj_id player, int expiresAt,
+        int mountPollVersion)
+        throws InterruptedException
+    {
+        dictionary mountState = new dictionary();
+        mountState.put("expiresAt", expiresAt);
+        mountState.put("mountPollVersion", mountPollVersion);
+        messageTo(player, "handlePrecuBurstRunMountState", mountState,
+            PRECU_BURST_RUN_MOUNT_POLL_SECONDS, false);
+    }
     public int retreat(obj_id self, obj_id target, String params,
         float defaultTime) throws InterruptedException
     {
@@ -6556,6 +6978,11 @@ public class base_player extends script.base_script
     }
     public int OnChangedPosture(obj_id self, int before, int after) throws InterruptedException
     {
+        if (after == POSTURE_KNOCKED_DOWN &&
+            buff.hasBuff(self, PRECU_BURST_RUN_BUFF))
+        {
+            buff.removeBuff(self, PRECU_BURST_RUN_BUFF);
+        }
         if (meditation.isMeditating(self))
         {
             meditation.endMeditation(self);

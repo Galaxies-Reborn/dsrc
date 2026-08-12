@@ -102,7 +102,7 @@ lowBlow	lowBlow			1	command.lowBlow	20	combat_slow	40		0		0		0		0	STATE_NONE	non
 mezBlockDebuff	mez			10	state.rage	30		0		0		0		0		0	STATE_NONE	none			1	1		1	1	1	0	1	1	0	1	1	1
 dazeBlockDebuff	daze			10	state.anger	20		0		0		0		0		0	STATE_NONE	none			1	1		1	1	1	0	1	1	0	1	1	1
 tranqDart	trap			1	buffs.genericDebuff	20	movement	0		0		0		0		0	STATE_NONE	snareEffectOff			1	1		1	1	1	0	1	1	0	1	1	1
-burstRun	burstrun	escape		1	command.burstRun	60	movement	0		0		0		0		0	STATE_NONE	removeBurstRun			1	0		1	1	1	0	1	1	0	1	1	1
+burstRun	burstrun	escape		1	command.burstRun	30	movement	82.2		0		0		0		0	STATE_NONE	removeBurstRun			1	0		1	1	0	0	1	1	0	1	1	0
 cryobanSnare	cold			1	buffs.cryobanSnare	5	movement	0		0		0		0		0	STATE_NONE	none			1	1		1	1	1	0	1	1	0	1	1	1
 intimidate	intimidate			1	command.intimidate	-1		0		0		0		0		0	STATE_INTIMIDATED	none			1	1		0	1	1	0	1	1	0	1	1	1
 feign_death	feign_death			1	command.feignDeath	-1		0		0		0		0		0	STATE_FEIGN_DEATH	none			1	0		0	1	1	0	1	1	0	1	1	1

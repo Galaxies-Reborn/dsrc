@@ -558,7 +558,7 @@ broadcast		immediate	cmdBroadcast	failAdmin				admin																				1	1		0	1
 broadcastArea		immediate	cmdBroadcastArea	failAdmin				admin																				1	1		0	1												1																												gm.cmd		none	0				0		40	csr	0										
 broadcastGalaxy		immediate	cmdBroadcastGalaxy	failAdmin				admin																				1	1		0	1												1																												gm.cmd		none	0				0		40	csr	0										
 broadcastPlanet		immediate	cmdBroadcastPlanet	failAdmin				admin																				1	1		0	1												1																												gm.cmd		none	0				0		40	csr	0										
-burstRun		normal	burstRun				1		1	0	1	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0			0	0	0				0		0						0		0		0	0	0	0								0	0	0	0	0	0										none					1				1			4	0	1	600				
+burstRun		front	burstRun				1		1	0	1	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	1	1	0	1	0	1	1	1	1	1	1	1	0	1	0	0	0	0	1	0	1	1	1	1	1	0	0	0	0	0	0	1	1	1	1	1	1	1		other	none		3	0	0	0	0	0	0	0	ALL	NONE	defaultCooldownGroup	0	1	0		0	0	0
 camouflageAlly		normal	camouflageAlly	failCamouflageAlly				camouflageAlly	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	0	0	0	0	0	0	0	0	1	0		1	1	1	1	1	1	1	1	1	0	1	1	1	1	0	0									0	0	0	0	0	0	0								friend	required		2		skill_outdoorsman	0	10			0	ALL		invisibility	20	2	10				
 camouflageSelf		normal	camouflageSelf	failCamouflageSelf			0	camouflageSelf	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	0	0	0	0	0	0	0	0	1	0		1	1	1	1	1	1	1	1	1	0	1	1	1	1	0	0									0	0	0	0	0	0	0									none		2		skill_outdoorsman	0				0	ALL		invisibility	10	2	10				
 cancelCraftingSession		immediate			cancelCraftingSession																				1	1					0	1	0											1															1															none		1		crafting	0				0										

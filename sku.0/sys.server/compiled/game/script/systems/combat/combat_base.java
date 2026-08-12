@@ -2984,6 +2984,8 @@ public class combat_base extends script.base_script
         utils.setScriptVar(defender, PRECU_POSTURE_DOWN_RECOVERY, currentTime);
         recordPrecuLiveDiagnostic(attacker, "postureDown.end", endPosture);
         recordPrecuLiveDiagnostic(attacker, "postureDown.result", "APPLIED");
+        buff.removeBuff(defender, "burstRun");
+        buff.removeBuff(defender, "retreat");
         sendSystemMessage(
             defender,
             new string_id(
@@ -3057,6 +3059,8 @@ public class combat_base extends script.base_script
         recordPrecuLiveDiagnostic(
             attacker, "knockdown.end", POSTURE_KNOCKED_DOWN);
         recordPrecuLiveDiagnostic(attacker, "knockdown.result", "APPLIED");
+        buff.removeBuff(defender, "burstRun");
+        buff.removeBuff(defender, "retreat");
         return POSTURE_KNOCKED_DOWN;
     }
     public String getPrecuDiagnosticResultName(int result) throws InterruptedException
