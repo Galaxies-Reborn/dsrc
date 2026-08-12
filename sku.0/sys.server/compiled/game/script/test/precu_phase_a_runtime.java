@@ -104,6 +104,8 @@ public class precu_phase_a_runtime extends script.base_script
     private static final String[] CRAFTING_VECTOR_COMMANDS =
     {
         "private_artisan_novice",
+        "sample",
+        "survey",
         "private_artisan_engineering_1"
     };
     private static final String[] CRAFTING_VECTOR_MODS =
@@ -1800,7 +1802,7 @@ public class precu_phase_a_runtime extends script.base_script
             (long)preXp == (long)baseXp + (long)CRAFTING_XP_COST &&
             novicePointCost >= 0 && targetPointCost >= 0 &&
             prePoints == expectedPrePoints && prePoints >= targetPointCost &&
-            preCap == 1500 && (baseNovice != 1 || baseCap == preCap) &&
+            preCap == 1000 && (baseNovice != 1 || baseCap == preCap) &&
             (baseNovice == 0 || baseNovice == 1) && baseSkill == 0 &&
             preNovice == 1 && preSkill == 0;
     }
@@ -1811,7 +1813,9 @@ public class precu_phase_a_runtime extends script.base_script
         if (!hasSkill(player, CRAFTING_NOVICE_SKILL) ||
             hasSkill(player, CRAFTING_SKILL) ||
             !hasCommand(player, CRAFTING_VECTOR_COMMANDS[0]) ||
-            hasCommand(player, CRAFTING_VECTOR_COMMANDS[1]) ||
+            !hasCommand(player, CRAFTING_VECTOR_COMMANDS[1]) ||
+            !hasCommand(player, CRAFTING_VECTOR_COMMANDS[2]) ||
+            hasCommand(player, CRAFTING_VECTOR_COMMANDS[3]) ||
             (hasObjVar(player, "newbie.hasSkill") && !hasObjVar(player, "newbie.trained")))
         {
             return false;

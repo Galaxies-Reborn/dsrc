@@ -109,7 +109,7 @@ public class skillteacher extends script.base_script
     private static final String PRECU_CRAFTING_SKILL = "crafting_artisan_engineering_01";
     private static final int PRECU_CRAFTING_TRAINER_COST = 1000;
     private static final int PRECU_CRAFTING_XP_COST = 500;
-    private static final int PRECU_PREPURCHASE_XP_CAP = 1500;
+    private static final int PRECU_PREPURCHASE_XP_CAP = 1000;
     private static final int PRECU_TRAINED_XP_CAP = 2000;
     private static final int PRECU_CRAFTING_SCHEMATIC_COUNT = 35;
     private static final int PRECU_PROTOCOL_VERSION = 64;
@@ -125,6 +125,8 @@ public class skillteacher extends script.base_script
     private static final String[] PRECU_CRAFTING_VECTOR_COMMANDS =
     {
         "private_artisan_novice",
+        "sample",
+        "survey",
         "private_artisan_engineering_1"
     };
     private static final String[] PRECU_CRAFTING_VECTOR_MODS =
@@ -1171,7 +1173,9 @@ public class skillteacher extends script.base_script
         if (!hasSkill(player, PRECU_CRAFTING_NOVICE_SKILL) ||
             hasSkill(player, PRECU_CRAFTING_SKILL) ||
             !hasCommand(player, PRECU_CRAFTING_VECTOR_COMMANDS[0]) ||
-            hasCommand(player, PRECU_CRAFTING_VECTOR_COMMANDS[1]) ||
+            !hasCommand(player, PRECU_CRAFTING_VECTOR_COMMANDS[1]) ||
+            !hasCommand(player, PRECU_CRAFTING_VECTOR_COMMANDS[2]) ||
+            hasCommand(player, PRECU_CRAFTING_VECTOR_COMMANDS[3]) ||
             (hasObjVar(player, "newbie.hasSkill") && !hasObjVar(player, "newbie.trained")))
         {
             return false;
