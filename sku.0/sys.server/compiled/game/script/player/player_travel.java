@@ -122,7 +122,34 @@ public class player_travel extends script.base_script
     }
     public int OnPurchaseTicketInstantTravel(obj_id self, obj_id player, String departPlanetName, String departTravelPointName, String arrivePlanetName, String arriveTravelPointName, boolean roundTrip) throws InterruptedException
     {
-        LOG("LOG_CHANNEL", "Ignored retired NGE instant-travel ticket dispatch for " + self);
+        if (!utils.hasScriptVar(player, "instantTravel"))
+        {
+            return SCRIPT_OVERRIDE;
+        }
+        utils.removeScriptVar(player, "instantTravel");
+        obj_id terminal = utils.getObjIdScriptVar(player, travel.SCRIPT_VAR_TERMINAL);
+        if (!isIdValid(terminal) || !exists(terminal) ||
+            !getTemplateName(terminal).equals("object/tangible/terminal/terminal_travel_instant_royal_ship.iff") ||
+            !utils.hasScriptVar(terminal, "playerOwner") ||
+            utils.getObjIdScriptVar(terminal, "playerOwner") != player)
+        {
+            LOG("LOG_CHANNEL", "Rejected non-Royal instant-travel ticket dispatch for " + self);
+            return SCRIPT_OVERRIDE;
+        }
+        if (getDistance(self, terminal) > travel.MAXIMUM_TERMINAL_DISTANCE)
+        {
+            sendSystemMessage(self, new string_id(STF_FILE, "too_far"));
+            return SCRIPT_OVERRIDE;
+        }
+        if (isIdValid(getMountId(player)))
+        {
+            sendSystemMessage(player, SID_INSTANT_GO_MOUNT_NO);
+            return SCRIPT_OVERRIDE;
+        }
+        if (travel.instantTravel(self, departPlanetName, departTravelPointName, arrivePlanetName, arriveTravelPointName, roundTrip, terminal))
+        {
+            messageTo(terminal, "cleanupShip", null, 0.0f, false);
+        }
         return SCRIPT_OVERRIDE;
     }
     public int OnAboutToTravelToGroupPickupPoint(obj_id self) throws InterruptedException
@@ -1014,7 +1041,16 @@ public class player_travel extends script.base_script
     }
     public int callForRoyalPickup(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
-        return doCFP(self, SHIP_TYPE_INSTANT_ROYAL_SHIP);
+        if (travel.isTravelBlocked(self, false))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        if (canCallForRoyalPickup(self))
+        {
+            sendSystemMessage(self, SID_CALLING_FOR_PICKUP);
+            spawnRoyalPickupCraft(self);
+        }
+        return SCRIPT_CONTINUE;
     }
     public int callForTcgHomePickup(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
@@ -1036,6 +1072,95 @@ public class player_travel extends script.base_script
     {
         LOG("LOG_CHANNEL", "Rejected retired NGE instant-travel pickup admission for " + player);
         return false;
+    }
+    public boolean canCallForRoyalPickup(obj_id player) throws InterruptedException
+    {
+        String minLevelSetting = getConfigSetting("GameServer", "itvMinUsageLevel");
+        if (minLevelSetting == null)
+        {
+            minLevelSetting = "0";
+        }
+        int minimumLevel = Integer.parseInt(minLevelSetting);
+        if (getLevel(player) < minimumLevel)
+        {
+            sendSystemMessage(player, "Instant Travel vehicles may not be used until you have reached level " + minLevelSetting, null);
+            return false;
+        }
+        if (isIdValid(getMountId(player)))
+        {
+            sendSystemMessage(player, SID_INSTANT_MOUNT_NO);
+            return false;
+        }
+        if (isIdValid(structure.getContainingBuilding(player)))
+        {
+            sendSystemMessage(player, SID_LOCATION_INDOORS);
+            return false;
+        }
+        if (isSpaceScene() || space_dungeon.verifyPlayerSession(player))
+        {
+            sendSystemMessage(player, SID_INVALID_PICKUP_LOC);
+            return false;
+        }
+        if (buff.hasBuff(player, ITV_PICKUP_BUFF))
+        {
+            sendSystemMessage(player, SID_PICKUP_CANCEL);
+            buff.removeBuff(player, ITV_PICKUP_BUFF);
+            return false;
+        }
+        location here = getLocation(player);
+        if (locations.isInCity(here))
+        {
+            sendSystemMessage(player, SID_NO_PICKUP_IN_TOWN);
+            return false;
+        }
+        region[] geoCities = getRegionsWithGeographicalAtPoint(here, regions.GEO_CITY);
+        if (geoCities != null && geoCities.length > 0)
+        {
+            sendSystemMessage(player, SID_INVALID_PICKUP_LOC);
+            return false;
+        }
+        region[] pvpRegions = getRegionsWithPvPAtPoint(here, regions.PVP_REGION_TYPE_ADVANCED);
+        if (pvpRegions != null && pvpRegions.length > 0)
+        {
+            sendSystemMessage(player, SID_NO_PICKUP_IN_PVP);
+            return false;
+        }
+        String planet = getCurrentSceneName();
+        if (planet.startsWith("kashyyyk") || planet.equals("adventure1"))
+        {
+            sendSystemMessage(player, SID_INVALID_PICKUP_LOC);
+            return false;
+        }
+        if (combat.isInCombat(player))
+        {
+            sendSystemMessage(player, SID_IN_COMBAT);
+            return false;
+        }
+        return true;
+    }
+    public boolean spawnRoyalPickupCraft(obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(player))
+        {
+            return false;
+        }
+        location spawnLocation = locations.getGoodLocationAroundLocation(getLocation(player), 1.0f, 1.0f, 4.0f, 4.0f);
+        if (spawnLocation == null)
+        {
+            sendSystemMessage(player, SID_LOCATION_NOGOOD_FOR_PICKUP);
+            return false;
+        }
+        obj_id pickupCraft = create.object("object/tangible/terminal/terminal_travel_instant_royal_ship.iff", spawnLocation);
+        if (!isIdValid(pickupCraft))
+        {
+            return false;
+        }
+        setName(pickupCraft, "Royal Instant Travel Vehicle");
+        utils.setScriptVar(player, "instantTravelShip.pickupCraft", pickupCraft);
+        utils.setScriptVar(pickupCraft, "playerOwner", player);
+        messageTo(pickupCraft, "initializeInstaTravelShip", null, 1, false);
+        buff.applyBuff(player, ITV_PICKUP_BUFF);
+        return true;
     }
     public boolean spawnPickupCraft(obj_id player, int type) throws InterruptedException
     {

@@ -1204,8 +1204,22 @@ public class travel extends script.base_script
     }
     public static boolean instantTravel(obj_id player, String planet1, String point1, String planet2, String point2, boolean roundtrip, obj_id starport) throws InterruptedException
     {
-        LOG("LOG_CHANNEL", "Rejected retired NGE instant travel for " + player);
-        return false;
+        if (!isIdValid(player) || !planet1.equals(planet2))
+        {
+            return false;
+        }
+        int cityId = findCityByName(point2);
+        if (city.isCityBanned(player, cityId))
+        {
+            sendSystemMessage(player, new string_id("travel", "banned_travel"));
+            return false;
+        }
+        if (callable.hasAnyCallable(player))
+        {
+            sendSystemMessage(player, new string_id("beast", "beast_cant_travel"));
+            return false;
+        }
+        return movePlayerToDestination(player, planet2, point2);
     }
     public static boolean isTravelBlocked(obj_id player, boolean isLaunch) throws InterruptedException
     {

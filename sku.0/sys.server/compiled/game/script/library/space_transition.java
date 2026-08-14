@@ -21,10 +21,18 @@ public class space_transition extends script.base_script
     public static final int SHIP_LIMIT_EXPANSION = 6;
     public static final int SHIP_LIMIT_MAX = 3;
     public static final float STATION_COMM_MAX_DISTANCE = 750.0f;
+    public static final String VAR_LAUNCH_PILOT_RETRY = "space.launch.pilotRetry";
+    public static final int MAX_LAUNCH_PILOT_RETRIES = 40;
     public static final String POB_SHIP_PILOT_SLOT_NAME = "ship_pilot_pob";
     public static final String SHIP_PILOT_SLOT_NAME = "ship_pilot";
     public static final string_id SID_PVP_NOW_OVERT = new string_id("space/space_interaction", "pvp_now_overt");
     public static final string_id SID_PVP_NOW_NEUTRAL = new string_id("space/space_interaction", "pvp_now_neutral");
+    public static void clearLaunchPilotHandoff(obj_id player) throws InterruptedException
+    {
+        removeObjVar(player, "space.launch.ship");
+        removeObjVar(player, "space.launch.startIndex");
+        removeObjVar(player, VAR_LAUNCH_PILOT_RETRY);
+    }
     public static void handlePotentialSceneChange(obj_id player) throws InterruptedException
     {
         if (utils.hasLocalVar(player, "loggingOut"))
@@ -37,6 +45,7 @@ public class space_transition extends script.base_script
         {
             if (isIdValid(containingShip))
             {
+                clearLaunchPilotHandoff(player);
                 adjustShipTeleportFixupInSpaceScene(containingShip);
                 if (getOwner(containingShip) == player)
                 {
@@ -47,11 +56,6 @@ public class space_transition extends script.base_script
             }
             obj_id launchedShip = getObjIdObjVar(player, "space.launch.ship");
             int launchedShipStartIndex = getIntObjVar(player, "space.launch.startIndex") - 1;
-            if ((!isGod(player) || (!utils.checkConfigFlag("ScriptFlags", "e3Demo")) && shouldSendToGroundOnLogout()))
-            {
-                removeObjVar(player, "space.launch.ship");
-                removeObjVar(player, "space.launch.startIndex");
-            }
             if (isIdValid(launchedShip) && launchedShip.isLoaded())
             {
                 LOG("space", "checking " + launchedShip);
@@ -73,6 +77,7 @@ public class space_transition extends script.base_script
                             boolean success = equip(player, launchedShip, loc.area);
                             if (success)
                             {
+                                clearLaunchPilotHandoff(player);
                                 if (debugSpaceTransition)
                                 {
                                     LOG("space_transition", "Player [" + player + "] in space, going to an already unpacked ship [" + launchedShip + "] in station [" + loc.area + "] succeeded.");
@@ -91,6 +96,7 @@ public class space_transition extends script.base_script
                                 LOG("space_transition", "Player [" + player + "] in space, going to an already unpacked ship [" + launchedShip + "] at location [" + loc + "].");
                             }
                             setLocation(player, loc);
+                            clearLaunchPilotHandoff(player);
                             return;
                         }
                     }
@@ -103,6 +109,7 @@ public class space_transition extends script.base_script
                         start.cell = cell;
                         LOG("space_transition", "Sending player " + player + " to dungeon " + dungeon + " " + launchedShip);
                         setLocation(player, start);
+                        clearLaunchPilotHandoff(player);
                         return;
                     }
                     else if (debugSpaceTransition)
@@ -120,11 +127,27 @@ public class space_transition extends script.base_script
                         }
                         if (unpackShipForPlayer(player, launchedShip))
                         {
+                            clearLaunchPilotHandoff(player);
                             return;
                         }
                     }
                 }
             }
+            if (isIdValid(launchedShip))
+            {
+                int retryCount = hasObjVar(player, VAR_LAUNCH_PILOT_RETRY) ? getIntObjVar(player, VAR_LAUNCH_PILOT_RETRY) : 0;
+                if (retryCount < MAX_LAUNCH_PILOT_RETRIES)
+                {
+                    setObjVar(player, VAR_LAUNCH_PILOT_RETRY, retryCount + 1);
+                    setObjVar(player, "space.launch.ship", launchedShip);
+                    setObjVar(player, "space.launch.startIndex", launchedShipStartIndex + 1);
+                    boolean shipLoaded = launchedShip.isLoaded();
+                    CustomerServiceLog("space_launch", "Retrying ship pilot handoff for player " + player + " ship " + launchedShip + " attempt " + (retryCount + 1) + " playerAuthoritative=" + player.isAuthoritative() + " shipLoaded=" + shipLoaded + (shipLoaded ? " shipAuthoritative=" + launchedShip.isAuthoritative() + " shipContainer=" + getContainedBy(launchedShip) : ""));
+                    messageTo(player, "retrySpaceLaunchPilot", null, 0.5f, false);
+                    return;
+                }
+            }
+            clearLaunchPilotHandoff(player);
             if (debugSpaceTransition)
             {
                 if (isIdValid(launchedShip))
@@ -649,7 +672,10 @@ public class space_transition extends script.base_script
             {
                 LOG("space", "NO piloting");
             }
-            packShip(ship);
+            if (isIdValid(shipControlDevice) && getTopMostContainer(ship) == ship && !putIn(ship, shipControlDevice))
+            {
+                CustomerServiceLog("space_launch", "Pilot handoff failed and ship " + ship + " could not be restored to control device " + shipControlDevice + "; preserving the ship in world for retry");
+            }
         }
         return false;
     }

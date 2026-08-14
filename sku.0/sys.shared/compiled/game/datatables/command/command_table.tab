@@ -1085,7 +1085,7 @@ blueGlowie		normal	blueGlowie					blueGlowie	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	0	0
 saberBlock	commandClicky	normal	saberBlock	failSpecialAttack			1	saberBlock	1	0	1	1	1	0	1	1	1	0	0	0	0	0	0	0	0	0	0			0	0	1	1		1	0	0	1	1	1	1	0	1	0	1	1	1	1	0	0									0		0	0	0	0	0								other	none		2		combat_ranged	0			combat	1	ALL		saber_block	0	0.25	60			1	
 callforpickup		normal	callForPickup					callforpickup																							0													0																														optional		2			1														
 callforprivateerpickup		normal	callForPrivateerPickup					callforprivateerpickup																							0													0																														optional		2			1														
-callforroyalpickup		normal	callForRoyalPickup					callforroyalpickup																							0													0																														optional		2			1														
+callforroyalpickup		normal	callForRoyalPickup					callforroyalpickup																							0													0																														optional		2			0														
 callforrattletrappickup		normal	callForRattleTrapPickup					callforrattletrappickup																							0													0																														optional		2			1														
 callforsolarsailerpickup		normal	callForTcgHomePickup					callforsolarsailerpickup																							0													0																														optional		2			1														
 callforg9riggerpickup		normal	callForTcgLocationPickup					callforg9riggerpickup																							0													0																														optional		2			1														

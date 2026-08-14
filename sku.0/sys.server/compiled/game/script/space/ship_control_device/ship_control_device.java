@@ -21,6 +21,14 @@ public class ship_control_device extends script.base_script
     public static final string_id SID_TERMINAL_REDEED_STORAGE = new string_id("player_structure", "redeed_storage");
     public static final string_id SID_STORAGE_INCREASE_REDEED_TITLE = new string_id("player_structure", "sui_storage_redeed_title");
     public static final string_id SID_STORAGE_INCREASE_REDEED_PROMPT = new string_id("player_structure", "sui_storage_redeed_prompt");
+    public static final int MENU_HOUSING = menu_info_types.SERVER_MENU5;
+    public static final int MENU_PARK = menu_info_types.SERVER_MENU6;
+    public static final int MENU_STATUS = menu_info_types.SERVER_MENU7;
+    public static final int MENU_PAY_MAINTENANCE = menu_info_types.SERVER_MENU8;
+    public static final int MENU_RESIDENCE = menu_info_types.SERVER_MENU9;
+    public static final int MENU_ACCESS = menu_info_types.SERVER_MENU10;
+    public static final int MENU_ATMOSPHERIC_PILOT = menu_info_types.SERVER_MENU11;
+    public static final int MENU_ATMOSPHERIC_LAUNCH_SPACE = menu_info_types.SERVER_MENU12;
     public int OnAttach(obj_id self) throws InterruptedException
     {
         setObjVar(self, "noTrade", 1);
@@ -31,6 +39,7 @@ public class ship_control_device extends script.base_script
         pobShipLotRefunder(self);
         setObjVar(self, "noTrade", 1);
         removeObjVar(self, IN_USE_OBJVAR);
+        atmospheric_ship.getShipForControlDevice(self);
         messageTo(self, "checkCollectionReactor", null, 2, false);
         return SCRIPT_CONTINUE;
     }
@@ -74,33 +83,92 @@ public class ship_control_device extends script.base_script
             return SCRIPT_CONTINUE;
         }
         mi.addRootMenu(menu_info_types.SERVER_MENU1, RENAME_SHIP);
-        obj_id objShip = space_transition.getShipFromShipControlDevice(self);
+        obj_id objShip = atmospheric_ship.getShipForControlDevice(self);
         if (isIdValid(objShip))
         {
-            gunshipCheck(objShip);
-            if (hasObjVar(objShip, player_structure.OBJVAR_STRUCTURE_STORAGE_INCREASE))
+            int atmosphericState = atmospheric_ship.getControlState(self);
+            if (objShip.isLoaded())
             {
-                mi.addRootMenu(menu_info_types.DICE_ROLL, SID_TERMINAL_REDEED_STORAGE);
+                gunshipCheck(objShip);
             }
-            else 
+            if (atmosphericState == atmospheric_ship.STATE_STORED && !atmospheric_ship.isCallPending(self))
             {
-                mi.addRootMenu(menu_info_types.SERVER_MENU2, PACK_SHIP);
+                mi.addRootMenu(menu_info_types.VEHICLE_GENERATE, atmospheric_ship.SID_CALL);
+                if (objShip.isLoaded() && hasObjVar(objShip, player_structure.OBJVAR_STRUCTURE_STORAGE_INCREASE))
+                {
+                    mi.addRootMenu(menu_info_types.DICE_ROLL, SID_TERMINAL_REDEED_STORAGE);
+                }
+                else
+                {
+                    mi.addRootMenu(menu_info_types.SERVER_MENU2, PACK_SHIP);
+                }
             }
-            String strChassisType = getShipChassisType(objShip);
-            if (strChassisType.equals("player_sorosuub_space_yacht"))
+            else if (objShip.isLoaded() && getPilotId(objShip) == player)
             {
-                menu_info_data data = mi.getMenuItemByType(menu_info_types.ITEM_USE);
-                string_id strSpam = new string_id("space/space_interaction", "repair");
-                mi.addRootMenu(menu_info_types.ITEM_USE, strSpam);
+                mi.addRootMenu(menu_info_types.VEHICLE_STORE, atmospheric_ship.SID_LAND);
+                if (atmosphericState == atmospheric_ship.STATE_ACTIVE && !atmospheric_ship.isParkedHousing(objShip))
+                {
+                    mi.addRootMenu(MENU_ATMOSPHERIC_LAUNCH_SPACE, atmospheric_ship.SID_LAUNCH_SPACE);
+                }
             }
-            if (isShipSlotInstalled(objShip, ship_chassis_slot_type.SCST_cargo_hold))
+            else if (atmosphericState == atmospheric_ship.STATE_ACTIVE && objShip.isLoaded())
             {
-                string_id strSpam = new string_id("space/space_interaction", "view");
-                mi.addRootMenu(menu_info_types.SERVER_MENU3, strSpam);
-                string_id strSpam2 = new string_id("space/space_interaction", "unload");
-                mi.addRootMenu(menu_info_types.SERVER_MENU4, strSpam2);
+                mi.addRootMenu(menu_info_types.VEHICLE_STORE, atmospheric_ship.SID_STORE);
+                if (!atmospheric_ship.isParkedHousing(objShip) && atmospheric_ship.isOwner(player, objShip))
+                {
+                    obj_id atmosphericPilot = getPilotId(objShip);
+                    if (!isIdValid(atmosphericPilot))
+                    {
+                        mi.addRootMenu(MENU_ATMOSPHERIC_PILOT, atmospheric_ship.SID_PILOT);
+                    }
+                    if (!isIdValid(atmosphericPilot) || atmosphericPilot == player)
+                    {
+                        mi.addRootMenu(MENU_ATMOSPHERIC_LAUNCH_SPACE, atmospheric_ship.SID_LAUNCH_SPACE);
+                    }
+                }
+            }
+            if ((atmosphericState == atmospheric_ship.STATE_PARKED || (objShip.isLoaded() && space_utils.isShipWithInterior(objShip))) && atmosphericState != atmospheric_ship.STATE_STORED)
+            {
+                int housingRoot = mi.addRootMenu(MENU_HOUSING, atmospheric_ship.SID_HOUSING);
+                if (atmosphericState == atmospheric_ship.STATE_PARKED)
+                {
+                    mi.addSubMenu(housingRoot, MENU_PARK, atmospheric_ship.SID_UNPARK);
+                    mi.addSubMenu(housingRoot, MENU_STATUS, atmospheric_ship.SID_STATUS);
+                    mi.addSubMenu(housingRoot, MENU_PAY_MAINTENANCE, atmospheric_ship.SID_PAY_MAINTENANCE);
+                    mi.addSubMenu(housingRoot, MENU_RESIDENCE, atmospheric_ship.SID_RESIDENCE);
+                    mi.addSubMenu(housingRoot, MENU_ACCESS, atmospheric_ship.SID_ACCESS);
+                }
+                else
+                {
+                    mi.addSubMenu(housingRoot, MENU_PARK, atmospheric_ship.SID_PARK);
+                }
+            }
+            if (objShip.isLoaded())
+            {
+                String strChassisType = getShipChassisType(objShip);
+                if (strChassisType.equals("player_sorosuub_space_yacht"))
+                {
+                    menu_info_data data = mi.getMenuItemByType(menu_info_types.ITEM_USE);
+                    string_id strSpam = new string_id("space/space_interaction", "repair");
+                    mi.addRootMenu(menu_info_types.ITEM_USE, strSpam);
+                }
+                if (isShipSlotInstalled(objShip, ship_chassis_slot_type.SCST_cargo_hold))
+                {
+                    string_id strSpam = new string_id("space/space_interaction", "view");
+                    mi.addRootMenu(menu_info_types.SERVER_MENU3, strSpam);
+                    string_id strSpam2 = new string_id("space/space_interaction", "unload");
+                    mi.addRootMenu(menu_info_types.SERVER_MENU4, strSpam2);
+                }
             }
         }
+        return SCRIPT_CONTINUE;
+    }
+    public int completeAtmosphericShipCall(obj_id self, dictionary params) throws InterruptedException
+    {
+        obj_id player = params.getObjId("player");
+        obj_id ship = params.getObjId("ship");
+        location callLocation = params.getLocation("callLocation");
+        atmospheric_ship.completeCallDown(self, player, ship, callLocation);
         return SCRIPT_CONTINUE;
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
@@ -109,9 +177,71 @@ public class ship_control_device extends script.base_script
         {
             return SCRIPT_CONTINUE;
         }
+        if (item == menu_info_types.VEHICLE_GENERATE)
+        {
+            atmospheric_ship.callDown(self, player);
+            return SCRIPT_CONTINUE;
+        }
+        if (item == menu_info_types.VEHICLE_STORE)
+        {
+            obj_id groundShip = atmospheric_ship.getShipForControlDevice(self);
+            if (isIdValid(groundShip) && getPilotId(groundShip) == player)
+            {
+                atmospheric_ship.land(self, player);
+            }
+            else
+            {
+                atmospheric_ship.store(self, player);
+            }
+            return SCRIPT_CONTINUE;
+        }
+        if (item == MENU_ATMOSPHERIC_PILOT)
+        {
+            obj_id atmosphericShip = atmospheric_ship.getShipForControlDevice(self);
+            atmospheric_ship.pilot(player, atmosphericShip);
+            return SCRIPT_CONTINUE;
+        }
+        if (item == MENU_ATMOSPHERIC_LAUNCH_SPACE)
+        {
+            atmospheric_ship.launchToSpace(self, player);
+            return SCRIPT_CONTINUE;
+        }
+        if (item == MENU_PARK)
+        {
+            obj_id housingShip = atmospheric_ship.getShipForControlDevice(self);
+            if (atmospheric_ship.getControlState(self) == atmospheric_ship.STATE_PARKED)
+            {
+                atmospheric_ship.unparkHousing(self, player);
+            }
+            else
+            {
+                atmospheric_ship.parkAsHousing(self, player);
+            }
+            return SCRIPT_CONTINUE;
+        }
+        if (item == MENU_STATUS)
+        {
+            showAtmosphericHousingStatus(self, player);
+            return SCRIPT_CONTINUE;
+        }
+        if (item == MENU_PAY_MAINTENANCE)
+        {
+            sui.inputbox(self, player, "Enter the number of credits to add to this ship's maintenance pool.", sui.OK_CANCEL, "POB Ship Maintenance", sui.INPUT_NORMAL, null, "payAtmosphericHousingMaintenance", null);
+            return SCRIPT_CONTINUE;
+        }
+        if (item == MENU_RESIDENCE)
+        {
+            atmospheric_ship.declareResidence(self, player);
+            return SCRIPT_CONTINUE;
+        }
+        if (item == MENU_ACCESS)
+        {
+            showAtmosphericHousingAccess(self, player);
+            return SCRIPT_CONTINUE;
+        }
         if (item == menu_info_types.ITEM_USE)
         {
-            obj_id objShip = space_transition.getShipFromShipControlDevice(self);
+            obj_id objShip = atmospheric_ship.getShipForControlDevice(self);
             if (isIdValid(objShip))
             {
                 String strChassisType = getShipChassisType(objShip);
@@ -209,7 +339,7 @@ public class ship_control_device extends script.base_script
                     destroyObject(self);
                     return SCRIPT_CONTINUE;
                 }
-                else 
+                else
                 {
                     removeObjVar(self, IN_USE_OBJVAR);
                     return SCRIPT_CONTINUE;
@@ -224,7 +354,7 @@ public class ship_control_device extends script.base_script
         }
         if (item == menu_info_types.SERVER_MENU3)
         {
-            obj_id objShip = space_transition.getShipFromShipControlDevice(self);
+            obj_id objShip = atmospheric_ship.getShipForControlDevice(self);
             if (!isIdValid(objShip))
             {
                 return SCRIPT_CONTINUE;
@@ -249,7 +379,7 @@ public class ship_control_device extends script.base_script
         }
         if (item == menu_info_types.SERVER_MENU4)
         {
-            obj_id objShip = space_transition.getShipFromShipControlDevice(self);
+            obj_id objShip = atmospheric_ship.getShipForControlDevice(self);
             obj_id pInv = utils.getInventoryContainer(player);
             int maxInventorySpace = getVolumeFree(pInv);
             if (getShipCargoHoldContentsCurrent(objShip) <= 0)
@@ -415,7 +545,7 @@ public class ship_control_device extends script.base_script
             }
             return SCRIPT_CONTINUE;
         }
-        else 
+        else
         {
             string_id msg2 = new string_id("sui", "rename_ship_reserved");
             sendSystemMessage(player, msg2);
@@ -439,7 +569,7 @@ public class ship_control_device extends script.base_script
             setObjVar(newDeed, "ship_chassis.type", newType);
             return newDeed;
         }
-        else 
+        else
         {
             return null;
         }
@@ -485,13 +615,13 @@ public class ship_control_device extends script.base_script
                 addResourceToContainer(objStack, objResourceId, intAmount, null);
                 objStack = null;
             }
-            else 
+            else
             {
                 addResourceToContainer(objStack, objResourceId, intAmount, null);
                 sendSystemMessageTestingOnly(player, "Incrementing count!");
             }
         }
-        else 
+        else
         {
             objStack = createResourceCrate(objResourceId, intAmount, objContainer);
             if (objStack == null)
@@ -550,6 +680,125 @@ public class ship_control_device extends script.base_script
             }
         }
         return;
+    }
+    public void showAtmosphericHousingStatus(obj_id self, obj_id player) throws InterruptedException
+    {
+        obj_id ship = atmospheric_ship.getShipForControlDevice(self);
+        if (!atmospheric_ship.isOwner(player, ship) || !atmospheric_ship.isParkedHousing(ship))
+        {
+            return;
+        }
+        int pool = getBankBalance(ship);
+        int rate = atmospheric_ship.SMALL_HOUSE_MAINTENANCE_RATE;
+        int secondsRemaining = pool > 0 ? (pool / rate) * atmospheric_ship.MAINTENANCE_HEARTBEAT_SECONDS : 0;
+        String[] status = new String[]
+        {
+            "Ship: " + getAssignedName(self),
+            "Maintenance pool: " + pool + " credits",
+            "Maintenance rate: " + rate + " credits per 30 minutes",
+            "Time remaining: " + utils.assembleTimeRemainToUse(secondsRemaining, false),
+            "Lots used: " + atmospheric_ship.SMALL_HOUSE_LOTS,
+            "Residence: " + (hasObjVar(ship, player_structure.VAR_RESIDENCE_BUILDING) ? "Yes" : "No"),
+            "Access: " + (permissionsIsPublic(ship) ? "Public" : "Private"),
+            "Condition: " + (hasObjVar(ship, atmospheric_ship.VAR_CONDEMNED) ? "Maintenance required" : "Good standing")
+        };
+        int pid = sui.listbox(self, player, "POB ships use the same maintenance rate as a small house.", sui.OK_ONLY, "POB Ship Housing Status", status, "noHandler", false, false);
+        showSUIPage(pid);
+    }
+    public int payAtmosphericHousingMaintenance(obj_id self, dictionary params) throws InterruptedException
+    {
+        obj_id player = sui.getPlayerId(params);
+        obj_id ship = atmospheric_ship.getShipForControlDevice(self);
+        if (!atmospheric_ship.isOwner(player, ship) || !atmospheric_ship.isParkedHousing(ship))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        String text = sui.getInputBoxText(params);
+        if (text == null || text.length() == 0)
+        {
+            return SCRIPT_CONTINUE;
+        }
+        int amount = utils.stringToInt(text);
+        if (amount < 1 || amount > 100000)
+        {
+            return SCRIPT_CONTINUE;
+        }
+        player_structure.payMaintenance(player, ship, amount);
+        return SCRIPT_CONTINUE;
+    }
+    public void showAtmosphericHousingAccess(obj_id self, obj_id player) throws InterruptedException
+    {
+        obj_id ship = atmospheric_ship.getShipForControlDevice(self);
+        if (!atmospheric_ship.isOwner(player, ship) || !atmospheric_ship.isParkedHousing(ship))
+        {
+            return;
+        }
+        String toggle = permissionsIsPublic(ship) ? "Make Private" : "Make Public";
+        String[] choices = new String[] { toggle, "Add Entry Name", "Remove Entry Name", "View Entry List" };
+        int pid = sui.listbox(self, player, "Manage who may enter this parked POB ship.", sui.OK_CANCEL, "POB Ship Access", choices, "handleAtmosphericHousingAccess", false, false);
+        showSUIPage(pid);
+    }
+    public int handleAtmosphericHousingAccess(obj_id self, dictionary params) throws InterruptedException
+    {
+        obj_id player = sui.getPlayerId(params);
+        obj_id ship = atmospheric_ship.getShipForControlDevice(self);
+        if (!atmospheric_ship.isOwner(player, ship) || !atmospheric_ship.isParkedHousing(ship))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        int selected = sui.getListboxSelectedRow(params);
+        if (selected == 0)
+        {
+            if (permissionsIsPublic(ship))
+            {
+                permissionsMakePrivate(ship);
+            }
+            else
+            {
+                permissionsMakePublic(ship);
+            }
+        }
+        else if (selected == 1)
+        {
+            sui.inputbox(self, player, "Enter the character name to allow aboard.", sui.OK_CANCEL, "Add POB Entry Permission", sui.INPUT_NORMAL, null, "addAtmosphericHousingEntry", null);
+        }
+        else if (selected == 2)
+        {
+            sui.inputbox(self, player, "Enter the character name to remove.", sui.OK_CANCEL, "Remove POB Entry Permission", sui.INPUT_NORMAL, null, "removeAtmosphericHousingEntry", null);
+        }
+        else if (selected == 3)
+        {
+            String[] allowed = permissionsGetAllowed(ship);
+            if (allowed == null || allowed.length == 0)
+            {
+                allowed = new String[] { "No names on the entry list." };
+            }
+            int pid = sui.listbox(self, player, "Characters allowed to enter this parked POB ship.", sui.OK_ONLY, "POB Entry List", allowed, "noHandler", false, false);
+            showSUIPage(pid);
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int addAtmosphericHousingEntry(obj_id self, dictionary params) throws InterruptedException
+    {
+        obj_id player = sui.getPlayerId(params);
+        obj_id ship = atmospheric_ship.getShipForControlDevice(self);
+        String name = sui.getInputBoxText(params);
+        if (atmospheric_ship.isOwner(player, ship) && atmospheric_ship.isParkedHousing(ship) && name != null && name.length() > 0)
+        {
+            permissionsAddAllowed(ship, name);
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int removeAtmosphericHousingEntry(obj_id self, dictionary params) throws InterruptedException
+    {
+        obj_id player = sui.getPlayerId(params);
+        obj_id ship = atmospheric_ship.getShipForControlDevice(self);
+        String name = sui.getInputBoxText(params);
+        if (atmospheric_ship.isOwner(player, ship) && atmospheric_ship.isParkedHousing(ship) && name != null && name.length() > 0 && !name.equalsIgnoreCase(getPlayerName(player)))
+        {
+            permissionsRemoveAllowed(ship, name);
+        }
+        return SCRIPT_CONTINUE;
     }
     public boolean blog(String category, String msg) throws InterruptedException
     {

@@ -17,6 +17,7 @@ public class terminal_travel_instant extends script.base_script
     public static final boolean CONST_FLAG_DO_LOGGING = false;
     public static final String ITV_PICKUP_BUFF = "call_for_pickup";
     public static final String PID_VAR = "home_itv_pid";
+    public static final String ROYAL_ITV_TEMPLATE = "object/tangible/terminal/terminal_travel_instant_royal_ship.iff";
     public int OnInitialize(obj_id self) throws InterruptedException
     {
         debugLogging("//***// OnInitialize: ", "////>>>> ENTERED. ");
@@ -25,12 +26,55 @@ public class terminal_travel_instant extends script.base_script
     }
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
-        LOG("LOG_CHANNEL", "Ignored retired NGE instant-travel terminal menu request for " + player);
+        if (!getTemplateName(self).equals(ROYAL_ITV_TEMPLATE))
+        {
+            LOG("LOG_CHANNEL", "Ignored retired NGE instant-travel terminal menu request for " + player);
+            return SCRIPT_CONTINUE;
+        }
+        obj_id owner = playerCheck(self, "OnObjectMenuRequest - ");
+        if (owner != player)
+        {
+            sendSystemMessage(player, SID_NOT_YOUR_SHIP);
+            return SCRIPT_CONTINUE;
+        }
+        mi.addRootMenu(menu_info_types.ITEM_USE, new string_id("", ""));
         return SCRIPT_CONTINUE;
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
-        LOG("LOG_CHANNEL", "Ignored retired NGE instant-travel terminal selection for " + player);
+        if (!getTemplateName(self).equals(ROYAL_ITV_TEMPLATE) || item != menu_info_types.ITEM_USE)
+        {
+            LOG("LOG_CHANNEL", "Ignored retired NGE instant-travel terminal selection for " + player);
+            return SCRIPT_CONTINUE;
+        }
+        obj_id owner = playerCheck(self, "OnObjectMenuSelect - ");
+        if (owner != player)
+        {
+            sendSystemMessage(player, SID_NOT_YOUR_SHIP);
+            return SCRIPT_CONTINUE;
+        }
+        if (getState(player, STATE_RIDING_MOUNT) == 1)
+        {
+            pet_lib.doDismountNow(player, true);
+        }
+        String planet = getCurrentSceneName();
+        String travelPoint = "Starfighter";
+        int cityId = getCityAtLocation(getLocation(player), 1000);
+        if (cityId != 0)
+        {
+            travelPoint = cityGetName(cityId);
+        }
+        String config = getConfigSetting("GameServer", "disableTravelSystem");
+        if (config != null && config.equals("on"))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        utils.setScriptVar(player, travel.SCRIPT_VAR_TERMINAL, self);
+        utils.setScriptVar(player, "instantTravel", true);
+        if (enterClientTicketPurchaseMode(player, planet, travelPoint, true))
+        {
+            utils.setScriptVar(self, "transport", 1);
+        }
         return SCRIPT_CONTINUE;
     }
     public int OnTriggerVolumeExited(obj_id self, String volumeName, obj_id breacher) throws InterruptedException

@@ -85,6 +85,11 @@ public class combat_ship_player extends script.base_script
         obj_id ship = space_transition.getContainingShip(self);
         if (isIdValid(ship))
         {
+            if (atmospheric_ship.isParkedHousing(ship))
+            {
+                sendSystemMessage(self, new string_id("player_structure", "not_permitted"));
+                return SCRIPT_CONTINUE;
+            }
             obj_id pilotSlotObject = space_transition.findPilotSlotObjectForShip(self, ship);
             if (isIdValid(pilotSlotObject) && (isGod(self) || getContainedBy(pilotSlotObject) == getContainedBy(self)))
             {
@@ -134,6 +139,17 @@ public class combat_ship_player extends script.base_script
     }
     public int cmdLeaveStation(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        obj_id atmosphericShip = space_transition.getContainingShip(self);
+        if (isIdValid(atmosphericShip) && atmospheric_ship.isActive(atmosphericShip) && !isSpaceScene() && getPilotId(atmosphericShip) == self)
+        {
+            location atmosphericLocation = getLocation(atmosphericShip);
+            float heightAboveGround = atmosphericLocation.y - getHeightAtLocation(atmosphericLocation.x, atmosphericLocation.z);
+            if (heightAboveGround > atmospheric_ship.MAX_LANDING_AGL)
+            {
+                sendSystemMessage(self, new string_id("player_structure", "not_permitted"));
+                return SCRIPT_CONTINUE;
+            }
+        }
         obj_id container = getContainedBy(self);
         if (isIdValid(container))
         {
@@ -782,9 +798,45 @@ public class combat_ship_player extends script.base_script
         space_transition.handlePotentialSceneChange(self);
         return SCRIPT_CONTINUE;
     }
+    public int retrySpaceLaunchPilot(obj_id self, dictionary params) throws InterruptedException
+    {
+        if (isSpaceScene() && !isIdValid(space_transition.getContainingShip(self)))
+        {
+            space_transition.handlePotentialSceneChange(self);
+        }
+        return SCRIPT_CONTINUE;
+    }
     public int OnLogout(obj_id self) throws InterruptedException
     {
-        space_transition.handleLogout(self);
+        obj_id atmosphericShip = space_transition.getContainingShip(self);
+        boolean storedContainingAtmosphericShip = false;
+        if (isIdValid(atmosphericShip) && atmospheric_ship.isActive(atmosphericShip) && !isSpaceScene())
+        {
+            if (!atmospheric_ship.isParkedHousing(atmosphericShip) && getOwner(atmosphericShip) == self)
+            {
+                storedContainingAtmosphericShip = atmospheric_ship.forceStoreForLogout(atmosphericShip);
+            }
+        }
+        if (!storedContainingAtmosphericShip)
+        {
+            space_transition.handleLogout(self);
+        }
+
+        if (!isSpaceScene())
+        {
+            obj_id[] shipControlDevices = space_transition.findShipControlDevicesForPlayer(self);
+            if (shipControlDevices != null)
+            {
+                for (obj_id shipControlDevice : shipControlDevices)
+                {
+                    obj_id calledShip = atmospheric_ship.getShipForControlDevice(shipControlDevice);
+                    if (isIdValid(calledShip) && calledShip.isLoaded() && atmospheric_ship.isActive(calledShip) && !atmospheric_ship.isParkedHousing(calledShip) && getOwner(calledShip) == self)
+                    {
+                        atmospheric_ship.forceStoreForLogout(calledShip);
+                    }
+                }
+            }
+        }
         space_combat.strikeBomberCleanup(self);
         return SCRIPT_CONTINUE;
     }

@@ -775,8 +775,13 @@ public class cloninglib extends script.base_script
                     ? (int)(100.0f * hitpoints / maxHitpoints)
                     : 0;
             String rowName = "item" + index;
+            String itemName = getAssignedName(item);
+            if (itemName == null || itemName.length() == 0)
+            {
+                itemName = getString(getNameStringId(item));
+            }
             String line =
-                " - " + getEncodedName(item) +
+                " - " + itemName +
                 " (@" + conditionPercent + "%)";
             addSUIDataItem(pid, sui.LISTBOX_DATASOURCE, rowName);
             setSUIProperty(

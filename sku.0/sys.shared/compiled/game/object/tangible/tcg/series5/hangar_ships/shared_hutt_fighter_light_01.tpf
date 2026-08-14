@@ -4,12 +4,18 @@
 
 @class tangible_object_template 6
 
-@class object_template 5
+@class object_template 10
+
+snapToTerrain = false
 
 objectName = "space_ship" "player_hutt_light"
 
 detailedDescription = "" ""
 
-appearanceFilename = "appearance/hutt_fighter_light_model.apt"
+appearanceFilename = "appearance/hutt_fighter_light_body_s01.apt"
+
+clientDataFile = "clientData/ship/client_shared_hutt_light_s01.cdf"
+
+forceNoCollision = true
 
 gameObjectType = GOT_misc_furniture
