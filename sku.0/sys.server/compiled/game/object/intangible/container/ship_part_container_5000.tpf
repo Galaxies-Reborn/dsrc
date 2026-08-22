@@ -1,0 +1,27 @@
+//
+//            Filename:     ship_part_container_5000
+//            Directory:    object/intangible/container
+//
+//            Description:
+//            The server half of the 5000-slot ship part container.
+//
+//            item.special.nodestroy is attached here rather than at creation so
+//            the protection travels with the template: its OnDestroy returns
+//            SCRIPT_OVERRIDE for anyone who is not a GM, which is what makes
+//            the container undeletable from the datapad.
+//
+//            Category:                   container
+//            Sub-Category:               ship parts
+//
+
+@base object/intangible/base/intangible_base.iff
+
+@class intangible_object_template 0
+
+@class object_template 5
+
+volume = 1
+
+sharedTemplate = "object/intangible/container/shared_ship_part_container_5000.iff"
+
+scripts =+ ["item.special.nodestroy"]

@@ -1,0 +1,39 @@
+//
+//            Filename:     shared_ship_part_container_1000
+//            Directory:    object/intangible/container
+//
+//            Description:
+//            Account-bound storage for starship and spaceship parts, carried in
+//            a character's datapad. This is the 1000-slot tier.
+//
+//            There is one template per capacity because VolumeContainer takes
+//            its limit in the constructor and exposes no setter -- see
+//            VolumeContainer.h, where m_totalVolume is private with only
+//            getTotalVolume() alongside it. An upgrade therefore means moving
+//            the contents into the next tier's object, not resizing this one.
+//            The tiers exist now so a quest can grant one later without a
+//            template change.
+//
+//            Intangible because a datapad is CT_volumeIntangible and
+//            IntangibleVolumeContainer::mayAdd refuses anything else. Its own
+//            containerType is CT_volume, which holds the tangible parts.
+//
+//            Category:                   container
+//            Sub-Category:               ship parts
+//
+
+@base object/intangible/base/shared_base_intangible.iff
+
+@class intangible_object_template 0
+
+@class object_template 5
+
+objectName = "container_name"  "ship_part_container"
+
+detailedDescription = "container_name"  "ship_part_container_d"
+
+containerType = CT_volume
+
+containerVolumeLimit = 1000
+
+gameObjectType = GOT_data
