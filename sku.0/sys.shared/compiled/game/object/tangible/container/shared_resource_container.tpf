@@ -1,0 +1,30 @@
+//
+//            Filename:     shared_resource_container
+//            Directory:    object/tangible/container
+//
+//            Description:
+//            A hundred-slot store for resource crates and crafted sub-components,
+//            carried in a character's datapad so it travels with them rather
+//            than sitting in a house.
+//
+//            It derives from base_container_volume because a resource crate is
+//            a volume item: capacity is a slot count, not a weight, which is
+//            what containerVolumeLimit expresses.
+//
+//            Category:                   container
+//            Sub-Category:               resource
+//
+
+@base object/tangible/container/base/shared_base_container_volume.iff
+
+@class tangible_object_template 6
+
+@class object_template 7
+
+containerVolumeLimit = 100
+
+objectName = "container_name"  "resource_container"
+
+detailedDescription = "container_name"  "resource_container_d"
+
+appearanceFilename = "appearance/con_gen_crate_basic_s1.apt"

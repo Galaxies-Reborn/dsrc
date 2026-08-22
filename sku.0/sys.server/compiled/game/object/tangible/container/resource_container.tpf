@@ -1,0 +1,23 @@
+//
+//            Filename:     resource_container
+//            Directory:    object/tangible/container
+//
+//            Description:
+//            The server half of the hundred-slot resource store. Holds resource
+//            crates and crafted sub-components, and is the container the web
+//            dashboard reads and the one a factory draws from.
+//
+//            No moveFlags: unlike the debris drums this is a player's own
+//            object, so it must not be GM-only to move.
+//
+//            Category:                   container
+//            Sub-Category:               resource
+//
+
+@base object/tangible/container/base/base_container.iff
+
+@class tangible_object_template 0
+
+@class object_template 8
+
+sharedTemplate = "object/tangible/container/shared_resource_container.iff"
