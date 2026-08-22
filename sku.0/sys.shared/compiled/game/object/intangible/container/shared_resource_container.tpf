@@ -1,0 +1,41 @@
+//
+//            Filename:     shared_resource_container
+//            Directory:    object/intangible/container
+//
+//            Description:
+//            A hundred-slot store for resource crates and crafted sub-components,
+//            carried in a character's datapad so it travels with them rather
+//            than sitting in a house.
+//
+//            It is INTANGIBLE, and that is not cosmetic. A character's datapad
+//            is CT_volumeIntangible, so IntangibleVolumeContainer::mayAdd
+//            refuses anything whose asIntangibleObject() is null. A tangible
+//            container can never be placed in a datapad at all -- it is created,
+//            rejected, and destroyed.
+//
+//            Being intangible does not stop it holding tangible crates: its own
+//            containerType is CT_volume, which gives it a TangibleVolumeContainer,
+//            and that container only requires the ITEM to be tangible. This is
+//            the same shape a ship control device uses -- an intangible datapad
+//            object holding a tangible ship.
+//
+//            Category:                   container
+//            Sub-Category:               resource
+//
+
+@base object/intangible/base/shared_base_intangible.iff
+
+@class intangible_object_template 0
+
+@class object_template 5
+
+objectName = "container_name"  "resource_container"
+
+detailedDescription = "container_name"  "resource_container_d"
+
+// Holds tangible objects: resource crates and crafted components.
+containerType = CT_volume
+
+containerVolumeLimit = 100
+
+gameObjectType = GOT_data

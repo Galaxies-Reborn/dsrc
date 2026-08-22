@@ -1,23 +1,25 @@
 //
 //            Filename:     resource_container
-//            Directory:    object/tangible/container
+//            Directory:    object/intangible/container
 //
 //            Description:
 //            The server half of the hundred-slot resource store. Holds resource
 //            crates and crafted sub-components, and is the container the web
 //            dashboard reads and the one a factory draws from.
 //
-//            No moveFlags: unlike the debris drums this is a player's own
-//            object, so it must not be GM-only to move.
+//            Intangible so the datapad will accept it; see the shared template
+//            for why a tangible container cannot live there.
 //
 //            Category:                   container
 //            Sub-Category:               resource
 //
 
-@base object/tangible/container/base/base_container.iff
+@base object/intangible/base/intangible_base.iff
 
-@class tangible_object_template 0
+@class intangible_object_template 0
 
-@class object_template 8
+@class object_template 5
 
-sharedTemplate = "object/tangible/container/shared_resource_container.iff"
+volume = 1
+
+sharedTemplate = "object/intangible/container/shared_resource_container.iff"
