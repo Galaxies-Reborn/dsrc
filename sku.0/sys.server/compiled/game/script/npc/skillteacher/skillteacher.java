@@ -44,6 +44,16 @@ public class skillteacher extends script.base_script
     public static final string_id SID_TRAINING_COST_REFUNDED = new string_id(CONVOFILE, "training_cost_refunded");
     public static final string_id SID_ALREADY_HAVE_THIS_SKILL = new string_id(CONVOFILE, "already_have_this_skill");
     public static final string_id SID_DO_NOT_HAVE_SKILL = new string_id(CONVOFILE, "do_not_have_skill");
+    public static final string_id SID_TRAIN_ELDER_SKILLS =
+        new string_id(elder_skill.STRING_TABLE, "train_elder_skills");
+    public static final string_id SID_ELDER_TRAINING_TITLE =
+        new string_id(elder_skill.STRING_TABLE, "elder_training_title");
+    private static final int ELDER_TRAINING_MENU = menu_info_types.SERVER_MENU7;
+    private static final float ELDER_TRAINING_RANGE = 10.0f;
+    private static final String ELDER_SUI_ROOT = "precu.elderTraining";
+    private static final String ELDER_SUI_TRAINER = ELDER_SUI_ROOT + ".trainer";
+    private static final String ELDER_SUI_SKILL = ELDER_SUI_ROOT + ".skill";
+    private static final String ELDER_SUI_PID = ELDER_SUI_ROOT + ".pid";
     public static final int STATUS_UNKNOWN = -1;
     public static final int STATUS_NONE = 0;
     public static final int STATUS_LEARN = 1;
@@ -206,8 +216,141 @@ public class skillteacher extends script.base_script
         int mnu = mi.addRootMenu(menu_info_types.CONVERSE_START, null);
         menu_info_data mdata = mi.getMenuItemById(mnu);
         mdata.setServerNotify(false);
+        String trainerType = hasObjVar(self, "trainer") ?
+            getStringObjVar(self, "trainer") : "";
+        if (elder_skill.isAdvancedProfessionTrainer(self) &&
+            (!"trainer_shipwright".equals(trainerType) ||
+                features.isSpaceEdition(player)))
+        {
+            mi.addRootMenu(ELDER_TRAINING_MENU, SID_TRAIN_ELDER_SKILLS);
+        }
         setCondition(self, CONDITION_CONVERSABLE);
         return SCRIPT_CONTINUE;
+    }
+    public int OnObjectMenuSelect(obj_id self, obj_id player, int item)
+        throws InterruptedException
+    {
+        if (item != ELDER_TRAINING_MENU ||
+            !elder_skill.isAdvancedProfessionTrainer(self) ||
+            !isIdValid(player) || !isPlayer(player))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        String trainerType = hasObjVar(self, "trainer") ?
+            getStringObjVar(self, "trainer") : "";
+        if ("trainer_shipwright".equals(trainerType) &&
+            !features.isSpaceEdition(player))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        String elderSkill = elder_skill.getElderSkillForTrainer(self);
+        String masterSkill = elder_skill.getMasterSkillForElder(elderSkill);
+        float distance = getDistance(self, player);
+        if (elderSkill == null || masterSkill == null || distance < 0.0f ||
+            distance > ELDER_TRAINING_RANGE)
+        {
+            sendSystemMessage(
+                player,
+                new string_id(elder_skill.STRING_TABLE, "trainer_too_far"));
+            return SCRIPT_CONTINUE;
+        }
+        if (!hasSkill(player, masterSkill))
+        {
+            sendSystemMessage(
+                player,
+                new string_id(elder_skill.STRING_TABLE, "requires_master"));
+            return SCRIPT_CONTINUE;
+        }
+
+        boolean renewal = hasSkill(player, elderSkill);
+        String prompt = "@" + new string_id(
+            elder_skill.STRING_TABLE,
+            renewal ? "elder_renewal_prompt" : "elder_training_prompt");
+
+        clearElderTrainingContext(player);
+        utils.setScriptVar(player, ELDER_SUI_TRAINER, self);
+        utils.setScriptVar(player, ELDER_SUI_SKILL, elderSkill);
+        int pid = sui.msgbox(
+            self,
+            player,
+            prompt,
+            sui.YES_NO,
+            "@" + SID_ELDER_TRAINING_TITLE,
+            "handleElderTrainingConfirmation");
+        utils.setScriptVar(player, ELDER_SUI_PID, pid);
+        return SCRIPT_CONTINUE;
+    }
+    public int handleElderTrainingConfirmation(obj_id self, dictionary params)
+        throws InterruptedException
+    {
+        if (params == null || params.isEmpty())
+        {
+            return SCRIPT_CONTINUE;
+        }
+        obj_id player = sui.getPlayerId(params);
+        if (!isIdValid(player) || !isPlayer(player) ||
+            !utils.hasScriptVar(player, ELDER_SUI_TRAINER) ||
+            !utils.hasScriptVar(player, ELDER_SUI_SKILL) ||
+            !utils.hasScriptVar(player, ELDER_SUI_PID))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        obj_id expectedTrainer =
+            utils.getObjIdScriptVar(player, ELDER_SUI_TRAINER);
+        String elderSkill =
+            utils.getStringScriptVar(player, ELDER_SUI_SKILL);
+        int expectedPid = utils.getIntScriptVar(player, ELDER_SUI_PID);
+        int pageId = params.getInt("pageId");
+        int button = sui.getIntButtonPressed(params);
+        clearElderTrainingContext(player);
+
+        String currentSkill = elder_skill.getElderSkillForTrainer(self);
+        String trainerType = hasObjVar(self, "trainer") ?
+            getStringObjVar(self, "trainer") : "";
+        float distance = getDistance(self, player);
+        if (button == sui.BP_CANCEL || expectedTrainer != self ||
+            pageId != expectedPid || elderSkill == null ||
+            !elderSkill.equals(currentSkill) ||
+            !elder_skill.isAdvancedProfessionTrainer(self) ||
+            ("trainer_shipwright".equals(trainerType) &&
+                !features.isSpaceEdition(player)) ||
+            distance < 0.0f || distance > ELDER_TRAINING_RANGE)
+        {
+            return SCRIPT_CONTINUE;
+        }
+
+        int result = elder_skill.trainOrRenew(player, elderSkill);
+        String messageKey;
+        switch (result)
+        {
+            case 1:
+                messageKey = "elder_trained";
+                break;
+            case 2:
+                messageKey = "elder_renewed";
+                break;
+            case -2:
+                messageKey = "requires_master";
+                break;
+            case -4:
+                messageKey = "insufficient_apprenticeship_xp";
+                break;
+            default:
+                messageKey = "elder_training_failed";
+                break;
+        }
+        sendSystemMessage(
+            player,
+            new string_id(elder_skill.STRING_TABLE, messageKey));
+        return SCRIPT_CONTINUE;
+    }
+    private void clearElderTrainingContext(obj_id player)
+        throws InterruptedException
+    {
+        if (isIdValid(player))
+        {
+            utils.removeScriptVarTree(player, ELDER_SUI_ROOT);
+        }
     }
     public int OnIncapacitated(obj_id self, obj_id killer) throws InterruptedException
     {

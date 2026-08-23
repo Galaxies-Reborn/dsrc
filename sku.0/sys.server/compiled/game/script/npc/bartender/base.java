@@ -60,12 +60,18 @@ public class base extends script.base_script
     public static final string_id[] OPT_DEFAULT =
     {
         new string_id(STF, "opt_buy"),
-        new string_id(STF, "talk_to_me")
+        new string_id(STF, "talk_to_me"),
+        new string_id(
+            private_entertainer.STF,
+            "hire_private_entertainer")
     };
     public static final string_id[] OPT_RUMOR = 
     {
         new string_id(STF, "opt_buy"),
-        new string_id(STF, "opt_rumor")
+        new string_id(STF, "opt_rumor"),
+        new string_id(
+            private_entertainer.STF,
+            "hire_private_entertainer")
     };
     public static final string_id[] OPT_BUY = 
     {
@@ -95,6 +101,33 @@ public class base extends script.base_script
         if (hasScript(self, SCRIPT_CONVERSE))
         {
             detachScript(self, SCRIPT_CONVERSE);
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int OnObjectMenuRequest(
+        obj_id self,
+        obj_id player,
+        menu_info mi) throws InterruptedException
+    {
+        if (private_entertainer.canUseBartender(player, self))
+        {
+            mi.addRootMenu(
+                menu_info_types.SERVER_MENU50,
+                new string_id(
+                    private_entertainer.STF,
+                    "hire_private_entertainer"));
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int OnObjectMenuSelect(
+        obj_id self,
+        obj_id player,
+        int item) throws InterruptedException
+    {
+        if (item == menu_info_types.SERVER_MENU50 &&
+            private_entertainer.canUseBartender(player, self))
+        {
+            showPrivateEntertainerHireSui(player);
         }
         return SCRIPT_CONTINUE;
     }
@@ -140,6 +173,13 @@ public class base extends script.base_script
         }
         String tbl = sid_response.getTable();
         String response = sid_response.getAsciiId();
+        if (tbl.equals(private_entertainer.STF) &&
+            response.equals("hire_private_entertainer"))
+        {
+            npcEndConversation(speaker);
+            showPrivateEntertainerHireSui(speaker);
+            return SCRIPT_CONTINUE;
+        }
         if (tbl.equals(STF))
         {
             string_id msg = new string_id(STF, "greet");
@@ -402,6 +442,103 @@ public class base extends script.base_script
             LOG("bartender", "bartenderMove(): col X = null or length = 0");
         }
         return false;
+    }
+    public int showPrivateEntertainerHireSui(obj_id player)
+        throws InterruptedException
+    {
+        obj_id self = getSelf();
+        if (!private_entertainer.canUseBartender(player, self))
+        {
+            return -1;
+        }
+
+        String root = "private_entertainer.hire_sui." + player;
+        if (utils.hasScriptVar(self, root + ".pid"))
+        {
+            sui.closeSUI(
+                player,
+                utils.getIntScriptVar(self, root + ".pid"));
+            utils.removeScriptVarTree(self, root);
+        }
+
+        Vector entries = new Vector();
+        entries.add("@" + private_entertainer.STF + ":hire_dancer");
+        entries.add("@" + private_entertainer.STF + ":hire_musician");
+        entries.add("@" + private_entertainer.STF + ":hire_both");
+        entries.add("@" + private_entertainer.STF + ":dismiss_all");
+        int pid = sui.listbox(
+            self,
+            player,
+            "@" + private_entertainer.STF + ":hire_prompt",
+            sui.OK_CANCEL,
+            "@" + private_entertainer.STF + ":hire_title",
+            entries,
+            "handlePrivateEntertainerHireSui");
+        if (pid >= 0)
+        {
+            utils.setScriptVar(self, root + ".pid", pid);
+            setSUIMaxRangeToObject(
+                pid,
+                private_entertainer.BARTENDER_USE_RANGE);
+        }
+        return pid;
+    }
+    public int handlePrivateEntertainerHireSui(
+        obj_id self,
+        dictionary params) throws InterruptedException
+    {
+        if (params == null || params.isEmpty())
+        {
+            return SCRIPT_CONTINUE;
+        }
+        obj_id player = sui.getPlayerId(params);
+        int pageId = params.getInt("pageId");
+        String root = "private_entertainer.hire_sui." + player;
+        if (!isIdValid(player) ||
+            !utils.hasScriptVar(self, root + ".pid") ||
+            utils.getIntScriptVar(self, root + ".pid") != pageId)
+        {
+            return SCRIPT_CONTINUE;
+        }
+        utils.removeScriptVarTree(self, root);
+        if (sui.getIntButtonPressed(params) == sui.BP_CANCEL ||
+            !private_entertainer.canUseBartender(player, self))
+        {
+            return SCRIPT_CONTINUE;
+        }
+
+        int selection = sui.getListboxSelectedRow(params);
+        switch (selection)
+        {
+            case 0:
+                private_entertainer.hire(
+                    player,
+                    self,
+                    private_entertainer.TYPE_DANCER);
+                break;
+            case 1:
+                private_entertainer.hire(
+                    player,
+                    self,
+                    private_entertainer.TYPE_MUSICIAN);
+                break;
+            case 2:
+                private_entertainer.hire(
+                    player,
+                    self,
+                    private_entertainer.TYPE_DANCER);
+                private_entertainer.hire(
+                    player,
+                    self,
+                    private_entertainer.TYPE_MUSICIAN);
+                break;
+            case 3:
+                private_entertainer.dismissAll(player);
+                break;
+            default:
+                break;
+        }
+        return SCRIPT_CONTINUE;
     }
     public void updateDestination(obj_id self) throws InterruptedException
     {

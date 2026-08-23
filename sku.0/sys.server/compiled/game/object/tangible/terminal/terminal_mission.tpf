@@ -21,5 +21,5 @@
 
 sharedTemplate = "object/tangible/terminal/shared_terminal_mission.iff"
 
-scripts = +["systems.missions.base.mission_terminal","planet_map.map_loc"]
+scripts = +["systems.missions.base.mission_terminal","systems.missions.base.hire_merc_terminal","planet_map.map_loc"]
 contents = [[slotName="datapad", equipObject=true, content="object/tangible/datapad/data_dropoff.iff"]]

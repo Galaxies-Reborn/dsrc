@@ -2636,3 +2636,31 @@ class_chronicles_14	class_chronicles_13		0	0	0	0	0	0		class_chronicles_13		chron
 class_chronicles_15	class_chronicles_14		0	0	0	0	0	0		class_chronicles_14		chronicles	1095000	1680000								chronicles_max_tasks=1			1	0
 class_chronicles_16	class_chronicles_15		0	0	0	0	0	0		class_chronicles_15		chronicles	1225000	1860000								chronicles_max_quest_shared=5			1	0
 class_chronicles_master	class_chronicles_16		0	1	0	0	0	0		class_chronicles_16		chronicles	1365000	1365000							chroniclerVentriloquism	"chronicles_relic_quality=1,chronicles_max_tasks=1,chronicles_relic_mastery=1"			1	0
+elder_combat_rifleman		oneByFour	0	0	0	1	0	0	0	combat_rifleman_master		apprenticeship	100	1240		0			none						0	0
+elder_combat_pistol		oneByFour	0	0	0	1	0	0	0	combat_pistol_master		apprenticeship	100	1240		0			none						0	0
+elder_combat_carbine		oneByFour	0	0	0	1	0	0	0	combat_carbine_master		apprenticeship	100	1240		0			none						0	0
+elder_combat_unarmed		oneByFour	0	0	0	1	0	0	0	combat_unarmed_master		apprenticeship	100	1240		0			none						0	0
+elder_combat_1hsword		oneByFour	0	0	0	1	0	0	0	combat_1hsword_master		apprenticeship	100	1240		0			none						0	0
+elder_combat_2hsword		oneByFour	0	0	0	1	0	0	0	combat_2hsword_master		apprenticeship	100	1240		0			none						0	0
+elder_combat_polearm		oneByFour	0	0	0	1	0	0	0	combat_polearm_master		apprenticeship	100	1240		0			none						0	0
+elder_combat_bountyhunter		oneByFour	0	0	0	1	0	0	0	combat_bountyhunter_master		apprenticeship	100	1240		0			none						0	0
+elder_combat_commando		oneByFour	0	0	0	1	0	0	0	combat_commando_master		apprenticeship	100	1240		0			none						0	0
+elder_combat_smuggler		oneByFour	0	0	0	1	0	0	0	combat_smuggler_master		apprenticeship	100	1240		0			none						0	0
+elder_outdoors_squadleader		oneByFour	0	0	0	1	0	0	0	outdoors_squadleader_master		apprenticeship	100	1240		0			none						0	0
+elder_science_doctor		oneByFour	0	0	0	1	0	0	0	science_doctor_master		apprenticeship	100	1240		0			none						0	0
+elder_science_combatmedic		oneByFour	0	0	0	1	0	0	0	science_combatmedic_master		apprenticeship	100	1240		0			none						0	0
+elder_outdoors_ranger		oneByFour	0	0	0	1	0	0	0	outdoors_ranger_master		apprenticeship	100	1240		0			none						0	0
+elder_outdoors_creaturehandler		oneByFour	0	0	0	1	0	0	0	outdoors_creaturehandler_master		apprenticeship	100	1240		0			none						0	0
+elder_outdoors_bio_engineer		oneByFour	0	0	0	1	0	0	0	outdoors_bio_engineer_master		apprenticeship	100	1240		0			none						0	0
+elder_crafting_architect		oneByFour	0	0	0	1	0	0	0	crafting_architect_master		apprenticeship	100	1240		0			none						0	0
+elder_crafting_armorsmith		oneByFour	0	0	0	1	0	0	0	crafting_armorsmith_master		apprenticeship	100	1240		0			none						0	0
+elder_crafting_weaponsmith		oneByFour	0	0	0	1	0	0	0	crafting_weaponsmith_master		apprenticeship	100	1240		0			none						0	0
+elder_crafting_chef		oneByFour	0	0	0	1	0	0	0	crafting_chef_master		apprenticeship	100	1240		0			none						0	0
+elder_crafting_tailor		oneByFour	0	0	0	1	0	0	0	crafting_tailor_master		apprenticeship	100	1240		0			none						0	0
+elder_crafting_droidengineer		oneByFour	0	0	0	1	0	0	0	crafting_droidengineer_master		apprenticeship	100	1240		0			none						0	0
+elder_crafting_merchant		oneByFour	0	0	0	1	0	0	0	crafting_merchant_master		apprenticeship	100	1240		0			none						0	0
+elder_crafting_shipwright		oneByFour	0	0	0	1	0	0	0	crafting_shipwright_master		apprenticeship	100	1240		0			none						0	0
+elder_social_dancer		oneByFour	0	0	0	1	0	0	0	social_dancer_master		apprenticeship	100	1240		0			none						0	0
+elder_social_musician		oneByFour	0	0	0	1	0	0	0	social_musician_master		apprenticeship	100	1240		0			none						0	0
+elder_social_imagedesigner		oneByFour	0	0	0	1	0	0	0	social_imagedesigner_master		apprenticeship	100	1240		0			none						0	0
+elder_social_politician		oneByFour	0	0	0	1	0	0	0	social_politician_master		apprenticeship	100	1240		0			none						0	0

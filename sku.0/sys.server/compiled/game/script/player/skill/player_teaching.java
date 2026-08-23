@@ -196,6 +196,11 @@ public class player_teaching extends script.base_script
             LOG("LOG_CHANNEL", teacher + " ->" + student_name + " learns " + selected_skill + " from you.");
             prose_package pp = prose.getPackage(SID_STUDENT_SKILL_LEARNED, teacher, skill_id);
             pp = prose.getPackage(SID_TEACHER_SKILL_LEARNED, self, skill_id);
+            int apprenticeshipGranted =
+                elder_skill.awardPlayerTrainingExperience(teacher, self);
+            LOG("LOG_CHANNEL", teacher + " ->awarded " +
+                apprenticeshipGranted + " apprenticeship experience for teaching " +
+                selected_skill + " to " + self + ".");
             int exp = 0;
             if (isJedi(teacher) && isJedi(self) && skill_cost.equals("0") && selected_skill.startsWith("jedi_"))
             {
