@@ -28,9 +28,9 @@
 
 @class object_template 5
 
-objectName = "container_name"  "ship_part_container"
+objectName = "precu_container_droid" "spaceship_parts_n"
 
-detailedDescription = "container_name"  "ship_part_container_d"
+detailedDescription = "precu_container_droid" "spaceship_parts_d"
 
 containerType = CT_volume
 

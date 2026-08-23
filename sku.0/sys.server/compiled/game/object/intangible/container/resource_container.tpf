@@ -4,8 +4,8 @@
 //
 //            Description:
 //            The server half of the hundred-slot resource store. Holds resource
-//            crates and crafted sub-components, and is the container the web
-//            dashboard reads and the one a factory draws from.
+//            crates and is the container the web dashboard reads and the one a
+//            factory draws from.
 //
 //            Intangible so the datapad will accept it; see the shared template
 //            for why a tangible container cannot live there.
@@ -23,3 +23,7 @@
 volume = 1
 
 sharedTemplate = "object/intangible/container/shared_resource_container.iff"
+
+scripts =+ ["item.container.account_bound", "item.special.nodestroy"]
+
+objvars =+ ["accountContainer.kind" = "resources", "noTrade" = 1, "noTradeShared" = 1]

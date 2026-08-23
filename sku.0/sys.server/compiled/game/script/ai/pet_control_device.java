@@ -103,7 +103,8 @@ public class pet_control_device extends script.base_script
         }
         obj_id myContainer = getContainedBy(self);
         obj_id yourPad = utils.getPlayerDatapad(player);
-        if (myContainer != yourPad)
+        boolean inDroidContainer = account_containers.isContainerForPlayer(myContainer, account_containers.KIND_DROIDS, player);
+        if (myContainer != yourPad && !inDroidContainer)
         {
             if (hasScript(myContainer, "ai.pet_control_device"))
             {
@@ -554,8 +555,7 @@ public class pet_control_device extends script.base_script
     }
     public void destroyCurrentPet(obj_id petControlDevice) throws InterruptedException
     {
-        obj_id datapad = getContainedBy(petControlDevice);
-        obj_id player = getContainedBy(datapad);
+        obj_id player = utils.getContainingPlayer(petControlDevice);
         obj_id currentPet = callable.getCDCallable(petControlDevice);
         if (isIdValid(currentPet))
         {
@@ -616,12 +616,7 @@ public class pet_control_device extends script.base_script
         {
             destroyCurrentPet(self);
         }
-        obj_id datapad = getContainedBy(self);
-        if (!isIdValid(datapad))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        obj_id master = getContainedBy(datapad);
+        obj_id master = utils.getContainingPlayer(self);
         if (!isIdValid(master))
         {
             return SCRIPT_CONTINUE;
@@ -692,12 +687,7 @@ public class pet_control_device extends script.base_script
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
-        obj_id datapad = getContainedBy(self);
-        if (!isIdValid(datapad))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        obj_id master = getContainedBy(datapad);
+        obj_id master = utils.getContainingPlayer(self);
         if (!isIdValid(master))
         {
             return SCRIPT_CONTINUE;
@@ -1689,12 +1679,7 @@ public class pet_control_device extends script.base_script
     }
     public boolean isSameFaction(obj_id petControlDevice) throws InterruptedException
     {
-        obj_id datapad = getContainedBy(petControlDevice);
-        if (!isIdValid(datapad))
-        {
-            return false;
-        }
-        obj_id master = getContainedBy(datapad);
+        obj_id master = utils.getContainingPlayer(petControlDevice);
         if (!isIdValid(master))
         {
             return false;
@@ -1730,6 +1715,11 @@ public class pet_control_device extends script.base_script
     public int OnAboutToBeTransferred(obj_id self, obj_id destContainer, obj_id transferer) throws InterruptedException
     {
         obj_id newMaster = getContainedBy(destContainer);
+        boolean destinationIsDroidContainer = account_containers.isManagedContainer(destContainer) && account_containers.KIND_DROIDS.equals(account_containers.getContainerKind(destContainer));
+        if (!isPlayer(newMaster) && destinationIsDroidContainer)
+        {
+            newMaster = utils.getContainingPlayer(destContainer);
+        }
         if (!isPlayer(newMaster))
         {
             sendSystemMessage(transferer, new string_id("pet/pet_menu", "cant_transfer_bad_container"));
@@ -1753,6 +1743,17 @@ public class pet_control_device extends script.base_script
                     }
                 }
             }
+        }
+        obj_id currentMaster = utils.getContainingPlayer(self);
+        obj_id currentContainer = getContainedBy(self);
+        boolean currentIsDroidContainer = account_containers.isManagedContainer(currentContainer) && account_containers.KIND_DROIDS.equals(account_containers.getContainerKind(currentContainer));
+        obj_id currentDatapad = utils.getPlayerDatapad(currentMaster);
+        boolean alreadyStoredInDatapad = isIdValid(currentDatapad) && utils.isNestedWithin(self, currentDatapad);
+        if (newMaster == currentMaster &&
+            alreadyStoredInDatapad &&
+            (destinationIsDroidContainer || currentIsDroidContainer))
+        {
+            return SCRIPT_CONTINUE;
         }
         if (!hasScript(newMaster, "ai.pet_master"))
         {
@@ -1962,8 +1963,7 @@ public class pet_control_device extends script.base_script
     {
         obj_id objPet = callable.getCDCallable(self);
         utils.removeScriptVar(self, "mount.intGalloping");
-        obj_id objDataPad = getContainedBy(self);
-        obj_id objRider = getContainedBy(objDataPad);
+        obj_id objRider = utils.getContainingPlayer(self);
         if (!isIdNull(objRider) && !isIdNull(objPet))
         {
             string_id strSpam = new string_id("combat_effects", "gallop_stop");
@@ -1989,8 +1989,7 @@ public class pet_control_device extends script.base_script
     public int removeGallopTired(obj_id self, dictionary params) throws InterruptedException
     {
         utils.removeScriptVar(self, "mount.intTired");
-        obj_id objDataPad = getContainedBy(self);
-        obj_id objRider = getContainedBy(objDataPad);
+        obj_id objRider = utils.getContainingPlayer(self);
         if (!isIdNull(objRider))
         {
             string_id strSpam = new string_id("combat_effects", "mount_not_tired");

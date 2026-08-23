@@ -3,9 +3,8 @@
 //            Directory:    object/intangible/container
 //
 //            Description:
-//            A hundred-slot store for resource crates and crafted sub-components,
-//            carried in a character's datapad so it travels with them rather
-//            than sitting in a house.
+//            A hundred-slot store for resource crates, carried in a character's
+//            datapad so it travels with them rather than sitting in a house.
 //
 //            It is INTANGIBLE, and that is not cosmetic. A character's datapad
 //            is CT_volumeIntangible, so IntangibleVolumeContainer::mayAdd
@@ -29,11 +28,11 @@
 
 @class object_template 5
 
-objectName = "container_name"  "resource_container"
+objectName = "precu_container_droid" "resource_crates_n"
 
-detailedDescription = "container_name"  "resource_container_d"
+detailedDescription = "precu_container_droid" "resource_crates_d"
 
-// Holds tangible objects: resource crates and crafted components.
+// Holds tangible resource-crate objects.
 containerType = CT_volume
 
 containerVolumeLimit = 100

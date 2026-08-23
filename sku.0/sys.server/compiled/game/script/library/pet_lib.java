@@ -4985,13 +4985,8 @@ public class pet_lib extends script.base_script
         {
             return;
         }
-        obj_id datapad = getContainedBy(petControlDevice);
-        if (!isIdValid(datapad))
-        {
-            return;
-        }
-        obj_id master = getContainedBy(datapad);
-        if (!isIdValid(master))
+        obj_id master = utils.getContainingPlayer(petControlDevice);
+        if (!isPlayer(master))
         {
             return;
         }
@@ -5935,7 +5930,7 @@ public class pet_lib extends script.base_script
     public static obj_id[] getPcdsForType(obj_id master, int type) throws InterruptedException
     {
         obj_id pDataPad = utils.getPlayerDatapad(master);
-        obj_id[] dPadContents = utils.getContents(pDataPad, false);
+        obj_id[] dPadContents = utils.getContents(pDataPad, true);
         Vector resizedContents = new Vector();
         resizedContents.setSize(0);
         for (obj_id dPadContent : dPadContents) {

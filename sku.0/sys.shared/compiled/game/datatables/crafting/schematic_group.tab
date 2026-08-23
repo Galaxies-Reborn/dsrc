@@ -699,6 +699,8 @@ craftdroidGroupB	object/draft_schematic/droid/droid_treadwell.iff
 craftdroidGroupB	object/draft_schematic/droid/droid_dz70.iff
 craftdroidGroupB	object/draft_schematic/droid/droid_r5.iff
 craftdroidGroupB	object/draft_schematic/droid/bounty_seeker_transmitter.iff
+craftdroidGroupB	object/draft_schematic/droid/worker_droid_transmitter.iff
+craftdroidGroupB	object/draft_schematic/droid/survey_droid_transmitter.iff
 craftdroidGroupB	object/draft_schematic/droid/component/sensor_package_droid.iff
 craftdroidGroupB	object/draft_schematic/droid/droid_mse_advanced.iff
 craftdroidGroupB	object/draft_schematic/droid/component/manipulator_arm_package_set.iff

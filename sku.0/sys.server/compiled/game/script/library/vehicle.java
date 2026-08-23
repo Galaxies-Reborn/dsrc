@@ -1029,7 +1029,7 @@ public class vehicle extends script.base_script
         }
         if (isIdValid(datapad))
         {
-            obj_id[] datapadContents = getContents(datapad);
+            obj_id[] datapadContents = utils.getContents(datapad, true);
             if (datapadContents != null)
             {
                 int count = 0;

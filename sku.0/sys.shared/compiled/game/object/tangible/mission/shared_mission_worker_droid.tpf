@@ -1,0 +1,22 @@
+@base object/tangible/base/shared_tangible_base.iff
+
+//-----------------------------------------------------------
+
+@class tangible_object_template 2
+
+//-----------------------------------------------------------
+
+@class object_template 5
+
+objectName = "string_id_table" ""
+detailedDescription = "string_id_table" ""
+lookAtText = "string_id_table" ""
+snapToTerrain = true
+containerType = CT_none
+
+objectName = "precu_container_droid" "worker_droid_n"
+detailedDescription = "precu_container_droid" "worker_droid_d"
+lookAtText = "precu_container_droid" "worker_droid_n"
+gameObjectType = GOT_misc_item_usable
+
+appearanceFilename = "appearance/maul_probe_droid.sat"

@@ -17,7 +17,9 @@ snapToTerrain = true
 
 containerType = CT_volumeIntangible
 
-containerVolumeLimit = 250
+// Five one-volume account containers preserve the datapad's former effective
+// capacity of 250 user items.
+containerVolumeLimit = 255
 
 tintPalette = ""
 

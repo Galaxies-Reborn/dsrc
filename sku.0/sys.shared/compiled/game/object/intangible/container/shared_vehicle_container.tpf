@@ -1,0 +1,18 @@
+// Both the outer object and its vehicle control-device contents are intangible.
+
+@base object/intangible/base/shared_base_intangible.iff
+
+@class intangible_object_template 0
+
+@class object_template 5
+
+// The server assigns the persistent display name when it provisions the object.
+objectName = "precu_container_droid" "vehicles_n"
+
+detailedDescription = "precu_container_droid" "vehicles_d"
+
+containerType = CT_volumeIntangible
+
+containerVolumeLimit = 100
+
+gameObjectType = GOT_data

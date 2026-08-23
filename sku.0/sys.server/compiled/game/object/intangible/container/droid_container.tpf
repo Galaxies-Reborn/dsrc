@@ -1,0 +1,15 @@
+// Account-bound datapad storage for droid control devices.
+
+@base object/intangible/base/intangible_base.iff
+
+@class intangible_object_template 0
+
+@class object_template 5
+
+volume = 1
+
+sharedTemplate = "object/intangible/container/shared_droid_container.iff"
+
+scripts =+ ["item.container.account_bound", "item.special.nodestroy"]
+
+objvars =+ ["accountContainer.kind" = "droids", "noTrade" = 1, "noTradeShared" = 1]

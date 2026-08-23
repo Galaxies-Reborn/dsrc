@@ -646,6 +646,7 @@ public class base_player extends script.base_script
     }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
+        account_containers.ensureContainers(self);
         city.initCitizen(self);
         boolean setting = utils.checkConfigFlag("TestCenterPlayer", "ApplyTCMark");
         if (setting)
@@ -1557,6 +1558,7 @@ public class base_player extends script.base_script
     }
     public int OnLogin(obj_id self) throws InterruptedException
     {
+        account_containers.ensureContainers(self);
         script.player.live_conversions.retirePostNgePlayerMigrationState(self);
         script.systems.combat.combat_base.retirePostNgeSpeciesAbilityState(self);
         loot.retirePostNgeRareLootPlayerState(self);
@@ -8872,6 +8874,25 @@ public class base_player extends script.base_script
                 return null;
             }
             setPackedObjvars(newItem, packedObjvars);
+            obj_id destinationDatapad = utils.getPlayerDatapad(self);
+            if (container == destinationDatapad && account_containers.isManagedContainer(newItem))
+            {
+                int destinationStationId = getPlayerStationId(self);
+                if (destinationStationId <= 0)
+                {
+                    CustomerServiceLog("CharacterTransfer", "unpackItem() : destination station id is invalid while rebinding imported account container " + newItem + ". TRANSFER FAILED");
+                    return null;
+                }
+                removeObjVar(newItem, account_containers.VAR_STATION_ID);
+                account_containers.bindContainer(newItem, self);
+                if (!hasObjVar(newItem, account_containers.VAR_STATION_ID) ||
+                    getIntObjVar(newItem, account_containers.VAR_STATION_ID) != destinationStationId ||
+                    !account_containers.isBoundToPlayer(newItem, self))
+                {
+                    CustomerServiceLog("CharacterTransfer", "unpackItem() : imported account container " + newItem + " did not bind exactly to destination station " + destinationStationId + " before unpacking its contents. TRANSFER FAILED");
+                    return null;
+                }
+            }
             int objectType = getGameObjectType(newItem);
             if (!static_item.isStaticItem(newItem))
             {
@@ -10162,7 +10183,9 @@ public class base_player extends script.base_script
             obj_id[] contents = null;
             obj_id saberInv = null;
             boolean b_is_ship = false;
-            if (containerType == 2 && !isGameObjectTypeOf(objectType, GOT_building))
+            if ((containerType == 2 ||
+                (containerType == 3 && account_containers.isManagedContainer(item))) &&
+                !isGameObjectTypeOf(objectType, GOT_building))
             {
                 contents = getContents(item);
             }
@@ -11326,7 +11349,20 @@ public class base_player extends script.base_script
                     obj_id playerDatapad = utils.getPlayerDatapad(self);
                     obj_id datapadObjects[] = getContents(playerDatapad);
                     for (obj_id datapadObject : datapadObjects) {
-                        destroyObject(datapadObject);
+                        boolean managedAccountContainer = account_containers.isManagedContainer(datapadObject);
+                        if (managedAccountContainer && hasScript(datapadObject, account_containers.SCRIPT_NO_DESTROY)) {
+                            // CTS replaces the destination datapad wholesale. Keep the
+                            // normal no-destroy contract everywhere except this bounded
+                            // replacement path, where the source copy is unpacked below.
+                            detachScript(datapadObject, account_containers.SCRIPT_NO_DESTROY);
+                        }
+                        if (!destroyObject(datapadObject)) {
+                            if (managedAccountContainer && exists(datapadObject) && !hasScript(datapadObject, account_containers.SCRIPT_NO_DESTROY)) {
+                                attachScript(datapadObject, account_containers.SCRIPT_NO_DESTROY);
+                            }
+                            CustomerServiceLog("CharacterTransfer", "OnDownloadCharacter() : FAILED to destroy pre-existing datapad item " + datapadObject + " (managedAccountContainer=" + managedAccountContainer + "). TRANSFER FAILED");
+                            return SCRIPT_OVERRIDE;
+                        }
                     }
                     CustomerServiceLog("CharacterTransfer", "OnDownloadCharacter : unpacking datapad items");
                     dictionary datapadDictionary = characterData.getDictionary("datapadDictionary");
@@ -11353,7 +11389,21 @@ public class base_player extends script.base_script
                             obj_id unpackedItem = unpackItem(playerDatapad, itemDictionary);
                             if (!isIdValid(unpackedItem)) {
                                 CustomerServiceLog("CharacterTransfer", "unpackItem()  : FAILED to unpack datapad item (original oid " + key + ") into datapad " + playerDatapad);
+                                return SCRIPT_OVERRIDE;
                             } else {
+                                if (account_containers.isManagedContainer(unpackedItem)) {
+                                    int destinationStationId = getPlayerStationId(self);
+                                    if (destinationStationId <= 0) {
+                                        CustomerServiceLog("CharacterTransfer", "OnDownloadCharacter() : destination station id is invalid while rebinding imported account container " + unpackedItem + ". TRANSFER FAILED");
+                                        return SCRIPT_OVERRIDE;
+                                    }
+                                    if (!hasObjVar(unpackedItem, account_containers.VAR_STATION_ID) ||
+                                        getIntObjVar(unpackedItem, account_containers.VAR_STATION_ID) != destinationStationId ||
+                                        !account_containers.isBoundToPlayer(unpackedItem, self)) {
+                                        CustomerServiceLog("CharacterTransfer", "OnDownloadCharacter() : imported account container " + unpackedItem + " did not bind exactly to destination station " + destinationStationId + ". TRANSFER FAILED");
+                                        return SCRIPT_OVERRIDE;
+                                    }
+                                }
                                 datapadItemOidTranslation.put(key, unpackedItem);
                                 if (utils.hasScript(unpackedItem, "space.ship_control_device.ship_control_device")) {
                                     obj_id ship = space_transition.getShipFromShipControlDevice(unpackedItem);
@@ -11373,6 +11423,7 @@ public class base_player extends script.base_script
                             }
                         }
                     }
+                    account_containers.ensureContainers(self);
                     obj_id buyBackContainer = getObjIdObjVar(self, smuggler.BUYBACK_CONTAINER_VAR);
                     if (isIdValid(buyBackContainer))
                     {

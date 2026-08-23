@@ -2169,16 +2169,10 @@ public class space_combat extends script.base_script
         {
             return;
         }
-        obj_id datapad = getContainedBy(petControlDevice);
-        if (!isIdValid(datapad))
+        obj_id master = utils.getContainingPlayer(petControlDevice);
+        if (!isPlayer(master))
         {
-            debugServerConsoleMsg(null, "SPACE_COMBAT.createFlightDroidFromData: FAILURE. Kicking out after databad isIdValid check failed. Datapad was: " + datapad);
-            return;
-        }
-        obj_id master = getContainedBy(datapad);
-        if (!isIdValid(master))
-        {
-            debugServerConsoleMsg(null, "SPACE_COMBAT.createFlightDroidFromData: FAILURE. Kicking out after master isIdValid check failed. Master was: " + master);
+            debugServerConsoleMsg(null, "SPACE_COMBAT.createFlightDroidFromData: FAILURE. Pet control device is not contained by a player. Master was: " + master);
             return;
         }
         if (!hasScript(master, "ai.pet_master"))

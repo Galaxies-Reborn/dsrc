@@ -14,6 +14,7 @@ public class permanent_structure extends script.base_script
     public static final boolean LOGGING_ON = true;
     public static final String LOGGING_CATEGORY = "special_sign";
     public static final String SCRIPT_ITEM_STRUCTURE = "structure.item_structure";
+    public static final String SCRIPT_WORKER_DROID_TARGET = "structure.worker_droid_target";
     public static final string_id SID_YOURE_CITY_BANNED = new string_id("city/city", "youre_city_banned");
     public static final string_id SID_BEACON_MISSING = new string_id("space/space_interaction", "homing_beacon_missing");
     public static final string_id SID_NEW_CITY_FIXUP_CITIZEN_SUBJECT = new string_id("city/city", "city_fixup_add_citizens_subject");
@@ -23,6 +24,7 @@ public class permanent_structure extends script.base_script
     public static final string_id SID_PACKING_CITY_ABANDONED_STRUCTURE = new string_id("city/city", "packing_city_abandoned_structure");
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        ensureWorkerDroidTargetScript(self);
         dictionary params = new dictionary();
         params.put("sender", self);
         params.put("senderLoc", getLocation(self));
@@ -45,6 +47,7 @@ public class permanent_structure extends script.base_script
                 return SCRIPT_CONTINUE;
             }
         }
+        ensureWorkerDroidTargetScript(self);
         if (utils.checkConfigFlag("GameServer", "enableLogStructureInfo"))
         {
             messageTo(self, "logStructureInfo", null, 60, false);
@@ -1909,5 +1912,13 @@ public class permanent_structure extends script.base_script
             }
         }
         return SCRIPT_CONTINUE;
+    }
+    public void ensureWorkerDroidTargetScript(obj_id structure) throws InterruptedException
+    {
+        if ((player_structure.isFactory(structure) || player_structure.isHarvester(structure) || player_structure.isGenerator(structure)) &&
+            !hasScript(structure, SCRIPT_WORKER_DROID_TARGET))
+        {
+            attachScript(structure, SCRIPT_WORKER_DROID_TARGET);
+        }
     }
 }

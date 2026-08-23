@@ -2186,6 +2186,27 @@ public class player_utility extends script.base_script
         chatSendPersistentMessage("Interplanetary Survey Droid", getName(self), subject, report, null);
         return SCRIPT_CONTINUE;
     }
+    public int handleSurveyDroidWaypointReport(obj_id self, dictionary params) throws InterruptedException
+    {
+        survey_droid.deliverSurveyReport(self, params);
+        return SCRIPT_CONTINUE;
+    }
+    public int handleWorkerDroidActionResponse(obj_id self, dictionary params) throws InterruptedException
+    {
+        if (params == null || params.isEmpty() || params.getObjId("player") != self)
+        {
+            return SCRIPT_CONTINUE;
+        }
+        String message = params.getString("message");
+        if (message == null || message.length() == 0)
+        {
+            message = params.getBoolean("success")
+                ? "The Worker Droid completed its remote action."
+                : "The Worker Droid could not complete its remote action.";
+        }
+        sendSystemMessage(self, message, null);
+        return SCRIPT_CONTINUE;
+    }
     public void createBuffs(obj_id player) throws InterruptedException
     {
         if (!hasAttribModifier(player, "TC2 - BUFFS (Health)"))

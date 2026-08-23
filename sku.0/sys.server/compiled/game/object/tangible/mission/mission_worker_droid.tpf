@@ -1,0 +1,19 @@
+@base object/tangible/base/tangible_base.iff
+
+@class tangible_object_template 0
+
+
+
+@class object_template 5
+
+// filename
+sharedTemplate = "object/tangible/mission/shared_mission_worker_droid.iff"
+
+volume = 1
+
+complexity = 0
+
+tintIndex = 0
+invulnerable = true
+
+scripts = +[ "item.droid.worker_droid" ]

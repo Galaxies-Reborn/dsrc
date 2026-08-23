@@ -81,11 +81,14 @@ sku.0/sys.server/compiled/game/datatables/buildout/tatooine/tatooine_6_2_ws.tab 
 sku.0/sys.server/compiled/game/script/theme_park/meatlump/mtp_vendor.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/theme_park/dungeon/nova_orion_station/nova_orion_vendor.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/library/player_structure.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/structure/permanent_structure.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/player/player_building.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/library/resource.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/systems/crafting/armor/crafting_new_cybernetics_final.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/terminal/vendor.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/library/movement.java -text whitespace=cr-at-eol
+sku.0/sys.server/compiled/game/script/systems/vehicle_system/vehicle_control_device.java -text whitespace=cr-at-eol
+sku.0/sys.shared/compiled/game/object/tangible/datapad/shared_character_datapad.tpf -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/datatables/faction_perk/hq/hq_point_values.tab -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/faction_perk/hq/loader.java -text whitespace=cr-at-eol
 sku.0/sys.server/compiled/game/script/faction_perk/hq/planetary_base_register.java -text whitespace=cr-at-eol

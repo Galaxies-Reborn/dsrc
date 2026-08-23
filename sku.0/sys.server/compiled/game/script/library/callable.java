@@ -164,7 +164,7 @@ public class callable extends script.base_script
         {
             return null;
         }
-        obj_id[] dataItems = getContents(datapad);
+        obj_id[] dataItems = utils.getContents(datapad, true);
         for (obj_id dataItem : dataItems) {
             if (getControlDeviceType(dataItem) == callableType) {
                 callables = utils.addElement(callables, dataItem);
@@ -463,7 +463,7 @@ public class callable extends script.base_script
         {
             return 0;
         }
-        obj_id[] dataItems = getContents(datapad);
+        obj_id[] dataItems = utils.getContents(datapad, true);
         if (dataItems == null || dataItems.length < 1)
         {
             return 0;

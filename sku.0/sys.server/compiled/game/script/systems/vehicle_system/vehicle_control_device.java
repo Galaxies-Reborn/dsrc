@@ -109,7 +109,8 @@ public class vehicle_control_device extends script.base_script
     {
         obj_id myContainer = getContainedBy(self);
         obj_id yourPad = utils.getPlayerDatapad(player);
-        if (myContainer != yourPad)
+        boolean inVehicleContainer = account_containers.isContainerForPlayer(myContainer, account_containers.KIND_VEHICLES, player);
+        if (myContainer != yourPad && !inVehicleContainer)
         {
             if (hasScript(myContainer, "ai.pet_control_device"))
             {
@@ -237,12 +238,7 @@ public class vehicle_control_device extends script.base_script
             obj_id currentVehicle = callable.getCDCallable(petControlDevice);
             if (isIdValid(currentVehicle))
             {
-                obj_id datapad = getContainedBy(petControlDevice);
-                if (!isIdValid(datapad))
-                {
-                    return;
-                }
-                obj_id master = getContainedBy(datapad);
+                obj_id master = utils.getContainingPlayer(petControlDevice);
                 if (!isIdValid(master))
                 {
                     return;
@@ -290,12 +286,7 @@ public class vehicle_control_device extends script.base_script
         {
             destroyCurrentPet(self);
         }
-        obj_id datapad = getContainedBy(self);
-        if (!isIdValid(datapad))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        obj_id master = getContainedBy(datapad);
+        obj_id master = utils.getContainingPlayer(self);
         if (!isIdValid(master))
         {
             return SCRIPT_CONTINUE;
@@ -312,7 +303,7 @@ public class vehicle_control_device extends script.base_script
     }
     public int OnTransferred(obj_id self, obj_id sourceContainer, obj_id destContainer, obj_id transferer) throws InterruptedException
     {
-        obj_id master = getContainedBy(sourceContainer);
+        obj_id master = utils.getContainingPlayer(sourceContainer);
         if (!isIdValid(master))
         {
             return SCRIPT_CONTINUE;
@@ -322,12 +313,7 @@ public class vehicle_control_device extends script.base_script
     }
     public int OnAttach(obj_id self) throws InterruptedException
     {
-        obj_id datapad = getContainedBy(self);
-        if (!isIdValid(datapad))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        obj_id master = getContainedBy(datapad);
+        obj_id master = utils.getContainingPlayer(self);
         if (!isIdValid(master))
         {
             return SCRIPT_CONTINUE;
@@ -382,12 +368,7 @@ public class vehicle_control_device extends script.base_script
     }
     public boolean isSameFaction(obj_id petControlDevice) throws InterruptedException
     {
-        obj_id datapad = getContainedBy(petControlDevice);
-        if (!isIdValid(datapad))
-        {
-            return false;
-        }
-        obj_id master = getContainedBy(datapad);
+        obj_id master = utils.getContainingPlayer(petControlDevice);
         if (!isIdValid(master))
         {
             return false;
@@ -422,6 +403,11 @@ public class vehicle_control_device extends script.base_script
     public int OnAboutToBeTransferred(obj_id self, obj_id destContainer, obj_id transferer) throws InterruptedException
     {
         obj_id newMaster = getContainedBy(destContainer);
+        boolean destinationIsVehicleContainer = account_containers.isManagedContainer(destContainer) && account_containers.KIND_VEHICLES.equals(account_containers.getContainerKind(destContainer));
+        if (!isPlayer(newMaster) && destinationIsVehicleContainer)
+        {
+            newMaster = utils.getContainingPlayer(destContainer);
+        }
         if (!isPlayer(newMaster))
         {
             return SCRIPT_OVERRIDE;
@@ -444,6 +430,17 @@ public class vehicle_control_device extends script.base_script
                     }
                 }
             }
+        }
+        obj_id currentMaster = utils.getContainingPlayer(self);
+        obj_id currentContainer = getContainedBy(self);
+        boolean currentIsVehicleContainer = account_containers.isManagedContainer(currentContainer) && account_containers.KIND_VEHICLES.equals(account_containers.getContainerKind(currentContainer));
+        obj_id currentDatapad = utils.getPlayerDatapad(currentMaster);
+        boolean alreadyStoredInDatapad = isIdValid(currentDatapad) && utils.isNestedWithin(self, currentDatapad);
+        if (newMaster == currentMaster &&
+            alreadyStoredInDatapad &&
+            (destinationIsVehicleContainer || currentIsVehicleContainer))
+        {
+            return SCRIPT_CONTINUE;
         }
         if (!hasScript(newMaster, "ai.pet_master"))
         {

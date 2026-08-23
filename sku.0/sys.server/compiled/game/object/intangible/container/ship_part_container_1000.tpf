@@ -24,4 +24,6 @@ volume = 1
 
 sharedTemplate = "object/intangible/container/shared_ship_part_container_1000.iff"
 
-scripts =+ ["item.special.nodestroy"]
+scripts =+ ["item.container.account_bound", "item.special.nodestroy"]
+
+objvars =+ ["accountContainer.kind" = "shipParts", "noTrade" = 1, "noTradeShared" = 1]
