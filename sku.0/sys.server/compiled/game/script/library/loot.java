@@ -160,47 +160,6 @@ public class loot extends script.base_script
         }
         return hasLoot;
     }
-    public static boolean addGoldenTicket(obj_id player, obj_id corpse) throws InterruptedException{
-        if(!hasObjVar(player, "lottery.looted") && getIntObjVar(player, "lottery.availableTickets") > 0) {
-            obj_id broker = getObjIdObjVar(player, "lottery.broker");
-            if(!isValidId(broker)) return false;
-            Vector qualifiers = getResizeableObjIdArrayObjVar(broker, "lottery.qualifiers");
-            obj_id playerStationId = utils.stringToObjId("" + getPlayerStationId(player));
-            if(qualifiers != null && utils.getElementPositionInArray(qualifiers, playerStationId) > -1) return false;
-            double dropChance = 2;
-            try {
-                dropChance = Double.parseDouble(getConfigSetting("EventTeam", "goldenTicketDropChance"));
-            }
-            catch(Exception e){}
-            double rng = Math.random() * 100;
-            if(dropChance > 0 && rng <= dropChance) {
-                String goldenTicket = "object/tangible/travel/travel_ticket/dungeon_ticket.iff";
-                obj_id[] items = utils.getAllItemsInBankAndInventory(player);
-                if(items != null) {
-                    for (obj_id item : items) {
-                        if (getTemplateName(item).equals(goldenTicket)) {
-                            return false;
-                        }
-                    }
-                }
-                obj_id lootItem = createObject(goldenTicket, utils.getInventoryContainer(player), "");
-                setName(lootItem, "A Golden Ticket");
-                setObjVar(lootItem, "noTrade", 1);
-                if(isValidId(lootItem)){
-                    setObjVar(player, "lottery.looted", 1);
-                    if(ai_lib.isHumanoid(corpse)){
-                        chat.chat(corpse, "...you... you've won, Charlie...");
-                    }
-                    play2dNonLoopingSound(player, "sound/utinni.snd");
-                    sendSystemMessage(player, "A particularly shiny Golden Ticket has been placed in your inventory!", null);
-                    LOG("live-lottery","Player " + getFirstName(player) + " (" + player + ") has looted a lottery ticket.");
-                    obj_id inv = utils.getInventoryContainer(corpse);
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
     public static int getCashForLevel(String mobType, int level) throws InterruptedException
     {
         if (mobType == null || mobType.equals("") || level < 1)
@@ -2531,6 +2490,14 @@ public class loot extends script.base_script
     {
         // get the attacker who did the most damage.
         obj_id player = getObjIdObjVar(target, xp.VAR_TOP_GROUP);
+
+        // VAR_TOP_GROUP stores a group object when the top damage dealer is grouped.
+        // Pick a random member of that group to receive the RLS chest.
+        if (group.isGroupObject(player)) {
+            obj_id[] members = utils.getLocalGroupMemberIds(player);
+            if (members == null || members.length == 0) return false;
+            player = members[rand(0, members.length - 1)];
+        }
 
         // make sure the attacker is a player.
         if(!isValidId(player) || !isPlayer(player)){

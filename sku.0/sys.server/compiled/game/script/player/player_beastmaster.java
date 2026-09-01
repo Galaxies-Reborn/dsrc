@@ -321,7 +321,7 @@ public class player_beastmaster extends script.base_script
             return;
         }
         debugSpeakMsg(beast, "Current experience: " + beast_lib.getBeastExperience(beast));
-        beast_lib.incrementBeastExperience(beast);
+        beast_lib.incrementBeastExperience(beast, new dictionary());
         debugSpeakMsg(beast, "Incremented experience: " + beast_lib.getBeastExperience(beast));
     }
     public void showHappiness(obj_id self) throws InterruptedException
@@ -610,6 +610,9 @@ public class player_beastmaster extends script.base_script
         int duration = 20;
         int reviveTimeMod = getEnhancedSkillStatisticModifierUncapped(self, "expertise_bm_pet_revive_time");
         duration -= reviveTimeMod;
+        if (params.containsKey("extendedRange")) {
+            duration *= params.getFloat("extendedRange");
+        }
         int flags = sui.CD_EVENT_INCAPACITATE;
         int pid = sui.smartCountdownTimerSUI(self, self, "bm_revive_pet", null, 0, duration, "", 0, flags);
         duration += getGameTime();

@@ -5,6 +5,8 @@ import script.location;
 import script.obj_id;
 import script.string_id;
 
+import java.util.Arrays;
+
 public class static_item extends script.base_script
 {
     public static_item()
@@ -15,6 +17,8 @@ public class static_item extends script.base_script
     public static final String WEAPON_STAT_BALANCE_TABLE = "datatables/item/master_item/weapon_stats.iff";
     public static final String ARMOR_STAT_BALANCE_TABLE = "datatables/item/master_item/armor_stats.iff";
     public static final String ITEM_STAT_BALANCE_TABLE = "datatables/item/master_item/item_stats.iff";
+    public static final String ITEM_NO_TRADE_SHARED_TABLE = "datatables/no_trade/no_trade_shared.iff";
+    public static final String ITEM_NO_TRADE_REMOVABLE_TABLE = "datatables/no_trade/no_trade_removable.iff";
     public static final String WEAPON_EXAMINE_SCRIPT = "systems.combat.combat_weapon";
     public static final String COLUMN_CAN_RE = "can_reverse_engineer";
     public static final string_id SID_NOT_LINKED = new string_id("base_player", "not_linked");
@@ -119,6 +123,13 @@ public class static_item extends script.base_script
         {
             setCount(newItem, chargeList);
         }
+        // Fixing because of null pointer.  Non-static arrays were referenced in a static method.
+        String[] no_trade_shared_items = dataTableGetStringColumn(ITEM_NO_TRADE_SHARED_TABLE, 0);
+        String[] no_trade_removable_items = dataTableGetStringColumn(ITEM_NO_TRADE_REMOVABLE_TABLE, 0);
+
+        if(no_trade_shared_items != null && no_trade_removable_items != null && (Arrays.asList(no_trade_shared_items).contains(itemName) || Arrays.asList(no_trade_removable_items).contains(itemName))) {
+            setObjVar(newItem, "noTrade", 1);
+        }
         initializeObject(newItem, itemData);
         return newItem;
     }
@@ -141,6 +152,12 @@ public class static_item extends script.base_script
             }
         }
         attachScript(object, "item.static_item_base");
+        // attaching the no_trade_removable script. 
+        // Doing this here instead of the above because this runs on Init for all existing static_items instead of only at creation time
+        String[] no_trade_removable_items = dataTableGetStringColumn(ITEM_NO_TRADE_REMOVABLE_TABLE, 0);
+        if(no_trade_removable_items != null && Arrays.asList(no_trade_removable_items).contains(itemName)) {
+            attachScript(object, "item.special.no_trade_removable");
+        }
         if (!jedi.isCrystalTuned(object))
         {
             setName(object, "");

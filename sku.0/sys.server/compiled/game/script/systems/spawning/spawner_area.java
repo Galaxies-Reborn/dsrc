@@ -7,6 +7,7 @@ import script.library.spawning;
 import script.library.utils;
 import script.location;
 import script.obj_id;
+import script.library.config_utils;
 
 public class spawner_area extends script.base_script
 {
@@ -23,7 +24,7 @@ public class spawner_area extends script.base_script
         {
             setName(self, getStringObjVar(self, "strName"));
         }
-        if (canSpawnByConfigSetting())
+        if (canSpawnByConfigSetting(self))
         {
             messageTo(self, "doSpawnEvent", null, 20, false);
         }
@@ -39,7 +40,7 @@ public class spawner_area extends script.base_script
         {
             setName(self, getStringObjVar(self, "strName"));
         }
-        if (canSpawnByConfigSetting())
+        if (canSpawnByConfigSetting(self))
         {
             messageTo(self, "doSpawnEvent", null, 20, false);
         }
@@ -65,7 +66,6 @@ public class spawner_area extends script.base_script
             {
                 setName(self, "Mangled spawner. strFileName is " + strFileName + " I couldnt find any spawns in that file.");
             }
-            int intRoll = rand(0, strSpawns.length - 1);
             if (fltSizes.length == 0)
             {
                 setName(self, "Missing spawn sizes in " + strFileName);
@@ -74,8 +74,12 @@ public class spawner_area extends script.base_script
             {
                 setName(self, "MISSING VALUES: Each spawn must have an associated size (" + strFileName + ")");
             }
-            fltSize = fltSizes[intRoll];
+            int intRoll = rand(0, strSpawns.length - 1);
+            if(intRoll >= fltSizes.length) {
+                intRoll = fltSizes.length - 1;
+            }
             strSpawn = strSpawns[intRoll];
+            fltSize = fltSizes[intRoll];
         }
         if (strSpawn == null || strSpawn.length() < 1)
         {
@@ -221,19 +225,78 @@ public class spawner_area extends script.base_script
         messageTo(self, "doSpawnEvent", null, 2, false);
         return SCRIPT_CONTINUE;
     }
-    public boolean canSpawnByConfigSetting() throws InterruptedException
-    {
-        String disableSpawners = getConfigSetting("GameServer", "disableAreaSpawners");
-        if (disableSpawners == null)
-        {
-            return true;
-        }
-        if (disableSpawners.equals("true") || disableSpawners.equals("1"))
-        {
-            return false;
-        }
-        return true;
-    }
+
+	public boolean canSpawnByConfigSetting(obj_id self) throws InterruptedException
+	{
+		if (config_utils.getBooleanConfig("GameServer", "disableAreaSpawners", false))
+		{
+		    return false;
+		}
+
+
+		if (!canSpawnTcgVendorByConfigSetting(self))
+		{
+		    return false;
+		}
+
+		return true;
+	}
+
+	public boolean canSpawnTcgVendorByConfigSetting(obj_id self) throws InterruptedException
+	{
+		if (!isTcgVendorSpawner(self))
+		{
+		    return true;
+		}
+
+		String location = getCurrentSceneName();
+
+		if (location == null || location.length() <= 0)
+		{
+		    return true;
+		}
+
+		if (location.equals("tatooine"))
+		{
+		    return config_utils.getBooleanConfig("TCGVendors", "tatooineEnabled", true);
+		}
+
+		if (location.equals("naboo"))
+		{
+		    return config_utils.getBooleanConfig("TCGVendors", "nabooEnabled", true);
+		}
+
+		if (location.equals("corellia"))
+		{
+		    return config_utils.getBooleanConfig("TCGVendors", "corelliaEnabled", true);
+		}
+
+		if (location.equals("dungeon1"))
+		{
+		    return config_utils.getBooleanConfig("TCGVendors", "novaOrionEnabled", true);
+		}
+
+		return true;
+	}
+
+	public boolean isTcgVendorSpawner(obj_id self) throws InterruptedException
+	{
+		if (!hasObjVar(self, "strName") || !hasObjVar(self, "strSpawns"))
+		{
+		    return false;
+		}
+
+		String spawnerName = getStringObjVar(self, "strName");
+		String spawns = getStringObjVar(self, "strSpawns");
+
+		if (spawnerName == null || spawns == null)
+		{
+		    return false;
+		}
+
+		return spawnerName.startsWith("vendor_tcg_") && spawns.startsWith("vendor_tcg_");
+	}	
+
     public int OnDestroy(obj_id self) throws InterruptedException
     {
         if (utils.hasScriptVar(self, "debugSpawnList"))

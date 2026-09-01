@@ -5,10 +5,10 @@
 
 package script;
 
+import script.library.utils;
+
 import java.io.File;
-import java.util.Arrays;
-import java.util.Hashtable;
-import java.util.Vector;
+import java.util.*;
 
 
 public class base_class
@@ -1528,6 +1528,32 @@ public class base_class
 	public static final int HOLOGRAM_TYPE1_QUALITY3 = 2;
 	public static final int HOLOGRAM_TYPE1_QUALITY4 = 3;
 
+    /**
+     * Faction Codes (as crc hash)
+     * Used by many methods that check or return the faction of an object
+     * e.g. pvpGetAlignedFaction() or pvpSetAlignedFaction()
+     */
+    public static final int FACTION_HASH_NEUTRAL = 0;
+    public static final int FACTION_HASH_IMPERIAL = -615855020;
+    public static final int FACTION_HASH_REBEL = 370444368;
+    public static final int FACTION_HASH_BATTLEFIELD = -526735576;
+    public static final int FACTION_HASH_DUEL = 1183528962;
+    public static final int FACTION_HASH_BOUNTY_DUEL = -429740311;
+    public static final int FACTION_HASH_NONAGGRESSIVE = 221551254;
+    public static final int FACTION_HASH_UNATTACKABLE = -160237431;
+    public static final int FACTION_HASH_BOUNTY_TARGET = 84709322;
+    public static final int FACTION_HASH_GUILDWAR_COOLDOWN = -1526926610;
+    public static final int FACTION_HASH_BUBBLE_COMBAT = -377582139;
+
+    /**
+     * Datatable Column Data Types
+     * Returned by datatableGetColumnType (uses basic types only)
+     * Must match enums used in src DataTableColumnType.cpp
+     */
+    public static final int DATATABLE_TYPE_INT = 0;  // returned for columns with type: int, enum, hash, bool, bit vector
+    public static final int DATATABLE_TYPE_FLOAT = 1; // returned for columns with type: float
+    public static final int DATATABLE_TYPE_STRING = 2; // returned for columns with type: string, packed objvars
+    public static final int DATATABLE_TYPE_UNKNOWN = -1; // returned for columns with errors or unknown type
 
     /**
      * Returns an obj_id for a given id number.
@@ -1560,8 +1586,7 @@ public class base_class
     //*********************************************************************
 
     /**
-     * @defgroup debuggingMethods Debugging methods. These methods are removed
-     * from scripts that are compiled in release mode.
+     * @defgroup debuggingMethods Debugging methods.
      * @{
      */
     // debugging methods
@@ -9723,6 +9748,9 @@ public class base_class
 	{
 		warpPlayer(player, sceneName, x_w, y_w, z_w, building, cell, x_p, y_p, z_p, callback, false);
 	}
+	public static void warpPlayer(obj_id player, location loc, String callback, boolean forceLoadScreen) {
+	    warpPlayer(player, loc.area, loc.x, loc.y, loc.z, loc.cell, 0f, 0f, 0f, callback, forceLoadScreen);
+    }
 	/**
 	 * Disconnects a player.  If the safeLogout objvar is set on them, logs them out too.
 	 * @param player  the player to disconnect
@@ -15343,6 +15371,16 @@ public class base_class
     // null is a valid return value
     public static native String[] getAllCollectionSlotCategories();
 
+    /**
+     * getCollectionSlotMaxValue
+     * Returns the maximum value of a collection slot
+     * Useful for determining if a collection slot is a bit-type or a count-type or setting count-types
+     * A bit-type collection slot will return 0, a count type will be > 0.
+     * @param slotName the name of the slot
+     * @return the max value of the slot (or -1 if there is an error finding the requested slot)
+     */
+    public static native long getCollectionSlotMaxValue(String slotName);
+
     //*********************************************************************
     // base class methods
     //*********************************************************************
@@ -19033,8 +19071,8 @@ public class base_class
     /**
      *  Remove a travel point to the specified planet.
      *
-     * @param planet the planet to remove the travel point
-     * @param name the name of the travel point
+     * @param planetName the planet to remove the travel point
+     * @param travelPointName the name of the travel point
      * @return true of successful
      */
     public static native boolean removePlanetTravelPoint (String planetName, String travelPointName);
@@ -19042,7 +19080,7 @@ public class base_class
     /**
      *  Get a list of all travel points for a planet
      *
-     * @param planet the planet to get the travel points from
+     * @param planetName the planet to get the travel points from
      * @return string array of travel points
      */
     public static native String[] getPlanetTravelPoints (String planetName);
@@ -19050,8 +19088,8 @@ public class base_class
     /**
      *  Get the GCW contested region that the travel point is in, if any
      *
-     * @param planet the planet
-     * @param name the name of the travel point
+     * @param planetName the planet
+     * @param travelPointName the name of the travel point
      * @return the GCW contested region that the travel point is in, if any
      */
     public static native String getPlanetTravelPointGcwContestedRegion (String planetName, String travelPointName);
@@ -19059,8 +19097,8 @@ public class base_class
     /**
      *  Get location of a travel point
      *
-     * @param planet the planet
-     * @param name the name of the travel point
+     * @param planetName the planet
+     * @param travelPointName the name of the travel point
      * @return obj_id of the travel point, NULL if invalid
      */
     public static native location getPlanetTravelPointLocation (String planetName, String travelPointName);
@@ -19068,8 +19106,8 @@ public class base_class
     /**
      *  Get of cost of a travel point
      *
-     * @param planet the planet
-     * @param name the name of the travel point
+     * @param planetName the planet
+     * @param travelPointName the name of the travel point
      * @return int the cost, 0 of unsuccessful
      */
     public static native int getPlanetTravelPointCost (String planetName, String travelPointName);
@@ -19077,8 +19115,8 @@ public class base_class
     /**
      *  Get of cost of a travel point
      *
-     * @param planet the planet
-     * @param name the name of the travel point
+     * @param planetName the planet
+     * @param travelPointName the name of the travel point
      * @return int the cost, 0 of unsuccessful
      */
     public static native boolean getPlanetTravelPointInterplanetary (String planetName, String travelPointName);
@@ -19086,8 +19124,8 @@ public class base_class
     /**
      *  Get of cost of a traveling between planets
      *
-     * @param planet1 the departure planet
-     * @param planet2 the arrival planet
+     * @param planetName1 the departure planet
+     * @param planetName2 the arrival planet
      * @return int the cost, 0 of unsuccessful
      */
     public static native int getPlanetTravelCost (String planetName1, String planetName2);
@@ -19096,7 +19134,7 @@ public class base_class
      *  Put the client into ticket purchase mode
      *
      * @param player the client network id
-     * @param startingPlanet the departure planet
+     * @param startingPlanetName the departure planet
      * @param startingTravelPointName the departure travel point name
      * @param instantTravel whether or not the purchase mode was initiated by an instant travel request
      * @return true if successful
@@ -19110,7 +19148,7 @@ public class base_class
     /**
      * Check whether an area has too many players for travel
      *
-     * @param planet the planet (or space scene)
+     * @param planetName the planet (or space scene)
      * @param x the x-coordinate of the area
      * @param z the z-coordinate of the area
      * @return true if the area has too many players
@@ -19812,6 +19850,22 @@ public class base_class
     {
         _expelFromBuilding(getLongWithNull(target));
     }
+
+    /**
+     * Sends a dirty cell permissions update message directly to a player's client to forcibly
+     * update the client's cell permissions cache with regards to the cell in question as a means of
+     * more quickly granting/revoking access to a cell (e.g. in Death Watch Bunker).
+     *
+     * @param cell the obj_id of the cell you are updating permissions for
+     * @param player the obj_id of the player (and thus their client) to send the notification to
+     * @param isAllowed true if they are being added to enter a cell, false if they are being removed/banned
+     */
+    public static void sendDirtyCellPermissionsUpdate(obj_id cell, obj_id player, boolean isAllowed) {
+        _sendDirtyCellPermissionsUpdateToClient(getLongWithNull(cell), getLongWithNull(player), isAllowed);
+    }
+    private static native void _sendDirtyCellPermissionsUpdateToClient(long cell, long player, boolean isAllowed);
+
+
 
     /*@}*/
 
@@ -22036,6 +22090,16 @@ public class base_class
     {
         return _getAccountNumLots(getLongWithNull(player));
     }
+
+    /**
+     * Get the maximum housing lots a character can have
+     * @return       The number of lots has available to them.
+     */
+    private static native int _getMaxHousingLots();
+    public static int getMaxHousingLots()
+    {
+        return _getMaxHousingLots();
+    }
     /**
      * Find out the maximum number of lots a player may use.
      * @return       The number of lots has available to them.
@@ -22240,6 +22304,17 @@ public class base_class
     public static int getPlayerStationId(obj_id player)
     {
         return _getPlayerStationId(getLongWithNull(player));
+    }
+	
+	/**
+     * Check station id to see if two characters belong to the same account
+     * 
+     * @param player1
+     * @param player2
+	 * @return true or false
+     */
+    public static boolean charactersAreSamePlayer(obj_id player1, obj_id player2) {
+        return getPlayerStationId(player1) == getPlayerStationId(player2);
     }
 
     /**
@@ -22734,6 +22809,18 @@ public class base_class
      * float[3] -> centerZ
      */
     public static native float[] getBuildoutAreaSizeAndCenter( float x, float z, String sceneId, boolean ignoreInternal, boolean allowComposite );
+
+    /**
+     * Return the buildout area rectangle coords
+     * (x,z) position.
+     * <p>
+     * returns: float array or null
+     * float[0] -> width
+     * float[1] -> height
+     * float[2] -> centerX
+     * float[3] -> centerZ
+     */
+    public static native float[] getBuildoutAreaRect(float x, float z, String sceneId, boolean allowComposite);
 
     /**
      * Notify the mount that its wearable-related visuals must be updated.
@@ -26756,4 +26843,52 @@ public class base_class
 	{
 		return _hasObjectEffect(getLongWithNull(obj), label);
 	}
+    /**
+     * WARNING
+     * Runs a WARNING call on the GameServer processed through the SRC and dumps the message to console and log.
+     * Does not conform to debug flags, this will always run. For conditional debug messages, use debugServerConsoleMsg();
+     * Prepends with [dsrc] so you know it came from scripts. If you're thinking about using a system.out.println, use this instead.
+     * @param message the message for the console
+     */
+    private static native void _triggerServerWarning(String message);
+    public static void WARNING(String message) {
+        _triggerServerWarning("[dsrc] "+message);
+    }
+
+    /**
+     * getPlayerAccountUsername
+     * Returns the username of a player (they must have logged in at least once for this to work)
+     *
+     * The helper method (_getPlayerUsernameDoNotUse) is called in player.live_conversions OnInitialize
+     * and grabs the account username to store it as an ObjVar on the player so it is accessible all the
+     * time. Otherwise, user names are only accessible when the player is online. Do not use the DoNotUse
+     * JNI method in any implementation where you're looking for the account username of a player. Instead,
+     * use the getPlayerAccountUsername method, provided they have logged in once, this will return their
+     * account username (and it will update automatically if a character-account transfer takes place)
+     *
+     * @param player the player's Network ID
+     * @return the username of the player
+     */
+    public static String getPlayerAccountUsername(obj_id player) {
+        return getStringObjVar(player, "system.accountUsername");
+    }
+    public static native String _getPlayerUsernameDoNotUse(long player);
+
+    /**
+     * isInAdminTable
+     * Alternative to isGod check which validates if the player is connected from an account listed in the admin data table
+     * This validates the username regardless of whether /setGod is on or off so it is better for security and auditing of admin accounts
+     * or for announcements/messages to GM characters (in the case of SWG Source, for patch note/admin updates)
+     * @param player the player to validate
+     * @return if the player's account is in the admin table
+     */
+    public static boolean isInAdminTable(obj_id player) throws InterruptedException {
+        if(utils.checkConfigFlag("GameServer", "adminGodToAll")) {
+            return true;
+        } else {
+            List<String> adminUsernames = Arrays.asList(dataTableGetStringColumn(getConfigSetting("ConnectionServer", "adminAccountDataTable"), "AdminAccounts"));
+            return adminUsernames.contains(getPlayerAccountUsername(player));
+        }
+    }
+
 }   // class base_class

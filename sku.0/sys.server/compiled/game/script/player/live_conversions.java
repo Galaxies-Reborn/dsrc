@@ -60,6 +60,7 @@ public class live_conversions extends script.base_script
     }
     public void runOncePerSessionConversions(obj_id player) throws InterruptedException
     {
+        handleStoreUsername(player);
         grantFemaleMasterPilotMedals(player);
         clearDotEffectObjvars(player);
         fixConsentList(player);
@@ -87,6 +88,8 @@ public class live_conversions extends script.base_script
         givePlayersDeathTroopersPrologQuestComlink(player);
         removeDeprecatedQuests(player);
         addPlayerScripts(player);
+        handleEsbAnniversaryGifts(player);
+        handleMailOptInRewards(player);
     }
     public void runOncePerTravelConversions(obj_id player) throws InterruptedException
     {
@@ -297,6 +300,9 @@ public class live_conversions extends script.base_script
             }
             removeObjVar(player, pclib.VAR_CONSENT_FROM_NAME);
         }
+    }
+    public void handleStoreUsername(obj_id player) throws InterruptedException {
+        setObjVar(player, "system.accountUsername", _getPlayerUsernameDoNotUse(getLongWithNull(player)));
     }
     public void setUnarmedDamageRanges(obj_id player) throws InterruptedException
     {
@@ -697,7 +703,7 @@ public class live_conversions extends script.base_script
     }
     public void updateLotOverLimitStructureLocation(obj_id player) throws InterruptedException
     {
-        if (getAccountNumLots(getPlayerObject(player)) <= player_structure.MAX_LOTS)
+        if (getAccountNumLots(getPlayerObject(player)) <= getMaxHousingLots())
         {
             removeObjVar(player, "lotOverlimit");
         }
@@ -752,6 +758,21 @@ public class live_conversions extends script.base_script
             sui.msgbox(player, EXPERTISE_RESET_FROM_CHANGES);
             CustomerServiceLog("professionExpertiseReset:", " player " + getFirstName(player) + "(" + player + ") has had their expertise reset due to profession updates.");
             return true;
+        }
+        // handle beast master expertise reset as it doesn't fall under the profession checks
+        if(hasSkill(player, "expertise_bm_incubation_base_1")) {
+            int row = dataTableSearchColumnForString("beast_master", "profession", respec.EXPERTISE_VERSION_TABLE);
+            int bmExpertiseVersion = dataTableGetInt(respec.EXPERTISE_VERSION_TABLE, row, "version");
+            int playerBmVersion = 0;
+            if(hasObjVar(player, respec.BEAST_MASTER_EXPERTISE_VERSION_OBJVAR)) {
+                playerBmVersion = getIntObjVar(player, respec.BEAST_MASTER_EXPERTISE_VERSION_OBJVAR);
+            }
+            if(playerBmVersion != bmExpertiseVersion) {
+                messageTo(player, "fullExpertiseReset", null, 2, false);
+                sui.msgbox(player, EXPERTISE_RESET_FROM_CHANGES);
+                CustomerServiceLog("professionExpertiseReset:", " player " + getFirstName(player) + "(" + player + ") has had their expertise reset due to profession updates.");
+                return true;
+            }
         }
         return false;
     }
@@ -944,5 +965,47 @@ public class live_conversions extends script.base_script
             groundquests.clearQuest(player, "u16_nym_themepark_weed_pulling");
         }
         return true;
+    }
+    public void handleEsbAnniversaryGifts(obj_id player) throws InterruptedException {
+        if(!utils.checkConfigFlag("Custom", "grantEsbAnniversaryRewards")) {
+            return;
+        }
+        if(hasObjVar(player, "publish_gifts.has_esb_rewards")) {
+            return;
+        }
+        obj_id inv = utils.getInventoryContainer(player);
+        obj_id col1 = createObjectInInventoryAllowOverload("object/tangible/collection/esb_week_1.iff", player);
+        obj_id col2 = createObjectInInventoryAllowOverload("object/tangible/collection/esb_week_2.iff", player);
+        obj_id col3 = createObjectInInventoryAllowOverload("object/tangible/collection/esb_week_3.iff", player);
+        obj_id col4 = createObjectInInventoryAllowOverload("object/tangible/collection/esb_week_4.iff", player);
+        obj_id cos1 = static_item.createNewItemFunction("item_esb_luke_costume", inv);
+        obj_id cos2 = static_item.createNewItemFunction("item_esb_leia_costume", inv);
+        obj_id cos3 = static_item.createNewItemFunction("item_esb_han_solo_costume", inv);
+        obj_id cos4 = static_item.createNewItemFunction("item_esb_lando_costume", inv);
+        showLootBox(player, new obj_id[] {col1, col2, col3, col4, cos1, cos2, cos3, cos4});
+        setObjVar(player, "publish_gifts.has_esb_rewards", 1);
+    }
+
+    public void handleMailOptInRewards(obj_id player) throws InterruptedException {
+        if(!utils.checkConfigFlag("Custom", "grantMailOptInRewards")) {
+            return;
+        }
+        if(hasObjVar(player, "publish_gifts.has_mail_opt_in_rewards")) {
+            return;
+        }
+        obj_id inv = utils.getInventoryContainer(player);
+        obj_id r1 = static_item.createNewItemFunction("col_mail_opt_in_1_01", inv);
+        obj_id r2 = static_item.createNewItemFunction("col_mail_opt_in_1_02", inv);
+        obj_id r3 = static_item.createNewItemFunction("col_mail_opt_in_1_03", inv);
+        obj_id r4 = static_item.createNewItemFunction("col_mail_opt_in_2_01", inv);
+        obj_id r5 = static_item.createNewItemFunction("col_mail_opt_in_2_02", inv);
+        obj_id r6 = static_item.createNewItemFunction("col_mail_opt_in_2_03", inv);
+        obj_id r7 = static_item.createNewItemFunction("col_mail_opt_in_3_01", inv);
+        obj_id r8 = static_item.createNewItemFunction("col_mail_opt_in_3_02", inv);
+        obj_id r9 = static_item.createNewItemFunction("col_mail_opt_in_3_03", inv);
+        obj_id r10 = static_item.createNewItemFunction("col_mail_opt_in_4_01", inv);
+        obj_id r11 = static_item.createNewItemFunction("col_mail_opt_in_4_02", inv);
+        showLootBox(player, new obj_id[] {r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11});
+        setObjVar(player, "publish_gifts.has_mail_opt_in_rewards", 1);
     }
 }

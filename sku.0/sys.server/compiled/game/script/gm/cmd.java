@@ -3,6 +3,7 @@ package script.gm;
 import script.*;
 import script.library.*;
 
+import java.util.Arrays;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
@@ -3754,18 +3755,27 @@ public class cmd extends script.base_script
     }
     public int cmdNpeGotoMedicalBay(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if(!isGod(self)) {
+            return SCRIPT_CONTINUE;
+        }
         sendSystemMessageTestingOnly(self, "Sending you to a medical bay instance");
         sendPlayerToTutorial(self);
         return SCRIPT_CONTINUE;
     }
     public int cmdNpeGotoMilleniumFalcon(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if(!isGod(self)) {
+            return SCRIPT_CONTINUE;
+        }
         sendSystemMessageTestingOnly(self, "Sending you to a millenium falcon instance");
         npe.movePlayerFromHangarToFalcon(self);
         return SCRIPT_CONTINUE;
     }
     public int cmdNpeGotoTansariiStation(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if(!isGod(self)) {
+            return SCRIPT_CONTINUE;
+        }
         java.util.StringTokenizer st = new java.util.StringTokenizer(params);
         int instanceId = 0;
         if (st.hasMoreTokens())
@@ -3783,6 +3793,9 @@ public class cmd extends script.base_script
     }
     public int cmdNpeGotoStationGamma(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        if(!isGod(self)) {
+            return SCRIPT_CONTINUE;
+        }
         java.util.StringTokenizer st = new java.util.StringTokenizer(params);
         int instanceId = 0;
         if (st.hasMoreTokens())
@@ -3973,14 +3986,41 @@ public class cmd extends script.base_script
         {
             return SCRIPT_CONTINUE;
         }
-        if (utils.hasScriptVar(self, gm.INSTANCE_AUTH))
-        {
-            utils.removeScriptVar(self, gm.INSTANCE_AUTH);
-            sendSystemMessageTestingOnly(self, "You will no longer override instance authorization");
-            return SCRIPT_CONTINUE;
+        if (params.contains(gm.KEYWORD_TARGET)) {
+            params = gm.removeKeyword(params, gm.KEYWORD_TARGET);
+        } else {
+            target = self;
         }
-        utils.setScriptVar(self, gm.INSTANCE_AUTH, 1);
-        sendSystemMessageTestingOnly(self, "You are now overriding private instance authorization checks");
+        String[] instanceFlags = dataTableGetStringColumn(instance.INSTANCE_DATATABLE, "key_required");
+        if (instanceFlags != null && instanceFlags.length > 0) {
+            if(utils.hasScriptVar(target, gm.INSTANCE_AUTH)) {
+                utils.removeScriptVar(target, gm.INSTANCE_AUTH);
+                for (String flag : instanceFlags) {
+                    if (flag != null && flag.length() > 0) {
+                        instance.removePlayerFlagForInstance(target, flag);
+                    }
+                }
+                removeObjVar(target, "mand.acknowledge");
+                sendSystemMessageTestingOnly(target, "You are no longer flagged for or overriding instance authorization.");
+                if(target != self) {
+                    sendSystemMessageTestingOnly(self, "setInstanceAuthorized: You have removed flags and instance authorization for "+getPlayerName(target)+" ("+target+"). Use this command again to re-grant instance overrides.");
+                }
+                return SCRIPT_CONTINUE;
+            }
+            else {
+                utils.setScriptVar(target, gm.INSTANCE_AUTH, 1);
+                for (String flag : instanceFlags) {
+                    if (flag != null && flag.length() > 0) {
+                        instance.flagPlayerForInstance(target, flag);
+                    }
+                }
+                setObjVar(target, "mand.acknowledge", 1);
+                sendSystemMessageTestingOnly(target, "You are now flagged for all instances and overriding instance authorization.");
+                if(target != self) {
+                    sendSystemMessageTestingOnly(self, "setInstanceAuthorized: You have flagged "+getPlayerName(target)+" ("+target+") to access all instances and overrode their instance authorization. Use this command again to revert this override.");
+                }
+            }
+        }
         return SCRIPT_CONTINUE;
     }
     public int cmdCombatDataRecord(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
@@ -4281,4 +4321,194 @@ public class cmd extends script.base_script
         }
         return SCRIPT_CONTINUE;
     }
+
+    // SWG Source Admin Command Additions (we nest them in here (e.g. /admin <subcommand> <params>)
+    public int cmdAdmin(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException {
+
+        if(!isGod(self)) {
+            return SCRIPT_CONTINUE;
+        }
+        StringTokenizer st = new StringTokenizer(params);
+        String command;
+        if(st.hasMoreTokens()) {
+            command = st.nextToken();
+        } else {
+            showAdminCmdSyntax(self);
+            return SCRIPT_CONTINUE;
+        }
+
+        if(command.equalsIgnoreCase("dumpPermsForCell")) {
+
+            obj_id oid;
+            if(!st.hasMoreTokens()) {
+                sendSystemMessageTestingOnly(self, "Syntax: /admin dumpPermsForCell <oid>");
+                return SCRIPT_CONTINUE;
+            } else {
+                oid = obj_id.getObjId(Long.parseLong(st.nextToken()));
+            }
+            if (!isValidId(oid)) {
+                sendSystemMessageTestingOnly(self, "The object specified for dumpPermsForCell was not valid.");
+                return SCRIPT_CONTINUE;
+            }
+
+            String message = "Access Permissions for Cell "+oid+":\n\n" +
+                    "Cell is Public? "+permissionsIsPublic(oid) + "\n\n" +
+                    "Allowed List: \n" + Arrays.toString(permissionsGetAllowed(oid)) + "\n\n" +
+                    "Banned List: \n" + Arrays.toString(permissionsGetBanned(oid)) + "\n\n";
+
+            sui.msgbox(self, self, message, sui.OK_ONLY, "Cell Permissions", "noHandler");
+
+            return SCRIPT_CONTINUE;
+        }
+
+        else if(command.equalsIgnoreCase("getRotation")) {
+
+            obj_id oid;
+            if(!st.hasMoreTokens()) {
+                sendSystemMessageTestingOnly(self, "Syntax: /admin getRotation <oid>");
+                return SCRIPT_CONTINUE;
+            } else {
+                oid = obj_id.getObjId(Long.parseLong(st.nextToken()));
+            }
+            if (!isValidId(oid)) {
+                sendSystemMessageTestingOnly(self, "The object specified for getRotation was not valid.");
+                return SCRIPT_CONTINUE;
+            }
+            float[] q = getQuaternion(oid);
+            sendConsoleMessage(self, "Rotation Information for Object \\#FFFF00"+oid+"\\#.");
+            sendConsoleMessage(self, "\\#FFFF00Template:\\#. "+getTemplateName(oid));
+            sendConsoleMessage(self, "\\#FFFF00Rotation:\\#. "+getFurnitureRotationDegree(oid));
+            sendConsoleMessage(self, "\\#FFFF00Quaternions:\\#. qW "+q[0]+" qX "+q[1]+" qY "+q[2]+" qZ "+q[3]);
+            return SCRIPT_CONTINUE;
+        }
+
+        else if (command.equalsIgnoreCase("getUsername")) {
+
+            if(!st.hasMoreTokens()) {
+                sendSystemMessageTestingOnly(self, "Syntax: /admin getUsername <player first name OR object ID>");
+                return SCRIPT_CONTINUE;
+            } else {
+                String toParse = st.nextToken();
+                obj_id player;
+                if(toParse.matches(".*\\d.*")) {
+                    player = obj_id.getObjId(Long.parseLong(toParse));
+                } else
+                {
+                    player = getPlayerIdFromFirstName(toParse);
+                }
+                if (isIdValid(player) && isPlayer(player)) {
+                    sendSystemMessageTestingOnly(self, "The username for "+getPlayerName(player)+" ("+player+") is: "+getPlayerAccountUsername(player));
+                } else {
+                    sendSystemMessageTestingOnly(self, "getUsername: Error: The name or OID you provided is not valid or is not a player.");
+                    sendSystemMessageTestingOnly(self, "Syntax: /admin getUsername <player first name OR object ID>");
+                }
+                return SCRIPT_CONTINUE;
+            }
+        }
+
+        else if (command.equalsIgnoreCase("setWeather")) {
+
+            String weather;
+            if(st.hasMoreTokens()) {
+                weather = st.nextToken();
+            } else {
+                sendSystemMessageTestingOnly(self, "Syntax: /admin setWeather <clear | mild | heavy | severe>");
+                return SCRIPT_CONTINUE;
+            }
+            switch (weather) {
+                case "clear":
+                    sendSystemMessageTestingOnly(self, "setWeather: Setting Weather to Clear... It will take a minute to appear...");
+                    setWeatherData(0, 0.01f, 0.01f);
+                    break;
+                case "mild":
+                    sendSystemMessageTestingOnly(self, "setWeather: Setting Weather to Mild... It will take a minute to appear...");
+                    setWeatherData(1, 0.02f, 0.02f);
+                    break;
+                case "heavy":
+                    sendSystemMessageTestingOnly(self, "setWeather: Setting Weather to Heavy... It will take a minute to appear...");
+                    setWeatherData(2, 0.52f, 0.52f);
+                    break;
+                case "severe":
+                    sendSystemMessageTestingOnly(self, "setWeather: Setting Weather to Severe... It will take a minute to appear...");
+                    setWeatherData(3, 0.95f, 0.95f);
+                    break;
+                default:
+                    sendSystemMessageTestingOnly(self, "Syntax: /admin setWeather <clear | mild | heavy | severe>");
+                    break;
+            }
+            return SCRIPT_CONTINUE;
+        }
+
+        else {
+            showAdminCmdSyntax(self);
+        }
+
+        return SCRIPT_CONTINUE;
+    }
+
+    private static void showAdminCmdSyntax(obj_id self) throws InterruptedException {
+        sendSystemMessageTestingOnly(self, "Outputting nested commands and syntax of /admin to console");
+        sendConsoleMessage(self, "\\#ffff00 ============ Syntax: /admin commands ============ \\#.");
+        sendConsoleMessage(self, "\\#00ffff dumpPermsForCell \\#bfff00 <oid> \\#.");
+        sendConsoleMessage(self, "returns the public status and permissions list for the provided cell");
+        sendConsoleMessage(self, "\\#00ffff getRotation \\#bfff00 <oid> \\#.");
+        sendConsoleMessage(self, "returns the quaternions and rotation of an object");
+        sendConsoleMessage(self, "\\#00ffff getUsername \\#bfff00 <player first name OR oid> \\#.");
+        sendConsoleMessage(self, "returns the account username of the specified player");
+        sendConsoleMessage(self, "\\#00ffff setWeather \\#bfff00 <clear | mild | heavy | severe> \\#.");
+        sendConsoleMessage(self, "sets the weather for the current scene");
+        sendConsoleMessage(self, "\\#ffff00 ============ ============ ============ ============ \\#.");
+    }
+
+    public int cmdGenerateCraftedItem(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (!isGod(self))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        LOG("LOG_CHANNEL", "player_gm.generateCraftedItem commandHandler called. IsGod check passed, and handler is executing.");
+        debugServerConsoleMsg(self, "************ Entered cmdGenerateCraftedItem.");
+        java.util.StringTokenizer st = new java.util.StringTokenizer(params);
+        if (st.countTokens() != 2)
+        {
+            sendSystemMessageTestingOnly(self, "Did not find the correct parameters needed to create an item.");
+            sendSystemMessageTestingOnly(self, "/generateCraftedItem command must at least have schematic template name and attribute percentage paramaters to function.");
+            sendSystemMessageTestingOnly(self, "Correct usage is /generateCraftedItem <schematic name> <quality-percentage(integer)>");
+            debugServerConsoleMsg(self, "************ Did not decode any string tokens from params passed into command handler. Unable to proceed with out at least schematic template name and attribute percentage.");
+            return SCRIPT_CONTINUE;
+        }
+        String template_string = ((st.nextToken())).toLowerCase();
+        String schematic = ("object/draft_schematic/" + template_string + ".iff");
+        String percentage_string = ((st.nextToken())).toLowerCase();
+        int attributePercentage = utils.stringToInt(percentage_string);
+        if (attributePercentage == -1)
+        {
+            LOG("LOG_CHANNEL", "You must specify a valid item attribute percentage.");
+            sendSystemMessageTestingOnly(self, "You must specify a valid item attribute percentage.");
+            return SCRIPT_CONTINUE;
+        }
+        obj_id creationTarget = null;
+        if (!isIdValid(target))
+        {
+            creationTarget = getLookAtTarget(self);
+            if (!isIdValid(creationTarget))
+            {
+                creationTarget = self;
+            }
+        }
+        else
+        {
+            creationTarget = target;
+        }
+        obj_id inventory = utils.getInventoryContainer(creationTarget);
+        if (inventory != null)
+        {
+            obj_id item = makeCraftedItem(schematic, attributePercentage, inventory);
+            sendSystemMessageTestingOnly(self, "Item created and placed into the inventory of " + getName(creationTarget));
+            CustomerServiceLog("generateCraftedItem", "Object obj_id " + item + " was created of type " + schematic + ". It was created in the inventory of object " + creationTarget + " which is named " + getName(creationTarget) + ".");
+            debugServerConsoleMsg(self, "Object obj_id " + item + " was created of type " + schematic + ". It was created in the inventory of object " + creationTarget + " which is named " + getName(creationTarget) + ".");
+        }
+        return SCRIPT_CONTINUE;
+    }
+
 }

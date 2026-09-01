@@ -117,6 +117,21 @@ public class utils extends script.base_script
         }
         return am;
     }
+    
+    public static double clamp(double value, double min, double max)
+    {
+      if (value < min)
+      {
+        return min;
+      }
+      else if (value > max)
+      {
+        return max;
+      }
+
+      return value;
+    }
+
     public static int randix(float[] fArray) throws InterruptedException
     {
         if (fArray.length > 1)
@@ -4745,7 +4760,7 @@ public class utils extends script.base_script
     {
         return getIntBatchScriptVar(target, base_path) != null;
     }
-    public static int getIntConfigSetting(String section, String key) throws InterruptedException
+    public static int getIntConfigSetting(String section, String key)
     {
         String setting = getConfigSetting(section, key);
         if (setting == null || setting.length() == 0)
@@ -4761,7 +4776,7 @@ public class utils extends script.base_script
         }
         return 0;
     }
-    public static float getFloatConfigSetting(String section, String key) throws InterruptedException
+    public static float getFloatConfigSetting(String section, String key)
     {
         String setting = getConfigSetting(section, key);
         if (setting == null || setting.length() == 0)
@@ -4777,7 +4792,7 @@ public class utils extends script.base_script
         }
         return 0;
     }
-    public static boolean checkConfigFlag(String strSection, String strConfigSetting) throws InterruptedException
+    public static boolean checkConfigFlag(String strSection, String strConfigSetting)
     {
         String strTest = toLower(getConfigSetting(strSection, strConfigSetting));
         return (strTest != null && (strTest.equals("true") || strTest.equals("1")));
@@ -5912,6 +5927,9 @@ public class utils extends script.base_script
             for (obj_id item : items) {
                 if (isIdValid(item) && (testPlayers || !isPlayer(item))) {
                     if (novendor && hasScript(item, "terminal.vendor")) {
+                        continue;
+                    }
+                    if (hasScript(item, "terminal.terminal_structure")){
                         continue;
                     }
                     if (!canTrade(item)) {
