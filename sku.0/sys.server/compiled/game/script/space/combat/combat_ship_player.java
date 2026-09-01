@@ -782,6 +782,14 @@ public class combat_ship_player extends script.base_script
         space_transition.handlePotentialSceneChange(self);
         return SCRIPT_CONTINUE;
     }
+    public int retrySpaceLaunchPilot(obj_id self, dictionary params) throws InterruptedException
+    {
+        if (isSpaceScene() && !isIdValid(space_transition.getContainingShip(self)))
+        {
+            space_transition.handlePotentialSceneChange(self);
+        }
+        return SCRIPT_CONTINUE;
+    }
     public int OnLogout(obj_id self) throws InterruptedException
     {
         space_transition.handleLogout(self);
