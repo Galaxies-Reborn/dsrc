@@ -3,6 +3,7 @@ package script.planet;
 import script.dictionary;
 import script.library.cloninglib;
 import script.library.gcw;
+import script.library.force_progression;
 import script.library.scheduled_drop;
 import script.library.utils;
 import script.location;
@@ -149,6 +150,22 @@ public class planet_base extends script.base_script
             attachScript(self, "systems.spawning.spawn_master");
         }
         CustomerServiceLog("holidayEvent", "planet_base.doSpawnSetup: doSpawnSetup complete.");
+        String forceSpawner = "systems.reborn.force_progression.world_spawner";
+        if (force_progression.isReplacementEnabled())
+        {
+            if (!hasScript(self, forceSpawner))
+            {
+                attachScript(self, forceSpawner);
+            }
+            else
+            {
+                messageTo(self, "reconcileForceProgressionNpcNetwork", null, 0.0f, false);
+            }
+        }
+        else if (hasScript(self, forceSpawner))
+        {
+            messageTo(self, "retireForceProgressionNpcNetwork", null, 0.0f, false);
+        }
         messageTo(self, "refreshPrecuLifeDayFromState", null, 780.0f, false);
         obj_id tatooinePlanet = getPlanetByName("tatooine");
         if (isIdValid(tatooinePlanet) && exists(tatooinePlanet))

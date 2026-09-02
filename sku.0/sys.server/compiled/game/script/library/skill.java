@@ -240,6 +240,10 @@ public class skill extends script.base_script
         {
             return -1;
         }
+        if (force_progression.isReplacementEnabled() && skillName.startsWith("force_sensitive_"))
+        {
+            return 0;
+        }
         int row = dataTableSearchColumnForString(skillName, "NAME", TBL_SKILL);
         if (row < 0)
         {
@@ -450,6 +454,10 @@ public class skill extends script.base_script
         if (!isIdValid(player) || (!isPlayer(player)) || skillName == null || skillName.equals(""))
         {
             return false;
+        }
+        if (force_progression.isReplacementEnabled() && skillName.startsWith("force_sensitive_"))
+        {
+            return force_progression.purchaseFsSkill(player, skillName);
         }
         if (isRetiredNgeProgressionSkillName(skillName))
         {

@@ -110,6 +110,10 @@ public class jedi_trials extends script.base_script
     public static final String KNIGHT_TRIALS_LOG = "KNIGHT_TRIALS_LOG";
     public static boolean isEligibleForJediPadawanTrials(obj_id player) throws InterruptedException
     {
+        if (force_progression.isReplacementEnabled())
+        {
+            return isIdValid(player) && !hasSkill(player, JEDI_PADAWAN_SKBOX) && force_progression.isPadawanReady(player);
+        }
         if (isIdValid(player))
         {
             if (hasObjVar(player, "overridePTEligibility"))
@@ -132,6 +136,10 @@ public class jedi_trials extends script.base_script
     }
     public static void initializePadawanTrials(obj_id player) throws InterruptedException
     {
+        if (force_progression.isReplacementEnabled() && !force_progression.isPadawanReady(player))
+        {
+            return;
+        }
         setObjVar(player, PADAWAN_TRIALS_ELIGIBLE_OBJVAR, true);
         if (!hasScript(player, PADAWAN_TRIALS_SCRIPT))
         {

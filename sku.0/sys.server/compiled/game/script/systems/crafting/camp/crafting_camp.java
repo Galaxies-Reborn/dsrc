@@ -1,6 +1,9 @@
 package script.systems.crafting.camp;
 
+import script.draft_schematic;
+import script.library.force_threads;
 import script.library.craftinglib;
+import script.obj_id;
 import script.resource_weight;
 
 public class crafting_camp extends script.systems.crafting.camp.crafting_camp_base
@@ -54,5 +57,11 @@ public class crafting_camp extends script.systems.crafting.camp.crafting_camp_ba
     public resource_weight[] getAssemblyResourceWeights() throws InterruptedException
     {
         return OBJ_ASSEMBLY_ATTRIBUTE_RESOURCES;
+    }
+    public int OnManufactureObject(obj_id self, obj_id player, obj_id newObject, draft_schematic schematic, boolean isPrototype, boolean isRealObject) throws InterruptedException
+    {
+        int result = super.OnManufactureObject(self, player, newObject, schematic, isPrototype, isRealObject);
+        force_threads.stampCraftedCampDeed(newObject, player);
+        return result;
     }
 }

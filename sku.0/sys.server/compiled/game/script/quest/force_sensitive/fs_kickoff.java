@@ -257,6 +257,10 @@ public class fs_kickoff extends script.base_script
     }
     public int msgForceComplete(obj_id self, dictionary params) throws InterruptedException
     {
+        if (force_progression.isReplacementEnabled())
+        {
+            return SCRIPT_CONTINUE;
+        }
         fs_quests.advanceStage(self);
         jedi_trials.initializePadawanTrials(self);
         sendSystemMessage(self, new string_id("quest/force_sensitive/exit", "final_complete"));
@@ -419,6 +423,10 @@ public class fs_kickoff extends script.base_script
     }
     public int OnQuestActivated(obj_id self, int questRow) throws InterruptedException
     {
+        if (force_progression.isReplacementEnabled())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (isJedi(self))
         {
             return SCRIPT_CONTINUE;

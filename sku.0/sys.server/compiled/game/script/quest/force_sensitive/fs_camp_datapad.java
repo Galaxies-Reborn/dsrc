@@ -1,6 +1,7 @@
 package script.quest.force_sensitive;
 
 import script.library.fs_quests;
+import script.library.force_progression;
 import script.library.quests;
 import script.library.utils;
 import script.*;
@@ -17,6 +18,10 @@ public class fs_camp_datapad extends script.base_script
     }
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
+        if (force_progression.isReplacementEnabled())
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (item == menu_info_types.SERVER_MENU1)
         {
             if (utils.isOwner(self, player))

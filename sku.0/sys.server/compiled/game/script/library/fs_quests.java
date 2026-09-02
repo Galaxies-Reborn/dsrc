@@ -127,6 +127,10 @@ public class fs_quests extends script.base_script
     }
     public static boolean isVillageEligible(obj_id player) throws InterruptedException
     {
+        if (force_progression.isReplacementEnabled())
+        {
+            return false;
+        }
         if (!isIdValid(player))
         {
             return false;
@@ -135,6 +139,10 @@ public class fs_quests extends script.base_script
     }
     public static boolean makeVillageEligible(obj_id player) throws InterruptedException
     {
+        if (force_progression.isReplacementEnabled())
+        {
+            return false;
+        }
         if (!isIdValid(player))
         {
             LOG("force_sensitive", "fs_quests.makeVillageEligible -- player is invalid.");
@@ -272,6 +280,10 @@ public class fs_quests extends script.base_script
     }
     public static boolean unlockBranch(obj_id player, String branch) throws InterruptedException
     {
+        if (force_progression.isReplacementEnabled())
+        {
+            return false;
+        }
         int branches_unlocked = 0;
         if (hasObjVar(player, VAR_BRANCHES_UNLOCKED))
         {
@@ -424,6 +436,10 @@ public class fs_quests extends script.base_script
     }
     public static boolean showBranchUnlockSUI(obj_id player) throws InterruptedException
     {
+        if (force_progression.isReplacementEnabled())
+        {
+            return false;
+        }
         if (!isIdValid(player))
         {
             LOG("force_sensitive", "fs_quests.showBranchUnlockSUI -- player is invalid");
@@ -660,6 +676,10 @@ public class fs_quests extends script.base_script
     }
     public static boolean unlockBranchSUI(obj_id player, obj_id owner) throws InterruptedException
     {
+        if (force_progression.isReplacementEnabled())
+        {
+            return false;
+        }
         if (!isIdValid(player))
         {
             LOG("force_sensitive", "fs_quests.unlockBranchSUI -- player is invalid");

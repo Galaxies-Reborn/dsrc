@@ -3,6 +3,7 @@ package script.conversation;
 import script.library.ai_lib;
 import script.library.chat;
 import script.library.fs_quests;
+import script.library.force_progression;
 import script.library.quests;
 import script.*;
 
@@ -28,6 +29,10 @@ public class fs_woman extends script.base_script
     }
     public void fs_woman_action_completeQuest(obj_id player, obj_id npc) throws InterruptedException
     {
+        if (force_progression.isReplacementEnabled())
+        {
+            return;
+        }
         if (!quests.isActive("fs_village_elder", player))
         {
             fs_quests.setStage(player, 10);

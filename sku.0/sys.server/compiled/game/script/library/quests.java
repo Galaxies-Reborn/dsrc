@@ -664,6 +664,11 @@ public class quests extends script.base_script
         {
             return;
         }
+        if (force_progression.isRetiredLegacyQuest(questName))
+        {
+            CustomerServiceLog("reborn_force_progression", "Suppressed retired legacy Force Sensitive quest " + questName + " for %TU.", player, null);
+            return;
+        }
         LOG("newquests", "attempting to activate quest " + questName + " for player " + player + " npc " + questGiver);
         String datatable = "datatables/player/quests.iff";
         int questRow = getQuestId(questName);

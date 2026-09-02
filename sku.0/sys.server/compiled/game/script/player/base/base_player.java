@@ -647,6 +647,7 @@ public class base_player extends script.base_script
     public int OnInitialize(obj_id self) throws InterruptedException
     {
         account_containers.ensureContainers(self);
+        force_progression.reconcilePlayer(self);
         city.initCitizen(self);
         boolean setting = utils.checkConfigFlag("TestCenterPlayer", "ApplyTCMark");
         if (setting)
@@ -912,6 +913,7 @@ public class base_player extends script.base_script
         {
             bounty_hunter.syncPlayerBountyKillBuffer(self);
         }
+        force_threads.attachPlayerReceiver(self);
         startJediVisibilityDecay(self);
         return SCRIPT_CONTINUE;
     }
@@ -1559,6 +1561,7 @@ public class base_player extends script.base_script
     public int OnLogin(obj_id self) throws InterruptedException
     {
         account_containers.ensureContainers(self);
+        force_progression.reconcilePlayer(self);
         script.player.live_conversions.retirePostNgePlayerMigrationState(self);
         script.systems.combat.combat_base.retirePostNgeSpeciesAbilityState(self);
         loot.retirePostNgeRareLootPlayerState(self);
@@ -5708,6 +5711,7 @@ public class base_player extends script.base_script
     }
     public int cmdCheckForceStatus(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
+        force_progression.handleCheckCommand(self, params);
         return SCRIPT_CONTINUE;
     }
     public int handleWireConfirm(obj_id self, dictionary params) throws InterruptedException

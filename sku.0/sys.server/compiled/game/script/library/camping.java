@@ -745,6 +745,7 @@ public class camping extends script.base_script
     public static void initializeAdvancedCamp(obj_id deed, obj_id camp, obj_id player, location loc) throws InterruptedException
     {
         setObjVar(camp, VAR_OWNER, player);
+        force_threads.initializeAdvancedCamp(deed, camp, player);
         attachScript(camp, "item.camp.camp_advanced");
         String name = getFirstName(player);
         name += "'s Camp";

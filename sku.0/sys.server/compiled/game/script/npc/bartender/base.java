@@ -218,6 +218,13 @@ public class base extends script.base_script
                     npcEndConversation(speaker);
                     break;
                 case "talk_to_me":
+                    String forceHint = force_progression.tryBartenderHint(speaker, getCalendarTime());
+                    if (forceHint != null)
+                    {
+                        npcSpeak(speaker, new string_id(force_progression.STF, forceHint));
+                        npcEndConversation(speaker);
+                        break;
+                    }
                     location here = getLocation(self);
                     obj_id container = getTopMostContainer(self);
                     if (isIdValid(container)) {

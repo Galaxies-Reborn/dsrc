@@ -566,6 +566,7 @@ centerStage		normal	cmdCenterStage					centerStage	1	0	1	0	0	0	0	0	0	0	0	0	0	0	0
 changeBandMusic		normal	cmdChangeBandMusic						1	0	1	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0			0	0	0	0	1	0	0	0	0	1	1	1	0	0	0	0	0	0	0	0	0									0		0	0	0	0		0						player.skill.performcommands		none	0			performance	0				1										
 changeDance		normal	cmdChangeDance						1	0	1	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0			0	0	0	0	1	0	0	0	0	1	1	1	0	0	0	0	0	0	0	0	0									0		0	0	0	0		1						player.skill.performcommands		none	0			performance	0				1										
 changeMusic		normal	cmdChangeMusic						1	0	1	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0			0	0	0	0	1	0	0	0	0	1	1	1	0	0	0	0	0	0	0	0	0									0		0	0	0	0		0						player.skill.performcommands		none	0			performance	0				1										
+check		immediate	cmdCheckForceStatus																									1	1		0	1																																										optional					1				0										0
 checkForceStatus		immediate	cmdCheckForceStatus																									1	1		0	1																																										optional					1				0										
 cityban		immediate	cmdCityban				0		1	1	1	1	1	1	1	1	1	0	0	0	0	0	0	0	0	1	1	1	1	1	0	1	1	1	1	1	1	1	1	0	0	1	1	1	1	1	1	0	0	0											0	0	0	0										required		3			0				0										
 cityInfo		immediate	cmdCityInfo	failAdmin				admin																				1	1		0	1																																										none					0		40	csr	0										
