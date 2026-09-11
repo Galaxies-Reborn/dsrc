@@ -22101,15 +22101,6 @@ public class base_class
         return _getMaxHousingLots();
     }
     /**
-     * Find out the maximum number of lots a player may use.
-     * @return       The number of lots has available to them.
-     */
-    private static native int _getMaxHousingLots();
-    public static int getMaxHousingLots()
-    {
-        return _getMaxHousingLots();
-    }
-    /**
      * Find out what game features this player has purchased
      * @param player The player (creature object)
      * @return       A 32bit bit-vector indicating the game features this player has purchased.
@@ -26872,7 +26863,6 @@ public class base_class
     public static String getPlayerAccountUsername(obj_id player) {
         return getStringObjVar(player, "system.accountUsername");
     }
-    public static native String _getPlayerUsernameDoNotUse(long player);
 
     /**
      * isInAdminTable
