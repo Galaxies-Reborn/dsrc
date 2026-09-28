@@ -612,6 +612,11 @@ public class npc_lair extends script.theme_park.poi.base
                     setObjVar(self, "npc_lair.isNotCreatureLair", true);
                 }
                 attachNPCLairAiScript(mobile, mobileNumber);
+                if (ai_lib.isMonster(mobile) && hasScript(mobile, "systems.npc_lair.npc_lair_ai"))
+                {
+                    // Use the explicit startup route also used by replacement defenders.
+                    ai_lib.setDefaultCalmBehavior(mobile, ai_lib.getDefaultCalmBehavior(mobile));
+                }
                 if (isCreatureLair)
                 {
                     int creatureXpValue = getIntObjVar(mobile, "combat.intCombatXP");
@@ -954,7 +959,8 @@ public class npc_lair extends script.theme_park.poi.base
     }
     public int handleNpcAiManagement(obj_id self, dictionary params) throws InterruptedException
     {
-        if (hasObjVar(self, "npc_lair.isCreatureLair"))
+        // Population type is recorded from its members, independently of a physical lair.
+        if (!hasObjVar(self, "npc_lair.isNotCreatureLair"))
         {
             doCreatureLairAiManagement(self);
         }
